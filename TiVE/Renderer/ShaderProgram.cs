@@ -103,7 +103,7 @@ namespace ProdigalSoftware.TiVE.Renderer
             GL.UniformMatrix4(matrixMVPLocation, false, ref matrixMVP);
         }
 
-        private bool CompileShader(int shader, string source)
+        private static bool CompileShader(int shader, string source)
         {
             GL.ShaderSource(shader, source);
             GL.CompileShader(shader);

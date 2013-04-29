@@ -1,32 +1,39 @@
 ﻿using System;
 using System.Drawing;
 
-namespace ProdigalSoftware.TiVE.Renderer
+namespace ProdigalSoftware.TiVE.Renderer.World
 {
+    /// <summary>
+    /// Represents a block of the game world. Each block is made up of a 20x20x20 voxel cube.
+    /// See <see cref="GameWorld"/> for how blocks are used.
+    /// </summary>
     public class Block : VoxelGroup
     {
+        /// <summary>
+        /// Number of voxels that make up a block on each axis
+        /// </summary>
         public const int Block_Size = 20;
 
-        private static readonly Random random = new Random();
-
+        /// <summary>
+        /// Creates a new <see cref="Block"/>
+        /// </summary>
         public Block(bool fill, bool frontOnly) : base(Block_Size, Block_Size, Block_Size)
         {
+            // TODO: Create blocks from files instead of programatically
             if (!fill)
                 return;
 
             Color dirt = frontOnly ? Color.FromArgb(255, 62, 25, 1) : Color.FromArgb(255, 129, 53, 2);
             //Color dirt = Color.FromArgb(200, 2, 53, 129);
+            Random random = new Random();
             for (int x = 0; x < Block_Size; x++)
             {
                 for (int y = 0; y < Block_Size; y++)
                 {
                     for (int z = frontOnly ? Block_Size - 1 : 0; z < Block_Size; z++)
                     {
-                        if (frontOnly || (!frontOnly && z < Block_Size - 3) || 
-                            random.NextDouble() < 0.3)
-                        {
-                            SetVoxel(x, y, z, FromColor(CreateColorFromColor(dirt)));
-                        }
+                        if (frontOnly || z < Block_Size - 3 || random.NextDouble() < 0.3)
+                            SetVoxel(x, y, z, FromColor(CreateColorFromColor(dirt, random)));
                     }
                 }
             }
@@ -67,7 +74,7 @@ namespace ProdigalSoftware.TiVE.Renderer
         }
 
 
-        private static Color CreateColorFromColor(Color seed)
+        private static Color CreateColorFromColor(Color seed, Random random)
         {
             double rand = random.NextDouble() + 0.6;
             return Color.FromArgb(seed.A,
