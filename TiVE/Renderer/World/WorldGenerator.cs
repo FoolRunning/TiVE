@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Diagnostics;
 
-namespace ProdigalSoftware.TiVE.Renderer
+namespace ProdigalSoftware.TiVE.Renderer.World
 {
+    /// <summary>
+    /// Creates a world based on a set of generators
+    /// </summary>
     public sealed class WorldGenerator
     {
         private readonly int worldXsize;
@@ -16,9 +19,9 @@ namespace ProdigalSoftware.TiVE.Renderer
             this.worldZsize = worldZsize;
         }
 
-        public World CreateWorld(long seed)
+        public GameWorld CreateWorld(long seed)
         {
-            World createdWorld = new World(worldXsize, worldYsize, worldZsize);
+            GameWorld createdWorld = new GameWorld(worldXsize, worldYsize, worldZsize);
             Random rand1 = new Random((int)((seed >> 32) & 0xFFFFFFFF));
             Random rand2 = new Random((int)(seed & 0xFFFFFFFF));
 

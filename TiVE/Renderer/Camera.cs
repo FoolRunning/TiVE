@@ -5,11 +5,10 @@ namespace ProdigalSoftware.TiVE.Renderer
 {
     public sealed class Camera
     {
-        private Vector3 location = new Vector3();
-        private Vector3 lookAtLocation = new Vector3();
+        private Vector3 location;
+        private Vector3 lookAtLocation;
         private Matrix4 viewMatrix;
         private Matrix4 projectionMatrix;
-        private float aspectRatio;
         private bool needUpdate;
 
         public Camera()
@@ -37,16 +36,13 @@ namespace ProdigalSoftware.TiVE.Renderer
             get { return lookAtLocation; }
         }
 
-        public float AspectRatio
-        {
-            get { return aspectRatio; }
-        }
+        public float AspectRatio { get; private set; }
 
         public float FoV { get; set; }
 
         public void SetViewport(int width, int height)
         {
-            aspectRatio = width / (float)height;
+            AspectRatio = width / (float)height;
         }
 
         public void SetLocation(float x, float y, float z)
@@ -73,7 +69,7 @@ namespace ProdigalSoftware.TiVE.Renderer
                     lookAtLocation.X, lookAtLocation.Y, lookAtLocation.Z,
                     0.0f, 1.0f, 0.0f);
                 
-                projectionMatrix = Matrix4.CreatePerspectiveFieldOfView(FoV, aspectRatio, 1.0f, 1064.0f);
+                projectionMatrix = Matrix4.CreatePerspectiveFieldOfView(FoV, AspectRatio, 1.0f, 1064.0f);
 
                 needUpdate = false;
             }

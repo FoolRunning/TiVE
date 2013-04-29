@@ -5,6 +5,12 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProjectM", "ProjectM\Projec
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TiVE", "TiVE\TiVE.csproj", "{36A8E85B-B645-4BD0-A1AB-FB00448D5742}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TiVETests", "TiVETests\TiVETests.csproj", "{0E291FAE-65A9-4A98-8143-118829ECF38C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WorldCreation", "WorldCreation\WorldCreation.csproj", "{466A12C3-CEE1-4C09-97B6-D289C3DAF62D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TiVEPluginFramework", "TiVEPluginFramework\TiVEPluginFramework.csproj", "{42F81808-5A13-4501-B184-18B4197512C3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -19,11 +25,20 @@ Global
 		{36A8E85B-B645-4BD0-A1AB-FB00448D5742}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{36A8E85B-B645-4BD0-A1AB-FB00448D5742}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{36A8E85B-B645-4BD0-A1AB-FB00448D5742}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0E291FAE-65A9-4A98-8143-118829ECF38C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0E291FAE-65A9-4A98-8143-118829ECF38C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0E291FAE-65A9-4A98-8143-118829ECF38C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0E291FAE-65A9-4A98-8143-118829ECF38C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{466A12C3-CEE1-4C09-97B6-D289C3DAF62D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{466A12C3-CEE1-4C09-97B6-D289C3DAF62D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{466A12C3-CEE1-4C09-97B6-D289C3DAF62D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{466A12C3-CEE1-4C09-97B6-D289C3DAF62D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{42F81808-5A13-4501-B184-18B4197512C3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{42F81808-5A13-4501-B184-18B4197512C3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{42F81808-5A13-4501-B184-18B4197512C3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{42F81808-5A13-4501-B184-18B4197512C3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
-	EndGlobalSection
-	GlobalSection(Performance) = preSolution
-		HasPerformanceSessions = true
 	EndGlobalSection
 EndGlobal

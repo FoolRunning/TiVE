@@ -1,35 +1,38 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Threading.Tasks;
 using OpenTK;
 
-namespace ProdigalSoftware.TiVE.Renderer
+namespace ProdigalSoftware.TiVE.Renderer.World
 {
-    public sealed class World
+    /// <summary>
+    /// Contains the information about the game world. 
+    /// </summary>
+    public sealed class GameWorld
     {
-        private readonly ushort[, ,] world;
+        private readonly ushort[, ,] worldData;
         private readonly int xSize;
         private readonly int ySize;
         private readonly int zSize;
         private readonly List<Sprite> sprites = new List<Sprite>();
         private List<Block> blockList;
 
-        internal World(int xSize, int ySize, int zSize)
+        internal GameWorld(int xSize, int ySize, int zSize)
         {
             this.xSize = xSize;
             this.ySize = ySize;
             this.zSize = zSize;
-            world = new ushort[xSize, ySize, zSize];
+            worldData = new ushort[xSize, ySize, zSize];
         }
 
         public void SetBlockList(List<Block> newBlockList)
         {
-            this.blockList = newBlockList;
+            blockList = newBlockList;
         }
 
         public void SetBlock(int x, int y, int z, ushort blockIndex)
         {
-            world[x, y, z] = blockIndex;
+            worldData[x, y, z] = blockIndex;
         }
 
         public void AddSprite(Sprite toAdd)
@@ -65,7 +68,7 @@ namespace ProdigalSoftware.TiVE.Renderer
 
                         Matrix4 viewProjectionModelMatrix = translationMatrix * viewProjectionMatrix;
 
-                        Block block = blockList[world[x, y, z]];
+                        Block block = blockList[worldData[x, y, z]];
                         block.Render(ref viewProjectionModelMatrix);
                         polygonCount += block.PolygonCount;
                     }
@@ -90,12 +93,12 @@ namespace ProdigalSoftware.TiVE.Renderer
 
         private static void GetWorldView(Camera camera, float distance, out int minX, out int maxX, out int minY, out int maxY)
         {
-            float Hfar = 2.0f * (float)Math.Tan(camera.FoV / 2) * distance;
-            float Wfar = Hfar * camera.AspectRatio;
+            float hfar = 2.0f * (float)Math.Tan(camera.FoV / 2) * distance;
+            float wfar = hfar * camera.AspectRatio;
 
             Vector3 fc = camera.Location + new Vector3(0, 0, -1) * distance;
-            Vector3 topLeft = fc + (Vector3.UnitY * Hfar / 2) - (Vector3.UnitX * Wfar / 2);
-            Vector3 bottomRight = fc - (Vector3.UnitY * Hfar / 2) + (Vector3.UnitX * Wfar / 2);
+            Vector3 topLeft = fc + (Vector3.UnitY * hfar / 2) - (Vector3.UnitX * wfar / 2);
+            Vector3 bottomRight = fc - (Vector3.UnitY * hfar / 2) + (Vector3.UnitX * wfar / 2);
 
             minX = (int)Math.Floor(topLeft.X / Block.Block_Size);
             maxX = (int)Math.Ceiling(bottomRight.X / Block.Block_Size);

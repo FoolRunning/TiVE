@@ -2,6 +2,7 @@
 using System.Drawing;
 using System.Windows.Forms;
 using System.Reflection;
+using ProdigalSoftware.TiVE.Plugins;
 using ProdigalSoftware.TiVE.Properties;
 
 namespace ProdigalSoftware.TiVE.Starter
@@ -73,7 +74,7 @@ namespace ProdigalSoftware.TiVE.Starter
             Messages.SetDefaultFontStyle();
             Messages.Println("*** Witty message here ***", Messages.MISC_COLOR);
 
-            Messages.MessageTest();
+            //Messages.MessageTest();
         }
 
         private void tableLayoutPanel1_MouseDown(object sender, MouseEventArgs e)
@@ -104,7 +105,7 @@ namespace ProdigalSoftware.TiVE.Starter
 
         private void btnStart_Click(object sender, EventArgs e)
         {
-
+            PluginManager.LoadPlugins();
         }
 
         private void btnCopyText_Click(object sender, EventArgs e)
