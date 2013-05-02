@@ -4,7 +4,7 @@ using OpenTK.Graphics.OpenGL;
 
 namespace ProdigalSoftware.TiVE.Renderer
 {
-    public sealed class MeshBuilder
+    internal sealed class MeshBuilder
     {
         private readonly bool includeColor;
         private readonly bool includeTexCoords;

@@ -1,10 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Windows.Forms;
-using ProdigalSoftware.TiVE.Starter;
+using ProdigalSoftware.TiVE;
 
-namespace NovaEngine3
+namespace ProdigalSoftware.ProjectM
 {
     static class Program
     {
@@ -16,7 +14,8 @@ namespace NovaEngine3
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new StarterForm());
+
+            TiVEController.RunStarter();
         }
     }
 }

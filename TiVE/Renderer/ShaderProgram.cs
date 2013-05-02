@@ -4,7 +4,7 @@ using OpenTK;
 
 namespace ProdigalSoftware.TiVE.Renderer
 {
-    public sealed class ShaderProgram
+    internal sealed class ShaderProgram
     {
         private readonly string vertexShaderSource;
         private readonly string fragmentShaderSource;

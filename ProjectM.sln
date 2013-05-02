@@ -2,6 +2,9 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2012
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProjectM", "ProjectM\ProjectM.csproj", "{CE6B3F5D-84A4-4931-8ACE-6C3462A39167}"
+	ProjectSection(ProjectDependencies) = postProject
+		{466A12C3-CEE1-4C09-97B6-D289C3DAF62D} = {466A12C3-CEE1-4C09-97B6-D289C3DAF62D}
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TiVE", "TiVE\TiVE.csproj", "{36A8E85B-B645-4BD0-A1AB-FB00448D5742}"
 EndProject

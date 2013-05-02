@@ -5,7 +5,7 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{36A8E85B-B645-4BD0-A1AB-FB00448D5742}</ProjectGuid>
-    <OutputType>WinExe</OutputType>
+    <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>ProdigalSoftware.TiVE</RootNamespace>
     <AssemblyName>TiVE</AssemblyName>
@@ -52,12 +52,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Game.cs" />
     <Compile Include="Plugins\PluginManager.cs" />
-    <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Renderer\World\Block.cs" />
-    <Compile Include="Renderer\BlockDataManager.cs" />
-    <Compile Include="Renderer\BlockDataType.cs" />
     <Compile Include="Renderer\Camera.cs" />
     <Compile Include="Renderer\GlUtils.cs" />
     <Compile Include="Renderer\Mesh.cs" />
@@ -65,6 +63,7 @@
     <Compile Include="Renderer\ShaderProgram.cs" />
     <Compile Include="Renderer\Sprite.cs" />
     <Compile Include="Renderer\VoxelGroup.cs" />
+    <Compile Include="Renderer\World\BlockList.cs" />
     <Compile Include="Renderer\World\GameWorld.cs" />
     <Compile Include="Renderer\World\WorldGenerator.cs" />
     <Compile Include="Starter\MessageLine.cs" />
@@ -83,6 +82,7 @@
     </Compile>
     <Compile Include="Starter\TextMessages.cs" />
     <Compile Include="Starter\TextState.cs" />
+    <Compile Include="TiVEController.cs" />
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
@@ -109,7 +109,12 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <ProjectReference Include="..\TiVEPluginFramework\TiVEPluginFramework.csproj">
+      <Project>{42f81808-5a13-4501-b184-18b4197512c3}</Project>
+      <Name>TiVEPluginFramework</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

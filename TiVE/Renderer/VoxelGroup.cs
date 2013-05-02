@@ -5,9 +5,9 @@ using OpenTK;
 
 namespace ProdigalSoftware.TiVE.Renderer
 {
-    public class VoxelGroup
+    internal class VoxelGroup
     {
-        private const string vertexShaderSource = @"
+        private const string VertexShaderSource = @"
             #version 150 core 
  
             // incoming vertex position
@@ -27,7 +27,7 @@ namespace ProdigalSoftware.TiVE.Renderer
                 gl_Position = matrix_ModelViewProjection * vec4(in_Position, 1.0);
             }";
 
-        private const string fragmentShaderSource = @"
+        private const string FragmentShaderSource = @"
                 #version 150 core 
                 //precision highp float;
 
@@ -41,8 +41,8 @@ namespace ProdigalSoftware.TiVE.Renderer
 				}	
 			";
 
-        private const float Voxel_Size = 1.0f;
-        private const float Voxel_Offset = 1.0f;
+        private const float VoxelSize = 1.0f;
+        private const float VoxelOffset = 1.0f;
 
         private readonly uint[, ,] voxels;
 
@@ -108,7 +108,7 @@ namespace ProdigalSoftware.TiVE.Renderer
 
         private static ShaderProgram CreateCubeShader()
         {
-            ShaderProgram program = new ShaderProgram(vertexShaderSource, fragmentShaderSource, null);
+            ShaderProgram program = new ShaderProgram(VertexShaderSource, FragmentShaderSource, null);
             if (!program.Initialize())
                 Debug.WriteLine("Failed to initialize shader");
             return program;
@@ -140,14 +140,14 @@ namespace ProdigalSoftware.TiVE.Renderer
                         byte ca = (byte)((color >> 24) & 0xFF);
                         //Debug.WriteLine(string.Format("Color value: {0} - ({1}, {2}, {3})", color, (int)(color & 0xFF), (int)((color >> 8) & 0xFF), (int)((color >> 16) & 0xFF)));
 
-                        uint v1 = builder.AddVertex(x * Voxel_Offset, y * Voxel_Offset + Voxel_Size, z * Voxel_Offset, cr, cg, cb, ca);
-                        uint v2 = builder.AddVertex(x * Voxel_Offset + Voxel_Size, y * Voxel_Offset + Voxel_Size, z * Voxel_Offset, cr, cg, cb, ca);
-                        uint v3 = builder.AddVertex(x * Voxel_Offset + Voxel_Size, y * Voxel_Offset + Voxel_Size, z * Voxel_Offset + Voxel_Size, cr, cg, cb, ca);
-                        uint v4 = builder.AddVertex(x * Voxel_Offset, y * Voxel_Offset + Voxel_Size, z * Voxel_Offset + Voxel_Size, cr, cg, cb, ca);
-                        uint v5 = builder.AddVertex(x * Voxel_Offset, y * Voxel_Offset, z * Voxel_Offset, cr, cg, cb, ca);
-                        uint v6 = builder.AddVertex(x * Voxel_Offset + Voxel_Size, y * Voxel_Offset, z * Voxel_Offset, cr, cg, cb, ca);
-                        uint v7 = builder.AddVertex(x * Voxel_Offset + Voxel_Size, y * Voxel_Offset, z * Voxel_Offset + Voxel_Size, cr, cg, cb, ca);
-                        uint v8 = builder.AddVertex(x * Voxel_Offset, y * Voxel_Offset, z * Voxel_Offset + Voxel_Size, cr, cg, cb, ca);
+                        uint v1 = builder.AddVertex(x * VoxelOffset, y * VoxelOffset + VoxelSize, z * VoxelOffset, cr, cg, cb, ca);
+                        uint v2 = builder.AddVertex(x * VoxelOffset + VoxelSize, y * VoxelOffset + VoxelSize, z * VoxelOffset, cr, cg, cb, ca);
+                        uint v3 = builder.AddVertex(x * VoxelOffset + VoxelSize, y * VoxelOffset + VoxelSize, z * VoxelOffset + VoxelSize, cr, cg, cb, ca);
+                        uint v4 = builder.AddVertex(x * VoxelOffset, y * VoxelOffset + VoxelSize, z * VoxelOffset + VoxelSize, cr, cg, cb, ca);
+                        uint v5 = builder.AddVertex(x * VoxelOffset, y * VoxelOffset, z * VoxelOffset, cr, cg, cb, ca);
+                        uint v6 = builder.AddVertex(x * VoxelOffset + VoxelSize, y * VoxelOffset, z * VoxelOffset, cr, cg, cb, ca);
+                        uint v7 = builder.AddVertex(x * VoxelOffset + VoxelSize, y * VoxelOffset, z * VoxelOffset + VoxelSize, cr, cg, cb, ca);
+                        uint v8 = builder.AddVertex(x * VoxelOffset, y * VoxelOffset, z * VoxelOffset + VoxelSize, cr, cg, cb, ca);
 
                         if (z == voxelCountZ - 1 || !IsVoxelSet(x, y, z + 1))
                         {

@@ -1,9 +1,10 @@
 ﻿using System;
 using OpenTK;
+using ProdigalSoftware.TiVEPluginFramework;
 
 namespace ProdigalSoftware.TiVE.Renderer
 {
-    public sealed class Camera
+    internal sealed class Camera : ICamera
     {
         private Vector3 location;
         private Vector3 lookAtLocation;

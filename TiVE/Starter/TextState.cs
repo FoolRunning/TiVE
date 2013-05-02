@@ -5,16 +5,16 @@ namespace ProdigalSoftware.TiVE.Starter
     /// <summary>
     /// Holds current state information for drawing text in the MessageView
     /// </summary>
-    public sealed class TextState
+    internal sealed class TextState
     {
         /// <summary>The margin (in pixels) for the drawn text</summary>
-        public const int MARGIN_WIDTH = 5;
+        public const int MarginWidth = 5;
         
         /// <summary>The width of the drawable area</summary>
         public readonly int Width;
 
         /// <summary>The x location to draw the text</summary>
-        public int X = MARGIN_WIDTH;
+        public int X = MarginWidth;
 
         /// <summary>The y location to draw the text</summary>
         public int Y = 0;
@@ -29,10 +29,10 @@ namespace ProdigalSoftware.TiVE.Starter
         /// <param name="font">The current font</param>
         public TextState(int width, Font font, int x, int y)
         {
-            this.Width = width;
-            this.Font = font;
-            this.X = x;
-            this.Y = y;
+            Width = width;
+            Font = font;
+            X = x;
+            Y = y;
         }
     }
 }
