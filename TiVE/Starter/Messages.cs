@@ -12,48 +12,48 @@ namespace ProdigalSoftware.TiVE.Starter
     {
         #region Constants
         /// <summary>Maximum number of lines to show</summary>
-        public const int MAX_LINE_LIMIT = 50000;
+        internal const int MAX_LINE_LIMIT = 50000;
         
         /// <summary>Default style of the text</summary>
-        public static readonly FontStyle DEFAULT_FONT_STYLE = FontStyle.Regular;
+        internal static readonly FontStyle DEFAULT_FONT_STYLE = FontStyle.Regular;
         
         /// <summary>Color of the lines to show on each line of text</summary>
-        public static readonly Color BASE_LINE_COLOR = Color.FromArgb(39, 39, 39);
+        internal static readonly Color BASE_LINE_COLOR = Color.FromArgb(39, 39, 39);
 
         /// <summary>Default color of text</summary>
-        public static readonly Color DEFAULT_GRAY = Color.FromArgb(192, 192, 192);
+        internal static readonly Color DEFAULT_GRAY = Color.FromArgb(192, 192, 192);
 
         /// <summary>Nova engine blue</summary>
-        public static readonly Color TiVE_BLUE = Color.FromArgb(64, 192, 255);
+        internal static readonly Color TiVE_BLUE = Color.FromArgb(64, 192, 255);
 
         /// <summary>Nova engine dark blue</summary>
-        public static readonly Color TiVE_BLUE_DARK = Color.FromArgb(32, 96, 128);
+        internal static readonly Color TiVE_BLUE_DARK = Color.FromArgb(32, 96, 128);
 
         /// <summary>Color for misc text</summary>
-        public static readonly Color MISC_COLOR = Color.Orange;
+        internal static readonly Color MISC_COLOR = Color.Orange;
 
         /// <summary>Color for the "Done" text</summary>
-        public static readonly Color DONE_COLOR = Color.Green;
+        internal static readonly Color DONE_COLOR = Color.Green;
 
         /// <summary>Color for error text</summary>
-        public static readonly Color ERROR_COLOR = Color.Red;
+        internal static readonly Color ERROR_COLOR = Color.Red;
 
         /// <summary>Color for warning text</summary>
-        public static readonly Color WARNING_COLOR = Color.Yellow;
+        internal static readonly Color WARNING_COLOR = Color.Yellow;
 
         /// <summary>Color for debug text</summary>
-        public static readonly Color DEBUG_COLOR = Color.FromArgb(0, 102, 255);
+        internal static readonly Color DEBUG_COLOR = Color.FromArgb(0, 102, 255);
         #endregion
 
         #region Events
         /// <summary>Event fired when text is added to the messages</summary>
-        public static event Action TextAdded;
+        internal static event Action TextAdded;
         /// <summary>Event fired when the message screen is cleared</summary>
-        public static event Action TextCleared;
+        internal static event Action TextCleared;
         #endregion
 
         #region Member variables
-        private static MessageViewControl m_createdScreen;
+        private static readonly MessageViewControl m_createdScreen;
         private static bool m_debugMode;
         #endregion
 
@@ -77,7 +77,7 @@ namespace ProdigalSoftware.TiVE.Starter
         /// <summary>
         /// Returns the created MessageView
         /// </summary>
-        public static MessageViewControl MessageView
+        internal static MessageViewControl MessageView
         {
             get { return m_createdScreen; }
         }
@@ -179,6 +179,7 @@ namespace ProdigalSoftware.TiVE.Starter
         /// </summary>
         public static void AddWarning(string message)
         {
+            AddFontSizeChange(10);
             AddFontStyleChange(FontStyle.Bold);
             Println(message, WARNING_COLOR);
 
@@ -320,7 +321,7 @@ namespace ProdigalSoftware.TiVE.Starter
         /// <summary>
         /// Adds text to test different abilities of the message window
         /// </summary>
-        public static void MessageTest()
+        internal static void MessageTest()
         {
             SetDefaultFontStyle();
             AddDebug("----   Debug testing area   ----");

@@ -1,9 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL;
@@ -11,27 +6,26 @@ using OpenTK.Input;
 using ProdigalSoftware.TiVE.Renderer;
 using ProdigalSoftware.TiVE.Renderer.World;
 
-namespace ProjectM
+namespace ProdigalSoftware.TiVE
 {
-    public class Game : GameWindow
+    internal class Game : GameWindow
     {
-        public const int WORLD_X_SIZE = 1024;
-        public const int WORLD_Y_SIZE = 1024;
-        public const int WORLD_Z_SIZE = 2;
+        public const int WorldXSize = 1024;
+        public const int WorldYSize = 1024;
+        public const int WorldZSize = 2;
 
-        private Random random = new Random();
-        private List<Block> blocks;
+        private BlockList blockList;
         private GameWorld world;
 
-        private Camera camera = new Camera();
+        private readonly Camera camera = new Camera();
 
         /// <summary>Creates a 800x600 window with the specified title.</summary>
         public Game()
-            : base(1600, 1200, new GraphicsMode(new ColorFormat(8, 8, 8, 8), 24, 0, 0), "Blocks",
+            : base(1600, 1200, new GraphicsMode(new ColorFormat(8, 8, 8, 8), 16, 0, 0), "Blocks",
                 GameWindowFlags.Default, DisplayDevice.Default, 3, 1, GraphicsContextFlags.Default)
         {
             VSync = VSyncMode.On;
-            camera.SetLocation(15, 7, 120);
+            camera.SetLocation(10000, 19000, 120);
         }
 
         /// <summary>Load resources here.</summary>
@@ -40,18 +34,10 @@ namespace ProjectM
         {
             base.OnLoad(eArgs);
 
-            Debug.Write("Generating block data...");
-            blocks = new List<Block>(100);
+            blockList = BlockList.CreateBlockList();
 
-            for (int i = 0; i < 100; i++)
-            {
-                blocks.Add(new Block(i > 0, i >= 50));
-            }
-            Debug.WriteLine("DONE");
-
-            WorldGenerator generator = new WorldGenerator(WORLD_X_SIZE, WORLD_Y_SIZE, WORLD_Z_SIZE);
-            world = generator.CreateWorld(LongRandom());
-            world.SetBlockList(blocks);
+            WorldGenerator generator = new WorldGenerator(WorldXSize, WorldYSize, WorldZSize);
+            world = generator.CreateWorld(123456789, blockList); //LongRandom());
 
             GL.ClearColor(0.1f, 0.1f, 0.1f, 0.0f);
 
@@ -69,9 +55,10 @@ namespace ProjectM
             GlUtils.CheckGLErrors();
         }
 
-        private long LongRandom()
+        private static long LongRandom()
         {
             byte[] buf = new byte[8];
+            Random random = new Random();
             random.NextBytes(buf);
             return BitConverter.ToInt64(buf, 0);
         }
@@ -110,11 +97,11 @@ namespace ProjectM
 
             if (Keyboard[Key.KeypadPlus])
             {
-                camLoc.Z = Math.Max(camLoc.Z - 3.0f, 4.0f * Block.Block_Size);
+                camLoc.Z = Math.Max(camLoc.Z - 3.0f, 4.0f * Block.BlockSize);
             }
             else if (Keyboard[Key.KeypadMinus])
             {
-                camLoc.Z = Math.Min(camLoc.Z + 3.0f, 20.0f * Block.Block_Size);
+                camLoc.Z = Math.Min(camLoc.Z + 3.0f, 20.0f * Block.BlockSize);
             }
 
             camera.SetLocation(camLoc.X, camLoc.Y, camLoc.Z);
@@ -124,11 +111,7 @@ namespace ProjectM
 
         protected override void OnUnload(EventArgs e)
         {
-            Debug.Write("Deleting blocks...");
-            foreach (Block block in blocks)
-                block.Delete();
-
-            Debug.WriteLine("Done");
+            blockList.DeleteBlocks();
 
             base.OnUnload(e);
         }
@@ -146,21 +129,6 @@ namespace ProjectM
             SwapBuffers();
             //GlUtils.CheckGLErrors();
             Title = string.Format("Polygon count = {0}", polygonCount);
-        }
-
-        /// <summary>
-        /// The main entry point for the application.
-        /// </summary>
-        [STAThread]
-        static void Main()
-        {
-            // The 'using' idiom guarantees proper resource cleanup.
-            // We request 15 UpdateFrame events per second, and unlimited
-            // RenderFrame events (as fast as the computer can handle).
-            using (Game game = new Game())
-            {
-                game.Run(60.0);
-            }
         }
     }
 }

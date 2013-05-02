@@ -115,7 +115,7 @@ namespace ProdigalSoftware.TiVE.Starter
 
         public override void DrawText(TextState state, Graphics g)
         {
-            state.X = state.Width - Size.Width - TextState.MARGIN_WIDTH;
+            state.X = state.Width - Size.Width - TextState.MarginWidth;
             base.DrawText(state, g);
         }
     }

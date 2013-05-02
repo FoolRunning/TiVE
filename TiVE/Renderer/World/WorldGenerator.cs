@@ -1,12 +1,16 @@
 ﻿using System;
-using System.Diagnostics;
+using System.Collections.Generic;
+using System.Linq;
+using ProdigalSoftware.TiVE.Plugins;
+using ProdigalSoftware.TiVE.Starter;
+using ProdigalSoftware.TiVEPluginFramework;
 
 namespace ProdigalSoftware.TiVE.Renderer.World
 {
     /// <summary>
     /// Creates a world based on a set of generators
     /// </summary>
-    public sealed class WorldGenerator
+    internal sealed class WorldGenerator
     {
         private readonly int worldXsize;
         private readonly int worldYsize;
@@ -19,32 +23,24 @@ namespace ProdigalSoftware.TiVE.Renderer.World
             this.worldZsize = worldZsize;
         }
 
-        public GameWorld CreateWorld(long seed)
+        public GameWorld CreateWorld(long seed, BlockList blockList)
         {
-            GameWorld createdWorld = new GameWorld(worldXsize, worldYsize, worldZsize);
-            Random rand1 = new Random((int)((seed >> 32) & 0xFFFFFFFF));
-            Random rand2 = new Random((int)(seed & 0xFFFFFFFF));
+            Messages.Print("Creating world...");
+            GameWorld createdWorld = new GameWorld(worldXsize, worldYsize, worldZsize, blockList);
 
-            int lastPercent = -1;
-            for (int x = 0; x < worldXsize; x++)
+            try
             {
-                for (int y = 0; y < worldYsize; y++)
-                {
-                    for (int z = 0; z < worldZsize; z++)
-                    {
-                        if (z == 0)
-                            createdWorld.SetBlock(x, y, z, (ushort)(50));
-                        else
-                            createdWorld.SetBlock(x, y, z, (ushort)(1));
-                    }
-                }
-                int newPercent = x * 100 / (worldXsize - 1);
-                if (newPercent != lastPercent)
-                {
-                    Debug.WriteLine(newPercent + "%");
-                    lastPercent = newPercent;
-                }
+                foreach (IWorldGenerator generator in PluginManager.GetPluginsOfType<IWorldGenerator>().OrderBy(wg => wg.Priority))
+                    generator.UpdateWorld(createdWorld, seed, blockList);
             }
+            catch (Exception e)
+            {
+                Messages.AddFailText();
+                Messages.AddStackTrace(e);
+                return null;
+            }
+            
+            Messages.AddDoneText();
 
             return createdWorld;
         }

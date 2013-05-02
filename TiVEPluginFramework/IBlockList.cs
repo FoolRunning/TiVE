@@ -4,9 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace WorldCreation
+namespace ProdigalSoftware.TiVEPluginFramework
 {
-    public class Class1
+    public interface IBlockList
     {
+        ushort GetBlockIndex(string blockName);
     }
 }

@@ -4,7 +4,7 @@ using System.Diagnostics;
 
 namespace ProdigalSoftware.TiVE.Renderer
 {
-    public static class GlUtils
+    internal static class GlUtils
     {
         public static void CheckGLErrors()
         {

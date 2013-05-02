@@ -2,7 +2,7 @@
 
 namespace ProdigalSoftware.TiVE.Renderer
 {
-    public class Sprite : VoxelGroup
+    internal class Sprite : VoxelGroup
     {
         public float X;
         public float Y;

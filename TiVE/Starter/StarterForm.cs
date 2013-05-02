@@ -2,12 +2,11 @@
 using System.Drawing;
 using System.Windows.Forms;
 using System.Reflection;
-using ProdigalSoftware.TiVE.Plugins;
 using ProdigalSoftware.TiVE.Properties;
 
 namespace ProdigalSoftware.TiVE.Starter
 {
-    public partial class StarterForm : Form
+    internal partial class StarterForm : Form
     {
         /// <summary>string containing the copyright information</summary>
         private const string COPYRIGHT_STRING = "© 2013 Prodigal Software";
@@ -105,7 +104,7 @@ namespace ProdigalSoftware.TiVE.Starter
 
         private void btnStart_Click(object sender, EventArgs e)
         {
-            PluginManager.LoadPlugins();
+            TiVEController.RunEngine();
         }
 
         private void btnCopyText_Click(object sender, EventArgs e)

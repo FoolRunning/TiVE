@@ -1,38 +1,54 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using OpenTK;
+using ProdigalSoftware.TiVEPluginFramework;
 
 namespace ProdigalSoftware.TiVE.Renderer.World
 {
     /// <summary>
     /// Contains the information about the game world. 
     /// </summary>
-    public sealed class GameWorld
+    internal sealed class GameWorld : IGameWorld
     {
         private readonly ushort[, ,] worldData;
         private readonly int xSize;
         private readonly int ySize;
         private readonly int zSize;
         private readonly List<Sprite> sprites = new List<Sprite>();
-        private List<Block> blockList;
+        private readonly BlockList blockList;
 
-        internal GameWorld(int xSize, int ySize, int zSize)
+        internal GameWorld(int xSize, int ySize, int zSize, BlockList blockList)
         {
             this.xSize = xSize;
             this.ySize = ySize;
             this.zSize = zSize;
+            this.blockList = blockList;
             worldData = new ushort[xSize, ySize, zSize];
         }
 
-        public void SetBlockList(List<Block> newBlockList)
+        public int Xsize
         {
-            blockList = newBlockList;
+            get { return xSize; }
+        }
+
+        public int Ysize
+        {
+            get { return ySize; }
+        }
+
+        public int Zsize
+        {
+            get { return zSize; }
         }
 
         public void SetBlock(int x, int y, int z, ushort blockIndex)
         {
             worldData[x, y, z] = blockIndex;
+        }
+
+        public ushort GetBlock(int x, int y, int z)
+        {
+            return worldData[x, y, z];
         }
 
         public void AddSprite(Sprite toAdd)
@@ -57,20 +73,23 @@ namespace ProdigalSoftware.TiVE.Renderer.World
             Matrix4 translationMatrix = Matrix4.Identity;
             for (int z = 0; z < 2; z++)
             {
-                translationMatrix.M43 = z * Block.Block_Size;
+                translationMatrix.M43 = z * Block.BlockSize;
                 for (int x = minX; x < maxX; x++)
                 {
-                    translationMatrix.M41 = x * Block.Block_Size;
+                    translationMatrix.M41 = x * Block.BlockSize;
 
                     for (int y = minY; y < maxY; y++)
                     {
-                        translationMatrix.M42 = y * Block.Block_Size;
+                        translationMatrix.M42 = y * Block.BlockSize;
 
                         Matrix4 viewProjectionModelMatrix = translationMatrix * viewProjectionMatrix;
 
                         Block block = blockList[worldData[x, y, z]];
-                        block.Render(ref viewProjectionModelMatrix);
-                        polygonCount += block.PolygonCount;
+                        if (block != null)
+                        {
+                            block.Render(ref viewProjectionModelMatrix);
+                            polygonCount += block.PolygonCount;
+                        }
                     }
                 }
             }
@@ -100,10 +119,10 @@ namespace ProdigalSoftware.TiVE.Renderer.World
             Vector3 topLeft = fc + (Vector3.UnitY * hfar / 2) - (Vector3.UnitX * wfar / 2);
             Vector3 bottomRight = fc - (Vector3.UnitY * hfar / 2) + (Vector3.UnitX * wfar / 2);
 
-            minX = (int)Math.Floor(topLeft.X / Block.Block_Size);
-            maxX = (int)Math.Ceiling(bottomRight.X / Block.Block_Size);
-            minY = (int)Math.Floor(bottomRight.Y / Block.Block_Size);
-            maxY = (int)Math.Ceiling(topLeft.Y / Block.Block_Size);
+            minX = (int)Math.Floor(topLeft.X / Block.BlockSize);
+            maxX = (int)Math.Ceiling(bottomRight.X / Block.BlockSize);
+            minY = (int)Math.Floor(bottomRight.Y / Block.BlockSize);
+            maxY = (int)Math.Ceiling(topLeft.Y / Block.BlockSize);
         }
     }
 }

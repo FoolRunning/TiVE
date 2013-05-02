@@ -9,7 +9,7 @@ namespace ProdigalSoftware.TiVE.Starter
     /// <summary>
     /// Light-weight Control that prints out text with color and format properties.
     /// </summary>
-    public sealed partial class MessageViewControl : ListBox
+    internal sealed partial class MessageViewControl : ListBox
     {
         #region Constants
         /// <summary>Default font size</summary>
@@ -109,8 +109,8 @@ namespace ProdigalSoftware.TiVE.Starter
             e.Graphics.FillRectangle(s_backgroundBrush, e.Bounds);
             if (e.Index > 5)
             {
-                e.Graphics.DrawLine(s_baselinePen, TextState.MARGIN_WIDTH, e.Bounds.Bottom - 1
-                    , e.Bounds.Width - TextState.MARGIN_WIDTH, e.Bounds.Bottom - 1);
+                e.Graphics.DrawLine(s_baselinePen, TextState.MarginWidth, e.Bounds.Bottom - 1
+                    , e.Bounds.Width - TextState.MarginWidth, e.Bounds.Bottom - 1);
             }
 
             TextState state = new TextState(e.Bounds.Width, DEFAULT_FONT, e.Bounds.X, e.Bounds.Y);
