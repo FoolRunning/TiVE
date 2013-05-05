@@ -49,6 +49,7 @@
     <Compile Include="ICamera.cs" />
     <Compile Include="IGameWorld.cs" />
     <Compile Include="IWorldGenerator.cs" />
+    <Compile Include="Noise.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

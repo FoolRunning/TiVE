@@ -5,13 +5,14 @@ using OpenTK.Graphics.OpenGL;
 using OpenTK.Input;
 using ProdigalSoftware.TiVE.Renderer;
 using ProdigalSoftware.TiVE.Renderer.World;
+using ProdigalSoftware.TiVEPluginFramework;
 
 namespace ProdigalSoftware.TiVE
 {
     internal class Game : GameWindow
     {
-        public const int WorldXSize = 1024;
-        public const int WorldYSize = 1024;
+        public const int WorldXSize = 4000;
+        public const int WorldYSize = 1000;
         public const int WorldZSize = 2;
 
         private BlockList blockList;
@@ -37,7 +38,10 @@ namespace ProdigalSoftware.TiVE
             blockList = BlockList.CreateBlockList();
 
             WorldGenerator generator = new WorldGenerator(WorldXSize, WorldYSize, WorldZSize);
-            world = generator.CreateWorld(123456789, blockList); //LongRandom());
+            world = generator.CreateWorld(LongRandom(), blockList); //LongRandom());
+
+            if (world == null)
+                Exit();
 
             GL.ClearColor(0.1f, 0.1f, 0.1f, 0.0f);
 
@@ -86,22 +90,23 @@ namespace ProdigalSoftware.TiVE
 
             Vector3 camLoc = camera.Location;
 
+            bool shift = Keyboard[Key.ShiftLeft];
             if (Keyboard[Key.A])
-                camLoc.X -= 1;
+                camLoc.X -= shift ? 5 : 1;
             if (Keyboard[Key.D])
-                camLoc.X += 1;
+                camLoc.X += shift ? 5 : 1;
             if (Keyboard[Key.W])
-                camLoc.Y += 1;
+                camLoc.Y += shift ? 5 : 1;
             if (Keyboard[Key.S])
-                camLoc.Y -= 1;
+                camLoc.Y -= shift ? 5 : 1;
 
             if (Keyboard[Key.KeypadPlus])
             {
-                camLoc.Z = Math.Max(camLoc.Z - 3.0f, 4.0f * Block.BlockSize);
+                camLoc.Z = Math.Max(camLoc.Z - 3.0f, 4.0f * BlockInformation.BlockSize);
             }
             else if (Keyboard[Key.KeypadMinus])
             {
-                camLoc.Z = Math.Min(camLoc.Z + 3.0f, 20.0f * Block.BlockSize);
+                camLoc.Z = Math.Min(camLoc.Z + 3.0f, 35.0f * BlockInformation.BlockSize);
             }
 
             camera.SetLocation(camLoc.X, camLoc.Y, camLoc.Z);
