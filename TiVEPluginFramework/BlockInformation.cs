@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ProdigalSoftware.TiVEPluginFramework
 {
@@ -15,7 +11,7 @@ namespace ProdigalSoftware.TiVEPluginFramework
 
         public BlockInformation(string blockName, uint[,,] voxels)
         {
-            if (string.IsNullOrEmpty(blockName))
+            if (blockName == null)
                 throw new ArgumentNullException("blockName");
 
             if (voxels == null)

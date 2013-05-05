@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using ProdigalSoftware.TiVE.Plugins;
 using ProdigalSoftware.TiVE.Starter;
 using ProdigalSoftware.TiVEPluginFramework;
@@ -19,7 +18,10 @@ namespace ProdigalSoftware.TiVE.Renderer.World
         public void DeleteBlocks()
         {
             foreach (Block block in blocks)
-                block.Delete();
+            {
+                if (block != null)
+                    block.Delete();
+            }
         }
 
         public static BlockList CreateBlockList()
@@ -34,6 +36,7 @@ namespace ProdigalSoftware.TiVE.Renderer.World
                     blockList.AddBlock(blockInfo.BlockName, new Block(blockInfo));
             }
 
+            Messages.AddDoneText();
             return blockList;
         }
 
@@ -45,8 +48,7 @@ namespace ProdigalSoftware.TiVE.Renderer.World
 
         public ushort GetBlockIndex(string blockName)
         {
-            ushort blockIndex;
-            return blockToIndexMap.TryGetValue(blockName, out blockIndex) ? blockIndex : (ushort)0;
+            return blockToIndexMap[blockName];
         }
 
         public Block this[ushort index]

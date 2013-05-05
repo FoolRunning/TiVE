@@ -25,7 +25,7 @@ namespace ProdigalSoftware.TiVE.Renderer.World
 
         public GameWorld CreateWorld(long seed, BlockList blockList)
         {
-            Messages.Print("Creating world...");
+            Messages.Print("Creating new world...");
             GameWorld createdWorld = new GameWorld(worldXsize, worldYsize, worldZsize, blockList);
 
             try

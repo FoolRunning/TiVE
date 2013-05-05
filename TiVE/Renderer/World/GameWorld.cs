@@ -73,14 +73,14 @@ namespace ProdigalSoftware.TiVE.Renderer.World
             Matrix4 translationMatrix = Matrix4.Identity;
             for (int z = 0; z < 2; z++)
             {
-                translationMatrix.M43 = z * Block.BlockSize;
+                translationMatrix.M43 = z * BlockInformation.BlockSize;
                 for (int x = minX; x < maxX; x++)
                 {
-                    translationMatrix.M41 = x * Block.BlockSize;
+                    translationMatrix.M41 = x * BlockInformation.BlockSize;
 
                     for (int y = minY; y < maxY; y++)
                     {
-                        translationMatrix.M42 = y * Block.BlockSize;
+                        translationMatrix.M42 = y * BlockInformation.BlockSize;
 
                         Matrix4 viewProjectionModelMatrix = translationMatrix * viewProjectionMatrix;
 
@@ -119,10 +119,10 @@ namespace ProdigalSoftware.TiVE.Renderer.World
             Vector3 topLeft = fc + (Vector3.UnitY * hfar / 2) - (Vector3.UnitX * wfar / 2);
             Vector3 bottomRight = fc - (Vector3.UnitY * hfar / 2) + (Vector3.UnitX * wfar / 2);
 
-            minX = (int)Math.Floor(topLeft.X / Block.BlockSize);
-            maxX = (int)Math.Ceiling(bottomRight.X / Block.BlockSize);
-            minY = (int)Math.Floor(bottomRight.Y / Block.BlockSize);
-            maxY = (int)Math.Ceiling(topLeft.Y / Block.BlockSize);
+            minX = (int)Math.Floor(topLeft.X / BlockInformation.BlockSize);
+            maxX = (int)Math.Ceiling(bottomRight.X / BlockInformation.BlockSize);
+            minY = (int)Math.Floor(bottomRight.Y / BlockInformation.BlockSize);
+            maxY = (int)Math.Ceiling(topLeft.Y / BlockInformation.BlockSize);
         }
     }
 }
