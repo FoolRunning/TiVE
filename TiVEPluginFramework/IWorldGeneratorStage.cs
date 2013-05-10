@@ -1,9 +1,11 @@
 ﻿namespace ProdigalSoftware.TiVEPluginFramework
 {
-    public interface IWorldGenerator
+    public interface IWorldGeneratorStage
     {
         void UpdateWorld(IGameWorld gameWorld, long seed, IBlockList blockList);
+        
+        ushort Priority { get;  }
 
-        uint Priority { get;  }
+        string StageDescription { get; }
     }
 }

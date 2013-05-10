@@ -11,8 +11,8 @@ namespace ProdigalSoftware.TiVE
 {
     internal class Game : GameWindow
     {
-        public const int WorldXSize = 4000;
-        public const int WorldYSize = 1000;
+        public const int WorldXSize = 10000;
+        public const int WorldYSize = 2000;
         public const int WorldZSize = 2;
 
         private BlockList blockList;
@@ -20,17 +20,20 @@ namespace ProdigalSoftware.TiVE
 
         private readonly Camera camera = new Camera();
 
-        /// <summary>Creates a 800x600 window with the specified title.</summary>
+        /// <summary>
+        /// Creates a 1600x1200 window with the specified title.
+        /// </summary>
         public Game()
-            : base(1600, 1200, new GraphicsMode(new ColorFormat(8, 8, 8, 8), 16, 0, 0), "Blocks",
+            : base(1600, 1200, new GraphicsMode(new ColorFormat(8, 8, 8, 8), 16, 0, 0), "Project M",
                 GameWindowFlags.Default, DisplayDevice.Default, 3, 1, GraphicsContextFlags.Default)
         {
             VSync = VSyncMode.On;
-            camera.SetLocation(10000, 19000, 120);
+            camera.SetLocation(20000, (WorldYSize - 75) * BlockInformation.BlockSize, 300);
         }
 
-        /// <summary>Load resources here.</summary>
-        /// <param name="e">Not used.</param>
+        /// <summary>
+        /// 
+        /// </summary>
         protected override void OnLoad(EventArgs eArgs)
         {
             base.OnLoad(eArgs);
@@ -46,7 +49,7 @@ namespace ProdigalSoftware.TiVE
             GL.ClearColor(0.1f, 0.1f, 0.1f, 0.0f);
 
             GL.Enable(EnableCap.DepthTest);
-            GL.DepthFunc(DepthFunction.Lequal);
+            GL.DepthFunc(DepthFunction.Less);
 
             GL.Enable(EnableCap.CullFace);
             GL.CullFace(CullFaceMode.Back);
@@ -106,7 +109,7 @@ namespace ProdigalSoftware.TiVE
             }
             else if (Keyboard[Key.KeypadMinus])
             {
-                camLoc.Z = Math.Min(camLoc.Z + 3.0f, 35.0f * BlockInformation.BlockSize);
+                camLoc.Z = Math.Min(camLoc.Z + 3.0f, 15.0f * BlockInformation.BlockSize);
             }
 
             camera.SetLocation(camLoc.X, camLoc.Y, camLoc.Z);

@@ -48,7 +48,7 @@
     <Compile Include="IBlockList.cs" />
     <Compile Include="ICamera.cs" />
     <Compile Include="IGameWorld.cs" />
-    <Compile Include="IWorldGenerator.cs" />
+    <Compile Include="IWorldGeneratorStage.cs" />
     <Compile Include="Noise.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

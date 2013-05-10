@@ -10,18 +10,6 @@ namespace ProdigalSoftware.TiVE.Renderer.World
     {
         public Block(BlockInformation blockInfo) : base(blockInfo.Voxels)
         {
-            //for (int x = 0; x < BlockInformation.BlockSize; x++)
-            //{
-            //    for (int y = 0; y < BlockInformation.BlockSize; y++)
-            //    {
-            //        for (int z = 0; z < BlockInformation.BlockSize; z++)
-            //        {
-            //            uint voxel = blockInfo.Voxels[x, y, z];
-            //            SetVoxel(x, y, z, voxel);
-            //        }
-            //    }
-            //}
-
             BlockInfo = blockInfo;
         }
 

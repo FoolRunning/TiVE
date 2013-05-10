@@ -23,7 +23,6 @@ namespace ProdigalSoftware.TiVE
                     using (Game game = new Game())
                         game.Run(60);
                 });
-
             gameThread.Name = "gameThread";
             gameThread.Start();
         }

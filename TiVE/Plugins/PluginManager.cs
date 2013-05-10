@@ -9,7 +9,7 @@ namespace ProdigalSoftware.TiVE.Plugins
 {
     internal static class PluginManager
     {
-        public const string pluginDir = "Plugins";
+        public const string PluginDir = "Plugins";
 
         private static readonly Dictionary<Type, List<Type>> pluginInterfaceMap = new Dictionary<Type, List<Type>>();
 
@@ -23,14 +23,15 @@ namespace ProdigalSoftware.TiVE.Plugins
                 return;
             }
 
-            string pluginPath = Path.Combine(path, pluginDir);
+            string pluginPath = Path.Combine(path, PluginDir);
             if (!Directory.Exists(pluginPath))
             {
                 Messages.AddFailText();
-                Messages.AddWarning(pluginDir + " directory was not found.");
+                Messages.AddWarning(PluginDir + " directory was not found.");
                 return;
             }
 
+            pluginInterfaceMap.Clear();
             string[] pluginFiles = Directory.GetFiles(pluginPath, "*.tive", SearchOption.AllDirectories);
 
             bool foundPlugins = false;

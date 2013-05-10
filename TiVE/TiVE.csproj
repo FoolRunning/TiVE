@@ -64,6 +64,7 @@
     <Compile Include="Renderer\Sprite.cs" />
     <Compile Include="Renderer\VoxelGroup.cs" />
     <Compile Include="Renderer\World\BlockList.cs" />
+    <Compile Include="Renderer\World\WorldBlock.cs" />
     <Compile Include="Renderer\World\GameWorld.cs" />
     <Compile Include="Renderer\World\WorldGenerator.cs" />
     <Compile Include="Starter\MessageLine.cs" />

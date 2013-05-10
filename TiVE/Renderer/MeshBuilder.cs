@@ -1,60 +1,43 @@
 ﻿using System.Collections.Generic;
 using OpenTK;
+using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL;
 
 namespace ProdigalSoftware.TiVE.Renderer
 {
     internal sealed class MeshBuilder
     {
-        private readonly bool includeColor;
-        //private readonly bool includeTexCoords;
-        //private readonly bool includeNormal;
         private readonly BeginMode primitiveType;
-        private readonly List<float> vertexData = new List<float>(5000);
-        private readonly List<byte> colorData = new List<byte>();
-        //private readonly List<float> textureData = new List<float>();
-        //private readonly List<float> normalData = new List<float>();
+        private readonly List<Vector3> vertexData = new List<Vector3>(5000);
+        private readonly List<Color4> colorData = new List<Color4>(5000);
         private readonly List<uint> indexData = new List<uint>(2000);
         private uint vertexCount;
 
-        public MeshBuilder(BeginMode primitiveType, bool includeColor/*, bool includeTexCoords, bool includeNormal*/)
+        public MeshBuilder(BeginMode primitiveType)
         {
             this.primitiveType = primitiveType;
-            this.includeColor = includeColor;
-            //this.includeTexCoords = includeTexCoords;
-            //this.includeNormal = includeNormal;
         }
 
-
-        public uint AddVertex(float x, float y, float z, byte cr = 0, byte cg = 0, byte cb = 0, byte ca = 0/*, 
-            float tx = 0, float ty = 0, float nx = 0, float ny = 0, float nz = 0*/)
+        public void BeginNewMesh()
         {
-            vertexData.Add(x);
-            vertexData.Add(y);
-            vertexData.Add(z);
+            vertexData.Clear();
+            colorData.Clear();
+            indexData.Clear();
+            vertexCount = 0;
+        }
 
-            if (includeColor)
-            {
-                colorData.Add(cr);
-                colorData.Add(cg);
-                colorData.Add(cb);
-                colorData.Add(ca);
-            }
+        public uint AddVertex(float x, float y, float z, float cr, float cg, float cb, float ca)
+        {
+            vertexData.Add(new Vector3(x, y, z));
+            colorData.Add(new Color4(cr, cg, cb, ca));
 
-            //if (includeTexCoords)
-            //{
-            //    textureData.Add(tx);
-            //    textureData.Add(ty);
-            //}
+            return vertexCount++;
+        }
 
-            //if (includeNormal)
-            //{
-            //    Vector3 vector = new Vector3(nx, ny, nz);
-            //    vector.Normalize();
-            //    normalData.Add(vector.X);
-            //    normalData.Add(vector.Y);
-            //    normalData.Add(vector.Z);
-            //}
+        public uint AddVertex(float x, float y, float z, byte cr, byte cg, byte cb, byte ca)
+        {
+            vertexData.Add(new Vector3(x, y, z));
+            colorData.Add(new Color4(cr, cg, cb, ca));
 
             return vertexCount++;
         }
@@ -66,7 +49,7 @@ namespace ProdigalSoftware.TiVE.Renderer
 
         public Mesh GetMesh()
         {
-            return new Mesh(vertexData.ToArray(), colorData.ToArray(), /*textureData.ToArray(), normalData.ToArray(),*/ indexData.ToArray(), primitiveType);
+            return new Mesh(vertexData.ToArray(), colorData.ToArray(), indexData.ToArray(), primitiveType);
         }
     }
 }
