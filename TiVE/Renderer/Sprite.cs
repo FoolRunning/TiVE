@@ -1,4 +1,5 @@
 ﻿using System.Drawing;
+using OpenTK.Graphics;
 
 namespace ProdigalSoftware.TiVE.Renderer
 {
@@ -22,11 +23,11 @@ namespace ProdigalSoftware.TiVE.Renderer
             {
                 for (int y = 0; y < ySize; y++)
                 {
-                    Color c = image.GetPixel(x, ySize - y - 1);
+                    Color4 c = image.GetPixel(x, ySize - y - 1);
                     if (c.A > 0)
                     {
                         for (int z = 0; z < 3; z++)
-                            newSprite.SetVoxel(x, y, z, FromColor(c));
+                            newSprite.SetVoxel(x, y, z, (uint)c.ToArgb());
                     }
                 }
             }

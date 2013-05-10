@@ -23,10 +23,15 @@ namespace ProdigalSoftware.TiVE.Renderer
             this.geometryShaderSource = geometryShaderSource;
         }
 
+        ~ShaderProgram()
+        {
+            Debug.Assert(programId == 0, "Shader was not properly deleted");
+        }
+
         public void Delete()
         {
             GL.DeleteProgram(programId);
-            GlUtils.CheckGLErrors();
+            programId = 0;
         }
 
         public void Bind()
@@ -65,7 +70,8 @@ namespace ProdigalSoftware.TiVE.Renderer
 
                 string info;
                 GL.GetProgramInfoLog(programId, out info);
-                Debug.WriteLine(info);
+                if (!string.IsNullOrEmpty(info))
+                    Debug.WriteLine(info);
 
                 int linkResult;
                 GL.GetProgram(programId, ProgramParameter.LinkStatus, out linkResult);
@@ -103,21 +109,23 @@ namespace ProdigalSoftware.TiVE.Renderer
             GL.UniformMatrix4(matrixMVPLocation, false, ref matrixMVP);
         }
 
-        private static bool CompileShader(int shader, string source)
+        private static bool CompileShader(int shaderId, string shaderSource)
         {
-            GL.ShaderSource(shader, source);
-            GL.CompileShader(shader);
+            GL.ShaderSource(shaderId, shaderSource);
+            GL.CompileShader(shaderId);
 
             string info;
-            GL.GetShaderInfoLog(shader, out info);
-            Debug.WriteLine(info);
+            GL.GetShaderInfoLog(shaderId, out info);
+            
+            if (!string.IsNullOrEmpty(info))
+                Debug.WriteLine(info);
 
             int compileResult;
-            GL.GetShader(shader, ShaderParameter.CompileStatus, out compileResult);
+            GL.GetShader(shaderId, ShaderParameter.CompileStatus, out compileResult);
             if (compileResult != 1)
             {
                 Debug.WriteLine("Compile Error!");
-                Debug.WriteLine(source);
+                Debug.WriteLine(shaderSource);
                 return false;
             }
             return true;

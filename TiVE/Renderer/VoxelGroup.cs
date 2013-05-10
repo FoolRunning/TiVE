@@ -1,4 +1,5 @@
-﻿using OpenTK.Graphics.OpenGL;
+﻿using OpenTK.Graphics;
+using OpenTK.Graphics.OpenGL;
 using System.Drawing;
 using System.Diagnostics;
 using OpenTK;
@@ -103,6 +104,8 @@ namespace ProdigalSoftware.TiVE.Renderer
 			";
         #endregion
 
+        private static readonly MeshBuilder voxelMeshBuilder = new MeshBuilder(BeginMode.Triangles);
+
         private readonly uint[, ,] voxels;
 
         private ShaderProgram shader;
@@ -170,15 +173,6 @@ namespace ProdigalSoftware.TiVE.Renderer
             mesh = null;
         }
 
-        protected static uint FromColor(Color color)
-        {
-            uint val = color.R;
-            val |= (uint)color.G << 8;
-            val |= (uint)color.B << 16;
-            val |= (uint)color.A << 24;
-            return val;
-        }
-
         private static ShaderProgram CreateShader()
         {
             ShaderProgram program = new ShaderProgram(VertexShaderSource, FragmentShaderSource, null);
@@ -189,8 +183,7 @@ namespace ProdigalSoftware.TiVE.Renderer
 
         private Mesh CreateVoxelMesh()
         {
-            MeshBuilder builder = new MeshBuilder(BeginMode.Triangles, true/*, false, false*/);
-
+            voxelMeshBuilder.BeginNewMesh();
             PolygonCount = 0;
 
             int voxelCountX = voxels.GetLength(0);
@@ -207,33 +200,43 @@ namespace ProdigalSoftware.TiVE.Renderer
                         if (color == 0)
                             continue;
 
-                        byte cr = (byte)((color >> 0) & 0xFF);
+                        if (z < voxelCountZ - 1 && IsVoxelSet(x, y, z + 1) &&
+                            x > 0 && IsVoxelSet(x - 1, y, z) &&
+                            x < voxelCountX - 1 && IsVoxelSet(x + 1, y, z) &&
+                            y > 0 && IsVoxelSet(x, y - 1, z) &&
+                            y < voxelCountY - 1 && IsVoxelSet(x, y + 1, z))
+                        {
+                            continue; // Voxel is completely covered so no need to process it
+                        }
+
+                        byte cr = (byte)((color >> 16) & 0xFF);
                         byte cg = (byte)((color >> 8) & 0xFF);
-                        byte cb = (byte)((color >> 16) & 0xFF);
+                        byte cb = (byte)((color >> 0) & 0xFF);
                         byte ca = (byte)((color >> 24) & 0xFF);
                         //Debug.WriteLine(string.Format("Color value: {0} - ({1}, {2}, {3})", color, (int)(color & 0xFF), (int)((color >> 8) & 0xFF), (int)((color >> 16) & 0xFF)));
 
-                        uint v1 = builder.AddVertex(x       , y + 1 , z     , cr, cg, cb, ca);
-                        uint v2 = builder.AddVertex(x + 1   , y + 1 , z     , cr, cg, cb, ca);
-                        uint v3 = builder.AddVertex(x + 1   , y + 1 , z + 1 , cr, cg, cb, ca);
-                        uint v4 = builder.AddVertex(x       , y + 1 , z + 1 , cr, cg, cb, ca);
-                        uint v5 = builder.AddVertex(x       , y     , z     , cr, cg, cb, ca);
-                        uint v6 = builder.AddVertex(x + 1   , y     , z     , cr, cg, cb, ca);
-                        uint v7 = builder.AddVertex(x + 1   , y     , z + 1 , cr, cg, cb, ca);
-                        uint v8 = builder.AddVertex(x       , y     , z + 1 , cr, cg, cb, ca);
+                        uint v1 = voxelMeshBuilder.AddVertex(x, y + 1, z, cr, cg, cb, ca);
+                        uint v2 = voxelMeshBuilder.AddVertex(x + 1, y + 1, z, cr, cg, cb, ca);
+                        uint v3 = voxelMeshBuilder.AddVertex(x + 1, y + 1, z + 1, cr, cg, cb, ca);
+                        uint v4 = voxelMeshBuilder.AddVertex(x, y + 1, z + 1, cr, cg, cb, ca);
+                        uint v5 = voxelMeshBuilder.AddVertex(x, y, z, cr, cg, cb, ca);
+                        uint v6 = voxelMeshBuilder.AddVertex(x + 1, y, z, cr, cg, cb, ca);
+                        uint v7 = voxelMeshBuilder.AddVertex(x + 1, y, z + 1, cr, cg, cb, ca);
+                        uint v8 = voxelMeshBuilder.AddVertex(x, y, z + 1, cr, cg, cb, ca);
 
                         if (z == voxelCountZ - 1 || !IsVoxelSet(x, y, z + 1))
                         {
-                            builder.AddIndex(v8);
-                            builder.AddIndex(v3);
-                            builder.AddIndex(v7);
+                            voxelMeshBuilder.AddIndex(v8);
+                            voxelMeshBuilder.AddIndex(v3);
+                            voxelMeshBuilder.AddIndex(v7);
 
-                            builder.AddIndex(v3);
-                            builder.AddIndex(v8);
-                            builder.AddIndex(v4);
+                            voxelMeshBuilder.AddIndex(v3);
+                            voxelMeshBuilder.AddIndex(v8);
+                            voxelMeshBuilder.AddIndex(v4);
                             PolygonCount += 2;
                         }
 
+                        // The back face is never shown to the camera, so there is no need to create it
                         //if (!IsZLineSet(x, y, z, 1))
                         //{
                         //    GL.Vertex3(x * World_Block_Size + World_Block_Size, y * World_Block_Size + World_Block_Size, z * World_Block_Size + World_Block_Size);
@@ -248,56 +251,56 @@ namespace ProdigalSoftware.TiVE.Renderer
 
                         if (x == 0 || !IsVoxelSet(x - 1, y, z))
                         {
-                            builder.AddIndex(v5);
-                            builder.AddIndex(v1);
-                            builder.AddIndex(v4);
+                            voxelMeshBuilder.AddIndex(v5);
+                            voxelMeshBuilder.AddIndex(v1);
+                            voxelMeshBuilder.AddIndex(v4);
 
-                            builder.AddIndex(v4);
-                            builder.AddIndex(v8);
-                            builder.AddIndex(v5);
+                            voxelMeshBuilder.AddIndex(v4);
+                            voxelMeshBuilder.AddIndex(v8);
+                            voxelMeshBuilder.AddIndex(v5);
                             PolygonCount += 2;
                         }
 
                         if (x == voxelCountX - 1 || !IsVoxelSet(x + 1, y, z))
                         {
-                            builder.AddIndex(v6);
-                            builder.AddIndex(v3);
-                            builder.AddIndex(v2);
+                            voxelMeshBuilder.AddIndex(v6);
+                            voxelMeshBuilder.AddIndex(v3);
+                            voxelMeshBuilder.AddIndex(v2);
 
-                            builder.AddIndex(v3);
-                            builder.AddIndex(v6);
-                            builder.AddIndex(v7);
+                            voxelMeshBuilder.AddIndex(v3);
+                            voxelMeshBuilder.AddIndex(v6);
+                            voxelMeshBuilder.AddIndex(v7);
                             PolygonCount += 2;
                         }
 
                         if (y == 0 || !IsVoxelSet(x, y - 1, z))
                         {
-                            builder.AddIndex(v5);
-                            builder.AddIndex(v7);
-                            builder.AddIndex(v6);
+                            voxelMeshBuilder.AddIndex(v5);
+                            voxelMeshBuilder.AddIndex(v7);
+                            voxelMeshBuilder.AddIndex(v6);
 
-                            builder.AddIndex(v5);
-                            builder.AddIndex(v8);
-                            builder.AddIndex(v7);
+                            voxelMeshBuilder.AddIndex(v5);
+                            voxelMeshBuilder.AddIndex(v8);
+                            voxelMeshBuilder.AddIndex(v7);
                             PolygonCount += 2;
                         }
 
                         if (y == voxelCountY - 1 || !IsVoxelSet(x, y + 1, z))
                         {
-                            builder.AddIndex(v1);
-                            builder.AddIndex(v2);
-                            builder.AddIndex(v3);
+                            voxelMeshBuilder.AddIndex(v1);
+                            voxelMeshBuilder.AddIndex(v2);
+                            voxelMeshBuilder.AddIndex(v3);
 
-                            builder.AddIndex(v1);
-                            builder.AddIndex(v3);
-                            builder.AddIndex(v4);
+                            voxelMeshBuilder.AddIndex(v1);
+                            voxelMeshBuilder.AddIndex(v3);
+                            voxelMeshBuilder.AddIndex(v4);
                             PolygonCount += 2;
                         }
                     }
                 }
             }
 
-            return builder.GetMesh();
+            return voxelMeshBuilder.GetMesh();
         }
     }
 }

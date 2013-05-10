@@ -1,37 +1,33 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
+using OpenTK;
+using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL;
 
 namespace ProdigalSoftware.TiVE.Renderer
 {
     internal sealed class Mesh
     {
+        private readonly int sizeOfColor4InBytes = Marshal.SizeOf(new Color4());
+
         private const int VertexAttribArray = 0;
         private const int ColorAttribArray = 1;
-        //private const int TextureAttribArray = 2;
-        //private const int NormalAttribArray = 3;
 
         private readonly BeginMode primitiveType;
-        private readonly float[] vertexData;
-        private readonly byte[] colorData;
-        //private readonly float[] textureData;
-        //private readonly float[] normalData;
+        private readonly Vector3[] vertexData;
+        private readonly Color4[] colorData;
         private readonly uint[] indexData;
         private int vertexArrayId;
         private int vertexVboId;
         private int colorVboId;
-        //private int textureVboId;
-        //private int normalVboId;
         private int indexVboId;
 
-        public Mesh(float[] vertexData, byte[] colorData, /*float[] textureData, float[] normalData,*/ uint[] indexData, BeginMode primitiveType)
+        public Mesh(Vector3[] vertexData, Color4[] colorData, uint[] indexData, BeginMode primitiveType)
         {
             this.vertexData = vertexData;
             this.colorData = colorData;
-            //this.textureData = textureData;
-            //this.normalData = normalData;
             this.indexData = indexData;
-
             this.primitiveType = primitiveType;
         }
 
@@ -39,26 +35,18 @@ namespace ProdigalSoftware.TiVE.Renderer
         {
             Debug.Assert(vertexVboId == 0);
             Debug.Assert(colorVboId == 0);
-            //Debug.Assert(textureVboId == 0);
-            //Debug.Assert(normalVboId == 0);
             Debug.Assert(indexVboId == 0);
         }
 
         public void Delete()
         {
             GL.DeleteBuffers(1, ref vertexVboId);
-            if (colorVboId != 0)
-                GL.DeleteBuffers(1, ref colorVboId);
-            //if (textureVboId != 0)
-            //    GL.DeleteBuffers(1, ref textureVboId);
-            //if (normalVboId != 0)
-            //    GL.DeleteBuffers(1, ref normalVboId);
-
+            GL.DeleteBuffers(1, ref colorVboId);
             GL.DeleteBuffers(1, ref indexVboId);
             GL.DeleteVertexArrays(1, ref vertexArrayId);
             GlUtils.CheckGLErrors();
 
-            vertexVboId = colorVboId = /*textureVboId = normalVboId =*/ indexVboId = 0;
+            vertexVboId = colorVboId = indexVboId = 0;
         }
 
         public bool Initialize()
@@ -66,42 +54,25 @@ namespace ProdigalSoftware.TiVE.Renderer
             GL.GenVertexArrays(1, out vertexArrayId);
             GL.BindVertexArray(vertexArrayId);
 
+            // Load location data
             GL.GenBuffers(1, out vertexVboId);
             GL.BindBuffer(BufferTarget.ArrayBuffer, vertexVboId);
-            GL.BufferData(BufferTarget.ArrayBuffer, new IntPtr(vertexData.Length * sizeof(float)), vertexData, BufferUsageHint.StaticDraw);
+            GL.BufferData(BufferTarget.ArrayBuffer, new IntPtr(vertexData.Length * Vector3.SizeInBytes), vertexData, BufferUsageHint.StaticDraw);
             GL.EnableVertexAttribArray(VertexAttribArray);
             GL.VertexAttribPointer(VertexAttribArray, 3, VertexAttribPointerType.Float, false, 0, 0);
 
-            if (colorData != null && colorData.Length > 0)
-            {
-                GL.GenBuffers(1, out colorVboId);
-                GL.BindBuffer(BufferTarget.ArrayBuffer, colorVboId);
-                GL.BufferData(BufferTarget.ArrayBuffer, new IntPtr(colorData.Length), colorData, BufferUsageHint.StaticDraw);
-                GL.EnableVertexAttribArray(ColorAttribArray);
-                GL.VertexAttribPointer(ColorAttribArray, 4, VertexAttribPointerType.UnsignedByte, true, 0, 0);
-            }
-            
-            //if (textureData != null && textureData.Length > 0)
-            //{
-            //    GL.GenBuffers(1, out textureVboId);
-            //    GL.BindBuffer(BufferTarget.ArrayBuffer, textureVboId);
-            //    GL.BufferData(BufferTarget.ArrayBuffer, new IntPtr(textureData.Length * sizeof(float)), textureData, BufferUsageHint.StaticDraw);
-            //    GL.EnableVertexAttribArray(TextureAttribArray);
-            //    GL.VertexAttribPointer(TextureAttribArray, 2, VertexAttribPointerType.Float, false, 0, 0);
-            //}
-            
-            //if (normalData != null && normalData.Length > 0)
-            //{
-            //    GL.GenBuffers(1, out normalVboId);
-            //    GL.BindBuffer(BufferTarget.ArrayBuffer, normalVboId);
-            //    GL.BufferData(BufferTarget.ArrayBuffer, new IntPtr(normalData.Length * sizeof(float)), normalData, BufferUsageHint.StaticDraw);
-            //    GL.EnableVertexAttribArray(NormalAttribArray);
-            //    GL.VertexAttribPointer(NormalAttribArray, 3, VertexAttribPointerType.Float, false, 0, 0);
-            //}
+            // Load color data
+            GL.GenBuffers(1, out colorVboId);
+            GL.BindBuffer(BufferTarget.ArrayBuffer, colorVboId);
+            GL.BufferData(BufferTarget.ArrayBuffer, new IntPtr(colorData.Length * sizeOfColor4InBytes), colorData, BufferUsageHint.StaticDraw);
+            GL.EnableVertexAttribArray(ColorAttribArray);
+            GL.VertexAttribPointer(ColorAttribArray, 4, VertexAttribPointerType.Float, false, 0, 0);
 
+            // Load index data
             GL.GenBuffers(1, out indexVboId);
             GL.BindBuffer(BufferTarget.ElementArrayBuffer, indexVboId);
             GL.BufferData(BufferTarget.ElementArrayBuffer, new IntPtr(indexData.Length * sizeof(uint)), indexData, BufferUsageHint.StaticDraw);
+
             GlUtils.CheckGLErrors();
             return true;
         }
@@ -115,20 +86,7 @@ namespace ProdigalSoftware.TiVE.Renderer
 
             // Enable/disable array attributes
             GL.EnableVertexAttribArray(VertexAttribArray);
-            
-            if (colorData != null && colorData.Length > 0)
-                GL.EnableVertexAttribArray(ColorAttribArray);
-            else
-                GL.DisableVertexAttribArray(ColorAttribArray);
-
-            //if (textureData != null && textureData.Length > 0)
-            //    GL.EnableVertexAttribArray(TextureAttribArray);
-            //else
-            //    GL.DisableVertexAttribArray(TextureAttribArray);
-            //if (normalData != null && normalData.Length > 0)
-            //    GL.EnableVertexAttribArray(NormalAttribArray);
-            //else
-            //    GL.DisableVertexAttribArray(NormalAttribArray);
+            GL.EnableVertexAttribArray(ColorAttribArray);
 
             GL.BindVertexArray(vertexArrayId);
             GL.DrawElements(primitiveType, indexData.Length, DrawElementsType.UnsignedInt, 0);

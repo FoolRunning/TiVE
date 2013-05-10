@@ -30,7 +30,7 @@ namespace ProdigalSoftware.TiVE.Renderer.World
 
             try
             {
-                foreach (IWorldGenerator generator in PluginManager.GetPluginsOfType<IWorldGenerator>().OrderBy(wg => wg.Priority))
+                foreach (IWorldGeneratorStage generator in PluginManager.GetPluginsOfType<IWorldGeneratorStage>().OrderBy(wg => wg.Priority))
                     generator.UpdateWorld(createdWorld, seed, blockList);
             }
             catch (Exception e)

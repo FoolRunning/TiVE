@@ -30,9 +30,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="OpenTK, Version=1.0.0.0, Culture=neutral, PublicKeyToken=bad199fe84eb3df4, processorArchitecture=MSIL" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
-    <Reference Include="System.Drawing" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -41,10 +41,11 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DefaultBlockLoader.cs" />
-    <Compile Include="WorldGenStage3.cs" />
-    <Compile Include="WorldGenStage2.cs" />
-    <Compile Include="WorldGenStage1.cs" />
-    <Compile Include="WorldGenStage0.cs" />
+    <Compile Include="WorldGen1.cs" />
+    <Compile Include="WorldGenCreateBiomes.cs" />
+    <Compile Include="WorldGenCreateCaves.cs" />
+    <Compile Include="WorldGenAddResources.cs" />
+    <Compile Include="WorldGenFillWorld.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

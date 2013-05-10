@@ -163,14 +163,19 @@ namespace ProdigalSoftware.TiVE.Starter
         /// </summary>
         public static void AddStackTrace(Exception e)
         {
-            AddError(e.Message);
-            
-            string[] stackTraceLines = e.StackTrace.Split(new [] {'\n', '\r'}, StringSplitOptions.RemoveEmptyEntries);
-            foreach (string stackLine in stackTraceLines)
+            while (e != null)
             {
-                AddFontSizeChange(10);
-                AddFontStyleChange(FontStyle.Regular);
-                Println(stackLine);
+                AddError(e.Message);
+
+                string[] stackTraceLines = e.StackTrace.Split(new[] {'\n', '\r'}, StringSplitOptions.RemoveEmptyEntries);
+                foreach (string stackLine in stackTraceLines)
+                {
+                    AddFontSizeChange(10);
+                    AddFontStyleChange(FontStyle.Regular);
+                    Println(stackLine);
+                }
+
+                e = e.InnerException;
             }
         }
 

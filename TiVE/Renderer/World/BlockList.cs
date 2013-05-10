@@ -15,15 +15,6 @@ namespace ProdigalSoftware.TiVE.Renderer.World
             blocks.Add(null); // zero'th item is always empty space
         }
 
-        public void DeleteBlocks()
-        {
-            foreach (Block block in blocks)
-            {
-                if (block != null)
-                    block.Delete();
-            }
-        }
-
         public static BlockList CreateBlockList()
         {
             Messages.Print("Creating blocks...");
@@ -38,6 +29,20 @@ namespace ProdigalSoftware.TiVE.Renderer.World
 
             Messages.AddDoneText();
             return blockList;
+        }
+
+        public void DeleteBlocks()
+        {
+            foreach (Block block in blocks)
+            {
+                if (block != null)
+                    block.Delete();
+            }
+        }
+
+        public int BlockCount
+        {
+            get { return blocks.Count; }
         }
 
         public void AddBlock(string blockName, Block block)

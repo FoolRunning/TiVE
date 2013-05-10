@@ -10,7 +10,7 @@ namespace ProdigalSoftware.TiVE.Renderer.World
     /// </summary>
     internal sealed class GameWorld : IGameWorld
     {
-        private readonly ushort[, ,] worldData;
+        private readonly WorldBlock[, ,] worldData;
         private readonly int xSize;
         private readonly int ySize;
         private readonly int zSize;
@@ -23,7 +23,8 @@ namespace ProdigalSoftware.TiVE.Renderer.World
             this.ySize = ySize;
             this.zSize = zSize;
             this.blockList = blockList;
-            worldData = new ushort[xSize, ySize, zSize];
+            worldData = new WorldBlock[xSize, ySize, zSize];
+
         }
 
         public int Xsize
@@ -43,12 +44,25 @@ namespace ProdigalSoftware.TiVE.Renderer.World
 
         public void SetBlock(int x, int y, int z, ushort blockIndex)
         {
-            worldData[x, y, z] = blockIndex;
+            if (blockIndex >= blockList.BlockCount)
+                throw new ArgumentOutOfRangeException("blockIndex", "Block with the specified index does not exist");
+
+            worldData[x, y, z].BlockIndex = blockIndex;
+        }
+
+        public void SetBiome(int x, int y, int z, byte biomeId)
+        {
+            worldData[x, y, z].Biome = biomeId;
         }
 
         public ushort GetBlock(int x, int y, int z)
         {
-            return worldData[x, y, z];
+            return worldData[x, y, z].BlockIndex;
+        }
+
+        public byte GetBiome(int x, int y, int z)
+        {
+            return worldData[x, y, z].Biome;
         }
 
         public void AddSprite(Sprite toAdd)
@@ -80,13 +94,13 @@ namespace ProdigalSoftware.TiVE.Renderer.World
 
                     for (int y = minY; y < maxY; y++)
                     {
-                        translationMatrix.M42 = y * BlockInformation.BlockSize;
-
-                        Matrix4 viewProjectionModelMatrix = translationMatrix * viewProjectionMatrix;
-
-                        Block block = blockList[worldData[x, y, z]];
+                        Block block = blockList[worldData[x, y, z].BlockIndex];
                         if (block != null)
                         {
+                            translationMatrix.M42 = y * BlockInformation.BlockSize;
+
+                            Matrix4 viewProjectionModelMatrix = translationMatrix * viewProjectionMatrix;
+
                             block.Render(ref viewProjectionModelMatrix);
                             polygonCount += block.PolygonCount;
                         }

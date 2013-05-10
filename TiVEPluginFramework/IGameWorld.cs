@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace ProdigalSoftware.TiVEPluginFramework
+﻿namespace ProdigalSoftware.TiVEPluginFramework
 {
     public interface IGameWorld
     {
@@ -15,7 +9,11 @@ namespace ProdigalSoftware.TiVEPluginFramework
         int Zsize { get; }
 
         void SetBlock(int x, int y, int z, ushort blockIndex);
+        
+        void SetBiome(int x, int y, int z, byte biomeId);
 
         ushort GetBlock(int x, int y, int z);
+        
+        byte GetBiome(int x, int y, int z);
     }
 }
