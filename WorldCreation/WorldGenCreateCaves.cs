@@ -16,14 +16,14 @@ namespace WorldCreation
         public void UpdateWorld(IGameWorld gameWorld, long seed, IBlockList blockList)
         {
             Random random1 = new Random((int)(seed & 0xFFFFFFFF));
+            Random random2 = new Random((int)((seed >> 32) & 0xFFFFFFFF));
+
             double xOff1 = random1.NextDouble() * 50.0 - 25.0;
             double yOff1 = random1.NextDouble() * 50.0 - 25.0;
             double xOff2 = random1.NextDouble() * 100.0 - 50.0;
             double yOff2 = random1.NextDouble() * 100.0 - 50.0;
             double xOff3 = random1.NextDouble() * 500.0 - 250.0;
             double yOff3 = random1.NextDouble() * 500.0 - 250.0;
-
-            Random random2 = new Random((int)((seed >> 32) & 0xFFFFFFFF));
 
             double scaleX1 = random2.NextDouble() * 0.04 + 0.01;
             double scaleY1 = random2.NextDouble() * 0.05 + 0.02;
@@ -34,6 +34,7 @@ namespace WorldCreation
 
             // Use parallel for for speed since there is no syncing needed
             Parallel.For(0, gameWorld.Xsize, x =>
+            //for (int x = 0; x < gameWorld.Xsize; x++)
                 {
                     for (int y = 0; y < gameWorld.Ysize; y++)
                     {

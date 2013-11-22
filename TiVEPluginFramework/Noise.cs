@@ -68,18 +68,16 @@
         }
 
         /// <summary>
-        /// Creates 1D simplex noise. This is the equavalent of calling the 2D version with zero for yin.
+        /// Creates 1D simplex noise in the range [-1, 1]. This is the equavalent of calling the 2D version with zero for yin.
         /// </summary>
-        /// <returns>Result is in the range [-1, 1]</returns>
         public static double GetNoise(double xin)
         {
             return GetNoise(xin, 0.0);
         }
 
         /// <summary>
-        /// Creates 2D simplex noise
+        /// Creates 2D simplex noise in the range [-1, 1]
         /// </summary>
-        /// <returns>Result is in the range [-1, 1]</returns>
         public static double GetNoise(double xin, double yin)
         {
             double n0, n1, n2; // Noise contributions from the three corners
@@ -147,9 +145,8 @@
         }
 
         /// <summary>
-        /// Creates 3D simplex noise
+        /// Creates 3D simplex noise in the range [-1, 1]
         /// </summary>
-        /// <returns>Result is in the range [-1, 1]</returns>
         public static double GetNoise(double xin, double yin, double zin)
         {
             double n0, n1, n2, n3; // Noise contributions from the four corners
@@ -286,9 +283,8 @@
         }
 
         /// <summary>
-        /// Creates 4D simplex noise
+        /// Creates 4D simplex noise in the range [-1, 1]
         /// </summary>
-        /// <returns>Result is in the range [-1, 1]</returns>
         public static double GetNoise(double x, double y, double z, double w)
         {
 

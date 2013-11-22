@@ -7,7 +7,7 @@ namespace ProdigalSoftware.TiVEPluginFramework
         /// <summary>
         /// Number of voxels that make up a block on each axis
         /// </summary>
-        public const int BlockSize = 20;
+        public const int BlockSize = 16;
 
         public BlockInformation(string blockName, uint[,,] voxels)
         {

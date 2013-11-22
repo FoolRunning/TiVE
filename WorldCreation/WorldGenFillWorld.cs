@@ -41,16 +41,27 @@ namespace WorldCreation
 
             Debug.WriteLine(scale1 + ", " + scale2 + ", " + scale3);
             
-            // Use parallel for for speed since there is no syncing needed
-            Parallel.For(0, gameWorld.Xsize, x =>
-                {
-                    double noise = Noise.GetNoise((offset1 + x) * scale1) * 0.6 +
-                        Noise.GetNoise((offset2 + x) * scale2) * 0.25 +
-                        Noise.GetNoise((offset3 + x) * scale3) * 0.15;
+            for (int x = 0; x < gameWorld.Xsize; x++)
+            {
+                double noise = Noise.GetNoise((offset1 + x) * scale1) * 0.6 +
+                    Noise.GetNoise((offset2 + x) * scale2) * 0.25 +
+                    Noise.GetNoise((offset3 + x) * scale3) * 0.15;
 
-                    int bottomY = gameWorld.Ysize - (int) (noise * 75.0) - 125;
-                    FillColumn(gameWorld, x, bottomY);
-                });
+                int bottomY = gameWorld.Ysize - (int) (noise * 75.0) - 125;
+                FillColumn(gameWorld, x, bottomY);
+            }
+        }
+
+        private int GetNextInt(int max)
+        {
+            //lock(random)
+                return random.Next(max);
+        }
+
+        private double GetNextDouble()
+        {
+            //lock (random)
+                return random.NextDouble();
         }
 
         public ushort Priority
@@ -67,16 +78,16 @@ namespace WorldCreation
         {
             for (int y = topY; y >= 0; y--)
             {
-                gameWorld.SetBlock(x, y, 0, backWalls[0/*random.Next(4)*/]);
-                double rand = ((x * gameWorld.Ysize + y) % 17) / 17.0;
-                //double rand = random.NextDouble();
+                gameWorld.SetBlock(x, y, 0, backWalls[GetNextInt(4)]);
+                //double rand = ((x * gameWorld.Ysize + y) % 17) / 17.0;
+                double rand = GetNextDouble();
                 ushort block;
                 if (rand < .2)
-                    block = stones[0/*random.Next(4)*/];
+                    block = stones[GetNextInt(4)];
                 else if (rand < .5)
-                    block = sands[0/*random.Next(4)*/];
+                    block = sands[GetNextInt(4)];
                 else
-                    block = dirts[0/*random.Next(4)*/];
+                    block = dirts[GetNextInt(4)];
                 gameWorld.SetBlock(x, y, 1, block);
             }
         }

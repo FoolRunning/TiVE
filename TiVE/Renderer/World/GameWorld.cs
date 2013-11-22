@@ -10,7 +10,8 @@ namespace ProdigalSoftware.TiVE.Renderer.World
     /// </summary>
     internal sealed class GameWorld : IGameWorld
     {
-        private readonly WorldBlock[, ,] worldData;
+        private readonly ushort[, ,] worldBlocks;
+        private readonly byte[,] worldBiomes;
         private readonly int xSize;
         private readonly int ySize;
         private readonly int zSize;
@@ -23,7 +24,8 @@ namespace ProdigalSoftware.TiVE.Renderer.World
             this.ySize = ySize;
             this.zSize = zSize;
             this.blockList = blockList;
-            worldData = new WorldBlock[xSize, ySize, zSize];
+            worldBlocks = new ushort[xSize, ySize, zSize];
+            worldBiomes = new byte[xSize, ySize];
 
         }
 
@@ -47,22 +49,22 @@ namespace ProdigalSoftware.TiVE.Renderer.World
             if (blockIndex >= blockList.BlockCount)
                 throw new ArgumentOutOfRangeException("blockIndex", "Block with the specified index does not exist");
 
-            worldData[x, y, z].BlockIndex = blockIndex;
+            worldBlocks[x, y, z] = blockIndex;
         }
 
-        public void SetBiome(int x, int y, int z, byte biomeId)
+        public void SetBiome(int x, int y, byte biomeId)
         {
-            worldData[x, y, z].Biome = biomeId;
+            worldBiomes[x, y] = biomeId;
         }
 
         public ushort GetBlock(int x, int y, int z)
         {
-            return worldData[x, y, z].BlockIndex;
+            return worldBlocks[x, y, z];
         }
 
-        public byte GetBiome(int x, int y, int z)
+        public byte GetBiome(int x, int y)
         {
-            return worldData[x, y, z].Biome;
+            return worldBiomes[x, y];
         }
 
         public void AddSprite(Sprite toAdd)
@@ -73,7 +75,6 @@ namespace ProdigalSoftware.TiVE.Renderer.World
         public int Draw(Camera camera)
         {
             int minX, maxX, minY, maxY;
-
             GetWorldView(camera, camera.Location.Z, out minX, out maxX, out minY, out maxY);
 
             minX = Math.Max(minX, 0);
@@ -85,7 +86,7 @@ namespace ProdigalSoftware.TiVE.Renderer.World
 
             int polygonCount = 0;
             Matrix4 translationMatrix = Matrix4.Identity;
-            for (int z = 0; z < 2; z++)
+            for (int z = 0; z < zSize; z++)
             {
                 translationMatrix.M43 = z * BlockInformation.BlockSize;
                 for (int x = minX; x < maxX; x++)
@@ -94,7 +95,7 @@ namespace ProdigalSoftware.TiVE.Renderer.World
 
                     for (int y = minY; y < maxY; y++)
                     {
-                        Block block = blockList[worldData[x, y, z].BlockIndex];
+                        Block block = blockList[worldBlocks[x, y, z]];
                         if (block != null)
                         {
                             translationMatrix.M42 = y * BlockInformation.BlockSize;

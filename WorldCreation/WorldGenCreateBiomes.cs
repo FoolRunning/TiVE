@@ -15,7 +15,7 @@ namespace WorldCreation
                 {
                     for (int y = 0; y < gameWorld.Ysize; y++)
                     {
-                        gameWorld.SetBiome(x, y, 0, 0);
+                        gameWorld.SetBiome(x, y, 0);
                     }
                 });
         }

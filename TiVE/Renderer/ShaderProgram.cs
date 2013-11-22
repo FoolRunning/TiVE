@@ -44,11 +44,15 @@ namespace ProdigalSoftware.TiVE.Renderer
             programId = GL.CreateProgram();
 
             int vertexId = GL.CreateShader(ShaderType.VertexShader);
-            int fragmentId = GL.CreateShader(ShaderType.FragmentShader);
+            int fragmentId = 0;
             int geometryId = 0;
 
             bool success = CompileShader(vertexId, vertexShaderSource);
-            success &= CompileShader(fragmentId, fragmentShaderSource);
+            if (!string.IsNullOrEmpty(fragmentShaderSource))
+            {
+                fragmentId = GL.CreateShader(ShaderType.FragmentShader);
+                success &= CompileShader(fragmentId, fragmentShaderSource);
+            }
 
             if (!string.IsNullOrEmpty(geometryShaderSource))
             {
@@ -59,7 +63,8 @@ namespace ProdigalSoftware.TiVE.Renderer
             if (success)
             {
                 GL.AttachShader(programId, vertexId);
-                GL.AttachShader(programId, fragmentId);
+                if (fragmentId != 0)
+                    GL.AttachShader(programId, fragmentId);
                 if (geometryId != 0)
                     GL.AttachShader(programId, geometryId);
 
