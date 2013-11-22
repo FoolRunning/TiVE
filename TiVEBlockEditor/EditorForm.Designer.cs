@@ -40,6 +40,7 @@
             this.fileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.newToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.openToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.saveBlockListToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.exitToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.fillBlockToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -50,7 +51,6 @@
             this.toolStripProgressBar = new System.Windows.Forms.ToolStripProgressBar();
             this.colorDialog = new System.Windows.Forms.ColorDialog();
             this.redrawTimer = new System.Windows.Forms.Timer(this.components);
-            this.saveBlockListToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.tableLayoutPanel1.SuspendLayout();
             this.menuStrip.SuspendLayout();
             this.statusStrip.SuspendLayout();
@@ -96,6 +96,7 @@
             this.glCurBlock.TabIndex = 0;
             this.glCurBlock.VSync = false;
             this.glCurBlock.Load += new System.EventHandler(this.glCurBlock_Load);
+            this.glCurBlock.SizeChanged += new System.EventHandler(this.glCurBlock_SizeChanged);
             this.glCurBlock.Paint += new System.Windows.Forms.PaintEventHandler(this.glCurBlock_Paint);
             this.glCurBlock.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.glCurBlock_KeyPress);
             // 
@@ -107,6 +108,7 @@
             this.btnPrevious.TabIndex = 1;
             this.btnPrevious.Text = "< &Prev";
             this.btnPrevious.UseVisualStyleBackColor = true;
+            this.btnPrevious.Click += new System.EventHandler(this.btnPrevious_Click);
             // 
             // btnNext
             // 
@@ -117,6 +119,7 @@
             this.btnNext.TabIndex = 2;
             this.btnNext.Text = "&Next >";
             this.btnNext.UseVisualStyleBackColor = true;
+            this.btnNext.Click += new System.EventHandler(this.btnNext_Click);
             // 
             // lblBlockId
             // 
@@ -178,18 +181,28 @@
             this.newToolStripMenuItem.Name = "newToolStripMenuItem";
             this.newToolStripMenuItem.Size = new System.Drawing.Size(156, 22);
             this.newToolStripMenuItem.Text = "&New Block List";
+            this.newToolStripMenuItem.Click += new System.EventHandler(this.newToolStripMenuItem_Click);
             // 
             // openToolStripMenuItem
             // 
             this.openToolStripMenuItem.Name = "openToolStripMenuItem";
             this.openToolStripMenuItem.Size = new System.Drawing.Size(156, 22);
             this.openToolStripMenuItem.Text = "&Open Block List";
+            this.openToolStripMenuItem.Click += new System.EventHandler(this.openToolStripMenuItem_Click);
+            // 
+            // saveBlockListToolStripMenuItem
+            // 
+            this.saveBlockListToolStripMenuItem.Name = "saveBlockListToolStripMenuItem";
+            this.saveBlockListToolStripMenuItem.Size = new System.Drawing.Size(156, 22);
+            this.saveBlockListToolStripMenuItem.Text = "&Save Block List";
+            this.saveBlockListToolStripMenuItem.Click += new System.EventHandler(this.saveBlockListToolStripMenuItem_Click);
             // 
             // exitToolStripMenuItem
             // 
             this.exitToolStripMenuItem.Name = "exitToolStripMenuItem";
             this.exitToolStripMenuItem.Size = new System.Drawing.Size(156, 22);
             this.exitToolStripMenuItem.Text = "E&xit";
+            this.exitToolStripMenuItem.Click += new System.EventHandler(this.exitToolStripMenuItem_Click);
             // 
             // toolsToolStripMenuItem
             // 
@@ -204,6 +217,7 @@
             this.fillBlockToolStripMenuItem.Name = "fillBlockToolStripMenuItem";
             this.fillBlockToolStripMenuItem.Size = new System.Drawing.Size(121, 22);
             this.fillBlockToolStripMenuItem.Text = "&Fill Block";
+            this.fillBlockToolStripMenuItem.Click += new System.EventHandler(this.fillBlockToolStripMenuItem_Click);
             // 
             // helpToolStripMenuItem
             // 
@@ -257,12 +271,6 @@
             this.redrawTimer.Enabled = true;
             this.redrawTimer.Interval = 500;
             this.redrawTimer.Tick += new System.EventHandler(this.redrawTimer_Tick);
-            // 
-            // saveBlockListToolStripMenuItem
-            // 
-            this.saveBlockListToolStripMenuItem.Name = "saveBlockListToolStripMenuItem";
-            this.saveBlockListToolStripMenuItem.Size = new System.Drawing.Size(156, 22);
-            this.saveBlockListToolStripMenuItem.Text = "&Save Block List";
             // 
             // EditorForm
             // 

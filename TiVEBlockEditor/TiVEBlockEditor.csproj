@@ -37,6 +37,8 @@
     </Reference>
     <Reference Include="OpenTK, Version=1.0.0.0, Culture=neutral, PublicKeyToken=bad199fe84eb3df4" />
     <Reference Include="OpenTK.GLControl, Version=1.0.0.0, Culture=neutral, PublicKeyToken=bad199fe84eb3df4, processorArchitecture=MSIL" />
+    <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -47,6 +49,7 @@
     <Reference Include="System.Drawing" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
+    <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="EditorForm.cs">
@@ -55,11 +58,20 @@
     <Compile Include="EditorForm.Designer.cs">
       <DependentUpon>EditorForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="FillBlockForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FillBlockForm.Designer.cs">
+      <DependentUpon>FillBlockForm.cs</DependentUpon>
+    </Compile>
     <Compile Include="ImmediateBlockRenderer.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="EditorForm.resx">
       <DependentUpon>EditorForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FillBlockForm.resx">
+      <DependentUpon>FillBlockForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
@@ -88,6 +100,10 @@
     <ProjectReference Include="..\TiVEPluginFramework\TiVEPluginFramework.csproj">
       <Project>{42F81808-5A13-4501-B184-18B4197512C3}</Project>
       <Name>TiVEPluginFramework</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\TiVE\TiVE.csproj">
+      <Project>{36a8e85b-b645-4bd0-a1ab-fb00448d5742}</Project>
+      <Name>TiVE</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

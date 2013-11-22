@@ -1,6 +1,4 @@
-﻿using OpenTK.Graphics;
-using OpenTK.Graphics.OpenGL;
-using System.Drawing;
+﻿using OpenTK.Graphics.OpenGL;
 using System.Diagnostics;
 using OpenTK;
 
@@ -144,7 +142,7 @@ namespace ProdigalSoftware.TiVE.Renderer
             return voxels[x, y, z] != 0;
         }
 
-        public virtual void Render(ref Matrix4 matrixMVP)
+        public void Render(ref Matrix4 matrixMVP)
         {
             if (mesh == null)
             {

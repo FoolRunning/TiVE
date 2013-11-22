@@ -11,6 +11,7 @@ namespace ProdigalSoftware.TiVE.Renderer
         private Matrix4 viewMatrix;
         private Matrix4 projectionMatrix;
         private bool needUpdate;
+        private float fieldOfView;
 
         public Camera()
         {
@@ -39,11 +40,20 @@ namespace ProdigalSoftware.TiVE.Renderer
 
         public float AspectRatio { get; private set; }
 
-        public float FoV { get; set; }
+        public float FoV
+        {
+            get { return fieldOfView; }
+            set
+            {
+                fieldOfView = value;
+                needUpdate = true;
+            }
+        }
 
         public void SetViewport(int width, int height)
         {
             AspectRatio = width / (float)height;
+            needUpdate = true;
         }
 
         public void SetLocation(float x, float y, float z)
@@ -64,16 +74,15 @@ namespace ProdigalSoftware.TiVE.Renderer
 
         public void Update()
         {
-            if (needUpdate)
-            {
-                viewMatrix = Matrix4.LookAt(location.X, location.Y, location.Z,
-                    lookAtLocation.X, lookAtLocation.Y, lookAtLocation.Z,
-                    0.0f, 1.0f, 0.0f);
-                
-                projectionMatrix = Matrix4.CreatePerspectiveFieldOfView(FoV, AspectRatio, 1.0f, 1064.0f);
+            if (!needUpdate) 
+                return;
 
-                needUpdate = false;
-            }
+            needUpdate = false;
+            viewMatrix = Matrix4.LookAt(location.X, location.Y, location.Z,
+                lookAtLocation.X, lookAtLocation.Y, lookAtLocation.Z,
+                0.0f, 1.0f, 0.0f);
+                
+            projectionMatrix = Matrix4.CreatePerspectiveFieldOfView(FoV, AspectRatio, 1.0f, 1064.0f);
         }
     }
 }

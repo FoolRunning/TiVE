@@ -105,11 +105,11 @@ namespace ProdigalSoftware.TiVE
 
             if (Keyboard[Key.KeypadPlus])
             {
-                camLoc.Z = Math.Max(camLoc.Z - 3.0f, 4.0f * BlockInformation.BlockSize);
+                camLoc.Z = Math.Max(camLoc.Z - 2.0f, 4.0f * BlockInformation.BlockSize);
             }
             else if (Keyboard[Key.KeypadMinus])
             {
-                camLoc.Z = Math.Min(camLoc.Z + 3.0f, 15.0f * BlockInformation.BlockSize);
+                camLoc.Z = Math.Min(camLoc.Z + 2.0f, 20.0f * BlockInformation.BlockSize);
             }
 
             camera.SetLocation(camLoc.X, camLoc.Y, camLoc.Z);
