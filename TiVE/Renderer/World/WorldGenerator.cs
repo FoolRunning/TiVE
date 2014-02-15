@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using ProdigalSoftware.TiVE.Plugins;
 using ProdigalSoftware.TiVE.Starter;
@@ -31,7 +31,10 @@ namespace ProdigalSoftware.TiVE.Renderer.World
             try
             {
                 foreach (IWorldGeneratorStage generator in PluginManager.GetPluginsOfType<IWorldGeneratorStage>().OrderBy(wg => wg.Priority))
+                {
+                    Debug.WriteLine(generator.StageDescription);
                     generator.UpdateWorld(createdWorld, seed, blockList);
+                }
             }
             catch (Exception e)
             {

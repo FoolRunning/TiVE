@@ -9,10 +9,10 @@ namespace ProdigalSoftware.TiVE.Starter
     internal partial class StarterForm : Form
     {
         /// <summary>string containing the copyright information</summary>
-        private const string COPYRIGHT_STRING = "© 2013 Prodigal Software";
+        private const string COPYRIGHT_STRING = "© 2014 Prodigal Software";
 
-        private Point m_startOfDrag;
-        private Point m_startingLocation;
+        private Point startOfDrag;
+        private Point startingLocation;
 
         /// <summary>
         /// Creates a new NovaStarterForm
@@ -78,23 +78,23 @@ namespace ProdigalSoftware.TiVE.Starter
 
         private void tableLayoutPanel1_MouseDown(object sender, MouseEventArgs e)
         {
-            m_startOfDrag = PointToScreen(e.Location);
-            m_startingLocation = Location;
+            startOfDrag = PointToScreen(e.Location);
+            startingLocation = Location;
         }
 
         private void tableLayoutPanel1_MouseMove(object sender, MouseEventArgs e)
         {
-            if (m_startOfDrag != Point.Empty)
+            if (startOfDrag != Point.Empty)
             {
                 Point locationOnScreen = PointToScreen(e.Location);
-                Location = new Point(m_startingLocation.X + (locationOnScreen.X - m_startOfDrag.X), 
-                    m_startingLocation.Y + (locationOnScreen.Y - m_startOfDrag.Y));
+                Location = new Point(startingLocation.X + (locationOnScreen.X - startOfDrag.X), 
+                    startingLocation.Y + (locationOnScreen.Y - startOfDrag.Y));
             }
         }
 
         private void tableLayoutPanel1_MouseUp(object sender, MouseEventArgs e)
         {
-            m_startOfDrag = Point.Empty;
+            startOfDrag = Point.Empty;
         }
 
         private void btnExit_Click(object sender, EventArgs e)

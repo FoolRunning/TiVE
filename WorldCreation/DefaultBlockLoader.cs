@@ -53,6 +53,7 @@ namespace WorldCreation
                 for (int y = 0; y < BlockInformation.BlockSize; y++)
                 {
                     for (int z = frontOnly ? BlockInformation.BlockSize - 1 : 0; z < BlockInformation.BlockSize; z++)
+                    //for (int z = 0; z < (frontOnly ? 1 : BlockInformation.BlockSize); z++)
                     {
                         if (random.NextDouble() < voxelDensity)
                             voxels[x, y, z] = FromColor(CreateColorFromColor(color));
@@ -104,7 +105,7 @@ namespace WorldCreation
 
         private static Color4 CreateColorFromColor(Color4 seed)
         {
-            float scale = (float)(random.NextDouble() + 0.5);
+            float scale = (float)(random.NextDouble() * 0.5 + 0.75);
             return new Color4(Math.Min(seed.R * scale, 1.0f), Math.Min(seed.G * scale, 1.0f), 
                 Math.Min(seed.B * scale, 1.0f), seed.A);
         }

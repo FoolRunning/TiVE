@@ -4,7 +4,6 @@ using System.Windows.Forms;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
 using ProdigalSoftware.TiVE.Renderer;
-using ProdigalSoftware.TiVE.Renderer.World;
 using ProdigalSoftware.TiVEPluginFramework;
 using KeyPressEventArgs = System.Windows.Forms.KeyPressEventArgs;
 
@@ -15,7 +14,7 @@ namespace ProdigalSoftware.TiVEBlockEditor
         private bool glLoaded;
         private readonly List<BlockInformation> blocks = new List<BlockInformation>();
         private int currentBlockIndex = -1;
-        private Block currentBlock;
+        private VoxelGroup currentBlock;
         private readonly Camera camera = new Camera();
         private bool forceUpdateBlock;
 
@@ -103,7 +102,7 @@ namespace ProdigalSoftware.TiVEBlockEditor
             {
                 if (currentBlock != null)
                     currentBlock.Delete();
-                currentBlock = new Block(blocks[currentBlockIndex]);
+                currentBlock = new VoxelGroup(blocks[currentBlockIndex].Voxels);
                 forceUpdateBlock = false;
             }
 

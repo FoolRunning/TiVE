@@ -40,9 +40,9 @@ namespace ProdigalSoftware.TiVE.Starter
         private static readonly SolidBrush s_stringBrush = new SolidBrush(Color.Transparent);
 
         /// <summary>The text to display</summary>
-        protected readonly string m_text;
+        private readonly string m_text;
         /// <summary>Color of the text</summary>
-        protected readonly Color m_color;
+        private readonly Color m_color;
 
         /// <summary>
         /// Creates a new SimpleTextInfo with the specified text and color

@@ -3,7 +3,7 @@ using OpenTK.Graphics;
 
 namespace ProdigalSoftware.TiVE.Renderer
 {
-    internal class Sprite : VoxelGroup
+    internal class Sprite : IndexedVoxelGroup
     {
         public float X;
         public float Y;

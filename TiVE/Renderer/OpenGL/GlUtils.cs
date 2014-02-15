@@ -1,8 +1,8 @@
 ﻿using System;
-using OpenTK.Graphics.OpenGL;
 using System.Diagnostics;
+using OpenTK.Graphics.OpenGL;
 
-namespace ProdigalSoftware.TiVE.Renderer
+namespace ProdigalSoftware.TiVE.Renderer.OpenGL
 {
     internal static class GlUtils
     {
