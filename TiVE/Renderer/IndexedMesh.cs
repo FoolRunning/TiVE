@@ -4,10 +4,11 @@ using System.Runtime.InteropServices;
 using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL;
+using ProdigalSoftware.TiVE.Renderer.OpenGL;
 
 namespace ProdigalSoftware.TiVE.Renderer
 {
-    internal sealed class Mesh
+    internal sealed class IndexedMesh
     {
         private readonly int sizeOfColor4InBytes = Marshal.SizeOf(new Color4());
 
@@ -23,7 +24,7 @@ namespace ProdigalSoftware.TiVE.Renderer
         private int colorVboId;
         private int indexVboId;
 
-        public Mesh(Vector3[] vertexData, Color4[] colorData, uint[] indexData, BeginMode primitiveType)
+        public IndexedMesh(Vector3[] vertexData, Color4[] colorData, uint[] indexData, BeginMode primitiveType)
         {
             this.vertexData = vertexData;
             this.colorData = colorData;
@@ -31,7 +32,7 @@ namespace ProdigalSoftware.TiVE.Renderer
             this.primitiveType = primitiveType;
         }
 
-        ~Mesh()
+        ~IndexedMesh()
         {
             Debug.Assert(vertexVboId == 0);
             Debug.Assert(colorVboId == 0);

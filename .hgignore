@@ -5,3 +5,4 @@ obj/*
 *.vsp
 *.user
 *.psess
+*.DotSettings

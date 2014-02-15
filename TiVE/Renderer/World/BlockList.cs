@@ -8,7 +8,7 @@ namespace ProdigalSoftware.TiVE.Renderer.World
     internal sealed class BlockList : IBlockList
     {
         private readonly Dictionary<string, ushort> blockToIndexMap = new Dictionary<string, ushort>();
-        private readonly List<Block> blocks = new List<Block>();
+        private readonly List<BlockInformation> blocks = new List<BlockInformation>();
 
         private BlockList()
         {
@@ -24,20 +24,11 @@ namespace ProdigalSoftware.TiVE.Renderer.World
             foreach (IBlockGenerator generator in PluginManager.GetPluginsOfType<IBlockGenerator>())
             {
                 foreach (BlockInformation blockInfo in generator.CreateBlocks())
-                    blockList.AddBlock(blockInfo.BlockName, new Block(blockInfo));
+                    blockList.AddBlock(blockInfo.BlockName, blockInfo);
             }
 
             Messages.AddDoneText();
             return blockList;
-        }
-
-        public void DeleteBlocks()
-        {
-            foreach (Block block in blocks)
-            {
-                if (block != null)
-                    block.Delete();
-            }
         }
 
         public int BlockCount
@@ -45,7 +36,7 @@ namespace ProdigalSoftware.TiVE.Renderer.World
             get { return blocks.Count; }
         }
 
-        public void AddBlock(string blockName, Block block)
+        public void AddBlock(string blockName, BlockInformation block)
         {
             blockToIndexMap.Add(blockName, (ushort)blocks.Count);
             blocks.Add(block);
@@ -56,7 +47,7 @@ namespace ProdigalSoftware.TiVE.Renderer.World
             return blockToIndexMap[blockName];
         }
 
-        public Block this[ushort index]
+        public BlockInformation this[ushort index]
         {
             get { return blocks[index]; }
         }

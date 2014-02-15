@@ -4,11 +4,11 @@ using OpenTK;
 
 namespace ProdigalSoftware.TiVE.Renderer
 {
-    internal class VoxelGroup
+    internal sealed class InstancedVoxelGroup
     {
         #region Constants
-        private const int SmallColorDiff = 10;
-        private const int BigColorDiff = 20;
+        private const int SmallColorDiff = 7;
+        private const int BigColorDiff = 14;
 
         private const string VertexShaderSource = @"
             #version 150 core 
@@ -112,17 +112,17 @@ namespace ProdigalSoftware.TiVE.Renderer
         private IShaderProgram shader;
         private IVertexDataCollection mesh;
 
-        public VoxelGroup(int sizeX, int sizeY, int sizeZ)
+        public InstancedVoxelGroup(int sizeX, int sizeY, int sizeZ)
         {
             voxels = new uint[sizeX, sizeY, sizeZ];
         }
 
-        public VoxelGroup(uint[, ,] voxels)
+        public InstancedVoxelGroup(uint[, ,] voxels)
         {
             this.voxels = voxels;
         }
 
-        ~VoxelGroup()
+        ~InstancedVoxelGroup()
         {
             Debug.Assert(shader == null);
             Debug.Assert(mesh == null);
@@ -234,7 +234,7 @@ namespace ProdigalSoftware.TiVE.Renderer
                         byte ca = (byte)((color >> 24) & 0xFF);
                         //Debug.WriteLine(string.Format("Color value: {0} - ({1}, {2}, {3})", color, (int)(color & 0xFF), (int)((color >> 8) & 0xFF), (int)((color >> 16) & 0xFF)));
 
-                        if (z == voxelCountZ - 1 || !IsVoxelSet(x, y, z + 1))
+                        //if (z == voxelCountZ - 1 || !IsVoxelSet(x, y, z + 1))
                         {
                             voxelMeshBuilder.AddVertex(x, y, z + 1, cr, cg, cb, ca);
                             voxelMeshBuilder.AddVertex(x + 1, y + 1, z + 1, cr, cg, cb, ca);
@@ -259,7 +259,7 @@ namespace ProdigalSoftware.TiVE.Renderer
                         //    PolygonCount += 2;
                         //}
 
-                        if (x == 0 || !IsVoxelSet(x - 1, y, z))
+                        //if (x == 0 || !IsVoxelSet(x - 1, y, z))
                         {
                             byte crr = (byte)Math.Min(255, cr + SmallColorDiff);
                             byte cgr = (byte)Math.Min(255, cg + SmallColorDiff);
@@ -274,7 +274,7 @@ namespace ProdigalSoftware.TiVE.Renderer
                             PolygonCount += 2;
                         }
 
-                        if (x == voxelCountX - 1 || !IsVoxelSet(x + 1, y, z))
+                        //if (x == voxelCountX - 1 || !IsVoxelSet(x + 1, y, z))
                         {
                             byte crl = (byte)Math.Max(0, cr - SmallColorDiff);
                             byte cgl = (byte)Math.Max(0, cg - SmallColorDiff);
@@ -289,7 +289,7 @@ namespace ProdigalSoftware.TiVE.Renderer
                             PolygonCount += 2;
                         }
 
-                        if (y == 0 || !IsVoxelSet(x, y - 1, z))
+                        //if (y == 0 || !IsVoxelSet(x, y - 1, z))
                         {
                             byte crb = (byte)Math.Max(0, cr - BigColorDiff);
                             byte cgb = (byte)Math.Max(0, cg - BigColorDiff);
@@ -304,7 +304,7 @@ namespace ProdigalSoftware.TiVE.Renderer
                             PolygonCount += 2;
                         }
 
-                        if (y == voxelCountY - 1 || !IsVoxelSet(x, y + 1, z))
+                        //if (y == voxelCountY - 1 || !IsVoxelSet(x, y + 1, z))
                         {
                             byte crt = (byte)Math.Min(255, cr + BigColorDiff);
                             byte cgt = (byte)Math.Min(255, cg + BigColorDiff);
@@ -325,5 +325,4 @@ namespace ProdigalSoftware.TiVE.Renderer
             return voxelMeshBuilder.GetMesh();
         }
     }
-
 }

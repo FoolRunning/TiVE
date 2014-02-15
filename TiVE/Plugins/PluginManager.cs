@@ -40,23 +40,20 @@ namespace ProdigalSoftware.TiVE.Plugins
             {
                 try
                 {
-                    foreach (Type pluginType in asm.GetExportedTypes())
+                    foreach (Type pluginType in asm.GetExportedTypes().Where(t => !t.IsAbstract && t.IsClass))
                     {
-                        if (!pluginType.IsAbstract && pluginType.IsClass)
+                        foreach (Type pluginInterface in pluginType.GetInterfaces().Where(pi => pi.FullName.Contains("ProdigalSoftware.TiVEPluginFramework")))
                         {
-                            foreach (Type pluginInterface in pluginType.GetInterfaces().Where(pi => pi.FullName.Contains("ProdigalSoftware.TiVEPluginFramework")))
+                            if (pluginType.GetConstructor(Type.EmptyTypes) == null)
                             {
-                                if (pluginType.GetConstructor(Type.EmptyTypes) == null)
-                                {
-                                    warnings.Add(pluginType.Name + " does not contain a default constructor.");
-                                    break;
-                                }
-                                foundPlugins = true;
-                                List<Type> typesFound;
-                                if (!pluginInterfaceMap.TryGetValue(pluginInterface, out typesFound))
-                                    pluginInterfaceMap[pluginInterface] = typesFound = new List<Type>();
-                                typesFound.Add(pluginType);
+                                warnings.Add(pluginType.Name + " does not contain a default constructor.");
+                                break;
                             }
+                            foundPlugins = true;
+                            List<Type> typesFound;
+                            if (!pluginInterfaceMap.TryGetValue(pluginInterface, out typesFound))
+                                pluginInterfaceMap[pluginInterface] = typesFound = new List<Type>();
+                            typesFound.Add(pluginType);
                         }
                     }
                 }

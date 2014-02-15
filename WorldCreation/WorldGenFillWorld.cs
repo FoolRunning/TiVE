@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Runtime.Remoting.Contexts;
 using System.Threading.Tasks;
 using ProdigalSoftware.TiVEPluginFramework;
 
@@ -10,58 +11,55 @@ namespace WorldCreation
     /// </summary>
     public class WorldGenFillWorld : IWorldGeneratorStage
     {
-        private Random random;
-        private readonly ushort[] backWalls = new ushort[4];
-        private readonly ushort[] dirts = new ushort[4];
-        private readonly ushort[] stones = new ushort[4];
-        private readonly ushort[] sands = new ushort[4];
-
         /// <summary>
         /// Updates the specified gameworld with blocks
         /// </summary>
         public void UpdateWorld(IGameWorld gameWorld, long seed, IBlockList blockList)
         {
-            for (int i = 0; i < 4; i++)
+            BlockRandomizer backWalls = new BlockRandomizer(blockList, "back", 4);
+            BlockRandomizer dirts = new BlockRandomizer(blockList, "dirt", 4);
+            BlockRandomizer stones = new BlockRandomizer(blockList, "stone", 4);
+            BlockRandomizer sands = new BlockRandomizer(blockList, "sand", 4);
+
+            Random random1 = new Random((int)((seed >> 11) & 0xFFFFFFFF));
+            Random random2 = new Random((int)((seed >> 15) & 0xFFFFFFFF));
+
+            double xOff1 = random1.NextDouble() * 50.0 - 25.0;
+            double yOff1 = random1.NextDouble() * 50.0 - 25.0;
+            double xOff2 = random1.NextDouble() * 100.0 - 50.0;
+            double yOff2 = random1.NextDouble() * 100.0 - 50.0;
+            double xOff3 = random1.NextDouble() * 500.0 - 250.0;
+            double yOff3 = random1.NextDouble() * 500.0 - 250.0;
+
+            double scaleX1 = random2.NextDouble() * 0.15 + 0.01;
+            double scaleY1 = random2.NextDouble() * 0.15 + 0.02;
+            double scaleX2 = random2.NextDouble() * 0.10 + 0.05;
+            double scaleY2 = random2.NextDouble() * 0.10 + 0.05;
+            double scaleX3 = random2.NextDouble() * 0.03 + 0.07;
+            double scaleY3 = random2.NextDouble() * 0.03 + 0.07;
+
+            // Use parallel for for speed since there is no syncing needed
+            Parallel.For(0, gameWorld.Xsize, x =>
             {
-                backWalls[i] = blockList.GetBlockIndex("back" + i);
-                dirts[i] = blockList.GetBlockIndex("dirt" + i);
-                stones[i] = blockList.GetBlockIndex("stone" + i);
-                sands[i] = blockList.GetBlockIndex("sand" + i);
-            }
+                for (int y = 0; y < gameWorld.Ysize; y++)
+                {
+                    if (gameWorld.GetBiome(x, y) == 0)
+                        continue;
 
-
-            random = new Random((int)((seed >> 20) & 0xFFFFFFFF));
-            double offset1 = random.NextDouble() * 100.0 - 50.0;
-            double offset2 = random.NextDouble() * 40.0 - 20.0;
-            double offset3 = random.NextDouble() * 6.0 - 3.0;
-
-            double scale1 = random.NextDouble() * 0.003 + 0.001;
-            double scale2 = random.NextDouble() * 0.01 + 0.005;
-            double scale3 = random.NextDouble() * 0.04 + 0.02;
-
-            Debug.WriteLine(scale1 + ", " + scale2 + ", " + scale3);
-            
-            for (int x = 0; x < gameWorld.Xsize; x++)
-            {
-                double noise = Noise.GetNoise((offset1 + x) * scale1) * 0.6 +
-                    Noise.GetNoise((offset2 + x) * scale2) * 0.25 +
-                    Noise.GetNoise((offset3 + x) * scale3) * 0.15;
-
-                int bottomY = gameWorld.Ysize - (int) (noise * 75.0) - 125;
-                FillColumn(gameWorld, x, bottomY);
-            }
-        }
-
-        private int GetNextInt(int max)
-        {
-            //lock(random)
-                return random.Next(max);
-        }
-
-        private double GetNextDouble()
-        {
-            //lock (random)
-                return random.NextDouble();
+                    double noiseVal = Noise.GetNoise((xOff1 + x) * scaleX1, (yOff1 + y) * scaleY1) * 0.2f +
+                            Noise.GetNoise((xOff2 + x) * scaleX2, (yOff2 + y) * scaleY2) * 0.5f +
+                            Noise.GetNoise((xOff3 + x) * scaleX3, (yOff3 + y) * scaleY3) * 0.3f;
+                    gameWorld.SetBlock(x, y, 0, backWalls.NextBlock());
+                    ushort blockId;
+                    if (noiseVal > 0.2)
+                        blockId = dirts.NextBlock();
+                    else if (noiseVal < -0.3)
+                        blockId = sands.NextBlock();
+                    else
+                        blockId = stones.NextBlock();
+                    gameWorld.SetBlock(x, y, 1, blockId);
+                }
+            });
         }
 
         public ushort Priority
@@ -74,21 +72,26 @@ namespace WorldCreation
             get { return "Filling World"; }
         }
 
-        private void FillColumn(IGameWorld gameWorld, int x, int topY)
+        private sealed class BlockRandomizer
         {
-            for (int y = topY; y >= 0; y--)
+            private readonly ushort[] blockIds;
+            private readonly int blockCount;
+            private readonly Random random = new Random();
+
+            public BlockRandomizer(IBlockList blockList, string blockname, int blockCount)
             {
-                gameWorld.SetBlock(x, y, 0, backWalls[GetNextInt(4)]);
-                //double rand = ((x * gameWorld.Ysize + y) % 17) / 17.0;
-                double rand = GetNextDouble();
-                ushort block;
-                if (rand < .2)
-                    block = stones[GetNextInt(4)];
-                else if (rand < .5)
-                    block = sands[GetNextInt(4)];
-                else
-                    block = dirts[GetNextInt(4)];
-                gameWorld.SetBlock(x, y, 1, block);
+                this.blockCount = blockCount;
+                blockIds = new ushort[blockCount];
+                for (int i = 0; i < blockCount; i++)
+                    blockIds[i] = blockList.GetBlockIndex(blockname + i);
+            }
+
+            public ushort NextBlock()
+            {
+                int blockNum;
+                lock(random)
+                    blockNum = random.Next(blockCount);
+                return blockIds[blockNum];
             }
         }
     }
