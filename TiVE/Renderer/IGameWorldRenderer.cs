@@ -9,6 +9,6 @@ namespace ProdigalSoftware.TiVE.Renderer
     internal interface IGameWorldRenderer
     {
         void CleanUp();
-        void Draw(Camera camera, out int drawCount, out int polygonCount);
+        void Draw(Camera camera, out int drawCount, out int polygonCount, out int voxelCount, out int renderedVoxelCount);
     }
 }

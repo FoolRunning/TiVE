@@ -7,16 +7,10 @@ namespace ProdigalSoftware.TiVE.Renderer
 {
     internal sealed class IndexedMeshBuilder
     {
-        private readonly BeginMode primitiveType;
-        private readonly List<Vector3> vertexData = new List<Vector3>(5000);
-        private readonly List<Color4> colorData = new List<Color4>(5000);
-        private readonly List<uint> indexData = new List<uint>(10000);
-        private uint vertexCount;
-
-        public IndexedMeshBuilder(BeginMode primitiveType)
-        {
-            this.primitiveType = primitiveType;
-        }
+        private readonly List<Vector3> vertexData = new List<Vector3>(50);
+        private readonly List<Color4> colorData = new List<Color4>(50);
+        private readonly List<byte> indexData = new List<byte>(100);
+        private byte vertexCount;
 
         public void BeginNewMesh()
         {
@@ -26,7 +20,7 @@ namespace ProdigalSoftware.TiVE.Renderer
             vertexCount = 0;
         }
 
-        public uint AddVertex(float x, float y, float z, float cr, float cg, float cb, float ca)
+        public byte AddVertex(float x, float y, float z, float cr, float cg, float cb, float ca)
         {
             vertexData.Add(new Vector3(x, y, z));
             colorData.Add(new Color4(cr, cg, cb, ca));
@@ -34,7 +28,7 @@ namespace ProdigalSoftware.TiVE.Renderer
             return vertexCount++;
         }
 
-        public uint AddVertex(float x, float y, float z, byte cr, byte cg, byte cb, byte ca)
+        public byte AddVertex(float x, float y, float z, byte cr, byte cg, byte cb, byte ca)
         {
             vertexData.Add(new Vector3(x, y, z));
             colorData.Add(new Color4(cr, cg, cb, ca));
@@ -42,14 +36,33 @@ namespace ProdigalSoftware.TiVE.Renderer
             return vertexCount++;
         }
 
-        public void AddIndex(uint index)
+        public void AddIndex(byte index)
         {
             indexData.Add(index);
         }
 
-        public IndexedMesh GetMesh()
+        public IVertexDataCollection GetMesh()
         {
-            return new IndexedMesh(vertexData.ToArray(), colorData.ToArray(), indexData.ToArray(), primitiveType);
+            IVertexDataCollection dataCollection = TiVEController.Backend.CreateVertexDataCollection();
+            dataCollection.AddBuffer(GetLocationData());
+            dataCollection.AddBuffer(GetColorData());
+            dataCollection.AddBuffer(GetIndexData());
+            return dataCollection;
+        }
+
+        public IRendererData GetLocationData()
+        {
+            return TiVEController.Backend.CreateData(vertexData.ToArray(), 3, DataType.Vertex, false);
+        }
+
+        public IRendererData GetColorData()
+        {
+            return TiVEController.Backend.CreateData(colorData.ToArray(), 4, DataType.Vertex, false);
+        }
+
+        public IRendererData GetIndexData()
+        {
+            return TiVEController.Backend.CreateData(indexData.ToArray(), 1, DataType.Index, false);
         }
     }
 }

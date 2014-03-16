@@ -8,6 +8,7 @@ namespace ProdigalSoftware.TiVE.Renderer.OpenGL
     {
         public static void CheckGLErrors()
         {
+#if DEBUG
             ErrorCode error = GL.GetError();
             if (error != ErrorCode.NoError)
                 DisplayError(error);
@@ -17,6 +18,7 @@ namespace ProdigalSoftware.TiVE.Renderer.OpenGL
         {
             Debug.WriteLine("Found OpenGL error: " + code);
             Debug.WriteLine(Environment.StackTrace);
+#endif
         }
     }
 }

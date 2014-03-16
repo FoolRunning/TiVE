@@ -1,4 +1,4 @@
-﻿using OpenTK.Graphics.OpenGL;
+﻿using System;
 using System.Diagnostics;
 using OpenTK;
 
@@ -7,6 +7,9 @@ namespace ProdigalSoftware.TiVE.Renderer
     internal class IndexedVoxelGroup
     {
         #region Constants
+        private const int SmallColorDiff = 10;
+        private const int BigColorDiff = 20;
+
         private const string VertexShaderSource = @"
             #version 150 core 
  
@@ -102,12 +105,12 @@ namespace ProdigalSoftware.TiVE.Renderer
 			";
         #endregion
 
-        private static readonly IndexedMeshBuilder voxelMeshBuilder = new IndexedMeshBuilder(BeginMode.Triangles);
+        private static readonly IndexedMeshBuilder voxelMeshBuilder = new IndexedMeshBuilder();
 
         private readonly uint[, ,] voxels;
 
         private IShaderProgram shader;
-        private IndexedMesh mesh;
+        private IVertexDataCollection mesh;
 
         public IndexedVoxelGroup(int sizeX, int sizeY, int sizeZ)
         {
@@ -170,7 +173,7 @@ namespace ProdigalSoftware.TiVE.Renderer
             shader.Bind();
             shader.SetUniform("matrix_ModelViewProjection", ref matrixMVP);
 
-            mesh.Draw();
+            TiVEController.Backend.Draw(PrimitiveType.Triangles, mesh);
         }
 
         public void Delete()
@@ -199,7 +202,7 @@ namespace ProdigalSoftware.TiVE.Renderer
             return program;
         }
 
-        private IndexedMesh CreateVoxelMesh()
+        private IVertexDataCollection CreateVoxelMesh()
         {
             voxelMeshBuilder.BeginNewMesh();
             PolygonCount = 0;
@@ -233,92 +236,148 @@ namespace ProdigalSoftware.TiVE.Renderer
                         byte ca = (byte)((color >> 24) & 0xFF);
                         //Debug.WriteLine(string.Format("Color value: {0} - ({1}, {2}, {3})", color, (int)(color & 0xFF), (int)((color >> 8) & 0xFF), (int)((color >> 16) & 0xFF)));
 
-                        uint v1 = voxelMeshBuilder.AddVertex(x, y + 1, z, cr, cg, cb, ca);
-                        uint v2 = voxelMeshBuilder.AddVertex(x + 1, y + 1, z, cr, cg, cb, ca);
-                        uint v3 = voxelMeshBuilder.AddVertex(x + 1, y + 1, z + 1, cr, cg, cb, ca);
-                        uint v4 = voxelMeshBuilder.AddVertex(x, y + 1, z + 1, cr, cg, cb, ca);
-                        uint v5 = voxelMeshBuilder.AddVertex(x, y, z, cr, cg, cb, ca);
-                        uint v6 = voxelMeshBuilder.AddVertex(x + 1, y, z, cr, cg, cb, ca);
-                        uint v7 = voxelMeshBuilder.AddVertex(x + 1, y, z + 1, cr, cg, cb, ca);
-                        uint v8 = voxelMeshBuilder.AddVertex(x, y, z + 1, cr, cg, cb, ca);
-
+                        VoxelSides sides = VoxelSides.None;
                         if (z == voxelCountZ - 1 || !IsVoxelSet(x, y, z + 1))
-                        {
-                            voxelMeshBuilder.AddIndex(v8);
-                            voxelMeshBuilder.AddIndex(v3);
-                            voxelMeshBuilder.AddIndex(v7);
-
-                            voxelMeshBuilder.AddIndex(v3);
-                            voxelMeshBuilder.AddIndex(v8);
-                            voxelMeshBuilder.AddIndex(v4);
-                            PolygonCount += 2;
-                        }
+                            sides |= VoxelSides.Front;
 
                         // The back face is never shown to the camera, so there is no need to create it
                         //if (!IsZLineSet(x, y, z, 1))
-                        //{
-                        //    GL.Vertex3(x * World_Block_Size + World_Block_Size, y * World_Block_Size + World_Block_Size, z * World_Block_Size + World_Block_Size);
-                        //    GL.Vertex3(x * World_Block_Size + World_Block_Size, y * World_Block_Size, z * World_Block_Size + World_Block_Size);
-                        //    GL.Vertex3(x * World_Block_Size, y * World_Block_Size, z * World_Block_Size + World_Block_Size);
-
-                        //    GL.Vertex3(x * World_Block_Size, y * World_Block_Size, z * World_Block_Size + World_Block_Size);
-                        //    GL.Vertex3(x * World_Block_Size, y * World_Block_Size + World_Block_Size, z * World_Block_Size + World_Block_Size);
-                        //    GL.Vertex3(x * World_Block_Size + World_Block_Size, y * World_Block_Size + World_Block_Size, z * World_Block_Size + World_Block_Size);
-                        //    PolygonCount += 2;
-                        //}
+                        //    sizes |= VoxelSides.Back;
 
                         if (x == 0 || !IsVoxelSet(x - 1, y, z))
-                        {
-                            voxelMeshBuilder.AddIndex(v5);
-                            voxelMeshBuilder.AddIndex(v1);
-                            voxelMeshBuilder.AddIndex(v4);
-
-                            voxelMeshBuilder.AddIndex(v4);
-                            voxelMeshBuilder.AddIndex(v8);
-                            voxelMeshBuilder.AddIndex(v5);
-                            PolygonCount += 2;
-                        }
+                            sides |= VoxelSides.Left;
 
                         if (x == voxelCountX - 1 || !IsVoxelSet(x + 1, y, z))
-                        {
-                            voxelMeshBuilder.AddIndex(v6);
-                            voxelMeshBuilder.AddIndex(v3);
-                            voxelMeshBuilder.AddIndex(v2);
-
-                            voxelMeshBuilder.AddIndex(v3);
-                            voxelMeshBuilder.AddIndex(v6);
-                            voxelMeshBuilder.AddIndex(v7);
-                            PolygonCount += 2;
-                        }
+                            sides |= VoxelSides.Right;
 
                         if (y == 0 || !IsVoxelSet(x, y - 1, z))
-                        {
-                            voxelMeshBuilder.AddIndex(v5);
-                            voxelMeshBuilder.AddIndex(v7);
-                            voxelMeshBuilder.AddIndex(v6);
-
-                            voxelMeshBuilder.AddIndex(v5);
-                            voxelMeshBuilder.AddIndex(v8);
-                            voxelMeshBuilder.AddIndex(v7);
-                            PolygonCount += 2;
-                        }
+                            sides |= VoxelSides.Bottom;
 
                         if (y == voxelCountY - 1 || !IsVoxelSet(x, y + 1, z))
-                        {
-                            voxelMeshBuilder.AddIndex(v1);
-                            voxelMeshBuilder.AddIndex(v2);
-                            voxelMeshBuilder.AddIndex(v3);
+                            sides |= VoxelSides.Top;
 
-                            voxelMeshBuilder.AddIndex(v1);
-                            voxelMeshBuilder.AddIndex(v3);
-                            voxelMeshBuilder.AddIndex(v4);
-                            PolygonCount += 2;
-                        }
+                        PolygonCount += AddVoxel(voxelMeshBuilder, x, y, z, cr, cg, cb, ca, sides);
                     }
                 }
             }
 
             return voxelMeshBuilder.GetMesh();
+        }
+
+        public static int AddVoxel(IndexedMeshBuilder meshBuilder, int x, int y, int z, byte cr, byte cg, byte cb, byte ca, VoxelSides sides)
+        {
+            int polygonCount = 0;
+            if ((sides & VoxelSides.Front) != 0)
+            {
+                byte v3 = meshBuilder.AddVertex(x + 1, y + 1, z + 1, cr, cg, cb, ca);
+                byte v4 = meshBuilder.AddVertex(x, y + 1, z + 1, cr, cg, cb, ca);
+                byte v7 = meshBuilder.AddVertex(x + 1, y, z + 1, cr, cg, cb, ca);
+                byte v8 = meshBuilder.AddVertex(x, y, z + 1, cr, cg, cb, ca);
+
+                meshBuilder.AddIndex(v8);
+                meshBuilder.AddIndex(v3);
+                meshBuilder.AddIndex(v7);
+
+                meshBuilder.AddIndex(v3);
+                meshBuilder.AddIndex(v8);
+                meshBuilder.AddIndex(v4);
+                polygonCount += 2;
+            }
+
+            // The back face is never shown to the camera, so there is no need to create it
+            //if ((sides & VoxelSides.Back) != 0)
+            //{
+            //    GL.Vertex3(x * World_Block_Size + World_Block_Size, y * World_Block_Size + World_Block_Size, z * World_Block_Size + World_Block_Size);
+            //    GL.Vertex3(x * World_Block_Size + World_Block_Size, y * World_Block_Size, z * World_Block_Size + World_Block_Size);
+            //    GL.Vertex3(x * World_Block_Size, y * World_Block_Size, z * World_Block_Size + World_Block_Size);
+
+            //    GL.Vertex3(x * World_Block_Size, y * World_Block_Size, z * World_Block_Size + World_Block_Size);
+            //    GL.Vertex3(x * World_Block_Size, y * World_Block_Size + World_Block_Size, z * World_Block_Size + World_Block_Size);
+            //    GL.Vertex3(x * World_Block_Size + World_Block_Size, y * World_Block_Size + World_Block_Size, z * World_Block_Size + World_Block_Size);
+            //    PolygonCount += 2;
+            //}
+
+            if ((sides & VoxelSides.Left) != 0)
+            {
+                byte crr = (byte)Math.Min(255, cr + SmallColorDiff);
+                byte cgr = (byte)Math.Min(255, cg + SmallColorDiff);
+                byte cbr = (byte)Math.Min(255, cb + SmallColorDiff);
+                byte v1 = meshBuilder.AddVertex(x, y + 1, z, crr, cgr, cbr, ca);
+                byte v4 = meshBuilder.AddVertex(x, y + 1, z + 1, crr, cgr, cbr, ca);
+                byte v5 = meshBuilder.AddVertex(x, y, z, crr, cgr, cbr, ca);
+                byte v8 = meshBuilder.AddVertex(x, y, z + 1, crr, cgr, cbr, ca);
+
+                meshBuilder.AddIndex(v5);
+                meshBuilder.AddIndex(v1);
+                meshBuilder.AddIndex(v4);
+
+                meshBuilder.AddIndex(v4);
+                meshBuilder.AddIndex(v8);
+                meshBuilder.AddIndex(v5);
+                polygonCount += 2;
+            }
+
+            if ((sides & VoxelSides.Left) != 0)
+            {
+                byte crl = (byte)Math.Max(0, cr - SmallColorDiff);
+                byte cgl = (byte)Math.Max(0, cg - SmallColorDiff);
+                byte cbl = (byte)Math.Max(0, cb - SmallColorDiff);
+                byte v2 = meshBuilder.AddVertex(x + 1, y + 1, z, crl, cgl, cbl, ca);
+                byte v3 = meshBuilder.AddVertex(x + 1, y + 1, z + 1, crl, cgl, cbl, ca);
+                byte v6 = meshBuilder.AddVertex(x + 1, y, z, crl, cgl, cbl, ca);
+                byte v7 = meshBuilder.AddVertex(x + 1, y, z + 1, crl, cgl, cbl, ca);
+
+                meshBuilder.AddIndex(v6);
+                meshBuilder.AddIndex(v3);
+                meshBuilder.AddIndex(v2);
+
+                meshBuilder.AddIndex(v3);
+                meshBuilder.AddIndex(v6);
+                meshBuilder.AddIndex(v7);
+                polygonCount += 2;
+            }
+
+            if ((sides & VoxelSides.Bottom) != 0)
+            {
+                byte crb = (byte)Math.Max(0, cr - BigColorDiff);
+                byte cgb = (byte)Math.Max(0, cg - BigColorDiff);
+                byte cbb = (byte)Math.Max(0, cb - BigColorDiff);
+                byte v5 = meshBuilder.AddVertex(x, y, z, crb, cgb, cbb, ca);
+                byte v6 = meshBuilder.AddVertex(x + 1, y, z, crb, cgb, cbb, ca);
+                byte v7 = meshBuilder.AddVertex(x + 1, y, z + 1, crb, cgb, cbb, ca);
+                byte v8 = meshBuilder.AddVertex(x, y, z + 1, crb, cgb, cbb, ca);
+
+                meshBuilder.AddIndex(v5);
+                meshBuilder.AddIndex(v7);
+                meshBuilder.AddIndex(v6);
+
+                meshBuilder.AddIndex(v5);
+                meshBuilder.AddIndex(v8);
+                meshBuilder.AddIndex(v7);
+                polygonCount += 2;
+            }
+
+            if ((sides & VoxelSides.Top) != 0)
+            {
+                byte crt = (byte)Math.Min(255, cr + BigColorDiff);
+                byte cgt = (byte)Math.Min(255, cg + BigColorDiff);
+                byte cbt = (byte)Math.Min(255, cb + BigColorDiff);
+                byte v1 = meshBuilder.AddVertex(x, y + 1, z, crt, cgt, cbt, ca);
+                byte v2 = meshBuilder.AddVertex(x + 1, y + 1, z, crt, cgt, cbt, ca);
+                byte v3 = meshBuilder.AddVertex(x + 1, y + 1, z + 1, crt, cgt, cbt, ca);
+                byte v4 = meshBuilder.AddVertex(x, y + 1, z + 1, crt, cgt, cbt, ca);
+
+                meshBuilder.AddIndex(v1);
+                meshBuilder.AddIndex(v2);
+                meshBuilder.AddIndex(v3);
+
+                meshBuilder.AddIndex(v1);
+                meshBuilder.AddIndex(v3);
+                meshBuilder.AddIndex(v4);
+                polygonCount += 2;
+            }
+
+            return polygonCount;
         }
     }
 }

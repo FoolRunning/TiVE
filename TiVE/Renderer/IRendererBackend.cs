@@ -1,15 +1,16 @@
 ﻿namespace ProdigalSoftware.TiVE.Renderer
 {
+
     internal interface IRendererBackend
     {
         IDisplay CreateDisplay();
 
-        void Draw(PrimitiveType primitiveType, IVertexDataCollection vertexes);
+        void Draw(PrimitiveType primitiveType, IVertexDataCollection data);
 
         IVertexDataCollection CreateVertexDataCollection();
 
-        IVertexData CreateVertexData<T>(T[] data, int dataPerVertex, BufferType bufferType, bool dynamic) where T : struct;
-
+        IRendererData CreateData<T>(T[] data, int dataPerVertex, DataType dataType, bool dynamic) where T : struct;
+        
         IShaderProgram CreateShaderProgram();
     }
 }

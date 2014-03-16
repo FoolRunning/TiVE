@@ -192,6 +192,18 @@ namespace ProdigalSoftware.TiVE.Starter
         }
 
         /// <summary>
+        /// Adds a warning message that asserts in debug builds
+        /// </summary>
+        public static void Assert(bool value, string message)
+        {
+            if (!value)
+            {
+                AddWarning(message);
+                Debug.Fail(message);
+            }
+        }
+
+        /// <summary>
         /// Resets the text on the MessageView
         /// </summary>
         public static void ClearText()

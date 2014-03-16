@@ -8,9 +8,9 @@ namespace ProdigalSoftware.TiVE.Renderer
 {
     internal sealed class GameLogic
     {
-        public const int WorldXSize = 2000;
-        public const int WorldYSize = 2000;
-        public const int WorldZSize = 2;
+        public const int WorldXSize = 2048;
+        public const int WorldYSize = 2048;
+        public const int WorldZSize = 8;
 
         private BlockList blockList;
         private GameWorld world;
@@ -26,13 +26,13 @@ namespace ProdigalSoftware.TiVE.Renderer
 
         public bool Initialize()
         {
-            camera.SetLocation(20000, (WorldYSize - 75) * BlockInformation.BlockSize, 300);
+            camera.SetLocation(1263 * BlockInformation.BlockSize, 1747 * BlockInformation.BlockSize, 300);
             camera.FoV = (float)Math.PI / 6;
 
             blockList = BlockList.CreateBlockList();
 
             WorldGenerator generator = new WorldGenerator(WorldXSize, WorldYSize, WorldZSize);
-            world = generator.CreateWorld(LongRandom(), blockList);
+            world = generator.CreateWorld(123456789123456789, blockList);
 
             if (world == null)
                 return false;
@@ -53,20 +53,24 @@ namespace ProdigalSoftware.TiVE.Renderer
 
             Vector3 camLoc = camera.Location;
 
-            bool shift = keyboard[Key.ShiftLeft];
+            float speed = 1;
+            if (keyboard[Key.ShiftLeft])
+                speed = 5;
+            else if (keyboard[Key.ControlLeft])
+                speed = 0.2f;
             if (keyboard[Key.A])
-                camLoc.X -= shift ? 5 : 1;
+                camLoc.X -= speed;
             if (keyboard[Key.D])
-                camLoc.X += shift ? 5 : 1;
+                camLoc.X += speed;
             if (keyboard[Key.W])
-                camLoc.Y += shift ? 5 : 1;
+                camLoc.Y += speed;
             if (keyboard[Key.S])
-                camLoc.Y -= shift ? 5 : 1;
+                camLoc.Y -= speed;
 
             if (keyboard[Key.KeypadPlus])
                 camLoc.Z = Math.Max(camLoc.Z - 2.0f, 4.0f * BlockInformation.BlockSize);
             else if (keyboard[Key.KeypadMinus])
-                camLoc.Z = Math.Min(camLoc.Z + 2.0f, 50.0f * BlockInformation.BlockSize);
+                camLoc.Z = Math.Min(camLoc.Z + 2.0f, 60.0f * BlockInformation.BlockSize);
 
             camera.SetLocation(camLoc.X, camLoc.Y, camLoc.Z);
             camera.SetLookAtLocation(camLoc.X, camLoc.Y, camLoc.Z - 100);
@@ -76,11 +80,11 @@ namespace ProdigalSoftware.TiVE.Renderer
 
         public RenderStatistics Render(double timeSinceLastFrame)
         {
-            int drawCount, polygonCount;
+            int drawCount, polygonCount, voxelCount, renderedVoxelCount;
 
-            renderer.Draw(camera, out drawCount, out polygonCount);
+            renderer.Draw(camera, out drawCount, out polygonCount, out voxelCount, out renderedVoxelCount);
 
-            return new RenderStatistics(drawCount, polygonCount);
+            return new RenderStatistics(drawCount, polygonCount, voxelCount, renderedVoxelCount);
         }
 
         private static long LongRandom()
@@ -96,11 +100,15 @@ namespace ProdigalSoftware.TiVE.Renderer
     {
         public readonly int DrawCount;
         public readonly int PolygonCount;
+        public readonly int VoxelCount;
+        public readonly int RenderedVoxelCount;
 
-        public RenderStatistics(int drawCount, int polygonCount)
+        public RenderStatistics(int drawCount, int polygonCount, int voxelCount, int renderedVoxelCount)
         {
             DrawCount = drawCount;
             PolygonCount = polygonCount;
+            VoxelCount = voxelCount;
+            RenderedVoxelCount = renderedVoxelCount;
         }
     }
 }

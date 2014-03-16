@@ -50,14 +50,35 @@ namespace WorldCreation
                             Noise.GetNoise((xOff2 + x) * scaleX2, (yOff2 + y) * scaleY2) * 0.5f +
                             Noise.GetNoise((xOff3 + x) * scaleX3, (yOff3 + y) * scaleY3) * 0.3f;
                     gameWorld.SetBlock(x, y, 0, backWalls.NextBlock());
-                    ushort blockId;
                     if (noiseVal > 0.2)
-                        blockId = dirts.NextBlock();
+                    {
+                        gameWorld.SetBlock(x, y, 1, dirts.NextBlock());
+                        if (noiseVal > 0.5)
+                            gameWorld.SetBlock(x, y, 2, dirts.NextBlock());
+                    }
                     else if (noiseVal < -0.3)
-                        blockId = sands.NextBlock();
+                    {
+                        gameWorld.SetBlock(x, y, 1, sands.NextBlock());
+                        if (noiseVal < -0.6)
+                            gameWorld.SetBlock(x, y, 2, sands.NextBlock());
+                    }
                     else
-                        blockId = stones.NextBlock();
-                    gameWorld.SetBlock(x, y, 1, blockId);
+                    {
+                        gameWorld.SetBlock(x, y, 1, stones.NextBlock());
+                        gameWorld.SetBlock(x, y, 2, stones.NextBlock());
+                        if (noiseVal < 0.2 & noiseVal > -0.3)
+                        {
+                            gameWorld.SetBlock(x, y, 3, stones.NextBlock());
+                            gameWorld.SetBlock(x, y, 4, stones.NextBlock());
+                            if (noiseVal < 0.1 && noiseVal > -0.2)
+                            {
+                                gameWorld.SetBlock(x, y, 5, stones.NextBlock());
+                                gameWorld.SetBlock(x, y, 6, stones.NextBlock());
+                            }
+                            if (noiseVal <= 0.0 && noiseVal > -0.1)
+                                gameWorld.SetBlock(x, y, 7, stones.NextBlock());
+                        }
+                    }
                 }
             });
         }

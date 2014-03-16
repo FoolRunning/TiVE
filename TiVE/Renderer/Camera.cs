@@ -58,6 +58,9 @@ namespace ProdigalSoftware.TiVE.Renderer
 
         public void SetLocation(float x, float y, float z)
         {
+            if (location.X == x && location.Y == y && location.Z == z)
+                return;
+
             location.X = x;
             location.Y = y;
             location.Z = z;
@@ -66,6 +69,9 @@ namespace ProdigalSoftware.TiVE.Renderer
 
         public void SetLookAtLocation(float x, float y, float z)
         {
+            if (lookAtLocation.X == x && lookAtLocation.Y == y && lookAtLocation.Z == z)
+                return;
+
             lookAtLocation.X = x;
             lookAtLocation.Y = y;
             lookAtLocation.Z = z;

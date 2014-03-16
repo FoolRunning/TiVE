@@ -6,14 +6,9 @@
     internal interface IVertexDataCollection
     {
         /// <summary>
-        /// The number of vertexes in each buffer
-        /// </summary>
-        int VertexCount { get; }
-
-        /// <summary>
         /// Add the specified data to the collection
         /// </summary>
-        void AddBuffer(IVertexData buffer);
+        void AddBuffer(IRendererData buffer);
 
         /// <summary>
         /// Deletes the resources used by all of the data in this collection
