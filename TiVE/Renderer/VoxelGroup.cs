@@ -4,6 +4,19 @@ using OpenTK;
 
 namespace ProdigalSoftware.TiVE.Renderer
 {
+    [Flags]
+    internal enum VoxelSides
+    {
+        None = 0,
+        Top = 1 << 0,
+        Left = 1 << 1,
+        Right = 1 << 2,
+        Bottom = 1 << 3,
+        Front = 1 << 4,
+        Back = 1 << 5,
+        All = Top | Left | Right | Bottom | Front | Back,
+    }
+
     internal class VoxelGroup
     {
         #region Constants
@@ -130,6 +143,10 @@ namespace ProdigalSoftware.TiVE.Renderer
 
         public int PolygonCount { get; private set; }
 
+        public int VoxelCount { get; private set; }
+
+        public int RenderedVoxelCount { get; private set; }
+
         public void SetVoxel(int x, int y, int z, uint newColor)
         {
             voxels[x, y, z] = newColor;
@@ -204,12 +221,14 @@ namespace ProdigalSoftware.TiVE.Renderer
         {
             voxelMeshBuilder.BeginNewMesh();
             PolygonCount = 0;
+            VoxelCount = 0;
+            RenderedVoxelCount = 0;
 
             int voxelCountX = voxels.GetLength(0);
             int voxelCountY = voxels.GetLength(1);
             int voxelCountZ = voxels.GetLength(2);
 
-            for (int z = 0; z < voxelCountZ; z++)
+            for (int z = voxelCountZ - 1; z >= 0; z--)
             {
                 for (int x = 0; x < voxelCountX; x++)
                 {
@@ -218,6 +237,8 @@ namespace ProdigalSoftware.TiVE.Renderer
                         uint color = voxels[x, y, z];
                         if (color == 0)
                             continue;
+                        
+                        VoxelCount++;
 
                         if (z < voxelCountZ - 1 && IsVoxelSet(x, y, z + 1) &&
                             x > 0 && IsVoxelSet(x - 1, y, z) &&
@@ -228,102 +249,131 @@ namespace ProdigalSoftware.TiVE.Renderer
                             continue; // Voxel is completely covered so no need to process it
                         }
 
+                        RenderedVoxelCount++;
+
                         byte cr = (byte)((color >> 16) & 0xFF);
                         byte cg = (byte)((color >> 8) & 0xFF);
                         byte cb = (byte)((color >> 0) & 0xFF);
                         byte ca = (byte)((color >> 24) & 0xFF);
                         //Debug.WriteLine(string.Format("Color value: {0} - ({1}, {2}, {3})", color, (int)(color & 0xFF), (int)((color >> 8) & 0xFF), (int)((color >> 16) & 0xFF)));
 
+                        VoxelSides sides = VoxelSides.None;
                         if (z == voxelCountZ - 1 || !IsVoxelSet(x, y, z + 1))
-                        {
-                            voxelMeshBuilder.AddVertex(x, y, z + 1, cr, cg, cb, ca);
-                            voxelMeshBuilder.AddVertex(x + 1, y + 1, z + 1, cr, cg, cb, ca);
-                            voxelMeshBuilder.AddVertex(x + 1, y, z + 1, cr, cg, cb, ca);
-
-                            voxelMeshBuilder.AddVertex(x + 1, y + 1, z + 1, cr, cg, cb, ca);
-                            voxelMeshBuilder.AddVertex(x, y, z + 1, cr, cg, cb, ca);
-                            voxelMeshBuilder.AddVertex(x, y + 1, z + 1, cr, cg, cb, ca);
-                            PolygonCount += 2;
-                        }
+                            sides |= VoxelSides.Front;
 
                         // The back face is never shown to the camera, so there is no need to create it
                         //if (!IsZLineSet(x, y, z, 1))
-                        //{
-                        //    GL.Vertex3(x * World_Block_Size + World_Block_Size, y * World_Block_Size + World_Block_Size, z * World_Block_Size + World_Block_Size);
-                        //    GL.Vertex3(x * World_Block_Size + World_Block_Size, y * World_Block_Size, z * World_Block_Size + World_Block_Size);
-                        //    GL.Vertex3(x * World_Block_Size, y * World_Block_Size, z * World_Block_Size + World_Block_Size);
-
-                        //    GL.Vertex3(x * World_Block_Size, y * World_Block_Size, z * World_Block_Size + World_Block_Size);
-                        //    GL.Vertex3(x * World_Block_Size, y * World_Block_Size + World_Block_Size, z * World_Block_Size + World_Block_Size);
-                        //    GL.Vertex3(x * World_Block_Size + World_Block_Size, y * World_Block_Size + World_Block_Size, z * World_Block_Size + World_Block_Size);
-                        //    PolygonCount += 2;
-                        //}
+                        //    sides |= VoxelSides.Back;
 
                         if (x == 0 || !IsVoxelSet(x - 1, y, z))
-                        {
-                            byte crr = (byte)Math.Min(255, cr + SmallColorDiff);
-                            byte cgr = (byte)Math.Min(255, cg + SmallColorDiff);
-                            byte cbr = (byte)Math.Min(255, cb + SmallColorDiff);
-                            voxelMeshBuilder.AddVertex(x, y, z, crr, cgr, cbr, ca);
-                            voxelMeshBuilder.AddVertex(x, y + 1, z, crr, cgr, cbr, ca);
-                            voxelMeshBuilder.AddVertex(x, y + 1, z + 1, crr, cgr, cbr, ca);
-
-                            voxelMeshBuilder.AddVertex(x, y + 1, z + 1, crr, cgr, cbr, ca);
-                            voxelMeshBuilder.AddVertex(x, y, z + 1, crr, cgr, cbr, ca);
-                            voxelMeshBuilder.AddVertex(x, y, z, crr, cgr, cbr, ca);
-                            PolygonCount += 2;
-                        }
+                            sides |= VoxelSides.Left;
 
                         if (x == voxelCountX - 1 || !IsVoxelSet(x + 1, y, z))
-                        {
-                            byte crl = (byte)Math.Max(0, cr - SmallColorDiff);
-                            byte cgl = (byte)Math.Max(0, cg - SmallColorDiff);
-                            byte cbl = (byte)Math.Max(0, cb - SmallColorDiff);
-                            voxelMeshBuilder.AddVertex(x + 1, y, z, crl, cgl, cbl, ca);
-                            voxelMeshBuilder.AddVertex(x + 1, y + 1, z + 1, crl, cgl, cbl, ca);
-                            voxelMeshBuilder.AddVertex(x + 1, y + 1, z, crl, cgl, cbl, ca);
-
-                            voxelMeshBuilder.AddVertex(x + 1, y + 1, z + 1, crl, cgl, cbl, ca);
-                            voxelMeshBuilder.AddVertex(x + 1, y, z, crl, cgl, cbl, ca);
-                            voxelMeshBuilder.AddVertex(x + 1, y, z + 1, crl, cgl, cbl, ca);
-                            PolygonCount += 2;
-                        }
+                            sides |= VoxelSides.Right;
 
                         if (y == 0 || !IsVoxelSet(x, y - 1, z))
-                        {
-                            byte crb = (byte)Math.Max(0, cr - BigColorDiff);
-                            byte cgb = (byte)Math.Max(0, cg - BigColorDiff);
-                            byte cbb = (byte)Math.Max(0, cb - BigColorDiff);
-                            voxelMeshBuilder.AddVertex(x, y, z, crb, cgb, cbb, ca);
-                            voxelMeshBuilder.AddVertex(x + 1, y, z + 1, crb, cgb, cbb, ca);
-                            voxelMeshBuilder.AddVertex(x + 1, y, z, crb, cgb, cbb, ca);
-
-                            voxelMeshBuilder.AddVertex(x, y, z, crb, cgb, cbb, ca);
-                            voxelMeshBuilder.AddVertex(x, y, z + 1, crb, cgb, cbb, ca);
-                            voxelMeshBuilder.AddVertex(x + 1, y, z + 1, crb, cgb, cbb, ca);
-                            PolygonCount += 2;
-                        }
+                            sides |= VoxelSides.Bottom;
 
                         if (y == voxelCountY - 1 || !IsVoxelSet(x, y + 1, z))
-                        {
-                            byte crt = (byte)Math.Min(255, cr + BigColorDiff);
-                            byte cgt = (byte)Math.Min(255, cg + BigColorDiff);
-                            byte cbt = (byte)Math.Min(255, cb + BigColorDiff);
-                            voxelMeshBuilder.AddVertex(x, y + 1, z, crt, cgt, cbt, ca);
-                            voxelMeshBuilder.AddVertex(x + 1, y + 1, z, crt, cgt, cbt, ca);
-                            voxelMeshBuilder.AddVertex(x + 1, y + 1, z + 1, crt, cgt, cbt, ca);
+                            sides |= VoxelSides.Top;
 
-                            voxelMeshBuilder.AddVertex(x, y + 1, z, crt, cgt, cbt, ca);
-                            voxelMeshBuilder.AddVertex(x + 1, y + 1, z + 1, crt, cgt, cbt, ca);
-                            voxelMeshBuilder.AddVertex(x, y + 1, z + 1, crt, cgt, cbt, ca);
-                            PolygonCount += 2;
-                        }
+                        PolygonCount += AddVoxel(voxelMeshBuilder, x, y, z, cr, cg, cb, ca, sides);
                     }
                 }
             }
 
             return voxelMeshBuilder.GetMesh();
         }
-    }
 
+        public static int AddVoxel(MeshBuilder meshBuilder, int x, int y, int z, byte cr, byte cg, byte cb, byte ca, VoxelSides sides)
+        {
+            int polygonCount = 0;
+            if ((sides & VoxelSides.Front) != 0)
+            {
+                meshBuilder.AddVertex(x, y, z + 1, cr, cg, cb, ca);
+                meshBuilder.AddVertex(x + 1, y + 1, z + 1, cr, cg, cb, ca);
+                meshBuilder.AddVertex(x + 1, y, z + 1, cr, cg, cb, ca);
+
+                meshBuilder.AddVertex(x + 1, y + 1, z + 1, cr, cg, cb, ca);
+                meshBuilder.AddVertex(x, y, z + 1, cr, cg, cb, ca);
+                meshBuilder.AddVertex(x, y + 1, z + 1, cr, cg, cb, ca);
+                polygonCount += 2;
+            }
+
+            // The back face is never shown to the camera, so there is no need to create it
+            //if ((sides & VoxelSides.Back) != 0)
+            //{
+            //    GL.Vertex3(x * World_Block_Size + World_Block_Size, y * World_Block_Size + World_Block_Size, z * World_Block_Size + World_Block_Size);
+            //    GL.Vertex3(x * World_Block_Size + World_Block_Size, y * World_Block_Size, z * World_Block_Size + World_Block_Size);
+            //    GL.Vertex3(x * World_Block_Size, y * World_Block_Size, z * World_Block_Size + World_Block_Size);
+
+            //    GL.Vertex3(x * World_Block_Size, y * World_Block_Size, z * World_Block_Size + World_Block_Size);
+            //    GL.Vertex3(x * World_Block_Size, y * World_Block_Size + World_Block_Size, z * World_Block_Size + World_Block_Size);
+            //    GL.Vertex3(x * World_Block_Size + World_Block_Size, y * World_Block_Size + World_Block_Size, z * World_Block_Size + World_Block_Size);
+            //    polygonCount += 2;
+            //}
+
+            if ((sides & VoxelSides.Left) != 0)
+            {
+                byte crl = (byte)Math.Min(255, cr + SmallColorDiff);
+                byte cgl = (byte)Math.Min(255, cg + SmallColorDiff);
+                byte cbl = (byte)Math.Min(255, cb + SmallColorDiff);
+                meshBuilder.AddVertex(x, y, z, crl, cgl, cbl, ca);
+                meshBuilder.AddVertex(x, y + 1, z, crl, cgl, cbl, ca);
+                meshBuilder.AddVertex(x, y + 1, z + 1, crl, cgl, cbl, ca);
+
+                meshBuilder.AddVertex(x, y + 1, z + 1, crl, cgl, cbl, ca);
+                meshBuilder.AddVertex(x, y, z + 1, crl, cgl, cbl, ca);
+                meshBuilder.AddVertex(x, y, z, crl, cgl, cbl, ca);
+                polygonCount += 2;
+            }
+
+            if ((sides & VoxelSides.Right) != 0)
+            {
+                byte crr = (byte)Math.Max(0, cr - SmallColorDiff);
+                byte cgr = (byte)Math.Max(0, cg - SmallColorDiff);
+                byte cbr = (byte)Math.Max(0, cb - SmallColorDiff);
+                meshBuilder.AddVertex(x + 1, y, z, crr, cgr, cbr, ca);
+                meshBuilder.AddVertex(x + 1, y + 1, z + 1, crr, cgr, cbr, ca);
+                meshBuilder.AddVertex(x + 1, y + 1, z, crr, cgr, cbr, ca);
+
+                meshBuilder.AddVertex(x + 1, y + 1, z + 1, crr, cgr, cbr, ca);
+                meshBuilder.AddVertex(x + 1, y, z, crr, cgr, cbr, ca);
+                meshBuilder.AddVertex(x + 1, y, z + 1, crr, cgr, cbr, ca);
+                polygonCount += 2;
+            }
+
+            if ((sides & VoxelSides.Bottom) != 0)
+            {
+                byte crb = (byte)Math.Max(0, cr - BigColorDiff);
+                byte cgb = (byte)Math.Max(0, cg - BigColorDiff);
+                byte cbb = (byte)Math.Max(0, cb - BigColorDiff);
+                meshBuilder.AddVertex(x, y, z, crb, cgb, cbb, ca);
+                meshBuilder.AddVertex(x + 1, y, z + 1, crb, cgb, cbb, ca);
+                meshBuilder.AddVertex(x + 1, y, z, crb, cgb, cbb, ca);
+
+                meshBuilder.AddVertex(x, y, z, crb, cgb, cbb, ca);
+                meshBuilder.AddVertex(x, y, z + 1, crb, cgb, cbb, ca);
+                meshBuilder.AddVertex(x + 1, y, z + 1, crb, cgb, cbb, ca);
+                polygonCount += 2;
+            }
+
+            if ((sides & VoxelSides.Top) != 0)
+            {
+                byte crt = (byte)Math.Min(255, cr + BigColorDiff);
+                byte cgt = (byte)Math.Min(255, cg + BigColorDiff);
+                byte cbt = (byte)Math.Min(255, cb + BigColorDiff);
+                meshBuilder.AddVertex(x, y + 1, z, crt, cgt, cbt, ca);
+                meshBuilder.AddVertex(x + 1, y + 1, z, crt, cgt, cbt, ca);
+                meshBuilder.AddVertex(x + 1, y + 1, z + 1, crt, cgt, cbt, ca);
+
+                meshBuilder.AddVertex(x, y + 1, z, crt, cgt, cbt, ca);
+                meshBuilder.AddVertex(x + 1, y + 1, z + 1, crt, cgt, cbt, ca);
+                meshBuilder.AddVertex(x, y + 1, z + 1, crt, cgt, cbt, ca);
+                polygonCount += 2;
+            }
+
+            return polygonCount;
+        }
+    }
 }

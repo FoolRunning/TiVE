@@ -30,9 +30,19 @@ namespace ProdigalSoftware.TiVE.Renderer
         public IVertexDataCollection GetMesh()
         {
             IVertexDataCollection dataCollection = TiVEController.Backend.CreateVertexDataCollection();
-            dataCollection.AddBuffer(TiVEController.Backend.CreateVertexData(vertexData.ToArray(), 3, BufferType.Data, false));
-            dataCollection.AddBuffer(TiVEController.Backend.CreateVertexData(colorData.ToArray(), 4, BufferType.Data, false));
+            dataCollection.AddBuffer(GetLocationData());
+            dataCollection.AddBuffer(GetColorData());
             return dataCollection;
+        }
+
+        public IRendererData GetLocationData()
+        {
+            return TiVEController.Backend.CreateData(vertexData.ToArray(), 3, DataType.Vertex, false);
+        }
+
+        public IRendererData GetColorData()
+        {
+            return TiVEController.Backend.CreateData(colorData.ToArray(), 4, DataType.Vertex, false);
         }
     }
 }

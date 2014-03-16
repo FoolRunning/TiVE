@@ -19,18 +19,18 @@ namespace ProdigalSoftware.TiVE
 
         internal static void RunEngine()
         {
-            Thread gameThread = new Thread(() =>
-                {
+            //Thread gameThread = new Thread(() =>
+            //    {
                     PluginManager.LoadPlugins();
                     
                     GameLogic gameLogic = new GameLogic();
                     
                     using (IDisplay display = Backend.CreateDisplay())
                         display.RunMainLoop(gameLogic);
-                });
+            //    });
 
-            gameThread.Name = "gameThread";
-            gameThread.Start();
+            //gameThread.Name = "gameThread";
+            //gameThread.Start();
         }
     }
 }

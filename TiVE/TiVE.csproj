@@ -54,9 +54,12 @@
   <ItemGroup>
     <Compile Include="Plugins\PluginManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Renderer\World\Chunk.cs" />
+    <Compile Include="Renderer\World\ChunkCache.cs" />
     <Compile Include="Renderer\GameLogic.cs" />
     <Compile Include="Renderer\IDisplay.cs" />
     <Compile Include="Renderer\IMesh.cs" />
+    <Compile Include="Renderer\InstancedItemBuilder.cs" />
     <Compile Include="Renderer\IShaderProgram.cs" />
     <Compile Include="Renderer\IVertexData.cs" />
     <Compile Include="Renderer\IVertexDataCollection.cs" />
@@ -70,7 +73,6 @@
     <Compile Include="Renderer\World\Block.cs" />
     <Compile Include="Renderer\Camera.cs" />
     <Compile Include="Renderer\OpenGL\GlUtils.cs" />
-    <Compile Include="Renderer\IndexedMesh.cs" />
     <Compile Include="Renderer\IndexedMeshBuilder.cs" />
     <Compile Include="Renderer\Sprite.cs" />
     <Compile Include="Renderer\IndexedVoxelGroup.cs" />

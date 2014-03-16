@@ -4,8 +4,8 @@ using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
 using OpenTK;
-using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL4;
+using ProdigalSoftware.TiVE.Starter;
 
 namespace ProdigalSoftware.TiVE.Renderer.OpenGL
 {
@@ -17,19 +17,27 @@ namespace ProdigalSoftware.TiVE.Renderer.OpenGL
             return new OpenGLDisplay();
         }
 
-        public void Draw(PrimitiveType primitiveType, IVertexDataCollection vertexes)
+        public void Draw(PrimitiveType primitiveType, IVertexDataCollection data)
         {
-            OpenTK.Graphics.OpenGL4.PrimitiveType glPrimitiveType;
-            switch (primitiveType)
-            {
-                case PrimitiveType.Lines: glPrimitiveType = OpenTK.Graphics.OpenGL4.PrimitiveType.Lines; break;
-                case PrimitiveType.Triangles: glPrimitiveType = OpenTK.Graphics.OpenGL4.PrimitiveType.Triangles; break;
-                case PrimitiveType.Quads: glPrimitiveType = OpenTK.Graphics.OpenGL4.PrimitiveType.Quads; break;
-                default: glPrimitiveType = OpenTK.Graphics.OpenGL4.PrimitiveType.Points; break;
-            }
+            data.Bind();
 
-            vertexes.Bind();
-            GL.DrawArrays(glPrimitiveType, 0, vertexes.VertexCount);
+            MeshVertexDataCollection meshData = (MeshVertexDataCollection)data;
+            if (meshData.ContainsInstances)
+            {
+                if (meshData.ContainsIndexes)
+                {
+                    GL.DrawElementsInstanced(GlPrimitiveType(primitiveType), meshData.IndexCount, 
+                        DrawElementsType.UnsignedByte, IntPtr.Zero, meshData.InstanceCount);
+                }
+                else
+                    GL.DrawArraysInstanced(GlPrimitiveType(primitiveType), 0, meshData.VertexCount, meshData.InstanceCount);
+            }
+            else if (meshData.ContainsIndexes)
+                GL.DrawElements(GlPrimitiveType(primitiveType), meshData.IndexCount, DrawElementsType.UnsignedByte, IntPtr.Zero);
+            else // Just straight vertex data
+                GL.DrawArrays(GlPrimitiveType(primitiveType), 0, meshData.VertexCount);
+
+            GlUtils.CheckGLErrors();
         }
 
         public IVertexDataCollection CreateVertexDataCollection()
@@ -37,9 +45,9 @@ namespace ProdigalSoftware.TiVE.Renderer.OpenGL
             return new MeshVertexDataCollection();
         }
 
-        public IVertexData CreateVertexData<T>(T[] data, int dataPerVertex, BufferType bufferType, bool dynamic) where T : struct
+        public IRendererData CreateData<T>(T[] data, int dataPerVertex, DataType dataType, bool dynamic) where T : struct
         {
-            return new VertexData<T>(data, dataPerVertex, bufferType, dynamic);
+            return new RendererData<T>(data, dataPerVertex, dataType, dynamic);
         }
 
         public IShaderProgram CreateShaderProgram()
@@ -47,6 +55,17 @@ namespace ProdigalSoftware.TiVE.Renderer.OpenGL
             return new ShaderProgram();
         }
         #endregion
+
+        private static OpenTK.Graphics.OpenGL4.PrimitiveType GlPrimitiveType(PrimitiveType primitiveType)
+        {
+            switch (primitiveType)
+            {
+                case PrimitiveType.Lines: return OpenTK.Graphics.OpenGL4.PrimitiveType.Lines;
+                case PrimitiveType.Triangles: return OpenTK.Graphics.OpenGL4.PrimitiveType.Triangles;
+                case PrimitiveType.Quads: return OpenTK.Graphics.OpenGL4.PrimitiveType.Quads;
+                default: return OpenTK.Graphics.OpenGL4.PrimitiveType.Points;
+            }
+        }
 
         #region OpenGLDisplay class
         private sealed class OpenGLDisplay : GameWindow, IDisplay
@@ -57,8 +76,8 @@ namespace ProdigalSoftware.TiVE.Renderer.OpenGL
             /// Creates a 1600x1200 window with the specified title.
             /// </summary>
             public OpenGLDisplay()
-                : base(1600, 1200, new GraphicsMode(new ColorFormat(8, 8, 8, 8), 16, 0, 4), "TiVE",
-                    GameWindowFlags.Default, DisplayDevice.Default, 4, 0, GraphicsContextFlags.Default)
+                : base(1600, 1200, new OpenTK.Graphics.GraphicsMode(new OpenTK.Graphics.ColorFormat(8, 8, 8, 8), 16, 0, 4), "TiVE",
+                    GameWindowFlags.Default, DisplayDevice.Default, 3, 5, OpenTK.Graphics.GraphicsContextFlags.ForwardCompatible)
             {
                 VSync = VSyncMode.Off;
             }
@@ -77,7 +96,10 @@ namespace ProdigalSoftware.TiVE.Renderer.OpenGL
                 base.OnLoad(eArgs);
 
                 if (!game.Initialize())
+                {
                     Exit();
+                    return;
+                }
 
                 GL.ClearColor(0.1f, 0.1f, 0.1f, 0.0f);
 
@@ -103,6 +125,7 @@ namespace ProdigalSoftware.TiVE.Renderer.OpenGL
             /// <param name="e">Not used.</param>
             protected override void OnResize(EventArgs e)
             {
+                base.OnResize(e);
                 GL.Viewport(ClientRectangle.X, ClientRectangle.Y, ClientRectangle.Width, ClientRectangle.Height);
                 game.Resize(Width, Height);
             }
@@ -113,6 +136,8 @@ namespace ProdigalSoftware.TiVE.Renderer.OpenGL
             /// <param name="e">Contains timing information for framerate independent logic.</param>
             protected override void OnUpdateFrame(FrameEventArgs e)
             {
+                base.OnUpdateFrame(e);
+
                 if (!game.UpdateFrame(e.Time, Keyboard))
                     Exit();
             }
@@ -129,13 +154,16 @@ namespace ProdigalSoftware.TiVE.Renderer.OpenGL
             /// <param name="e">Contains timing information.</param>
             protected override void OnRenderFrame(FrameEventArgs e)
             {
+                base.OnRenderFrame(e);
+
                 GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
                 RenderStatistics stats = game.Render(e.Time);
 
                 SwapBuffers();
                 //GlUtils.CheckGLErrors();
-                Title = string.Format("TiVE         Draw count = {0}     Polygon count = {1}", stats.DrawCount, stats.PolygonCount);
+                Title = string.Format("TiVE         VC={0}  RVC={1}  PC = {2}  DC = {3}", 
+                    stats.VoxelCount, stats.RenderedVoxelCount, stats.PolygonCount, stats.DrawCount);
             }
         }
         #endregion
@@ -143,38 +171,79 @@ namespace ProdigalSoftware.TiVE.Renderer.OpenGL
         #region VertexDataCollection class
         private sealed class MeshVertexDataCollection : IVertexDataCollection
         {
-            private readonly List<IVertexData> buffers = new List<IVertexData>();
+            private readonly List<IRendererData> buffers = new List<IRendererData>();
             private int vertexArrayId;
+            private IRendererData indexBuffer;
+            private IRendererData firstVertexBuffer;
+            private IRendererData firstInstanceBuffer;
 
             ~MeshVertexDataCollection()
             {
-                Debug.Assert(vertexArrayId == 0);
+                Messages.Assert(vertexArrayId == 0, "Data collection was not properly deleted");
             }
 
-            /// <summary>
-            /// The number of vertexes in each buffer
-            /// </summary>
+            public bool ContainsIndexes
+            {
+                get { return indexBuffer != null; }
+            }
+
+            public bool ContainsInstances
+            {
+                get { return firstInstanceBuffer != null; }
+            }
+
             public int VertexCount
             {
-                get { return (buffers.Count > 0) ? buffers[0].VertexCount : 0; }
+                get { return firstVertexBuffer != null ? firstVertexBuffer.DataLength : 0; }
             }
 
-            public void AddBuffer(IVertexData buffer)
+            public int IndexCount
             {
+                get { return indexBuffer != null ? indexBuffer.DataLength : 0; }
+            }
+
+            public int InstanceCount
+            {
+                get { return firstInstanceBuffer != null ? firstInstanceBuffer.DataLength : 0; }
+            }
+
+            public void AddBuffer(IRendererData buffer)
+            {
+                if (vertexArrayId != 0)
+                    throw new InvalidOperationException("Can not add a buffer after the collection has been initialized");
+
                 if (buffers.Contains(buffer))
-                    throw new ArgumentException("Can not add the same buffer more then once");
+                    throw new InvalidOperationException("Can not add the same buffer more then once");
 
-                if (buffers.Count > 0 && !buffers.TrueForAll(b => b.VertexCount == buffer.VertexCount))
-                    throw new ArgumentException("New buffers must contain the same number of vertexes as other buffers", "buffer");
+                IRendererData existingBuffer = buffers.Find(b => b.DataType == buffer.DataType);
+                if (existingBuffer != null && existingBuffer.DataLength != buffer.DataLength)
+                    throw new InvalidOperationException("New buffers must contain the same number of data elements as other buffers of the same type");
 
-                buffers.Add(buffer);
+                if (buffer.DataType == DataType.Index)
+                {
+                    if (indexBuffer != null)
+                        throw new InvalidOperationException("Buffer collection can only contain one index buffer");
+                    indexBuffer = buffer;
+                }
+                else
+                {
+                    // Cache buffers for speed when getting counts, etc.
+                    if (firstVertexBuffer == null && buffer.DataType == DataType.Vertex)
+                        firstVertexBuffer = buffer;
+                    else if (firstInstanceBuffer == null && buffer.DataType == DataType.Instance)
+                        firstInstanceBuffer = buffer;
+
+                    buffers.Add(buffer);
+                }
             }
 
             public void Delete()
             {
                 buffers.ForEach(b => b.Delete());
+                if (indexBuffer != null)
+                    indexBuffer.Delete();
 
-                GL.DeleteVertexArrays(1, ref vertexArrayId);
+                GL.DeleteVertexArray(vertexArrayId);
                 GlUtils.CheckGLErrors();
 
                 vertexArrayId = 0;
@@ -182,12 +251,17 @@ namespace ProdigalSoftware.TiVE.Renderer.OpenGL
 
             public bool Initialize()
             {
-                GL.GenVertexArrays(1, out vertexArrayId);
+                if (vertexArrayId != 0)
+                    return true; // Already initialized
+
+                vertexArrayId = GL.GenVertexArray();
                 GL.BindVertexArray(vertexArrayId);
 
                 bool success = true;
                 for (int i = 0; i < buffers.Count; i++)
                     success &= buffers[i].Initialize(i);
+                if (indexBuffer != null)
+                    success &= indexBuffer.Initialize(-1);
                 return success;
             }
 
@@ -203,64 +277,79 @@ namespace ProdigalSoftware.TiVE.Renderer.OpenGL
         }
         #endregion
 
-        #region VertexData class
-        private sealed class VertexData<T> : IVertexData where T : struct
+        #region RendererData class
+        private class RendererData<T> : IRendererData where T : struct
         {
             private readonly int floatsPerVertex;
-            private readonly int vertexCount;
-            private readonly BufferType bufferType;
+            private readonly DataType dataType;
             private readonly bool dynamic;
+            private readonly T[] data;
             private int dataVboId;
-            private T[] data;
 
-            public VertexData(T[] data, int floatsPerVertex, BufferType bufferType, bool dynamic)
+            public RendererData(T[] data, int floatsPerVertex, DataType dataType, bool dynamic)
             {
                 this.data = data;
                 this.floatsPerVertex = floatsPerVertex;
-                this.bufferType = bufferType;
+                this.dataType = dataType;
                 this.dynamic = dynamic;
-                vertexCount = data.Length;
             }
 
-            ~VertexData()
+            ~RendererData()
             {
-                Debug.Assert(dataVboId == 0, "Data buffer was not properly deleted");
+                Messages.Assert(dataVboId == 0, "Data buffer was not properly deleted");
             }
 
-            /// <summary>
-            /// Gets the number of vertexes in this buffer
-            /// </summary>
-            public int VertexCount
+            public int DataLength
             {
-                get { return vertexCount; }
+                get { return data.Length; }
+            }
+
+            public DataType DataType 
+            {
+                get { return dataType; }
             }
 
             public void Delete()
             {
-                GL.DeleteBuffers(1, ref dataVboId);
+                GL.DeleteBuffer(dataVboId);
                 dataVboId = 0;
             }
 
             public bool Initialize(int arrayAttrib)
             {
-                if (data == null)
+                BufferTarget target = Target;
+                if (dataVboId != 0)
                 {
-                    Debug.Fail("Data buffers can not be reinitialized");
-                    return false;
+                    GL.BindBuffer(target, dataVboId);
+                    if (dataType != DataType.Index)
+                    {
+                        GL.EnableVertexAttribArray(arrayAttrib);
+                        GL.VertexAttribPointer(arrayAttrib, floatsPerVertex, VertexAttribPointerType.Float, false, 0, 0);
+                    }
+
+                    if (dataType == DataType.Instance)
+                        GL.VertexAttribDivisor(arrayAttrib, 1);
+
+                    GlUtils.CheckGLErrors();
+                    return dataVboId != 0;
                 }
 
                 int sizeInBytes = data.Length * Marshal.SizeOf(typeof(T));
-                BufferTarget target = Target;
 
                 // Load data into OpenGL
-                GL.GenBuffers(1, out dataVboId);
+                dataVboId = GL.GenBuffer();
                 GL.BindBuffer(target, dataVboId);
-                GL.BufferData(target, new IntPtr(sizeInBytes), data, dynamic ? BufferUsageHint.StreamDraw : BufferUsageHint.StaticDraw);
-                GL.EnableVertexAttribArray(arrayAttrib);
-                GL.VertexAttribPointer(arrayAttrib, floatsPerVertex, VertexAttribPointerType.Float, false, 0, 0);
-                GlUtils.CheckGLErrors();
+                if (dataType != DataType.Index)
+                {
+                    GL.EnableVertexAttribArray(arrayAttrib);
+                    GL.VertexAttribPointer(arrayAttrib, floatsPerVertex, VertexAttribPointerType.Float, false, 0, 0);
+                }
+                
+                if (dataType == DataType.Instance)
+                    GL.VertexAttribDivisor(arrayAttrib, 1);
 
-                data = null; // Allow garbage collection
+                GL.BufferData(target, new IntPtr(sizeInBytes), data, dynamic ? BufferUsageHint.StreamDraw : BufferUsageHint.StaticDraw);
+                GlUtils.CheckGLErrors();
                 return true;
             }
 
@@ -268,11 +357,13 @@ namespace ProdigalSoftware.TiVE.Renderer.OpenGL
             {
                 get 
                 {
-                    switch (bufferType)
+                    switch (dataType)
                     {
-                        case BufferType.Data: return BufferTarget.ArrayBuffer;
-                        case BufferType.Indexes: return BufferTarget.ElementArrayBuffer;
-                        default: throw new InvalidOperationException("Unknown buffer type: " + bufferType);
+                        case DataType.Index: return BufferTarget.ElementArrayBuffer;
+                        case DataType.Vertex: 
+                        case DataType.Instance:
+                            return BufferTarget.ArrayBuffer;
+                        default: throw new InvalidOperationException("Unknown buffer type: " + dataType);
                     }
                 }
             }
@@ -290,7 +381,7 @@ namespace ProdigalSoftware.TiVE.Renderer.OpenGL
 
             ~ShaderProgram()
             {
-                Debug.Assert(programId == 0, "Shader was not properly deleted");
+                Messages.Assert(programId == 0, "Shader program was not properly deleted");
             }
 
             public void AddShader(string shaderSource, ShaderType shaderType)
@@ -391,7 +482,7 @@ namespace ProdigalSoftware.TiVE.Renderer.OpenGL
 
             ~Shader()
             {
-                Debug.Assert(ShaderId == 0);
+                Messages.Assert(ShaderId == 0, "Shader was not properly deleted");
             }
 
             public int ShaderId { get; private set; }
@@ -410,18 +501,16 @@ namespace ProdigalSoftware.TiVE.Renderer.OpenGL
                 GL.ShaderSource(ShaderId, shaderSource);
                 GL.CompileShader(ShaderId);
 
-                string info;
-                GL.GetShaderInfoLog(ShaderId, out info);
+                string info = GL.GetShaderInfoLog(ShaderId);
 
-                // ENHANCE: output to the message list instead of output
                 if (!string.IsNullOrEmpty(info))
-                    Debug.WriteLine(info);
+                    Messages.AddWarning(info);
 
                 int compileResult;
                 GL.GetShader(ShaderId, ShaderParameter.CompileStatus, out compileResult);
                 if (compileResult != 1)
                 {
-                    Debug.WriteLine("Compile Error!");
+                    Messages.AddWarning("Shader compile error!");
                     Debug.WriteLine(shaderSource);
                     Delete();
                     return false;

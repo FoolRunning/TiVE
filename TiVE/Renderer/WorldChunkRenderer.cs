@@ -1,4 +1,6 @@
-﻿using System;
+﻿#define USE_INSTANCED_RENDERING
+
+using System;
 using System.Diagnostics;
 using OpenTK;
 using ProdigalSoftware.TiVE.Renderer.World;
@@ -8,7 +10,7 @@ namespace ProdigalSoftware.TiVE.Renderer
 {
     internal sealed class WorldChunkRenderer : IGameWorldRenderer
     {
-        private const int ChunkSize = 4; // must be a power of 2
+        private const int ChunkSize = 8; // must be a power of 2
         private const int ChunkVoxelSize = BlockInformation.BlockSize * ChunkSize;
 
         private readonly GameWorld gameWorld;
@@ -36,7 +38,7 @@ namespace ProdigalSoftware.TiVE.Renderer
             }
         }
 
-        public void Draw(Camera camera, out int drawCount, out int polygonCount)
+        public void Draw(Camera camera, out int drawCount, out int polygonCount, out int voxelCount, out int renderedVoxelCount)
         {
             int worldMinX, worldMaxX, worldMinY, worldMaxY;
             GetWorldView(camera, camera.Location.Z, out worldMinX, out worldMaxX, out worldMinY, out worldMaxY);
@@ -52,7 +54,10 @@ namespace ProdigalSoftware.TiVE.Renderer
             int chunkMaxY = worldMaxY / ChunkSize + 1;
 
             polygonCount = 0;
+            voxelCount = 0;
+            renderedVoxelCount = 0;
             drawCount = 0;
+
             int createdChunks = 0;
 
             Matrix4 viewProjectionMatrix = FastMult(camera.ViewMatrix, camera.ProjectionMatrix);
@@ -70,7 +75,9 @@ namespace ProdigalSoftware.TiVE.Renderer
                     if (chunk != null)
                     {
                         chunk.Render(ref viewProjectionMatrix);
-                        polygonCount += chunk.PolygonCount;
+                        polygonCount += chunk.VoxelData.PolygonCount;
+                        voxelCount += chunk.VoxelData.VoxelCount;
+                        renderedVoxelCount += chunk.VoxelData.RenderedVoxelCount;
                         drawCount++;
                     }
                 }
@@ -95,7 +102,11 @@ namespace ProdigalSoftware.TiVE.Renderer
         private Chunk CreateChunk(int chunkX, int chunkY)
         {
             int worldMaxZ = Math.Min(gameWorld.Zsize, ChunkSize);
+#if USE_INSTANCED_RENDERING
+            InstancedVoxelGroup voxels = new InstancedVoxelGroup(ChunkVoxelSize, ChunkVoxelSize, worldMaxZ * BlockInformation.BlockSize);
+#else
             VoxelGroup voxels = new VoxelGroup(ChunkVoxelSize, ChunkVoxelSize, worldMaxZ * BlockInformation.BlockSize);
+#endif
 
             for (int x = 0; x < ChunkSize; x++)
             {
@@ -114,17 +125,26 @@ namespace ProdigalSoftware.TiVE.Renderer
 
             totalChunkCount++;
             Debug.WriteLine(totalChunkCount);
-            //for (int x = 0; x < ChunkVoxelSize; x++)
-            //{
-            //    voxels.SetVoxel(x, 0, worldMaxZ * BlockInformation.BlockSize - 1, 0xFFE0E0E0);
-            //    voxels.SetVoxel(x, ChunkVoxelSize - 1, worldMaxZ * BlockInformation.BlockSize - 1, 0xFFE0E0E0);
-            //}
+            const uint color = 0xFFE0E0E0;
+            for (int x = 0; x < ChunkVoxelSize; x++)
+            {
+                voxels.SetVoxel(x, 0, ChunkVoxelSize - 1, color);
+                voxels.SetVoxel(x, ChunkVoxelSize - 1, ChunkVoxelSize - 1, color);
+            }
 
-            //for (int y = 0; y < ChunkVoxelSize; y++)
-            //{
-            //    voxels.SetVoxel(0, y, worldMaxZ * BlockInformation.BlockSize - 1, 0xFFE0E0E0);
-            //    voxels.SetVoxel(ChunkVoxelSize - 1, y, worldMaxZ * BlockInformation.BlockSize - 1, 0xFFE0E0E0);
-            //}
+            for (int y = 0; y < ChunkVoxelSize; y++)
+            {
+                voxels.SetVoxel(0, y, ChunkVoxelSize - 1, color);
+                voxels.SetVoxel(ChunkVoxelSize - 1, y, ChunkVoxelSize - 1, color);
+            }
+
+            for (int z = 0; z < ChunkVoxelSize; z++)
+            {
+                voxels.SetVoxel(0, 0, z, color);
+                voxels.SetVoxel(ChunkVoxelSize - 1, 0, z, color);
+                voxels.SetVoxel(ChunkVoxelSize - 1, ChunkVoxelSize - 1, z, color);
+                voxels.SetVoxel(0, ChunkVoxelSize - 1, z, color);
+            }
 
             Matrix4 translationMatrix = Matrix4.CreateTranslation(chunkX * BlockInformation.BlockSize, chunkY * BlockInformation.BlockSize, 0);
             return new Chunk(voxels, ref translationMatrix, chunkX * ChunkSize, chunkY * ChunkSize);
@@ -164,38 +184,6 @@ namespace ProdigalSoftware.TiVE.Renderer
             maxX = (int)Math.Ceiling(bottomRight.X / BlockInformation.BlockSize);
             minY = (int)Math.Floor(bottomRight.Y / BlockInformation.BlockSize);
             maxY = (int)Math.Ceiling(topLeft.Y / BlockInformation.BlockSize);
-        }
-
-        private sealed class Chunk
-        {
-            private readonly VoxelGroup voxels;
-            private readonly int blockStartX;
-            private readonly int blockStartY;
-            private readonly Matrix4 translationMatrix;
-
-            public Chunk(VoxelGroup voxels, ref Matrix4 translationMatrix, int blockStartX, int blockStartY)
-            {
-                this.voxels = voxels;
-                this.translationMatrix = translationMatrix;
-                this.blockStartX = blockStartX;
-                this.blockStartY = blockStartY;
-            }
-
-            public int PolygonCount
-            {
-                get { return voxels.PolygonCount; }
-            }
-
-            public void Render(ref Matrix4 viewProjectionMatrix)
-            {
-                Matrix4 viewProjectionModelMatrix = FastMult(translationMatrix, viewProjectionMatrix);
-                voxels.Render(ref viewProjectionModelMatrix);
-            }
-
-            public void Delete()
-            {
-                voxels.Delete();
-            }
         }
     }
 }

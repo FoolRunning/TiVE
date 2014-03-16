@@ -42,7 +42,20 @@ namespace WorldCreation
                                 Noise.GetNoise((xOff2 + x) * scaleX2, (yOff2 + y) * scaleY2) * 0.3f +
                                 Noise.GetNoise((xOff3 + x) * scaleX3, (yOff3 + y) * scaleY3) * 0.2f;
                         if (noiseVal > 0.2)
+                        {
                             gameWorld.SetBlock(x, y, 1, 0);
+                            gameWorld.SetBlock(x, y, 2, 0);
+                            if (noiseVal > 0.4)
+                            {
+                                gameWorld.SetBlock(x, y, 3, 0);
+                                gameWorld.SetBlock(x, y, 4, 0);
+                            }
+                            if (noiseVal > 0.7)
+                            {
+                                gameWorld.SetBlock(x, y, 5, 0);
+                                gameWorld.SetBlock(x, y, 6, 0);
+                            }
+                        }
                     }
                 });
         }
