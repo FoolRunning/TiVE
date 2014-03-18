@@ -80,11 +80,9 @@ namespace ProdigalSoftware.TiVE.Renderer
 
         public RenderStatistics Render(double timeSinceLastFrame)
         {
-            int drawCount, polygonCount, voxelCount, renderedVoxelCount;
-
-            renderer.Draw(camera, out drawCount, out polygonCount, out voxelCount, out renderedVoxelCount);
-
-            return new RenderStatistics(drawCount, polygonCount, voxelCount, renderedVoxelCount);
+            RenderStatistics stats;
+            renderer.Draw(camera, out stats);
+            return stats;
         }
 
         private static long LongRandom()

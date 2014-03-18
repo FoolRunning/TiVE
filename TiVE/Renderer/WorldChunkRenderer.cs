@@ -1,7 +1,4 @@
-﻿#define USE_INSTANCED_RENDERING
-
-using System;
-using System.Diagnostics;
+﻿using System;
 using OpenTK;
 using ProdigalSoftware.TiVE.Renderer.World;
 using ProdigalSoftware.TiVEPluginFramework;
@@ -10,35 +7,21 @@ namespace ProdigalSoftware.TiVE.Renderer
 {
     internal sealed class WorldChunkRenderer : IGameWorldRenderer
     {
-        private const int ChunkSize = 8; // must be a power of 2
-        private const int ChunkVoxelSize = BlockInformation.BlockSize * ChunkSize;
-
         private readonly GameWorld gameWorld;
-        private readonly BlockList blockList;
-        private readonly Chunk[,] worldChunks;
-      
+        private readonly ChunkCache chunkCache;
 
         public WorldChunkRenderer(GameWorld gameWorld, BlockList blockList)
         {
+            chunkCache = new ChunkCache(gameWorld, blockList);
             this.gameWorld = gameWorld;
-            this.blockList = blockList;
-            worldChunks = new Chunk[gameWorld.Xsize / ChunkSize, gameWorld.Ysize / ChunkSize];
         }
 
         public void CleanUp()
         {
-            for (int x = 0; x <= worldChunks.GetUpperBound(0); x++)
-            {
-                for (int y = 0; y <= worldChunks.GetUpperBound(1); y++)
-                {
-                    if (worldChunks[x, y] != null)
-                        worldChunks[x, y].Delete();
-                    worldChunks[x, y] = null;
-                }
-            }
+            chunkCache.CleanUp();
         }
 
-        public void Draw(Camera camera, out int drawCount, out int polygonCount, out int voxelCount, out int renderedVoxelCount)
+        public void Draw(Camera camera, out RenderStatistics stats)
         {
             int worldMinX, worldMaxX, worldMinY, worldMaxY;
             GetWorldView(camera, camera.Location.Z, out worldMinX, out worldMaxX, out worldMinY, out worldMaxY);
@@ -48,38 +31,38 @@ namespace ProdigalSoftware.TiVE.Renderer
             worldMaxX = Math.Min(worldMaxX, gameWorld.Xsize);
             worldMaxY = Math.Min(worldMaxY, gameWorld.Ysize);
 
-            int chunkMinX = worldMinX / ChunkSize;
-            int chunkMaxX = worldMaxX / ChunkSize + 1;
-            int chunkMinY = worldMinY / ChunkSize;
-            int chunkMaxY = worldMaxY / ChunkSize + 1;
+            int chunkMinX = worldMinX / Chunk.TileSize;
+            int chunkMaxX = worldMaxX / Chunk.TileSize + 1;
+            int chunkMinY = worldMinY / Chunk.TileSize;
+            int chunkMaxY = worldMaxY / Chunk.TileSize + 1;
+            int chunkMaxZ = Math.Max(gameWorld.Zsize / Chunk.TileSize, 1);
 
-            polygonCount = 0;
-            voxelCount = 0;
-            renderedVoxelCount = 0;
-            drawCount = 0;
-
-            int createdChunks = 0;
+            int polygonCount = 0;
+            int voxelCount = 0;
+            int renderedVoxelCount = 0;
+            int drawCount = 0;
 
             Matrix4 viewProjectionMatrix = FastMult(camera.ViewMatrix, camera.ProjectionMatrix);
             for (int chunkX = chunkMinX; chunkX < chunkMaxX; chunkX++)
             {
                 for (int chunkY = chunkMinY; chunkY < chunkMaxY; chunkY++)
                 {
-                    Chunk chunk = worldChunks[chunkX, chunkY];
-                    if (chunk == null && createdChunks < 2)
+                    for (int chunkZ = 0; chunkZ < chunkMaxZ; chunkZ++)
                     {
-                        worldChunks[chunkX, chunkY] = chunk = CreateChunk(chunkX * ChunkSize, chunkY * ChunkSize);
-                        createdChunks++;
-                    }
-
-                    if (chunk != null)
-                    {
-                        chunk.Render(ref viewProjectionMatrix);
-                        polygonCount += chunk.VoxelData.PolygonCount;
-                        voxelCount += chunk.VoxelData.VoxelCount;
-                        renderedVoxelCount += chunk.VoxelData.RenderedVoxelCount;
-                        drawCount++;
-                    }
+                        Chunk chunk = chunkCache.GetOrCreateChunk(chunkX, chunkY, chunkZ);
+                        if (chunk != null)
+                        {
+                            chunk.Render(ref viewProjectionMatrix);
+                            var vData = chunk.VoxelData;
+                            if (vData != null)
+                            {
+                                polygonCount += vData.PolygonCount;
+                                voxelCount += vData.VoxelCount;
+                                renderedVoxelCount += vData.RenderedVoxelCount;
+                                drawCount++;
+                            }
+                        }
+}
                 }
             }
 
@@ -96,58 +79,7 @@ namespace ProdigalSoftware.TiVE.Renderer
             //    drawCount++;
             //    polygonCount += sprites[s].PolygonCount;
             //}
-        }
-
-        private int totalChunkCount;
-        private Chunk CreateChunk(int chunkX, int chunkY)
-        {
-            int worldMaxZ = Math.Min(gameWorld.Zsize, ChunkSize);
-#if USE_INSTANCED_RENDERING
-            InstancedVoxelGroup voxels = new InstancedVoxelGroup(ChunkVoxelSize, ChunkVoxelSize, worldMaxZ * BlockInformation.BlockSize);
-#else
-            VoxelGroup voxels = new VoxelGroup(ChunkVoxelSize, ChunkVoxelSize, worldMaxZ * BlockInformation.BlockSize);
-#endif
-
-            for (int x = 0; x < ChunkSize; x++)
-            {
-                int worldX = chunkX + x;
-                for (int y = 0; y < ChunkSize; y++)
-                {
-                    int worldY = chunkY + y;
-                    for (int z = 0; z < worldMaxZ; z++)
-                    {
-                        BlockInformation block = blockList[gameWorld.GetBlock(worldX, worldY, z)];
-                        if (block != null)
-                            voxels.SetVoxels(x * BlockInformation.BlockSize, y * BlockInformation.BlockSize, z * BlockInformation.BlockSize, block.Voxels);
-                    }
-                }
-            }
-
-            totalChunkCount++;
-            Debug.WriteLine(totalChunkCount);
-            const uint color = 0xFFE0E0E0;
-            for (int x = 0; x < ChunkVoxelSize; x++)
-            {
-                voxels.SetVoxel(x, 0, ChunkVoxelSize - 1, color);
-                voxels.SetVoxel(x, ChunkVoxelSize - 1, ChunkVoxelSize - 1, color);
-            }
-
-            for (int y = 0; y < ChunkVoxelSize; y++)
-            {
-                voxels.SetVoxel(0, y, ChunkVoxelSize - 1, color);
-                voxels.SetVoxel(ChunkVoxelSize - 1, y, ChunkVoxelSize - 1, color);
-            }
-
-            for (int z = 0; z < ChunkVoxelSize; z++)
-            {
-                voxels.SetVoxel(0, 0, z, color);
-                voxels.SetVoxel(ChunkVoxelSize - 1, 0, z, color);
-                voxels.SetVoxel(ChunkVoxelSize - 1, ChunkVoxelSize - 1, z, color);
-                voxels.SetVoxel(0, ChunkVoxelSize - 1, z, color);
-            }
-
-            Matrix4 translationMatrix = Matrix4.CreateTranslation(chunkX * BlockInformation.BlockSize, chunkY * BlockInformation.BlockSize, 0);
-            return new Chunk(voxels, ref translationMatrix, chunkX * ChunkSize, chunkY * ChunkSize);
+            stats = new RenderStatistics(drawCount, polygonCount, voxelCount, renderedVoxelCount);
         }
 
         private static Matrix4 FastMult(Matrix4 left, Matrix4 right)
