@@ -320,17 +320,7 @@ namespace ProdigalSoftware.TiVE.Renderer.OpenGL
                 BufferTarget target = Target;
                 if (dataVboId != 0)
                 {
-                    GL.BindBuffer(target, dataVboId);
-                    if (dataType != DataType.Index)
-                    {
-                        GL.EnableVertexAttribArray(arrayAttrib);
-                        GL.VertexAttribPointer(arrayAttrib, floatsPerVertex, VertexAttribPointerType.Float, false, 0, 0);
-                    }
-
-                    if (dataType == DataType.Instance)
-                        GL.VertexAttribDivisor(arrayAttrib, 1);
-
-                    GlUtils.CheckGLErrors();
+                    Bind(target, arrayAttrib);
                     return dataVboId != 0;
                 }
 
@@ -338,19 +328,25 @@ namespace ProdigalSoftware.TiVE.Renderer.OpenGL
 
                 // Load data into OpenGL
                 dataVboId = GL.GenBuffer();
+                Bind(target, arrayAttrib);
+                GL.BufferData(target, new IntPtr(sizeInBytes), data, dynamic ? BufferUsageHint.StreamDraw : BufferUsageHint.StaticDraw);
+                GlUtils.CheckGLErrors();
+                return true;
+            }
+
+            private void Bind(BufferTarget target, int arrayAttrib)
+            {
                 GL.BindBuffer(target, dataVboId);
                 if (dataType != DataType.Index)
                 {
                     GL.EnableVertexAttribArray(arrayAttrib);
                     GL.VertexAttribPointer(arrayAttrib, floatsPerVertex, VertexAttribPointerType.Float, false, 0, 0);
                 }
-                
+
                 if (dataType == DataType.Instance)
                     GL.VertexAttribDivisor(arrayAttrib, 1);
 
-                GL.BufferData(target, new IntPtr(sizeInBytes), data, dynamic ? BufferUsageHint.StreamDraw : BufferUsageHint.StaticDraw);
                 GlUtils.CheckGLErrors();
-                return true;
             }
 
             private BufferTarget Target
@@ -482,7 +478,7 @@ namespace ProdigalSoftware.TiVE.Renderer.OpenGL
 
             ~Shader()
             {
-                Messages.Assert(ShaderId == 0, "Shader was not properly deleted");
+                Messages.Assert(ShaderId == 0, shaderType + " shader was not properly deleted");
             }
 
             public int ShaderId { get; private set; }
@@ -510,7 +506,7 @@ namespace ProdigalSoftware.TiVE.Renderer.OpenGL
                 GL.GetShader(ShaderId, ShaderParameter.CompileStatus, out compileResult);
                 if (compileResult != 1)
                 {
-                    Messages.AddWarning("Shader compile error!");
+                    Messages.AddWarning(shaderType + " shader compile error!");
                     Debug.WriteLine(shaderSource);
                     Delete();
                     return false;

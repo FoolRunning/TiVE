@@ -45,8 +45,6 @@ namespace ProdigalSoftware.TiVE.Renderer
 			";
         #endregion
 
-        private static readonly InstancedItemBuilder voxelInstancesBuilder = new InstancedItemBuilder();
-
         private readonly uint[, ,] voxels;
 
         private static IShaderProgram shader;
@@ -118,13 +116,18 @@ namespace ProdigalSoftware.TiVE.Renderer
             return voxels[x, y, z] != 0;
         }
 
+        public void GenerateMesh()
+        {
+            if (voxelInstances == null)
+                voxelInstances = CreateVoxelMesh();
+        }
+
         public void Render(ref Matrix4 matrixMVP)
         {
             if (voxelInstances == null)
-            {
-                voxelInstances = CreateVoxelMesh();
-                voxelInstances.Initialize();
-            }
+                return;
+
+            voxelInstances.Initialize();
 
             if (shader == null)
                 shader = CreateShader();
@@ -165,7 +168,7 @@ namespace ProdigalSoftware.TiVE.Renderer
 
         private IVertexDataCollection CreateVoxelMesh()
         {
-            voxelInstancesBuilder.BeginNewItemInstances();
+            InstancedItemBuilder voxelInstancesBuilder = new InstancedItemBuilder();
             PolygonCount = 0;
             VoxelCount = 0;
             RenderedVoxelCount = 0;
