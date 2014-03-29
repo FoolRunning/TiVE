@@ -67,6 +67,9 @@ namespace ProdigalSoftware.TiVE.Starter
 
         internal void StartNewLine()
         {
+            if (IsDisposed)
+                return;
+
             if (IsHandleCreated && InvokeRequired)
             {
                 Invoke(new Action(StartNewLine));

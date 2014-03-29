@@ -43,44 +43,51 @@ namespace WorldCreation
             {
                 for (int y = 0; y < gameWorld.Ysize; y++)
                 {
-                    if (gameWorld.GetBiome(x, y) == 0)
-                        continue;
-
+                    //if (gameWorld.GetBiome(x, y) == 0)
+                    //    continue;
                     double noiseVal = Noise.GetNoise((xOff1 + x) * scaleX1, (yOff1 + y) * scaleY1) * 0.2f +
                             Noise.GetNoise((xOff2 + x) * scaleX2, (yOff2 + y) * scaleY2) * 0.5f +
                             Noise.GetNoise((xOff3 + x) * scaleX3, (yOff3 + y) * scaleY3) * 0.3f;
                     gameWorld.SetBlock(x, y, 0, backWalls.NextBlock());
+                    int depth = 1;
                     if (noiseVal > 0.2)
                     {
-                        gameWorld.SetBlock(x, y, 1, dirts.NextBlock());
-                        if (noiseVal > 0.5)
-                            gameWorld.SetBlock(x, y, 2, dirts.NextBlock());
+                        Fill(gameWorld, x, y, ref depth, dirts);
+                        if (noiseVal > 0.4)
+                            Fill(gameWorld, x, y, ref depth, dirts);
+                        if (noiseVal > 0.6)
+                            Fill(gameWorld, x, y, ref depth, dirts);
+                        if (noiseVal > 0.9)
+                            Fill(gameWorld, x, y, ref depth, dirts);
                     }
                     else if (noiseVal < -0.3)
                     {
-                        gameWorld.SetBlock(x, y, 1, sands.NextBlock());
+                        Fill(gameWorld, x, y, ref depth, sands);
+                        if (noiseVal < -0.4)
+                            Fill(gameWorld, x, y, ref depth, sands);
                         if (noiseVal < -0.6)
-                            gameWorld.SetBlock(x, y, 2, sands.NextBlock());
+                            Fill(gameWorld, x, y, ref depth, sands);
+                        if (noiseVal < -0.8)
+                            Fill(gameWorld, x, y, ref depth, sands);
                     }
                     else
                     {
-                        gameWorld.SetBlock(x, y, 1, stones.NextBlock());
-                        gameWorld.SetBlock(x, y, 2, stones.NextBlock());
+                        Fill(gameWorld, x, y, ref depth, stones);
                         if (noiseVal < 0.2 & noiseVal > -0.3)
-                        {
-                            gameWorld.SetBlock(x, y, 3, stones.NextBlock());
-                            gameWorld.SetBlock(x, y, 4, stones.NextBlock());
-                            if (noiseVal < 0.1 && noiseVal > -0.2)
-                            {
-                                gameWorld.SetBlock(x, y, 5, stones.NextBlock());
-                                gameWorld.SetBlock(x, y, 6, stones.NextBlock());
-                            }
-                            if (noiseVal <= 0.0 && noiseVal > -0.1)
-                                gameWorld.SetBlock(x, y, 7, stones.NextBlock());
-                        }
+                            Fill(gameWorld, x, y, ref depth, stones);
+                        if (noiseVal < 0.1 && noiseVal > -0.2)
+                            Fill(gameWorld, x, y, ref depth, stones);
+                        if (noiseVal <= 0.0 && noiseVal > -0.1)
+                            Fill(gameWorld, x, y, ref depth, stones);
                     }
                 }
             });
+        }
+
+        private void Fill(IGameWorld gameWorld, int x, int y, ref int depth, BlockRandomizer block)
+        {
+            for (int i = 0; i < 3; i++)
+                gameWorld.SetBlock(x, y, depth++, block.NextBlock());
         }
 
         public ushort Priority

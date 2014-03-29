@@ -45,16 +45,31 @@ namespace WorldCreation
                         {
                             gameWorld.SetBlock(x, y, 1, 0);
                             gameWorld.SetBlock(x, y, 2, 0);
-                            if (noiseVal > 0.4)
-                            {
-                                gameWorld.SetBlock(x, y, 3, 0);
-                                gameWorld.SetBlock(x, y, 4, 0);
-                            }
-                            if (noiseVal > 0.7)
-                            {
-                                gameWorld.SetBlock(x, y, 5, 0);
-                                gameWorld.SetBlock(x, y, 6, 0);
-                            }
+                            gameWorld.SetBlock(x, y, 3, 0);
+                        }
+                        if (noiseVal > 0.3)
+                        {
+                            gameWorld.SetBlock(x, y, 4, 0);
+                            gameWorld.SetBlock(x, y, 5, 0);
+                            gameWorld.SetBlock(x, y, 6, 0);
+                        }
+                        if (noiseVal > 0.4)
+                        {
+                            gameWorld.SetBlock(x, y, 7, 0);
+                            gameWorld.SetBlock(x, y, 8, 0);
+                            gameWorld.SetBlock(x, y, 9, 0);
+                        }
+                        if (noiseVal > 0.5)
+                        {
+                            gameWorld.SetBlock(x, y, 10, 0);
+                            gameWorld.SetBlock(x, y, 11, 0);
+                            gameWorld.SetBlock(x, y, 12, 0);
+                        }
+                        if (noiseVal > 0.6)
+                        {
+                            gameWorld.SetBlock(x, y, 13, 0);
+                            gameWorld.SetBlock(x, y, 14, 0);
+                            gameWorld.SetBlock(x, y, 15, 0);
                         }
                     }
                 });

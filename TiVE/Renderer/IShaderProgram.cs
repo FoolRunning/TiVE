@@ -1,4 +1,5 @@
-﻿using OpenTK;
+﻿using System;
+using OpenTK;
 
 namespace ProdigalSoftware.TiVE.Renderer
 {
@@ -9,15 +10,13 @@ namespace ProdigalSoftware.TiVE.Renderer
         Geometry,
     }
 
-    internal interface IShaderProgram
+    internal interface IShaderProgram : IDisposable
     {
         void AddShader(string shaderSource, ShaderType shaderType);
 
         void AddAttribute(string name);
 
         void AddKnownUniform(string name);
-
-        void Delete();
 
         void Bind();
 

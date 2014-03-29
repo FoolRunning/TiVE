@@ -16,9 +16,9 @@ namespace ProdigalSoftware.TiVE.Renderer
             this.gameWorld = gameWorld;
         }
 
-        public void CleanUp()
+        public void Dispose()
         {
-            chunkCache.CleanUp();
+            chunkCache.Dispose();
         }
 
         public void Draw(Camera camera, out RenderStatistics stats)
@@ -42,12 +42,15 @@ namespace ProdigalSoftware.TiVE.Renderer
             int renderedVoxelCount = 0;
             int drawCount = 0;
 
+            chunkCache.CleanupChunksOutside(worldMinX, worldMinY, worldMaxX, worldMaxY);
+            chunkCache.InitializeChunks();
+
             Matrix4 viewProjectionMatrix = FastMult(camera.ViewMatrix, camera.ProjectionMatrix);
-            for (int chunkX = chunkMinX; chunkX < chunkMaxX; chunkX++)
+            for (int chunkZ = chunkMaxZ - 1; chunkZ >= 0; chunkZ--)
             {
-                for (int chunkY = chunkMinY; chunkY < chunkMaxY; chunkY++)
+                for (int chunkX = chunkMinX; chunkX < chunkMaxX; chunkX++)
                 {
-                    for (int chunkZ = 0; chunkZ < chunkMaxZ; chunkZ++)
+                    for (int chunkY = chunkMinY; chunkY < chunkMaxY; chunkY++)
                     {
                         Chunk chunk = chunkCache.GetOrCreateChunk(chunkX, chunkY, chunkZ);
                         if (chunk != null)
@@ -62,7 +65,7 @@ namespace ProdigalSoftware.TiVE.Renderer
                                 drawCount++;
                             }
                         }
-}
+                    }
                 }
             }
 
