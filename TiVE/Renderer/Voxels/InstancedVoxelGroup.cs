@@ -1,10 +1,13 @@
 ﻿//#define USE_INDEXED_VOXEL
+
+using System;
 using OpenTK;
+using ProdigalSoftware.TiVE.Renderer.Meshes;
 using ProdigalSoftware.TiVE.Starter;
 
-namespace ProdigalSoftware.TiVE.Renderer
+namespace ProdigalSoftware.TiVE.Renderer.Voxels
 {
-    internal sealed class InstancedVoxelGroup
+    internal sealed class InstancedVoxelGroup : IDisposable
     {
         #region Constants
         private const string VertexShaderSource = @"
@@ -53,6 +56,7 @@ namespace ProdigalSoftware.TiVE.Renderer
         private static readonly int polysPerVoxel;
         private static IRendererData voxelInstanceLocationData;
         private static IRendererData voxelInstanceColorData;
+
 #if USE_INDEXED_VOXEL
         private static IRendererData voxelInstanceIndexData;
 #endif
@@ -61,17 +65,37 @@ namespace ProdigalSoftware.TiVE.Renderer
         {
 #if USE_INDEXED_VOXEL
             IndexedMeshBuilder voxelInstanceBuilder = new IndexedMeshBuilder();
-            IndexedVoxelGroup.AddVoxel(voxelInstanceBuilder, 0, 0, 0, 235, 235, 235, 255, VoxelSides.All);
+            polysPerVoxel = IndexedVoxelGroup.AddVoxel(voxelInstanceBuilder, 0, 0, 0, 235, 235, 235, 255, VoxelSides.All);
 #else
-            MeshBuilder voxelInstanceBuilder = new MeshBuilder();
-            polysPerVoxel = VoxelGroup.AddVoxel(voxelInstanceBuilder, 0, 0, 0, 235, 235, 235, 255, VoxelSides.All);
+            MeshBuilder voxelInstanceBuilder = new MeshBuilder(10, 0);
+            //polysPerVoxel = VoxelGroup.AddVoxel(voxelInstanceBuilder, 0, 0, 0, 235, 235, 235, 255, VoxelSides.All);
+            polysPerVoxel = CreateVoxel(voxelInstanceBuilder, 235, 235, 235, 255);
 #endif
             voxelInstanceLocationData = voxelInstanceBuilder.GetLocationData();
+            voxelInstanceLocationData.Lock();
             voxelInstanceColorData = voxelInstanceBuilder.GetColorData();
+            voxelInstanceColorData.Lock();
 #if USE_INDEXED_VOXEL
             voxelInstanceIndexData = voxelInstanceBuilder.GetIndexData();
+            voxelInstanceIndexData.Lock();
 #endif
         }
+
+        private static int CreateVoxel(MeshBuilder meshBuilder, byte cr, byte cg, byte cb, byte ca)
+        {
+            int polygonCount = 0;
+            meshBuilder.Add(0, 0, 1, cr, cg, cb, ca);
+            meshBuilder.Add(1, 1, 1, cr, cg, cb, ca);
+            meshBuilder.Add(1, 0, 1, cr, cg, cb, ca);
+
+            meshBuilder.Add(1, 1, 1, cr, cg, cb, ca);
+            meshBuilder.Add(0, 0, 1, cr, cg, cb, ca);
+            meshBuilder.Add(0, 1, 1, cr, cg, cb, ca);
+            polygonCount += 2;
+
+            return polygonCount;
+        }
+
 
         public InstancedVoxelGroup(int sizeX, int sizeY, int sizeZ)
         {
@@ -81,6 +105,18 @@ namespace ProdigalSoftware.TiVE.Renderer
         public InstancedVoxelGroup(uint[, ,] voxels)
         {
             this.voxels = voxels;
+        }
+
+        public void Dispose()
+        {
+            //if (shader != null)
+            //    shader.Delete();
+
+            if (voxelInstances != null)
+                voxelInstances.Dispose();
+
+            //shader = null;
+            voxelInstances = null;
         }
 
         public int PolygonCount { get; private set; }
@@ -111,11 +147,6 @@ namespace ProdigalSoftware.TiVE.Renderer
             voxels[x, y, z] = 0;
         }
 
-        public bool IsVoxelSet(int x, int y, int z)
-        {
-            return voxels[x, y, z] != 0;
-        }
-
         public void GenerateMesh()
         {
             if (voxelInstances == null)
@@ -138,18 +169,6 @@ namespace ProdigalSoftware.TiVE.Renderer
             TiVEController.Backend.Draw(PrimitiveType.Triangles, voxelInstances);
         }
 
-        public void Delete()
-        {
-            if (shader != null)
-                shader.Delete();
-
-            if (voxelInstances != null)
-                voxelInstances.Delete();
-
-            shader = null;
-            voxelInstances = null;
-        }
-
         private static IShaderProgram CreateShader()
         {
             IShaderProgram program = TiVEController.Backend.CreateShaderProgram();
@@ -168,38 +187,37 @@ namespace ProdigalSoftware.TiVE.Renderer
 
         private IVertexDataCollection CreateVoxelMesh()
         {
-            InstancedItemBuilder voxelInstancesBuilder = new InstancedItemBuilder();
-            PolygonCount = 0;
-            VoxelCount = 0;
-            RenderedVoxelCount = 0;
+            MeshBuilder voxelInstancesBuilder = new MeshBuilder(5000, 0);
+            int voxelCount = 0;
+            int renderedVoxelCount = 0;
+            uint[,,] voxelData = voxels;
 
-            int voxelCountX = voxels.GetLength(0);
-            int voxelCountY = voxels.GetLength(1);
-            int voxelCountZ = voxels.GetLength(2);
+            int voxelCountX = voxelData.GetLength(0);
+            int voxelCountY = voxelData.GetLength(1);
+            int voxelCountZ = voxelData.GetLength(2);
 
             for (int z = voxelCountZ - 1; z >= 0; z--) // Order front to back for early z-culling
-            //for (int z = 0; z < voxelCountZ; z++)
             {
                 for (int x = 0; x < voxelCountX; x++)
                 {
                     for (int y = 0; y < voxelCountY; y++)
                     {
-                        uint color = voxels[x, y, z];
+                        uint color = voxelData[x, y, z];
                         if (color == 0)
                             continue;
                         
-                        VoxelCount++;
+                        voxelCount++;
 
-                        if (z < voxelCountZ - 1 && IsVoxelSet(x, y, z + 1) &&
-                            x > 0 && IsVoxelSet(x - 1, y, z) &&
-                            x < voxelCountX - 1 && IsVoxelSet(x + 1, y, z) &&
-                            y > 0 && IsVoxelSet(x, y - 1, z) &&
-                            y < voxelCountY - 1 && IsVoxelSet(x, y + 1, z))
+                        if (z < voxelCountZ - 1 && voxelData[x, y, z + 1] != 0 &&
+                            x > 0 && voxelData[x - 1, y, z] != 0 &&
+                            x < voxelCountX - 1 && voxelData[x + 1, y, z] != 0 &&
+                            y > 0 && voxelData[x, y - 1, z] != 0 &&
+                            y < voxelCountY - 1 && voxelData[x, y + 1, z] != 0)
                         {
                             continue; // Voxel is completely covered so no need to process it
                         }
 
-                        RenderedVoxelCount++;
+                        renderedVoxelCount++;
 
                         byte cr = (byte)((color >> 16) & 0xFF);
                         byte cg = (byte)((color >> 8) & 0xFF);
@@ -207,11 +225,15 @@ namespace ProdigalSoftware.TiVE.Renderer
                         byte ca = (byte)((color >> 24) & 0xFF);
                         //Debug.WriteLine(string.Format("Color value: {0} - ({1}, {2}, {3})", color, (int)(color & 0xFF), (int)((color >> 8) & 0xFF), (int)((color >> 16) & 0xFF)));
 
-                        voxelInstancesBuilder.AddInstance(x, y, z, cr, cg, cb, ca);
-                        PolygonCount += polysPerVoxel;
+                        voxelInstancesBuilder.Add(x, y, z, cr, cg, cb, ca);
                     }
                 }
+
             }
+
+            VoxelCount = voxelCount;
+            RenderedVoxelCount = renderedVoxelCount;
+            PolygonCount = renderedVoxelCount * polysPerVoxel;
 
             return voxelInstancesBuilder.GetInstanceData(voxelInstanceLocationData, voxelInstanceColorData
 #if USE_INDEXED_VOXEL

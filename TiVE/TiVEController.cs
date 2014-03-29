@@ -1,5 +1,4 @@
-﻿using System.Threading;
-using System.Windows.Forms;
+﻿using System.Windows.Forms;
 using ProdigalSoftware.TiVE.Plugins;
 using ProdigalSoftware.TiVE.Renderer;
 using ProdigalSoftware.TiVE.Renderer.OpenGL;
@@ -19,18 +18,12 @@ namespace ProdigalSoftware.TiVE
 
         internal static void RunEngine()
         {
-            //Thread gameThread = new Thread(() =>
-            //    {
-                    PluginManager.LoadPlugins();
+            PluginManager.LoadPlugins();
                     
-                    GameLogic gameLogic = new GameLogic();
+            GameLogic gameLogic = new GameLogic();
                     
-                    using (IDisplay display = Backend.CreateDisplay())
-                        display.RunMainLoop(gameLogic);
-            //    });
-
-            //gameThread.Name = "gameThread";
-            //gameThread.Start();
+            using (IDisplay display = Backend.CreateDisplay())
+                display.RunMainLoop(gameLogic);
         }
     }
 }

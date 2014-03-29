@@ -1,5 +1,12 @@
 ﻿namespace ProdigalSoftware.TiVE.Renderer
 {
+    internal enum PrimitiveType
+    {
+        Points,
+        Lines,
+        Triangles,
+        Quads,
+    }
 
     internal interface IRendererBackend
     {
@@ -9,7 +16,8 @@
 
         IVertexDataCollection CreateVertexDataCollection();
 
-        IRendererData CreateData<T>(T[] data, int dataPerVertex, DataType dataType, bool dynamic) where T : struct;
+        IRendererData CreateData<T>(T[] data, int elementCount, int elementsPerVertex, DataType dataType, 
+            ValueType valueType, bool normalize, bool dynamic) where T : struct;
         
         IShaderProgram CreateShaderProgram();
     }

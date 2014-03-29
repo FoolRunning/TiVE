@@ -1,16 +1,19 @@
 ﻿using System.Drawing;
 using OpenTK.Graphics;
+using ProdigalSoftware.TiVE.Renderer.Voxels;
 
 namespace ProdigalSoftware.TiVE.Renderer
 {
-    internal class Sprite : IndexedVoxelGroup
+    internal class Sprite
     {
         public float X;
         public float Y;
         public float Z;
 
-        public Sprite(int spriteXSize, int spriteYSize, int spriteZSize) : base(spriteXSize, spriteYSize, spriteZSize)
+        private readonly IndexedVoxelGroup voxels;
+        public Sprite(int spriteXSize, int spriteYSize, int spriteZSize)
         {
+            voxels = new IndexedVoxelGroup(spriteXSize, spriteYSize, spriteZSize);
         }
 
         public static Sprite FromImage(Bitmap image)
@@ -27,7 +30,7 @@ namespace ProdigalSoftware.TiVE.Renderer
                     if (c.A > 0)
                     {
                         for (int z = 0; z < 3; z++)
-                            newSprite.SetVoxel(x, y, z, (uint)c.ToArgb());
+                            newSprite.voxels.SetVoxel(x, y, z, (uint)c.ToArgb());
                     }
                 }
             }

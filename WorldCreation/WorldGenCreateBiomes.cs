@@ -49,8 +49,8 @@ namespace WorldCreation
 
         private void FillColumn(IGameWorld gameWorld, int x, int topY)
         {
-            for (int y = topY; y >= 0; y--)
-                gameWorld.SetBiome(x, y, 1);
+            //for (int y = topY; y >= 0; y--)
+            //    gameWorld.SetBiome(x, y, 1);
         }
     }
 }

@@ -55,6 +55,10 @@ namespace WorldCreation
                     for (int z = frontOnly ? BlockInformation.BlockSize - 1 : 0; z < BlockInformation.BlockSize; z++)
                     //for (int z = 0; z < (frontOnly ? 1 : BlockInformation.BlockSize); z++)
                     {
+                        //int dist = (x - 4) * (x - 4) + (y - 4) * (y - 4) + (z - 4) * (z - 4);
+                        //if (dist > 25)
+                        //    continue;
+
                         if (random.NextDouble() < voxelDensity)
                             voxels[x, y, z] = FromColor(CreateColorFromColor(color));
                     }

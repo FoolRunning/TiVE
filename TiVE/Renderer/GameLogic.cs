@@ -6,11 +6,11 @@ using ProdigalSoftware.TiVEPluginFramework;
 
 namespace ProdigalSoftware.TiVE.Renderer
 {
-    internal sealed class GameLogic
+    internal sealed class GameLogic : IDisposable
     {
-        public const int WorldXSize = 2048;
-        public const int WorldYSize = 2048;
-        public const int WorldZSize = 8;
+        public const int WorldXSize = 1000;
+        public const int WorldYSize = 2000;
+        public const int WorldZSize = 16;
 
         private BlockList blockList;
         private GameWorld world;
@@ -18,21 +18,22 @@ namespace ProdigalSoftware.TiVE.Renderer
 
         private readonly Camera camera = new Camera();
 
-        public void Cleanup()
+        public void Dispose()
         {
             if (renderer != null)
-                renderer.CleanUp();
+                renderer.Dispose();
         }
 
         public bool Initialize()
         {
-            camera.SetLocation(1263 * BlockInformation.BlockSize, 1747 * BlockInformation.BlockSize, 300);
+            //camera.SetLocation(1263 * BlockInformation.BlockSize, 1747 * BlockInformation.BlockSize, 300);
+            camera.SetLocation(500 * BlockInformation.BlockSize, 500 * BlockInformation.BlockSize, 300);
             camera.FoV = (float)Math.PI / 6;
 
             blockList = BlockList.CreateBlockList();
 
             WorldGenerator generator = new WorldGenerator(WorldXSize, WorldYSize, WorldZSize);
-            world = generator.CreateWorld(123456789123456789, blockList);
+            world = generator.CreateWorld(LongRandom() /* 123456789123456789*/, blockList);
 
             if (world == null)
                 return false;
@@ -53,9 +54,9 @@ namespace ProdigalSoftware.TiVE.Renderer
 
             Vector3 camLoc = camera.Location;
 
-            float speed = 1;
+            float speed = 2;
             if (keyboard[Key.ShiftLeft])
-                speed = 5;
+                speed = 10;
             else if (keyboard[Key.ControlLeft])
                 speed = 0.2f;
             if (keyboard[Key.A])
@@ -68,9 +69,9 @@ namespace ProdigalSoftware.TiVE.Renderer
                 camLoc.Y -= speed;
 
             if (keyboard[Key.KeypadPlus])
-                camLoc.Z = Math.Max(camLoc.Z - 2.0f, 4.0f * BlockInformation.BlockSize);
+                camLoc.Z = Math.Max(camLoc.Z - 3.0f, (WorldZSize + 1) * BlockInformation.BlockSize);
             else if (keyboard[Key.KeypadMinus])
-                camLoc.Z = Math.Min(camLoc.Z + 2.0f, 60.0f * BlockInformation.BlockSize);
+                camLoc.Z = Math.Min(camLoc.Z + 3.0f, 60.0f * BlockInformation.BlockSize);
 
             camera.SetLocation(camLoc.X, camLoc.Y, camLoc.Z);
             camera.SetLookAtLocation(camLoc.X, camLoc.Y, camLoc.Z - 100);

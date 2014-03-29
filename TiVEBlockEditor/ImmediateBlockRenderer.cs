@@ -11,7 +11,7 @@ namespace ProdigalSoftware.TiVEBlockEditor
             int voxelCountY = voxels.GetLength(1);
             int voxelCountZ = voxels.GetLength(2);
 
-            GL.Begin(BeginMode.Triangles);
+            GL.Begin(PrimitiveType.Triangles);
             for (int z = voxelCountZ - 1; z >= 0; z--)
             {
                 for (int x = 0; x < voxelCountX; x++)
