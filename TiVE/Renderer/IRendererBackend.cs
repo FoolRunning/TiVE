@@ -8,6 +8,13 @@
         Quads,
     }
 
+    internal enum BlendMode
+    {
+        None,
+        Realistic,
+        Additive,
+    }
+
     internal interface IRendererBackend
     {
         IDisplay CreateDisplay();
@@ -20,5 +27,11 @@
             ValueType valueType, bool normalize, bool dynamic) where T : struct;
         
         IShaderProgram CreateShaderProgram();
+
+        void SetBlendMode(BlendMode mode);
+
+        void DisableDepthWriting();
+
+        void EnableDepthWriting();
     }
 }

@@ -1,5 +1,6 @@
 ﻿using System;
 using OpenTK;
+using ProdigalSoftware.TiVE.Renderer.Voxels;
 using ProdigalSoftware.TiVE.Renderer.World;
 using ProdigalSoftware.TiVEPluginFramework;
 
@@ -21,6 +22,37 @@ namespace ProdigalSoftware.TiVE.Renderer
             chunkCache.Dispose();
         }
 
+        public void Update(Camera camera, float timeSinceLastFrame)
+        {
+            int worldMinX, worldMaxX, worldMinY, worldMaxY;
+            GetWorldView(camera, camera.Location.Z, out worldMinX, out worldMaxX, out worldMinY, out worldMaxY);
+
+            worldMinX = Math.Max(worldMinX, 0);
+            worldMinY = Math.Max(worldMinY, 0);
+            worldMaxX = Math.Min(worldMaxX, gameWorld.Xsize);
+            worldMaxY = Math.Min(worldMaxY, gameWorld.Ysize);
+
+            int chunkMinX = worldMinX / GameWorldVoxelChunk.TileSize - 1;
+            int chunkMaxX = worldMaxX / GameWorldVoxelChunk.TileSize + 1;
+            int chunkMinY = worldMinY / GameWorldVoxelChunk.TileSize - 1;
+            int chunkMaxY = worldMaxY / GameWorldVoxelChunk.TileSize + 1;
+            int chunkMaxZ = Math.Max(gameWorld.Zsize / GameWorldVoxelChunk.TileSize, 1);
+
+            //for (int chunkZ = chunkMaxZ - 1; chunkZ >= 0; chunkZ--)
+            for (int chunkZ = 0; chunkZ < chunkMaxZ; chunkZ++)
+            {
+                for (int chunkX = chunkMinX; chunkX < chunkMaxX; chunkX++)
+                {
+                    for (int chunkY = chunkMinY; chunkY < chunkMaxY; chunkY++)
+                    {
+                        GameWorldVoxelChunk chunk = chunkCache.GetOrCreateChunk(chunkX, chunkY, chunkZ);
+                        if (chunk != null)
+                            chunk.Update(timeSinceLastFrame);
+                    }
+                }
+            }
+        }
+
         public void Draw(Camera camera, out RenderStatistics stats)
         {
             int worldMinX, worldMaxX, worldMinY, worldMaxY;
@@ -31,11 +63,11 @@ namespace ProdigalSoftware.TiVE.Renderer
             worldMaxX = Math.Min(worldMaxX, gameWorld.Xsize);
             worldMaxY = Math.Min(worldMaxY, gameWorld.Ysize);
 
-            int chunkMinX = worldMinX / Chunk.TileSize;
-            int chunkMaxX = worldMaxX / Chunk.TileSize + 1;
-            int chunkMinY = worldMinY / Chunk.TileSize;
-            int chunkMaxY = worldMaxY / Chunk.TileSize + 1;
-            int chunkMaxZ = Math.Max(gameWorld.Zsize / Chunk.TileSize, 1);
+            int chunkMinX = worldMinX / GameWorldVoxelChunk.TileSize - 1;
+            int chunkMaxX = worldMaxX / GameWorldVoxelChunk.TileSize + 1;
+            int chunkMinY = worldMinY / GameWorldVoxelChunk.TileSize - 1;
+            int chunkMaxY = worldMaxY / GameWorldVoxelChunk.TileSize + 1;
+            int chunkMaxZ = Math.Max(gameWorld.Zsize / GameWorldVoxelChunk.TileSize, 1);
 
             int polygonCount = 0;
             int voxelCount = 0;
@@ -45,29 +77,46 @@ namespace ProdigalSoftware.TiVE.Renderer
             chunkCache.CleanupChunksOutside(worldMinX, worldMinY, worldMaxX, worldMaxY);
             chunkCache.InitializeChunks();
 
-            Matrix4 viewProjectionMatrix = FastMult(camera.ViewMatrix, camera.ProjectionMatrix);
+            Matrix4 viewProjectionMatrix = Matrix4.Mult(camera.ViewMatrix, camera.ProjectionMatrix);
             for (int chunkZ = chunkMaxZ - 1; chunkZ >= 0; chunkZ--)
             {
                 for (int chunkX = chunkMinX; chunkX < chunkMaxX; chunkX++)
                 {
                     for (int chunkY = chunkMinY; chunkY < chunkMaxY; chunkY++)
                     {
-                        Chunk chunk = chunkCache.GetOrCreateChunk(chunkX, chunkY, chunkZ);
+                        GameWorldVoxelChunk chunk = chunkCache.GetOrCreateChunk(chunkX, chunkY, chunkZ);
                         if (chunk != null)
                         {
-                            chunk.Render(ref viewProjectionMatrix);
-                            var vData = chunk.VoxelData;
-                            if (vData != null)
-                            {
-                                polygonCount += vData.PolygonCount;
-                                voxelCount += vData.VoxelCount;
-                                renderedVoxelCount += vData.RenderedVoxelCount;
-                                drawCount++;
-                            }
+                            RenderStatistics chunkStats = chunk.RenderOpaque(ref viewProjectionMatrix);
+                            polygonCount += chunkStats.PolygonCount;
+                            voxelCount += chunkStats.VoxelCount;
+                            renderedVoxelCount += chunkStats.RenderedVoxelCount;
+                            drawCount += chunkStats.DrawCount;
                         }
                     }
                 }
             }
+
+            TiVEController.Backend.DisableDepthWriting();
+            for (int chunkZ = chunkMaxZ - 1; chunkZ >= 0; chunkZ--)
+            {
+                for (int chunkX = chunkMinX; chunkX < chunkMaxX; chunkX++)
+                {
+                    for (int chunkY = chunkMinY; chunkY < chunkMaxY; chunkY++)
+                    {
+                        GameWorldVoxelChunk chunk = chunkCache.GetOrCreateChunk(chunkX, chunkY, chunkZ);
+                        if (chunk != null)
+                        {
+                            RenderStatistics chunkStats = chunk.RenderTransparent(ref viewProjectionMatrix);
+                            polygonCount += chunkStats.PolygonCount;
+                            voxelCount += chunkStats.VoxelCount;
+                            renderedVoxelCount += chunkStats.RenderedVoxelCount;
+                            drawCount += chunkStats.DrawCount;
+                        }
+                    }
+                }
+            }
+            TiVEController.Backend.EnableDepthWriting();
 
             //for (int s = 0; s < sprites.Count; s++)
             //{
@@ -78,32 +127,11 @@ namespace ProdigalSoftware.TiVE.Renderer
             //    translationMatrix.M43 = sprite.Z;
             //    Matrix4 viewProjectionModelMatrix = translationMatrix * viewProjectionMatrix;
 
-            //    sprites[s].Render(ref viewProjectionModelMatrix);
+            //    sprites[s].RenderOpaque(ref viewProjectionModelMatrix);
             //    drawCount++;
             //    polygonCount += sprites[s].PolygonCount;
             //}
             stats = new RenderStatistics(drawCount, polygonCount, voxelCount, renderedVoxelCount);
-        }
-
-        private static Matrix4 FastMult(Matrix4 left, Matrix4 right)
-        {
-            return new Matrix4(
-                left.M11 * right.M11 + left.M12 * right.M21 + left.M13 * right.M31 + left.M14 * right.M41,
-                left.M11 * right.M12 + left.M12 * right.M22 + left.M13 * right.M32 + left.M14 * right.M42,
-                left.M11 * right.M13 + left.M12 * right.M23 + left.M13 * right.M33 + left.M14 * right.M43,
-                left.M11 * right.M14 + left.M12 * right.M24 + left.M13 * right.M34 + left.M14 * right.M44,
-                left.M21 * right.M11 + left.M22 * right.M21 + left.M23 * right.M31 + left.M24 * right.M41,
-                left.M21 * right.M12 + left.M22 * right.M22 + left.M23 * right.M32 + left.M24 * right.M42,
-                left.M21 * right.M13 + left.M22 * right.M23 + left.M23 * right.M33 + left.M24 * right.M43,
-                left.M21 * right.M14 + left.M22 * right.M24 + left.M23 * right.M34 + left.M24 * right.M44,
-                left.M31 * right.M11 + left.M32 * right.M21 + left.M33 * right.M31 + left.M34 * right.M41,
-                left.M31 * right.M12 + left.M32 * right.M22 + left.M33 * right.M32 + left.M34 * right.M42,
-                left.M31 * right.M13 + left.M32 * right.M23 + left.M33 * right.M33 + left.M34 * right.M43,
-                left.M31 * right.M14 + left.M32 * right.M24 + left.M33 * right.M34 + left.M34 * right.M44,
-                left.M41 * right.M11 + left.M42 * right.M21 + left.M43 * right.M31 + left.M44 * right.M41,
-                left.M41 * right.M12 + left.M42 * right.M22 + left.M43 * right.M32 + left.M44 * right.M42,
-                left.M41 * right.M13 + left.M42 * right.M23 + left.M43 * right.M33 + left.M44 * right.M43,
-                left.M41 * right.M14 + left.M42 * right.M24 + left.M43 * right.M34 + left.M44 * right.M44);
         }
 
         private static void GetWorldView(ICamera camera, float distance, out int minX, out int maxX, out int minY, out int maxY)

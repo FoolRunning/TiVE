@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using OpenTK;
 using OpenTK.Graphics;
 using ProdigalSoftware.TiVEPluginFramework;
+using ProdigalSoftware.Utils;
 
 namespace WorldCreation
 {
@@ -13,14 +15,16 @@ namespace WorldCreation
         {
             for (int i = 0; i < 20; i++)
             {
+                bool sphere = false;
                 Color4 color;
                 string name;
                 float voxelDensity;
                 if (i < 5)
                 {
                     color = new Color4(129, 53, 2, 255);
-                    voxelDensity = 0.6f;
+                    voxelDensity = 1.0f;
                     name = "dirt" + i;
+                    sphere = true;
                 }
                 else if (i < 10)
                 {
@@ -37,16 +41,20 @@ namespace WorldCreation
                 else
                 {
                     color = new Color4(140, 100, 20, 255);
-                    voxelDensity = 0.15f;
+                    voxelDensity = 0.1f;
                     name = "sand" + (i - 15);
                 }
-                uint[, ,] voxels = CreateBlockInfo(i >= 5 && i < 10, color, voxelDensity);
+                uint[, ,] voxels = CreateBlockInfo(i >= 5 && i < 10, sphere, color, voxelDensity);
                 yield return new BlockInformation(name, voxels);
             }
+
+            uint[, ,] fountainVoxels = CreateBlockInfo(false, true, new Color4(50, 50, 50, 255), 1.0f);
+            yield return new BlockInformation("fountain", fountainVoxels, new ParticleSystemInformation(new FountainUpdater(), new Vector3b(5, 5, 10), 200, 300));
         }
 
-        private static uint[, ,] CreateBlockInfo(bool frontOnly, Color4 color, float voxelDensity)
+        private static uint[, ,] CreateBlockInfo(bool frontOnly, bool sphere, Color4 color, float voxelDensity)
         {
+            const int sphereSize = 4;
             uint[, ,] voxels = new uint[BlockInformation.BlockSize, BlockInformation.BlockSize, BlockInformation.BlockSize];
             for (int x = 0; x < BlockInformation.BlockSize; x++)
             {
@@ -55,9 +63,12 @@ namespace WorldCreation
                     for (int z = frontOnly ? BlockInformation.BlockSize - 1 : 0; z < BlockInformation.BlockSize; z++)
                     //for (int z = 0; z < (frontOnly ? 1 : BlockInformation.BlockSize); z++)
                     {
-                        //int dist = (x - 4) * (x - 4) + (y - 4) * (y - 4) + (z - 4) * (z - 4);
-                        //if (dist > 25)
-                        //    continue;
+                        if (sphere)
+                        {
+                            int dist = (x - sphereSize) * (x - sphereSize) + (y - sphereSize) * (y - sphereSize) + (z - sphereSize) * (z - sphereSize);
+                            if (dist > sphereSize * sphereSize)
+                                continue;
+                        }
 
                         if (random.NextDouble() < voxelDensity)
                             voxels[x, y, z] = FromColor(CreateColorFromColor(color));
@@ -109,9 +120,85 @@ namespace WorldCreation
 
         private static Color4 CreateColorFromColor(Color4 seed)
         {
-            float scale = (float)(random.NextDouble() * 0.5 + 0.75);
+            float scale = (float)(random.NextDouble() * 0.08 + 0.96);
             return new Color4(Math.Min(seed.R * scale, 1.0f), Math.Min(seed.G * scale, 1.0f), 
                 Math.Min(seed.B * scale, 1.0f), seed.A);
+        }
+
+        private class FountainUpdater : ParticleController
+        {
+            private readonly Random random = new Random();
+            private static readonly Color4b[] colorList = new Color4b[256];
+
+            static FountainUpdater()
+            {
+                for (int i = 0; i < 256; i++)
+                {
+                    if (i < 150)
+                        colorList[i] = new Color4b(255, (byte)(255 - (i * 1.7f)), (byte)(50 - i / 3), 150);
+                    if (i >= 150)
+                        colorList[i] = new Color4b((byte)(255 - (i - 150) * 2.4f), 0, 0, 150);
+                }
+            }
+
+            #region Implementation of IParticleUpdater
+            public override bool BeginUpdate(IParticleSystem particleSystem, float timeSinceLastFrame)
+            {
+                return true;
+            }
+
+            private const float FlameDeacceleration = 25.0f;
+            private const float AliveTime = 1.0f;
+
+            public override void Update(Particle particle, float timeSinceLastFrame, float systemX, float systemY, float systemZ)
+            {
+                ApplyVelocity(particle, timeSinceLastFrame);
+
+                if (particle.X > systemX)
+                    particle.VelX -= FlameDeacceleration * timeSinceLastFrame;
+                if (particle.X < systemX)
+                    particle.VelX += FlameDeacceleration * timeSinceLastFrame;
+                if (particle.Y > systemY)
+                    particle.VelY -= FlameDeacceleration * timeSinceLastFrame;
+                if (particle.Y < systemY)
+                    particle.VelY += FlameDeacceleration * timeSinceLastFrame;
+                //if (particle.Z > systemZ)
+                //    particle.VelZ -= FlameDeacceleration * timeSinceLastFrame;
+                //if (particle.Z < systemZ)
+                //    particle.VelZ += FlameDeacceleration * timeSinceLastFrame;
+                
+                //float totalTime = (float)Math.Pow(particleAliveTime, 5);
+                //part.size = 1.0f - (float)Math.pow(part.aliveTime, 5) / totalTime;
+
+                particle.Time -= timeSinceLastFrame;
+
+                // set color
+                if (particle.Time > 0.0f)
+                {
+                    int colorIndex = (int)(((AliveTime - particle.Time) / AliveTime) * (colorList.Length - 1));
+                    particle.Color = colorList[Math.Min(colorIndex, colorList.Length - 1)];
+                }
+            }
+
+            public override void InitializeNew(Particle particle, float startX, float startY, float startZ)
+            {
+                float angle = (float)random.NextDouble() * 2.0f * 3.141592f;
+                float totalVel = (float)random.NextDouble() * 4.0f + 10.0f;
+                particle.VelX = (float)Math.Cos(angle) * totalVel;
+                particle.VelZ = (float)random.NextDouble() * 10.0f + 4.0f;
+                particle.VelY = (float)Math.Sin(angle) * totalVel;
+
+                particle.X = startX;
+                particle.Y = startY;
+                particle.Z = startZ;
+                
+                particle.Color = colorList[0];
+                particle.Time = AliveTime;
+
+                //particle.Color = new Color4b((byte)random.Next(255), (byte)random.Next(255), (byte)random.Next(255), 255);
+            
+            }
+            #endregion
         }
     }
 }

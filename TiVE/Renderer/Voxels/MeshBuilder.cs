@@ -1,9 +1,9 @@
 ﻿using System;
 using ProdigalSoftware.Utils;
 
-namespace ProdigalSoftware.TiVE.Renderer.Meshes
+namespace ProdigalSoftware.TiVE.Renderer.Voxels
 {
-    internal class MeshBuilder
+    internal sealed class MeshBuilder
     {
         private WeakReference<IVertexDataCollection> lastCreatedMesh;
         private Vector3b[] locationData;
@@ -12,6 +12,7 @@ namespace ProdigalSoftware.TiVE.Renderer.Meshes
         private int indexCount;
         private int vertexCount;
         private bool locked;
+        public readonly uint[] Voxels = new uint[GameWorldVoxelChunk.VoxelSize * GameWorldVoxelChunk.VoxelSize * GameWorldVoxelChunk.VoxelSize];
 
         private readonly object syncRoot = new object();
 
@@ -130,7 +131,7 @@ namespace ProdigalSoftware.TiVE.Renderer.Meshes
 
         public IRendererData GetIndexData()
         {
-            return TiVEController.Backend.CreateData(indexData, indexCount, 1, DataType.Index, ValueType.Int, false, false);
+            return TiVEController.Backend.CreateData(indexData, indexCount, 1, DataType.Index, ValueType.UInt, false, false);
         }
 
         private static void ResizeArray<T>(ref T[] array)

@@ -86,7 +86,15 @@
     <Compile Include="IGameWorld.cs" />
     <Compile Include="IWorldGeneratorStage.cs" />
     <Compile Include="Noise.cs" />
+    <Compile Include="ParticleController.cs" />
+    <Compile Include="ParticleSystemInformation.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Utils\Utils.csproj">
+      <Project>{DC99C507-28DD-4DBF-B6B4-1F9C99E849F1}</Project>
+      <Name>Utils</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
