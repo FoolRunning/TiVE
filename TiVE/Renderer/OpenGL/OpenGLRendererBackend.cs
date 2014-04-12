@@ -55,6 +55,36 @@ namespace ProdigalSoftware.TiVE.Renderer.OpenGL
         {
             return new ShaderProgram();
         }
+
+        public void SetBlendMode(BlendMode mode)
+        {
+            switch (mode)
+            {
+                case BlendMode.None: 
+                    GL.Disable(EnableCap.Blend);
+                    break;
+                case BlendMode.Realistic:
+                    GL.Enable(EnableCap.Blend);
+                    GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
+                    break;
+                case BlendMode.Additive:
+                    GL.Enable(EnableCap.Blend);
+                    GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.One);
+                    break;
+                default:
+                    throw new ArgumentException("Unknown blend mode: " + mode, "mode");
+            }
+        }
+
+        public void DisableDepthWriting()
+        {
+            GL.Disable(EnableCap.DepthTest);
+        }
+
+        public void EnableDepthWriting()
+        {
+            GL.Enable(EnableCap.DepthTest);
+        }
         #endregion
 
         #region Private helper methods
@@ -74,8 +104,8 @@ namespace ProdigalSoftware.TiVE.Renderer.OpenGL
             switch (valueType)
             {
                 case ValueType.Byte: return DrawElementsType.UnsignedByte;
-                case ValueType.Short: return DrawElementsType.UnsignedShort;
-                case ValueType.Int: return DrawElementsType.UnsignedInt;
+                case ValueType.UShort: return DrawElementsType.UnsignedShort;
+                case ValueType.UInt: return DrawElementsType.UnsignedInt;
                 default: throw new InvalidOperationException("Invalid draw type: " + valueType);
             }
         }
@@ -93,13 +123,13 @@ namespace ProdigalSoftware.TiVE.Renderer.OpenGL
                 : base(1600, 1200, new OpenTK.Graphics.GraphicsMode(new OpenTK.Graphics.ColorFormat(8, 8, 8, 8), 16, 0, 4), "TiVE",
                     GameWindowFlags.Default, DisplayDevice.Default, 3, 5, OpenTK.Graphics.GraphicsContextFlags.ForwardCompatible)
             {
-                VSync = VSyncMode.Off;
+                VSync = VSyncMode.On;
             }
 
             public void RunMainLoop(GameLogic newGame)
             {
                 game = newGame;
-                Run(120, 60);
+                Run(60, 60);
             }
 
             /// <summary>
@@ -124,9 +154,7 @@ namespace ProdigalSoftware.TiVE.Renderer.OpenGL
                 GL.CullFace(CullFaceMode.Back);
                 GL.FrontFace(FrontFaceDirection.Cw);
 
-                GL.Enable(EnableCap.Blend);
-                //GL.Enable(EnableCap.AlphaTest);
-                GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
+                GL.Disable(EnableCap.Blend);
 
                 GlUtils.CheckGLErrors();
             }
@@ -136,7 +164,6 @@ namespace ProdigalSoftware.TiVE.Renderer.OpenGL
             /// a good place to set up your projection matrix (which probably changes
             /// along when the aspect ratio of your window).
             /// </summary>
-            /// <param name="e">Not used.</param>
             protected override void OnResize(EventArgs e)
             {
                 base.OnResize(e);
@@ -144,16 +171,34 @@ namespace ProdigalSoftware.TiVE.Renderer.OpenGL
                 game.Resize(Width, Height);
             }
 
+            private readonly Stopwatch sw = new Stopwatch();
+            private double lastPrintTime;
+
+            private StatHelper renderTime = new StatHelper();
+            private StatHelper updateTime = new StatHelper();
+            
             /// <summary>
             /// Called when it is time to setup the next frame. Add you game logic here.
             /// </summary>
             /// <param name="e">Contains timing information for framerate independent logic.</param>
             protected override void OnUpdateFrame(FrameEventArgs e)
             {
+                sw.Restart();
                 base.OnUpdateFrame(e);
 
-                if (!game.UpdateFrame(e.Time, Keyboard))
+                if (!game.UpdateFrame((float)e.Time, Keyboard))
                     Exit();
+                sw.Stop();
+
+                updateTime.AddData(sw.ElapsedTicks * 1000f / Stopwatch.Frequency);
+
+                lastPrintTime += e.Time;
+                if (lastPrintTime > 0.25)
+                {
+                    lastPrintTime -= 0.25;
+                    updateTime.UpdateDisplayedTime();
+                    renderTime.UpdateDisplayedTime();
+                }
             }
 
             protected override void OnUnload(EventArgs e)
@@ -170,14 +215,17 @@ namespace ProdigalSoftware.TiVE.Renderer.OpenGL
             {
                 base.OnRenderFrame(e);
 
+                sw.Restart();
                 GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+                RenderStatistics stats = game.Render((float)e.Time);
+                sw.Stop();
 
-                RenderStatistics stats = game.Render(e.Time);
+                renderTime.AddData(sw.ElapsedTicks * 1000f / Stopwatch.Frequency);
 
                 SwapBuffers();
                 //GlUtils.CheckGLErrors();
-                Title = string.Format("TiVE         VC={0}  RVC={1}  PC = {2}  DC = {3}", 
-                    stats.VoxelCount, stats.RenderedVoxelCount, stats.PolygonCount, stats.DrawCount);
+                Title = string.Format("TiVE         Update={5}   Render={4}   Voxels={0}  Rendered={1}  Polys={2}  Draws={3}",
+                    stats.VoxelCount, stats.RenderedVoxelCount, stats.PolygonCount, stats.DrawCount, renderTime.DisplayedTime, updateTime.DisplayedTime);
             }
         }
         #endregion
@@ -333,7 +381,7 @@ namespace ProdigalSoftware.TiVE.Renderer.OpenGL
         private class RendererData<T> : IRendererData where T : struct
         {
             private T[] data;
-            private readonly int elementCount;
+            private int elementCount;
             private readonly int elementsPerVertex;
             private readonly DataType dataType;
             private readonly ValueType valueType;
@@ -419,6 +467,52 @@ namespace ProdigalSoftware.TiVE.Renderer.OpenGL
                 return true;
             }
 
+            /// <summary>
+            /// Changes the data in this buffer to the specified new data. This is an error if the buffer is not dynamic.
+            /// </summary>
+            public void UpdateData<T2>(T2[] newData, int elementsToUpdate) where T2 : struct 
+            {
+                if (!dynamic)
+                    throw new InvalidOperationException("Can not update the contents of a static buffer");
+
+                BufferTarget target = Target;
+                GL.BindBuffer(target, dataVboId);
+
+                elementCount = elementsToUpdate;
+                int sizeInBytes = elementsToUpdate * Marshal.SizeOf(typeof(T2));
+                //GL.MapBufferRange(target, new IntPtr(0), new IntPtr(sizeInBytes), BufferAccessMask.MapWriteBit);
+                GL.BufferSubData(target, new IntPtr(0), new IntPtr(sizeInBytes), newData);
+                GlUtils.CheckGLErrors();
+            }
+
+            /// <summary>
+            /// 
+            /// </summary>
+            public IntPtr MapData(int elementsToMap)
+            {
+                BufferTarget target = Target;
+                GL.BindBuffer(target, dataVboId);
+
+                elementCount = elementsToMap; 
+                int sizeInBytes = elementsToMap * Marshal.SizeOf(typeof(T));
+                IntPtr result = GL.MapBufferRange(Target, new IntPtr(0), new IntPtr(sizeInBytes), 
+                    BufferAccessMask.MapWriteBit | BufferAccessMask.MapInvalidateBufferBit);
+                GlUtils.CheckGLErrors();
+
+                return result;
+            }
+
+            /// <summary>
+            /// 
+            /// </summary>
+            public void UnmapData()
+            {
+                BufferTarget target = Target;
+                GL.BindBuffer(target, dataVboId);
+                GL.UnmapBuffer(target);
+                GlUtils.CheckGLErrors();
+            }
+
             public void Lock()
             {
                 locked = true;
@@ -452,7 +546,9 @@ namespace ProdigalSoftware.TiVE.Renderer.OpenGL
                     {
                         case ValueType.Byte: return VertexAttribPointerType.UnsignedByte;
                         case ValueType.Short: return VertexAttribPointerType.Short;
+                        case ValueType.UShort: return VertexAttribPointerType.UnsignedShort;
                         case ValueType.Int: return VertexAttribPointerType.Int;
+                        case ValueType.UInt: return VertexAttribPointerType.UnsignedInt;
                         case ValueType.Float: return VertexAttribPointerType.Float;
                         default: throw new InvalidOperationException("Unknown value type: " + valueType);
                     }
@@ -646,5 +742,26 @@ namespace ProdigalSoftware.TiVE.Renderer.OpenGL
             }
         }
         #endregion
+
+        private sealed class StatHelper
+        {
+            private float totalTime;
+            private int dataCount;
+
+            public float DisplayedTime { get; private set; }
+
+            public void AddData(float data)
+            {
+                totalTime += data;
+                dataCount++;
+            }
+
+            public void UpdateDisplayedTime()
+            {
+                DisplayedTime = totalTime / Math.Max(dataCount, 1);
+                totalTime = 0;
+                dataCount = 0;
+            }
+        }
     }
 }

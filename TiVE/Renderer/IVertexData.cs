@@ -13,7 +13,9 @@ namespace ProdigalSoftware.TiVE.Renderer
     {
         Byte,
         Short,
+        UShort,
         Int,
+        UInt,
         Float,
     }
 
@@ -48,6 +50,21 @@ namespace ProdigalSoftware.TiVE.Renderer
         /// <param name="arrayAttrib">The index of this item in the buffer collection</param>
         /// <returns>True if successful, false otherwise</returns>
         bool Initialize(int arrayAttrib);
+
+        /// <summary>
+        /// Changes the data in this buffer to the specified new data. This is an error if the buffer is not dynamic.
+        /// </summary>
+        void UpdateData<T>(T[] newData, int elementsToUpdate) where T : struct;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        IntPtr MapData(int elementsToMap);
+
+        /// <summary>
+        /// 
+        /// </summary>
+        void UnmapData();
 
         /// <summary>
         /// Locks the data so that it won't not be deleted (even if Delete() is called)

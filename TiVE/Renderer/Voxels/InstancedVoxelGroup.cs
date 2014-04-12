@@ -2,7 +2,6 @@
 
 using System;
 using OpenTK;
-using ProdigalSoftware.TiVE.Renderer.Meshes;
 using ProdigalSoftware.TiVE.Starter;
 
 namespace ProdigalSoftware.TiVE.Renderer.Voxels

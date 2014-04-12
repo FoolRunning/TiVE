@@ -1,11 +1,23 @@
-﻿#define USE_JAGGED_ARRAYS
+﻿//#define USE_JAGGED_ARRAYS
+using System;
 using System.Diagnostics;
 using OpenTK;
-using ProdigalSoftware.TiVE.Renderer.Meshes;
-using ProdigalSoftware.TiVEPluginFramework;
 
 namespace ProdigalSoftware.TiVE.Renderer.Voxels
 {
+    [Flags]
+    public enum VoxelSides
+    {
+        None = 0,
+        Top = 1 << 0,
+        Left = 1 << 1,
+        Right = 1 << 2,
+        Bottom = 1 << 3,
+        Front = 1 << 4,
+        Back = 1 << 5,
+        All = Top | Left | Right | Bottom | Front | Back,
+    }
+
     internal abstract class VoxelGroup
     {
         #region Constants
@@ -211,20 +223,20 @@ namespace ProdigalSoftware.TiVE.Renderer.Voxels
 
                         VoxelSides sides = VoxelSides.None;
 
-                        if (z == voxelCountZ - 1 || voxelData[x][y][z + 1] == 0)
+                        if (z == voxelCountZ - 1 || voxelData[x][y][z + 1] == 0U)
                             sides |= VoxelSides.Front;
                         //if (!IsZLineSet(x, y, z, 1)) // The back face is never shown to the camera, so there is no need to create it
                         //    sizes |= VoxelSides.Back;
-                        if (x == 0 || voxelData[x - 1][y][z] == 0)
+                        if (x == 0 || voxelData[x - 1][y][z] == 0U)
                             sides |= VoxelSides.Left;
-                        if (x == voxelCountX - 1 || voxelData[x + 1][y][z] == 0)
+                        if (x == voxelCountX - 1 || voxelData[x + 1][y][z] == 0U)
                             sides |= VoxelSides.Right;
-                        if (y == 0 || voxelData[x][y - 1][z] == 0)
+                        if (y == 0 || voxelData[x][y - 1][z] == 0U)
                             sides |= VoxelSides.Bottom;
-                        if (y == voxelCountY - 1 || voxelData[x][y + 1][z] == 0)
+                        if (y == voxelCountY - 1 || voxelData[x][y + 1][z] == 0U)
                             sides |= VoxelSides.Top;
 
-                        voxelData[x][y][z] = (uint)((color & 0xFFFFFF) | ((int)sides << 26));
+                        voxelData[x][y][z] = ((color & 0xFFFFFF) | (uint)((int)sides << 26));
                     }
                 }
             }
@@ -258,7 +270,7 @@ namespace ProdigalSoftware.TiVE.Renderer.Voxels
                         if (y == voxelCountY - 1 || voxelData[x, y + 1, z] == 0)
                             sides |= VoxelSides.Top;
 
-                        Voxels[x, y, z] = (uint)((color & 0xFFFFFF) | ((int)sides << 26));
+                        voxelData[x, y, z] = ((color & 0xFFFFFF) | (uint)((int)sides << 26));
                     }
                 }
             }

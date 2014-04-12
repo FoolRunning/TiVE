@@ -20,6 +20,7 @@ namespace WorldCreation
             BlockRandomizer dirts = new BlockRandomizer(blockList, "dirt", 4);
             BlockRandomizer stones = new BlockRandomizer(blockList, "stone", 4);
             BlockRandomizer sands = new BlockRandomizer(blockList, "sand", 4);
+            ushort fountain = blockList.GetBlockIndex("fountain");
 
             Random random1 = new Random((int)((seed >> 11) & 0xFFFFFFFF));
             Random random2 = new Random((int)((seed >> 15) & 0xFFFFFFFF));
@@ -57,8 +58,10 @@ namespace WorldCreation
                             Fill(gameWorld, x, y, ref depth, dirts);
                         if (noiseVal > 0.6)
                             Fill(gameWorld, x, y, ref depth, dirts);
-                        if (noiseVal > 0.9)
+                        if (noiseVal > 0.8)
                             Fill(gameWorld, x, y, ref depth, dirts);
+                        if (noiseVal > 0.85)
+                            gameWorld.SetBlock(x, y, 13, fountain);
                     }
                     else if (noiseVal < -0.3)
                     {
@@ -69,16 +72,20 @@ namespace WorldCreation
                             Fill(gameWorld, x, y, ref depth, sands);
                         if (noiseVal < -0.8)
                             Fill(gameWorld, x, y, ref depth, sands);
+                        if (noiseVal < -0.85)
+                            gameWorld.SetBlock(x, y, 13, fountain);
                     }
                     else
                     {
                         Fill(gameWorld, x, y, ref depth, stones);
-                        if (noiseVal < 0.2 & noiseVal > -0.3)
+                        if (noiseVal > -0.3 && noiseVal < 0.2)
                             Fill(gameWorld, x, y, ref depth, stones);
-                        if (noiseVal < 0.1 && noiseVal > -0.2)
+                        if (noiseVal > -0.2 && noiseVal < 0.1)
                             Fill(gameWorld, x, y, ref depth, stones);
-                        if (noiseVal <= 0.0 && noiseVal > -0.1)
+                        if (noiseVal > -0.1 && noiseVal <= 0.0)
                             Fill(gameWorld, x, y, ref depth, stones);
+                        if (noiseVal > -0.05 && noiseVal < -0.03)
+                            gameWorld.SetBlock(x, y, 13, fountain);
                     }
                 }
             });

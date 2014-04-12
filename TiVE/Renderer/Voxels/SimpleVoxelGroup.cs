@@ -1,6 +1,4 @@
 ﻿using System;
-using ProdigalSoftware.TiVE.Renderer.Meshes;
-using ProdigalSoftware.TiVEPluginFramework;
 
 namespace ProdigalSoftware.TiVE.Renderer.Voxels
 {
@@ -15,6 +13,11 @@ namespace ProdigalSoftware.TiVE.Renderer.Voxels
         }
 
         protected override int AddVoxel(MeshBuilder meshBuilder, VoxelSides sides, int x, int y, int z, byte cr, byte cg, byte cb, byte ca)
+        {
+            return CreateVoxel(meshBuilder, sides, x, y, z, cr, cg, cb, ca);
+        }
+
+        public static int CreateVoxel(MeshBuilder meshBuilder, VoxelSides sides, int x, int y, int z, byte cr, byte cg, byte cb, byte ca)
         {
             int polygonCount = 0;
             if ((sides & VoxelSides.Front) != 0)

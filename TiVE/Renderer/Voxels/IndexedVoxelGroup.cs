@@ -1,6 +1,4 @@
 ﻿using System;
-using ProdigalSoftware.TiVE.Renderer.Meshes;
-using ProdigalSoftware.TiVEPluginFramework;
 
 namespace ProdigalSoftware.TiVE.Renderer.Voxels
 {

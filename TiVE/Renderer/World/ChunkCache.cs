@@ -1,48 +1,77 @@
-﻿//#define USE_INSTANCED_RENDERING
-#define USE_INDEXED_RENDERING
-using System;
+﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using System.Management;
 using System.Threading;
-using ProdigalSoftware.TiVE.Renderer.Meshes;
+using ProdigalSoftware.TiVE.Renderer.Voxels;
 
 namespace ProdigalSoftware.TiVE.Renderer.World
 {
+    internal sealed class ChunkLoadInfo
+    {
+        private readonly GameWorldVoxelChunk chunk;
+
+        public ChunkLoadInfo(GameWorldVoxelChunk chunk, GameWorld gameWorld, BlockList blockList)
+        {
+            this.chunk = chunk;
+            GameWorld = gameWorld;
+            BlockList = blockList;
+        }
+
+        public GameWorld GameWorld { get; private set; }
+        public BlockList BlockList { get; private set; }
+
+        public GameWorldVoxelChunk Chunk
+        {
+            get { return chunk; }
+        }
+
+        public void Load(MeshBuilder meshBuilder)
+        {
+            chunk.Load(this, meshBuilder);
+        }
+    }
+
     internal sealed class ChunkCache : IDisposable
     {
-        private const int ChunkCacheSize = 2000 / Chunk.TileSize;
+        private const int ChunkCacheSize = 4000 / GameWorldVoxelChunk.TileSize;
         /// <summary>
         /// Distance in world tiles (outside the viewable area) to start removing loaded chunks
         /// </summary>
-        private const int ChunkUnloadDistance = 2 * Chunk.TileSize;
+        private const int ChunkUnloadDistance = 4 * GameWorldVoxelChunk.TileSize;
 
         private readonly GameWorld gameWorld;
         private readonly BlockList blockList;
 
-        private readonly List<Tuple<int, Chunk>> chunksToDelete = new List<Tuple<int, Chunk>>();
-        private readonly Dictionary<int, Chunk> chunks = new Dictionary<int, Chunk>(1200);
-        private readonly Queue<Chunk.ChunkLoadInfo> chunkLoadQueue = new Queue<Chunk.ChunkLoadInfo>();
+        private readonly List<Tuple<int, GameWorldVoxelChunk>> chunksToDelete = new List<Tuple<int, GameWorldVoxelChunk>>();
+        private readonly Dictionary<int, GameWorldVoxelChunk> chunks = new Dictionary<int, GameWorldVoxelChunk>(1200);
+        private readonly Queue<ChunkLoadInfo> chunkLoadQueue = new Queue<ChunkLoadInfo>();
 
         public ChunkCache(GameWorld gameWorld, BlockList blockList)
         {
             this.gameWorld = gameWorld;
             this.blockList = blockList;
 
-            StartChunkCreateThread();
-            //StartChunkCreateThread();
+            int coreCount = new ManagementObjectSearcher("Select * from Win32_Processor").Get()
+                .Cast<ManagementBaseObject>().Sum(item => int.Parse(item["NumberOfCores"].ToString()));
+
+            for (int i = 0; i < Math.Max(coreCount - 1, 1); i++)
+                StartChunkCreateThread();
         }
 
         public void Dispose()
         {
-            foreach (Chunk chunk in chunks.Values)
+            foreach (GameWorldVoxelChunk chunk in chunks.Values)
                 chunk.Dispose();
 
             chunks.Clear();
         }
 
-        public Chunk GetOrCreateChunk(int chunkX, int chunkY, int chunkZ)
+        public GameWorldVoxelChunk GetOrCreateChunk(int chunkX, int chunkY, int chunkZ)
         {
             int key = GetChunkKey(chunkX, chunkY, chunkZ);
-            Chunk chunk;
+            GameWorldVoxelChunk chunk;
             if (!chunks.TryGetValue(key, out chunk))
                 chunks[key] = chunk = CreateChunk(chunkX, chunkY, chunkZ);
             return chunk;
@@ -50,7 +79,7 @@ namespace ProdigalSoftware.TiVE.Renderer.World
 
         public void InitializeChunks()
         {
-            foreach (Chunk chunk in chunks.Values)
+            foreach (GameWorldVoxelChunk chunk in chunks.Values)
             {
                 //if (!chunk.IsInitialized)
                     chunk.Initialize();
@@ -59,18 +88,18 @@ namespace ProdigalSoftware.TiVE.Renderer.World
 
         public void CleanupChunksOutside(int startX, int startY, int endX, int endY)
         {
-            foreach (KeyValuePair<int, Chunk> chunkInfo in chunks)
+            foreach (KeyValuePair<int, GameWorldVoxelChunk> chunkInfo in chunks)
             {
                 if (chunks.Count - chunksToDelete.Count < ChunkCacheSize)
                     break;
 
                 if (!chunkInfo.Value.IsInside(startX - ChunkUnloadDistance, startY - ChunkUnloadDistance, endX + ChunkUnloadDistance, endY + ChunkUnloadDistance))
-                    chunksToDelete.Add(new Tuple<int, Chunk>(chunkInfo.Key, chunkInfo.Value));
+                    chunksToDelete.Add(new Tuple<int, GameWorldVoxelChunk>(chunkInfo.Key, chunkInfo.Value));
             }
 
             for (int i = 0; i < chunksToDelete.Count; i++)
             {
-                Tuple<int, Chunk> chunkInfo = chunksToDelete[i];
+                Tuple<int, GameWorldVoxelChunk> chunkInfo = chunksToDelete[i];
                 chunks.Remove(chunkInfo.Item1);
                 chunkInfo.Item2.Dispose();
             }
@@ -78,10 +107,10 @@ namespace ProdigalSoftware.TiVE.Renderer.World
             chunksToDelete.Clear();
         }
 
-        private Chunk CreateChunk(int chunkX, int chunkY, int chunkZ)
+        private GameWorldVoxelChunk CreateChunk(int chunkX, int chunkY, int chunkZ)
         {
-            Chunk chunk = new Chunk(chunkX * Chunk.TileSize, chunkY * Chunk.TileSize, chunkZ * Chunk.TileSize);
-            Chunk.ChunkLoadInfo info = new Chunk.ChunkLoadInfo(chunk, gameWorld, blockList);
+            GameWorldVoxelChunk chunk = new GameWorldVoxelChunk(chunkX * GameWorldVoxelChunk.TileSize, chunkY * GameWorldVoxelChunk.TileSize, chunkZ * GameWorldVoxelChunk.TileSize);
+            ChunkLoadInfo info = new ChunkLoadInfo(chunk, gameWorld, blockList);
             lock(chunkLoadQueue)
                 chunkLoadQueue.Enqueue(info);
             return chunk;
@@ -94,43 +123,52 @@ namespace ProdigalSoftware.TiVE.Renderer.World
 
         private void StartChunkCreateThread()
         {
-            Thread chunkCreationThread = new Thread(() =>
-            {
-                List<MeshBuilder> meshBuilders = new List<MeshBuilder>();
-                while (true)
-                {
-                    int count;
-                    lock (chunkLoadQueue)
-                        count = chunkLoadQueue.Count;
-
-                    if (count == 0)
-                    {
-                        Thread.Sleep(2);
-                        continue;
-                    }
-
-                    Chunk.ChunkLoadInfo chunkInfo;
-                    lock (chunkLoadQueue)
-                    {
-                        if (chunkLoadQueue.Count == 0)
-                            continue; // Check for race condition with multiple threads accessing the queue
-
-                        chunkInfo = chunkLoadQueue.Dequeue();
-                    }
-                    MeshBuilder meshBuilder = meshBuilders.Find(mb => !mb.IsLocked);
-                    if (meshBuilder == null)
-                    {
-                        meshBuilder = new MeshBuilder(200000, 400000);
-                        meshBuilders.Add(meshBuilder);
-                    }
-                    if (!chunkInfo.Chunk.IsDeleted)
-                        chunkInfo.Load(meshBuilder);
-                }
-            });
-
+            Thread chunkCreationThread = new Thread(ChunkCreateLoop);
             chunkCreationThread.IsBackground = true;
             chunkCreationThread.Name = "ChunkLoad";
             chunkCreationThread.Start();
+        }
+
+        private void ChunkCreateLoop()
+        {
+            List<MeshBuilder> meshBuilders = new List<MeshBuilder>();
+            while (true)
+            {
+                int count;
+                lock (chunkLoadQueue)
+                    count = chunkLoadQueue.Count;
+
+                if (count == 0)
+                {
+                    Thread.Sleep(2);
+                    continue;
+                }
+
+                MeshBuilder meshBuilder = meshBuilders.Find(NotLocked);
+                if (meshBuilder == null && meshBuilders.Count < 5)
+                {
+                    meshBuilder = new MeshBuilder(200000, 400000);
+                    meshBuilders.Add(meshBuilder);
+                    Debug.WriteLine("Meshbuilder count: " + meshBuilders.Count);
+                }
+
+                ChunkLoadInfo chunkInfo;
+                lock (chunkLoadQueue)
+                {
+                    if (meshBuilder == null || chunkLoadQueue.Count == 0)
+                        continue; // Check for race condition with multiple threads accessing the queue
+
+                    chunkInfo = chunkLoadQueue.Dequeue();
+                }
+
+                if (!chunkInfo.Chunk.IsDeleted)
+                    chunkInfo.Load(meshBuilder);
+            }
+        }
+
+        private static bool NotLocked(MeshBuilder meshBuilder)
+        {
+            return !meshBuilder.IsLocked;
         }
     }
 }

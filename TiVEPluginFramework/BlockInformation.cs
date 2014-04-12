@@ -2,27 +2,20 @@
 
 namespace ProdigalSoftware.TiVEPluginFramework
 {
-    [Flags]
-    public enum VoxelSides
-    {
-        None = 0,
-        Top = 1 << 0,
-        Left = 1 << 1,
-        Right = 1 << 2,
-        Bottom = 1 << 3,
-        Front = 1 << 4,
-        Back = 1 << 5,
-        All = Top | Left | Right | Bottom | Front | Back,
-    }
-
     public sealed class BlockInformation
     {
         /// <summary>
         /// Number of voxels that make up a block on each axis
         /// </summary>
-        public const int BlockSize = 11;
+        public const int BlockSize = 9;
 
-        public BlockInformation(string blockName, uint[,,] voxels)
+        public static readonly BlockInformation Empty = new BlockInformation("Empty", new uint[BlockSize, BlockSize, BlockSize]);
+
+        public readonly string BlockName;
+        public readonly uint[,,] Voxels;
+        public readonly ParticleSystemInformation ParticleSystem;
+
+        public BlockInformation(string blockName, uint[,,] voxels, ParticleSystemInformation particleSystem = null)
         {
             if (blockName == null)
                 throw new ArgumentNullException("blockName");
@@ -32,10 +25,7 @@ namespace ProdigalSoftware.TiVEPluginFramework
 
             BlockName = blockName;
             Voxels = voxels;
+            ParticleSystem = particleSystem;
         }
-
-        public string BlockName { get; private set; }
-
-        public uint[, ,] Voxels { get; private set; }
     }
 }
