@@ -87,8 +87,27 @@ namespace ProdigalSoftware.TiVE.Renderer
             viewMatrix = Matrix4.LookAt(location.X, location.Y, location.Z,
                 lookAtLocation.X, lookAtLocation.Y, lookAtLocation.Z,
                 0.0f, 1.0f, 0.0f);
-                
+
             projectionMatrix = Matrix4.CreatePerspectiveFieldOfView(FoV, AspectRatio, 1.0f, 1064.0f);
+        }
+
+        public void GetViewPlane(float distance, out Vector3 topLeft, out Vector3 bottomRight)
+        {
+            Vector3 zAxis = (Location - LookAtLocation);
+            zAxis.Normalize();
+
+            Vector3 xAxis = Vector3.Cross(Vector3.UnitY, zAxis);
+            xAxis.Normalize();
+
+            Vector3 yAxis = Vector3.Cross(zAxis, xAxis);
+
+            Vector3 farPoint = Location - zAxis * distance;
+
+            float height = (float)Math.Tan(FoV * 0.5f) * distance;
+            float width = height * AspectRatio;
+
+            topLeft = farPoint + yAxis * height - xAxis * width;
+            bottomRight = farPoint - yAxis * height + xAxis * width;
         }
     }
 }

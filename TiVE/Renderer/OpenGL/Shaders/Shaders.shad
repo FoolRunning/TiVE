@@ -1,0 +1,20 @@
+﻿# Shder definitions for OpenGL
+
+# Shader for the tiles in the main game world
+[MainWorld]
+vert: ProdigalSoftware.TiVE.Renderer.OpenGL.Shaders.Simple.vert
+frag: ProdigalSoftware.TiVE.Renderer.OpenGL.Shaders.Simple.frag
+attrib: in_Position
+attrib: in_Color
+uniform: matrix_ModelViewProjection
+
+
+# Shader for the particle effects
+[Particles]
+vert: ProdigalSoftware.TiVE.Renderer.OpenGL.Shaders.Particles.vert
+frag: ProdigalSoftware.TiVE.Renderer.OpenGL.Shaders.Simple.frag
+attrib: in_Position
+attrib: in_InstancePos
+attrib: in_InstanceColor
+uniform: matrix_ModelViewProjection
+

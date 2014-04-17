@@ -5,22 +5,22 @@ using System.Linq;
 using System.Reflection;
 using ProdigalSoftware.TiVE.Starter;
 
-namespace ProdigalSoftware.TiVE.Plugins
+namespace ProdigalSoftware.TiVE.Resources
 {
-    internal static class PluginManager
+    internal sealed class PluginManager
     {
-        public const string PluginDir = "Plugins";
+        private const string PluginDir = "Plugins";
 
-        private static readonly Dictionary<Type, List<Type>> pluginInterfaceMap = new Dictionary<Type, List<Type>>();
+        private readonly Dictionary<Type, List<Type>> pluginInterfaceMap = new Dictionary<Type, List<Type>>();
 
-        public static void LoadPlugins()
+        public bool LoadPlugins()
         {
             Messages.Print("Loading plugins...");
             string path = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
             if (path == null)
             {
                 Messages.AddFailText();
-                return;
+                return false;
             }
 
             string pluginPath = Path.Combine(path, PluginDir);
@@ -28,13 +28,12 @@ namespace ProdigalSoftware.TiVE.Plugins
             {
                 Messages.AddFailText();
                 Messages.AddWarning(PluginDir + " directory was not found.");
-                return;
+                return false;
             }
 
             pluginInterfaceMap.Clear();
             string[] pluginFiles = Directory.GetFiles(pluginPath, "*.tive", SearchOption.AllDirectories);
 
-            bool foundPlugins = false;
             List<string> warnings = new List<string>();
             foreach (Assembly asm in pluginFiles.Select(Assembly.LoadFile))
             {
@@ -49,7 +48,6 @@ namespace ProdigalSoftware.TiVE.Plugins
                                 warnings.Add(pluginType.Name + " does not contain a default constructor.");
                                 break;
                             }
-                            foundPlugins = true;
                             List<Type> typesFound;
                             if (!pluginInterfaceMap.TryGetValue(pluginInterface, out typesFound))
                                 pluginInterfaceMap[pluginInterface] = typesFound = new List<Type>();
@@ -64,16 +62,18 @@ namespace ProdigalSoftware.TiVE.Plugins
                 }
             }
 
-            if (foundPlugins)
+            if (pluginInterfaceMap.Count > 0)
                 Messages.AddDoneText();
             else
                 Messages.AddFailText();
 
             foreach (string warning in warnings)
                 Messages.AddWarning(warning);
+
+            return pluginInterfaceMap.Count > 0;
         }
 
-        public static IEnumerable<T> GetPluginsOfType<T>() where T : class
+        public IEnumerable<T> GetPluginsOfType<T>() where T : class
         {
             List<Type> typesFound;
             pluginInterfaceMap.TryGetValue(typeof(T), out typesFound);

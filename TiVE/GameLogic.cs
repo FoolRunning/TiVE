@@ -1,44 +1,40 @@
 ﻿using System;
 using OpenTK;
 using OpenTK.Input;
-using ProdigalSoftware.TiVE.Renderer.World;
+using ProdigalSoftware.TiVE.Renderer;
+using ProdigalSoftware.TiVE.Resources;
 using ProdigalSoftware.TiVEPluginFramework;
 
-namespace ProdigalSoftware.TiVE.Renderer
+namespace ProdigalSoftware.TiVE
 {
     internal sealed class GameLogic : IDisposable
     {
         public const int WorldXSize = 1000;
-        public const int WorldYSize = 2000;
+        public const int WorldYSize = 1000;
         public const int WorldZSize = 16;
 
-        private BlockList blockList;
-        private GameWorld world;
         private IGameWorldRenderer renderer;
 
         private readonly Camera camera = new Camera();
 
         public void Dispose()
         {
-            if (renderer != null)
-                renderer.Dispose();
+            ResourceManager.Cleanup();
         }
 
         public bool Initialize()
         {
+            if (!ResourceManager.Initialize())
+                return false;
+            
             //camera.SetLocation(1263 * BlockInformation.BlockSize, 1747 * BlockInformation.BlockSize, 300);
             camera.SetLocation(500 * BlockInformation.BlockSize, 500 * BlockInformation.BlockSize, 300);
             camera.FoV = (float)Math.PI / 4;
 
-            blockList = BlockList.CreateBlockList();
-
-            WorldGenerator generator = new WorldGenerator(WorldXSize, WorldYSize, WorldZSize);
-            world = generator.CreateWorld(LongRandom() /* 123456789123456789*/, blockList);
-
-            if (world == null)
+            if (!ResourceManager.GameWorldManager.CreateWorld(WorldXSize, WorldYSize, WorldZSize, LongRandom() /* 123456789123456789*/))
                 return false;
 
-            renderer = new WorldChunkRenderer(world, blockList);
+            renderer = new WorldChunkRenderer();
             return true;
         }
 
@@ -74,7 +70,7 @@ namespace ProdigalSoftware.TiVE.Renderer
                 camLoc.Z = Math.Min(camLoc.Z + 3.0f, 60.0f * BlockInformation.BlockSize);
 
             camera.SetLocation(camLoc.X, camLoc.Y, camLoc.Z);
-            camera.SetLookAtLocation(camLoc.X, camLoc.Y, camLoc.Z - 100);
+            camera.SetLookAtLocation(camLoc.X, camLoc.Y + 50, camLoc.Z - 100);
             camera.Update();
 
             renderer.Update(camera, timeSinceLastFrame);

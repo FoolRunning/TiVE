@@ -1,36 +1,28 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Linq;
-using ProdigalSoftware.TiVE.Plugins;
+using ProdigalSoftware.TiVE.Renderer.World;
 using ProdigalSoftware.TiVE.Starter;
 using ProdigalSoftware.TiVEPluginFramework;
 
-namespace ProdigalSoftware.TiVE.Renderer.World
+namespace ProdigalSoftware.TiVE.Resources
 {
     /// <summary>
     /// Creates a world based on a set of generators
     /// </summary>
-    internal sealed class WorldGenerator
+    internal sealed class GameWorldManager
     {
-        private readonly int worldXsize;
-        private readonly int worldYsize;
-        private readonly int worldZsize;
+        public GameWorld GameWorld { get; private set; }
 
-        public WorldGenerator(int worldXsize, int worldYsize, int worldZsize)
-        {
-            this.worldXsize = worldXsize;
-            this.worldYsize = worldYsize;
-            this.worldZsize = worldZsize;
-        }
-
-        public GameWorld CreateWorld(long seed, BlockList blockList)
+        public bool CreateWorld(int worldXsize, int worldYsize, int worldZsize, long seed)
         {
             Messages.Print("Creating new world...");
+            BlockList blockList = ResourceManager.BlockListManager.BlockList;
             GameWorld createdWorld = new GameWorld(worldXsize, worldYsize, worldZsize, blockList);
 
             try
             {
-                foreach (IWorldGeneratorStage generator in PluginManager.GetPluginsOfType<IWorldGeneratorStage>().OrderBy(wg => wg.Priority))
+                foreach (IWorldGeneratorStage generator in ResourceManager.PluginManager.GetPluginsOfType<IWorldGeneratorStage>().OrderBy(wg => wg.Priority))
                 {
                     Debug.WriteLine(generator.StageDescription);
                     generator.UpdateWorld(createdWorld, seed, blockList);
@@ -40,12 +32,13 @@ namespace ProdigalSoftware.TiVE.Renderer.World
             {
                 Messages.AddFailText();
                 Messages.AddStackTrace(e);
-                return null;
+                GameWorld = null;
+                return false;
             }
             
             Messages.AddDoneText();
-
-            return createdWorld;
+            GameWorld = createdWorld;
+            return true;
         }
     }
 }

@@ -13,16 +13,16 @@ namespace ProdigalSoftware.TiVE.Starter
     {
         #region Constants
         /// <summary>Default font size</summary>
-        public const int DEFAULT_FONT_SIZE = 14;
+        public const int DefaultFontSize = 14;
 
         private static readonly SolidBrush s_backgroundBrush = new SolidBrush(Color.Black);
         private static readonly Pen s_baselinePen = new Pen(Messages.BASE_LINE_COLOR);
         private static readonly FontFamily DEFAULT_FONT_FAMILY = new FontFamily(GenericFontFamilies.SansSerif);
-        private static readonly Font DEFAULT_FONT = new Font(DEFAULT_FONT_FAMILY, DEFAULT_FONT_SIZE, FontStyle.Regular);
+        private static readonly Font DEFAULT_FONT = new Font(DEFAULT_FONT_FAMILY, DefaultFontSize, FontStyle.Regular);
         #endregion
 
         #region Member variables
-        private MessageLine m_currentLine;
+        private MessageLine currentLine;
         #endregion
 
         #region Constructor
@@ -61,8 +61,23 @@ namespace ProdigalSoftware.TiVE.Starter
         /// </summary>
         internal void AddMessage(Message info)
         {
+            if (IsDisposed)
+                return;
+
             lock (Items)
-                m_currentLine.AddMessage(info);
+                currentLine.AddMessage(info);
+            AdjustSize(currentLine);
+
+            Action updateView = () =>
+            {
+                Items.RemoveAt(Items.Count - 1);
+                Items.Add(currentLine);
+            };
+            
+            if (IsHandleCreated && InvokeRequired)
+                Invoke(updateView);
+            else
+                updateView();
         }
 
         internal void StartNewLine()
@@ -76,16 +91,11 @@ namespace ProdigalSoftware.TiVE.Starter
                 return;
             }
 
-            if (m_currentLine != null)
-            {
-                AdjustSize(m_currentLine);
-                lock (Items)
-                    Items.Add(m_currentLine);
-            }
-            
-            TopIndex = Items.Count - 1;
+            currentLine = new MessageLine();
+            lock (Items)
+                Items.Add(currentLine);
 
-            m_currentLine = new MessageLine();
+            TopIndex = Items.Count - 1;
         }
 
         /// <summary>
@@ -93,6 +103,9 @@ namespace ProdigalSoftware.TiVE.Starter
         /// </summary>
         internal void ClearText()
         {
+            if (IsDisposed)
+                return;
+
             if (IsHandleCreated && InvokeRequired)
             {
                 Invoke(new Action(ClearText));

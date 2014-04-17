@@ -81,7 +81,6 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
-    <Reference Include="System.Management" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -92,14 +91,17 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Plugins\PluginManager.cs" />
+    <Compile Include="Renderer\Voxels\VoxelMeshUtils.cs" />
+    <Compile Include="Resources\PluginManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Renderer\Particles\ParticleSystem.cs" />
     <Compile Include="Renderer\Voxels\MeshBuilder.cs" />
     <Compile Include="Renderer\Voxels\GameWorldVoxelChunk.cs" />
     <Compile Include="Renderer\Voxels\VoxelGroup.cs" />
-    <Compile Include="Renderer\World\ChunkCache.cs" />
-    <Compile Include="Renderer\GameLogic.cs" />
+    <Compile Include="Resources\BlockListManager.cs" />
+    <Compile Include="Resources\ShaderManager.cs" />
+    <Compile Include="Resources\WorldChunkManager.cs" />
+    <Compile Include="GameLogic.cs" />
     <Compile Include="Renderer\IDisplay.cs" />
     <Compile Include="Renderer\IShaderProgram.cs" />
     <Compile Include="Renderer\IVertexData.cs" />
@@ -117,7 +119,8 @@
     <Compile Include="Renderer\World\BlockList.cs" />
     <Compile Include="Renderer\World\WorldBlock.cs" />
     <Compile Include="Renderer\World\GameWorld.cs" />
-    <Compile Include="Renderer\World\WorldGenerator.cs" />
+    <Compile Include="Resources\GameWorldManager.cs" />
+    <Compile Include="Resources\ResourceManager.cs" />
     <Compile Include="Starter\MessageLine.cs" />
     <Compile Include="Starter\Messages.cs" />
     <Compile Include="Starter\MessageViewControl.cs">
@@ -160,6 +163,11 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
+    <EmbeddedResource Include="Renderer\OpenGL\Shaders\Simple.frag" />
+    <EmbeddedResource Include="Renderer\OpenGL\Shaders\Simple.vert" />
+    <EmbeddedResource Include="Renderer\OpenGL\Shaders\Instances.vert" />
+    <EmbeddedResource Include="Renderer\OpenGL\Shaders\Shaders.shad" />
+    <EmbeddedResource Include="Renderer\OpenGL\Shaders\Particles.vert" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\TiVEPluginFramework\TiVEPluginFramework.csproj">
@@ -171,7 +179,9 @@
       <Name>Utils</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="Plugins\" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

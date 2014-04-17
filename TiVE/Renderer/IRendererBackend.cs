@@ -1,4 +1,7 @@
-﻿namespace ProdigalSoftware.TiVE.Renderer
+﻿using System;
+using System.Collections.Generic;
+
+namespace ProdigalSoftware.TiVE.Renderer
 {
     internal enum PrimitiveType
     {
@@ -27,6 +30,8 @@
             ValueType valueType, bool normalize, bool dynamic) where T : struct;
         
         IShaderProgram CreateShaderProgram();
+
+        string GetShaderDefinitionFileResourcePath();
 
         void SetBlendMode(BlendMode mode);
 

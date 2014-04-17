@@ -6,13 +6,15 @@ namespace ProdigalSoftware.TiVEPluginFramework
 {
     public sealed class ParticleSystemInformation
     {
+        public readonly uint[, ,] ParticleVoxels;
         public readonly ParticleController Controller;
         public readonly int ParticlesPerSecond;
         public readonly int MaxParticles;
         public readonly Vector3b Location;
 
-        public ParticleSystemInformation(ParticleController controller, Vector3b location, int particlesPerSecond, int maxParticles)
+        public ParticleSystemInformation(uint[,,] particleVoxels, ParticleController controller, Vector3b location, int particlesPerSecond, int maxParticles)
         {
+            ParticleVoxels = particleVoxels;
             Controller = controller;
             Location = location;
             ParticlesPerSecond = particlesPerSecond;
