@@ -109,7 +109,7 @@ namespace ProdigalSoftware.TiVE.Starter
         public static void AddDoneText()
         {
             AddFontStyleChange(FontStyle.Bold);
-            AddTextInfo(new RightJustifyTextMessage(Resources.kstidDone, DONE_COLOR));
+            AddTextInfo(new RightJustifyTextMessage(Properties.Resources.kstidDone, DONE_COLOR));
             AddNewLine();
         }
 
@@ -129,7 +129,7 @@ namespace ProdigalSoftware.TiVE.Starter
         public static void AddFailText()
         {
             AddFontStyleChange(FontStyle.Bold);
-            AddTextInfo(new RightJustifyTextMessage(Resources.kstidFailed, ERROR_COLOR));
+            AddTextInfo(new RightJustifyTextMessage(Properties.Resources.kstidFailed, ERROR_COLOR));
             AddNewLine();
         }
 
@@ -329,7 +329,7 @@ namespace ProdigalSoftware.TiVE.Starter
         /// </summary>
         public static void SetDefaultFontStyle()
         {
-            AddFontSizeChange(MessageViewControl.DEFAULT_FONT_SIZE);
+            AddFontSizeChange(MessageViewControl.DefaultFontSize);
             AddFontStyleChange(DEFAULT_FONT_STYLE);
         }
         #endregion
@@ -403,7 +403,7 @@ namespace ProdigalSoftware.TiVE.Starter
                 m_createdScreen.StartNewLine();
                 m_createdScreen.AddMessage(new FontSizeChangeMessage(14));
                 m_createdScreen.AddMessage(new FontStyleChangeMessage(FontStyle.Bold | FontStyle.Italic));
-                m_createdScreen.AddMessage(new CenteredTextMessage("----    " + Resources.kstidMaxLines + "    ----", ERROR_COLOR));
+                m_createdScreen.AddMessage(new CenteredTextMessage("----    " + Properties.Resources.kstidMaxLines + "    ----", ERROR_COLOR));
                 m_createdScreen.StartNewLine();
             }
         }

@@ -1,8 +1,6 @@
-﻿using System;
-
-namespace ProdigalSoftware.TiVE.Renderer
+﻿namespace ProdigalSoftware.TiVE.Renderer
 {
-    internal interface IGameWorldRenderer : IDisposable
+    internal interface IGameWorldRenderer
     {
         void Update(Camera camera, float timeSinceLastFrame);
 

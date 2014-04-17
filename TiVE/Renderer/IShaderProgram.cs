@@ -20,6 +20,10 @@ namespace ProdigalSoftware.TiVE.Renderer
 
         void Bind();
 
+        void Unbind();
+
+        bool IsInitialized { get; }
+
         bool Initialize();
 
         void SetUniform(string name, ref Matrix4 value);

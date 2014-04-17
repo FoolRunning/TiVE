@@ -1,71 +1,45 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Management;
 using System.Threading;
 using ProdigalSoftware.TiVE.Renderer.Voxels;
+using ProdigalSoftware.TiVE.Starter;
 
-namespace ProdigalSoftware.TiVE.Renderer.World
+namespace ProdigalSoftware.TiVE.Resources
 {
-    internal sealed class ChunkLoadInfo
+    internal sealed class WorldChunkManager : IDisposable
     {
-        private readonly GameWorldVoxelChunk chunk;
-
-        public ChunkLoadInfo(GameWorldVoxelChunk chunk, GameWorld gameWorld, BlockList blockList)
-        {
-            this.chunk = chunk;
-            GameWorld = gameWorld;
-            BlockList = blockList;
-        }
-
-        public GameWorld GameWorld { get; private set; }
-        public BlockList BlockList { get; private set; }
-
-        public GameWorldVoxelChunk Chunk
-        {
-            get { return chunk; }
-        }
-
-        public void Load(MeshBuilder meshBuilder)
-        {
-            chunk.Load(this, meshBuilder);
-        }
-    }
-
-    internal sealed class ChunkCache : IDisposable
-    {
-        private const int ChunkCacheSize = 4000 / GameWorldVoxelChunk.TileSize;
+        //private const int ChunkCacheSize = 4000 / GameWorldVoxelChunk.TileSize;
         /// <summary>
         /// Distance in world tiles (outside the viewable area) to start removing loaded chunks
         /// </summary>
-        private const int ChunkUnloadDistance = 4 * GameWorldVoxelChunk.TileSize;
-
-        private readonly GameWorld gameWorld;
-        private readonly BlockList blockList;
+        private const int ChunkUnloadDistance = 2 * GameWorldVoxelChunk.TileSize;
 
         private readonly List<Tuple<int, GameWorldVoxelChunk>> chunksToDelete = new List<Tuple<int, GameWorldVoxelChunk>>();
         private readonly Dictionary<int, GameWorldVoxelChunk> chunks = new Dictionary<int, GameWorldVoxelChunk>(1200);
         private readonly Queue<ChunkLoadInfo> chunkLoadQueue = new Queue<ChunkLoadInfo>();
 
-        public ChunkCache(GameWorld gameWorld, BlockList blockList)
-        {
-            this.gameWorld = gameWorld;
-            this.blockList = blockList;
-
-            int coreCount = new ManagementObjectSearcher("Select * from Win32_Processor").Get()
-                .Cast<ManagementBaseObject>().Sum(item => int.Parse(item["NumberOfCores"].ToString()));
-
-            for (int i = 0; i < Math.Max(coreCount - 1, 1); i++)
-                StartChunkCreateThread();
-        }
-
         public void Dispose()
         {
+            lock (chunkLoadQueue)
+                chunkLoadQueue.Clear();
+
             foreach (GameWorldVoxelChunk chunk in chunks.Values)
                 chunk.Dispose();
 
             chunks.Clear();
+        }
+
+        public bool Initialize()
+        {
+            Messages.Print("Starting chunk creations threads...");
+
+            int threadCount = Environment.ProcessorCount > 2 ? 2 : 1;
+            for (int i = 0; i < threadCount; i++)
+                StartChunkCreateThread();
+
+            Messages.AddDoneText();
+            return true;
         }
 
         public GameWorldVoxelChunk GetOrCreateChunk(int chunkX, int chunkY, int chunkZ)
@@ -90,8 +64,8 @@ namespace ProdigalSoftware.TiVE.Renderer.World
         {
             foreach (KeyValuePair<int, GameWorldVoxelChunk> chunkInfo in chunks)
             {
-                if (chunks.Count - chunksToDelete.Count < ChunkCacheSize)
-                    break;
+                //if (chunks.Count - chunksToDelete.Count < ChunkCacheSize)
+                //    break;
 
                 if (!chunkInfo.Value.IsInside(startX - ChunkUnloadDistance, startY - ChunkUnloadDistance, endX + ChunkUnloadDistance, endY + ChunkUnloadDistance))
                     chunksToDelete.Add(new Tuple<int, GameWorldVoxelChunk>(chunkInfo.Key, chunkInfo.Value));
@@ -110,7 +84,7 @@ namespace ProdigalSoftware.TiVE.Renderer.World
         private GameWorldVoxelChunk CreateChunk(int chunkX, int chunkY, int chunkZ)
         {
             GameWorldVoxelChunk chunk = new GameWorldVoxelChunk(chunkX * GameWorldVoxelChunk.TileSize, chunkY * GameWorldVoxelChunk.TileSize, chunkZ * GameWorldVoxelChunk.TileSize);
-            ChunkLoadInfo info = new ChunkLoadInfo(chunk, gameWorld, blockList);
+            ChunkLoadInfo info = new ChunkLoadInfo(chunk);
             lock(chunkLoadQueue)
                 chunkLoadQueue.Enqueue(info);
             return chunk;
@@ -140,7 +114,7 @@ namespace ProdigalSoftware.TiVE.Renderer.World
 
                 if (count == 0)
                 {
-                    Thread.Sleep(2);
+                    Thread.Sleep(4);
                     continue;
                 }
 

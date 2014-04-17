@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
-using System.Runtime.Remoting.Contexts;
 using System.Threading.Tasks;
 using ProdigalSoftware.TiVEPluginFramework;
 
@@ -16,10 +14,11 @@ namespace WorldCreation
         /// </summary>
         public void UpdateWorld(IGameWorld gameWorld, long seed, IBlockList blockList)
         {
-            BlockRandomizer backWalls = new BlockRandomizer(blockList, "back", 4);
-            BlockRandomizer dirts = new BlockRandomizer(blockList, "dirt", 4);
-            BlockRandomizer stones = new BlockRandomizer(blockList, "stone", 4);
-            BlockRandomizer sands = new BlockRandomizer(blockList, "sand", 4);
+            BlockRandomizer backWalls = new BlockRandomizer(blockList, "back", 5);
+            BlockRandomizer dirts = new BlockRandomizer(blockList, "dirt", 5);
+            BlockRandomizer stones = new BlockRandomizer(blockList, "stone", 5);
+            BlockRandomizer sands = new BlockRandomizer(blockList, "sand", 5);
+            ushort fire = blockList.GetBlockIndex("fire");
             ushort fountain = blockList.GetBlockIndex("fountain");
 
             Random random1 = new Random((int)((seed >> 11) & 0xFFFFFFFF));
@@ -46,9 +45,9 @@ namespace WorldCreation
                 {
                     //if (gameWorld.GetBiome(x, y) == 0)
                     //    continue;
-                    double noiseVal = Noise.GetNoise((xOff1 + x) * scaleX1, (yOff1 + y) * scaleY1) * 0.2f +
-                            Noise.GetNoise((xOff2 + x) * scaleX2, (yOff2 + y) * scaleY2) * 0.5f +
-                            Noise.GetNoise((xOff3 + x) * scaleX3, (yOff3 + y) * scaleY3) * 0.3f;
+                    double noiseVal = Noise.GetNoise((xOff1 + x) * scaleX1, (yOff1 + y) * scaleY1) *
+                            Noise.GetNoise((xOff2 + x) * scaleX2, (yOff2 + y) * scaleY2) +
+                            Noise.GetNoise((xOff3 + x) * scaleX3, (yOff3 + y) * scaleY3) * 0.5f;
                     gameWorld.SetBlock(x, y, 0, backWalls.NextBlock());
                     int depth = 1;
                     if (noiseVal > 0.2)
@@ -61,7 +60,7 @@ namespace WorldCreation
                         if (noiseVal > 0.8)
                             Fill(gameWorld, x, y, ref depth, dirts);
                         if (noiseVal > 0.85)
-                            gameWorld.SetBlock(x, y, 13, fountain);
+                            gameWorld.SetBlock(x, y, 12, fountain);
                     }
                     else if (noiseVal < -0.3)
                     {
@@ -73,7 +72,7 @@ namespace WorldCreation
                         if (noiseVal < -0.8)
                             Fill(gameWorld, x, y, ref depth, sands);
                         if (noiseVal < -0.85)
-                            gameWorld.SetBlock(x, y, 13, fountain);
+                            gameWorld.SetBlock(x, y, 12, fountain);
                     }
                     else
                     {
@@ -85,7 +84,7 @@ namespace WorldCreation
                         if (noiseVal > -0.1 && noiseVal <= 0.0)
                             Fill(gameWorld, x, y, ref depth, stones);
                         if (noiseVal > -0.05 && noiseVal < -0.03)
-                            gameWorld.SetBlock(x, y, 13, fountain);
+                            gameWorld.SetBlock(x, y, 12, fire);
                     }
                 }
             });

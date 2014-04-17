@@ -44,12 +44,28 @@ namespace WorldCreation
                     voxelDensity = 0.1f;
                     name = "sand" + (i - 15);
                 }
-                uint[, ,] voxels = CreateBlockInfo(i >= 5 && i < 10, sphere, color, voxelDensity);
+                uint[, ,] voxels = CreateBlockInfo(i >= 500 && i < 1000, sphere, color, voxelDensity);
                 yield return new BlockInformation(name, voxels);
             }
 
-            uint[, ,] fountainVoxels = CreateBlockInfo(false, true, new Color4(50, 50, 50, 255), 1.0f);
-            yield return new BlockInformation("fountain", fountainVoxels, new ParticleSystemInformation(new FountainUpdater(), new Vector3b(5, 5, 10), 200, 300));
+            uint[, ,] fireVoxels = CreateBlockInfo(false, true, new Color4(20, 20, 20, 255), 1.0f);
+            uint[,,] particleVoxels = new uint[1, 1, 1];
+            particleVoxels[0, 0, 0] = 0xFFFFFFFF;
+            yield return new BlockInformation("fire", fireVoxels, 
+                new ParticleSystemInformation(particleVoxels, new FireUpdater(), new Vector3b(5, 5, 8), 300, 310));
+
+
+            uint[, ,] fountainVoxels = CreateBlockInfo(false, true, new Color4(20, 20, 200, 255), 1.0f);
+            particleVoxels = new uint[3, 3, 3];
+            particleVoxels[1, 1, 1] = 0xFFFFFFFF;
+            particleVoxels[0, 1, 1] = 0xFFFFFFFF;
+            particleVoxels[2, 1, 1] = 0xFFFFFFFF;
+            particleVoxels[1, 0, 1] = 0xFFFFFFFF;
+            particleVoxels[1, 2, 1] = 0xFFFFFFFF;
+            particleVoxels[1, 1, 0] = 0xFFFFFFFF;
+            particleVoxels[1, 1, 2] = 0xFFFFFFFF;
+            yield return new BlockInformation("fountain", fountainVoxels,
+                new ParticleSystemInformation(particleVoxels, new FountainUpdater(), new Vector3b(3, 3, 7), 500, 1100));
         }
 
         private static uint[, ,] CreateBlockInfo(bool frontOnly, bool sphere, Color4 color, float voxelDensity)
@@ -125,12 +141,12 @@ namespace WorldCreation
                 Math.Min(seed.B * scale, 1.0f), seed.A);
         }
 
-        private class FountainUpdater : ParticleController
+        private class FireUpdater : ParticleController
         {
             private readonly Random random = new Random();
             private static readonly Color4b[] colorList = new Color4b[256];
 
-            static FountainUpdater()
+            static FireUpdater()
             {
                 for (int i = 0; i < 256; i++)
                 {
@@ -147,7 +163,7 @@ namespace WorldCreation
                 return true;
             }
 
-            private const float FlameDeacceleration = 25.0f;
+            private const float FlameDeacceleration = 27.0f;
             private const float AliveTime = 1.0f;
 
             public override void Update(Particle particle, float timeSinceLastFrame, float systemX, float systemY, float systemZ)
@@ -194,9 +210,57 @@ namespace WorldCreation
                 
                 particle.Color = colorList[0];
                 particle.Time = AliveTime;
+            }
+            #endregion
+        }
 
-                //particle.Color = new Color4b((byte)random.Next(255), (byte)random.Next(255), (byte)random.Next(255), 255);
-            
+        private class FountainUpdater : ParticleController
+        {
+            private readonly Random random = new Random();
+            private static readonly Color4b[] colorList = new Color4b[256];
+
+            static FountainUpdater()
+            {
+                for (int i = 0; i < 256; i++)
+                    colorList[i] = new Color4b((byte)(50 - (int)((255 - i) / 5.0f)), (byte)(150 - (int)((255 - i) / 2.0f)), 255, 255);
+            }
+
+            #region Implementation of IParticleUpdater
+            public override bool BeginUpdate(IParticleSystem particleSystem, float timeSinceLastFrame)
+            {
+                return true;
+            }
+
+            private const float AliveTime = 2.0f;
+
+            public override void Update(Particle particle, float timeSinceLastFrame, float systemX, float systemY, float systemZ)
+            {
+                particle.VelZ -= 50.0f * timeSinceLastFrame;
+                ApplyVelocity(particle, timeSinceLastFrame);
+                particle.Time -= timeSinceLastFrame;
+
+                // set color
+                if (particle.Time > 0.0f)
+                {
+                    int colorIndex = (int)(((AliveTime - particle.Time) / AliveTime) * (colorList.Length - 1));
+                    particle.Color = colorList[Math.Min(colorIndex, colorList.Length - 1)];
+                }
+            }
+
+            public override void InitializeNew(Particle particle, float startX, float startY, float startZ)
+            {
+                float angle = (float)random.NextDouble() * 2.0f * 3.141592f;
+                float totalVel = (float)random.NextDouble() * 5.0f + 10.0f;
+                particle.VelX = (float)Math.Cos(angle) * totalVel;
+                particle.VelZ = (float)random.NextDouble() * 5.0f + 35.0f;
+                particle.VelY = (float)Math.Sin(angle) * totalVel;
+
+                particle.X = startX;
+                particle.Y = startY;
+                particle.Z = startZ;
+
+                particle.Color = colorList[0];
+                particle.Time = AliveTime;
             }
             #endregion
         }

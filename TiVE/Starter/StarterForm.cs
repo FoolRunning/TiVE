@@ -2,14 +2,13 @@
 using System.Drawing;
 using System.Windows.Forms;
 using System.Reflection;
-using ProdigalSoftware.TiVE.Properties;
 
 namespace ProdigalSoftware.TiVE.Starter
 {
     internal partial class StarterForm : Form
     {
         /// <summary>string containing the copyright information</summary>
-        private const string COPYRIGHT_STRING = "© 2014 Prodigal Software";
+        private const string CopyrightString = "© 2014 Prodigal Software";
 
         private Point startOfDrag;
         private Point startingLocation;
@@ -60,15 +59,15 @@ namespace ProdigalSoftware.TiVE.Starter
         {
             Messages.AddFontSizeChange(50);
             Messages.AddFontStyleChange(FontStyle.Bold);
-            Messages.PrintCenter(Resources.kstidEngineTitle1, Messages.TiVE_BLUE);
+            Messages.PrintCenter(Properties.Resources.kstidEngineTitle1, Messages.TiVE_BLUE);
             Messages.AddFontSizeChange(20);
-            Messages.PrintCenter(Resources.kstidEngineTitle2, Messages.TiVE_BLUE_DARK);
+            Messages.PrintCenter(Properties.Resources.kstidEngineTitle2, Messages.TiVE_BLUE_DARK);
             Messages.AddFontSizeChange(10);
             Messages.AddFontStyleChange(FontStyle.Regular);
             string version = Assembly.GetExecutingAssembly().GetName().Version.ToString();
             Messages.PrintCenter("version " + version, Color.Gray);
             Messages.AddFontSizeChange(8);
-            Messages.PrintCenter(COPYRIGHT_STRING);
+            Messages.PrintCenter(CopyrightString);
             Messages.Println();
             Messages.SetDefaultFontStyle();
             Messages.Println("*** Witty message here ***", Messages.MISC_COLOR);

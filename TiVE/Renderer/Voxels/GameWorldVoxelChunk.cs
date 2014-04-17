@@ -1,11 +1,10 @@
-﻿//#define USE_INSTANCED_RENDERING
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using OpenTK;
 using ProdigalSoftware.TiVE.Renderer.Particles;
 using ProdigalSoftware.TiVE.Renderer.World;
+using ProdigalSoftware.TiVE.Resources;
 using ProdigalSoftware.TiVEPluginFramework;
 using ProdigalSoftware.Utils;
 
@@ -14,82 +13,11 @@ namespace ProdigalSoftware.TiVE.Renderer.Voxels
     internal sealed class GameWorldVoxelChunk : IDisposable
     {
         #region Constants
-        public const int TileSize = 4; // must be a power of 2
+        public const int TileSize = 6;
         public const int VoxelSize = BlockInformation.BlockSize * TileSize;
         private const int SmallColorDiff = 10;
         private const int BigColorDiff = 20;
-//        private const string VertexShaderSource = @"
-//            #version 150 core 
-// 
-//            // premultiplied model to projection transformation
-//            uniform mat4 matrix_ModelViewProjection;
-// 
-//            // incoming vertex information
-//            in vec3 in_Position;
-//            in vec4 in_Color;
-//
-//            // incoming vertex information for each instance
-//            in vec3 in_InstancePos;
-//            in vec4 in_InstanceColor;
-//
-//            flat out vec4 fragment_color;
-// 
-//            void main(void)
-//            {
-//                fragment_color = in_Color * in_InstanceColor;
-//
-//                // transforming the incoming vertex position
-//                gl_Position = matrix_ModelViewProjection * vec4(in_Position + in_InstancePos, 1);
-//            }";
-
-//        private const string FragmentShaderSource = @"
-//                #version 150 core
-//
-//                flat in vec4 fragment_color;
-//
-//                out vec4 color;
-//
-//				void main(void)
-//				{
-//					color = fragment_color;
-//				}
-//			";
-
-        private const string VertexShaderSource = @"
-            #version 150 core 
- 
-            // premultiplied model to projection transformation
-            uniform mat4 matrix_ModelViewProjection;
- 
-            // incoming vertex information
-            in vec3 in_Position;
-            in vec4 in_Color;
-
-            flat out vec4 fragment_color;
- 
-            void main(void)
-            {
-                fragment_color = in_Color;
-
-                // transforming the incoming vertex position
-                gl_Position = matrix_ModelViewProjection * vec4(in_Position, 1.0);
-            }";
-
-        private const string FragmentShaderSource = @"
-                #version 150 core
-
-                flat in vec4 fragment_color;
-
-                out vec4 color;
-
-				void main(void)
-				{
-					color = fragment_color;
-				}
-			";
         #endregion
-
-        private static IShaderProgram shader;
 
         private readonly int worldStartX;
         private readonly int worldStartY;
@@ -103,22 +31,6 @@ namespace ProdigalSoftware.TiVE.Renderer.Voxels
         private int chunkVoxelCount;
         private int chunkRenderedVoxelCount;
 
-#if USE_INSTANCED_RENDERING
-        private static readonly int polysPerVoxel;
-        private static IRendererData voxelInstanceLocationData;
-        private static IRendererData voxelInstanceColorData;
-
-        static GameWorldVoxelChunk()
-        {
-            MeshBuilder voxelInstanceBuilder = new MeshBuilder(30, 0);
-            polysPerVoxel = SimpleVoxelGroup.CreateVoxel(voxelInstanceBuilder, VoxelSides.All, 0, 0, 0, 235, 235, 235, 255);
-            voxelInstanceLocationData = voxelInstanceBuilder.GetLocationData();
-            voxelInstanceLocationData.Lock();
-            voxelInstanceColorData = voxelInstanceBuilder.GetColorData();
-            voxelInstanceColorData.Lock();
-        }
-#endif
-
         public GameWorldVoxelChunk(int worldStartX, int worldStartY, int worldStartZ)
         {
             this.worldStartX = worldStartX;
@@ -128,8 +40,6 @@ namespace ProdigalSoftware.TiVE.Renderer.Voxels
 
         public void Dispose()
         {
-            //if (shader != null)
-            //    shader.Delete();
             IVertexDataCollection meshData;
             lock (syncLock)
             {
@@ -208,38 +118,34 @@ namespace ProdigalSoftware.TiVE.Renderer.Voxels
             for (int tileX = 0; tileX < tileMaxX; tileX++)
             {
                 int worldX = worldStartX + tileX;
-                if (worldX < 0 || worldX >= gameWorld.Xsize)
-                    continue;
-
                 int voxelX = tileX * BlockInformation.BlockSize;
 
                 for (int tileY = 0; tileY < tileMaxY; tileY++)
                 {
                     int worldY = worldStartY + tileY;
-                    if (worldY < 0 || worldY >= gameWorld.Ysize)
-                        continue;
-
                     int voxelY = tileY * BlockInformation.BlockSize;
 
                     for (int tileZ = 0; tileZ < tileMaxZ; tileZ++)
                     {
                         int worldZ = worldStartZ + tileZ;
-                        if (worldZ < 0 || worldZ >= gameWorld.Zsize)
-                            continue;
-                        
                         int voxelZ = tileZ * BlockInformation.BlockSize;
 
-                        BlockInformation block = blockList[gameWorld.GetBlock(worldX, worldY, worldZ)] ?? BlockInformation.Empty;
+                        BlockInformation block;
+                        if (worldX >= 0 && worldX < gameWorld.Xsize && worldY >= 0 && worldY < gameWorld.Ysize && worldZ >= 0 && worldZ < gameWorld.Zsize)
+                            block = blockList[gameWorld.GetBlock(worldX, worldY, worldZ)] ?? BlockInformation.Empty;
+                        else
+                            block = BlockInformation.Empty;
+
+                        SetVoxelsFromBlock(voxels, voxelX, voxelY, voxelZ, block);
+
                         ParticleSystemInformation particleInfo = block.ParticleSystem;
                         if (particleInfo != null)
                         {
                             Vector3b loc = particleInfo.Location;
-                            particleSystems.Add(new ParticleSystem(particleInfo.Controller,
+                            particleSystems.Add(new ParticleSystem(particleInfo.ParticleVoxels, particleInfo.Controller,
                                 new Vector3b((byte)(voxelX + loc.X), (byte)(voxelY + loc.Y), (byte)(voxelZ + loc.Z)), 
                                 particleInfo.ParticlesPerSecond, particleInfo.MaxParticles));
                         }
-                        
-                        SetVoxelsFromBlock(voxels, voxelX, voxelY, voxelZ, block);
                     }
                 }
             }
@@ -316,9 +222,7 @@ namespace ProdigalSoftware.TiVE.Renderer.Voxels
 
             meshData.Initialize();
 
-            if (shader == null)
-                shader = CreateShader();
-
+            IShaderProgram shader = ResourceManager.ShaderManager.GetShaderProgram("MainWorld");
             shader.Bind();
 
             Matrix4 viewProjectionModelMatrix;
@@ -331,14 +235,8 @@ namespace ProdigalSoftware.TiVE.Renderer.Voxels
 
         public RenderStatistics RenderTransparent(ref Matrix4 viewProjectionMatrix)
         {
-            if (shader == null)
-                shader = CreateShader();
-
-            shader.Bind();
-
             Matrix4 viewProjectionModelMatrix;
             Matrix4.Mult(ref translationMatrix, ref viewProjectionMatrix, out viewProjectionModelMatrix);
-            shader.SetUniform("matrix_ModelViewProjection", ref viewProjectionModelMatrix);
 
             TiVEController.Backend.SetBlendMode(BlendMode.Additive);
             int polygonCount = chunkPolygonCount;
@@ -404,8 +302,8 @@ namespace ProdigalSoftware.TiVE.Renderer.Voxels
                             sides |= VoxelSides.Right;
                         if (y == 0 || voxels[GetOffset(x, y - 1, z)] == 0)
                             sides |= VoxelSides.Bottom;
-                        if (y == VoxelSize - 1 || voxels[GetOffset(x, y + 1, z)] == 0)
-                            sides |= VoxelSides.Top;
+                        //if (y == VoxelSize - 1 || voxels[GetOffset(x, y + 1, z)] == 0) // Top face is never shown to the camera
+                        //    sides |= VoxelSides.Top;
 
                         //VoxelSides sides = (VoxelSides)((color & 0xFC000000) >> 26);
                         if (sides != VoxelSides.None)
@@ -417,37 +315,11 @@ namespace ProdigalSoftware.TiVE.Renderer.Voxels
                     }
                 }
             }
-#if USE_INSTANCED_RENDERING
-            return meshBuilder.GetInstanceData(voxelInstanceLocationData, voxelInstanceColorData);
-#else
             return meshBuilder.GetMesh();
-#endif
-        }
-
-        private static IShaderProgram CreateShader()
-        {
-            IShaderProgram program = TiVEController.Backend.CreateShaderProgram();
-            program.AddShader(VertexShaderSource, ShaderType.Vertex);
-            program.AddShader(FragmentShaderSource, ShaderType.Fragment);
-            program.AddAttribute("in_Position");
-            program.AddAttribute("in_Color");
-#if USE_INSTANCED_RENDERING
-            program.AddAttribute("in_InstancePos");
-            program.AddAttribute("in_InstanceColor");
-#endif
-            program.AddKnownUniform("matrix_ModelViewProjection");
-
-            if (!program.Initialize())
-                Debug.WriteLine("Failed to initialize shader");
-            return program;
         }
 
         private static int AddVoxel(MeshBuilder meshBuilder, VoxelSides sides, int x, int y, int z, byte cr, byte cg, byte cb, byte ca)
         {
-#if USE_INSTANCED_RENDERING
-            meshBuilder.Add(x, y, z, cr, cg, cb, ca);
-            return polysPerVoxel;
-#else
             int polygonCount = 0;
             if ((sides & VoxelSides.Front) != 0)
             {
@@ -560,7 +432,6 @@ namespace ProdigalSoftware.TiVE.Renderer.Voxels
             }
 
             return polygonCount;
-#endif
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -569,4 +440,31 @@ namespace ProdigalSoftware.TiVE.Renderer.Voxels
             return x * VoxelSize * VoxelSize + z * VoxelSize + y;
         }
     }
+
+    #region ChunkLoadInfo class
+    internal sealed class ChunkLoadInfo
+    {
+        private readonly GameWorldVoxelChunk chunk;
+
+        public ChunkLoadInfo(GameWorldVoxelChunk chunk)
+        {
+            this.chunk = chunk;
+            GameWorld = ResourceManager.GameWorldManager.GameWorld;
+            BlockList = ResourceManager.BlockListManager.BlockList;
+        }
+
+        public GameWorld GameWorld { get; private set; }
+        public BlockList BlockList { get; private set; }
+
+        public GameWorldVoxelChunk Chunk
+        {
+            get { return chunk; }
+        }
+
+        public void Load(MeshBuilder meshBuilder)
+        {
+            chunk.Load(this, meshBuilder);
+        }
+    }
+    #endregion
 }

@@ -56,6 +56,11 @@ namespace ProdigalSoftware.TiVE.Renderer.OpenGL
             return new ShaderProgram();
         }
 
+        public string GetShaderDefinitionFileResourcePath()
+        {
+            return "ProdigalSoftware.TiVE.Renderer.OpenGL.Shaders.Shaders.shad";
+        }
+
         public void SetBlendMode(BlendMode mode)
         {
             switch (mode)
@@ -72,18 +77,18 @@ namespace ProdigalSoftware.TiVE.Renderer.OpenGL
                     GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.One);
                     break;
                 default:
-                    throw new ArgumentException("Unknown blend mode: " + mode, "mode");
+                    throw new ArgumentException("Unknown blend mode: " + mode);
             }
         }
 
         public void DisableDepthWriting()
         {
-            GL.Disable(EnableCap.DepthTest);
+            GL.DepthMask(false);
         }
 
         public void EnableDepthWriting()
         {
-            GL.Enable(EnableCap.DepthTest);
+            GL.DepthMask(true);
         }
         #endregion
 
@@ -99,7 +104,7 @@ namespace ProdigalSoftware.TiVE.Renderer.OpenGL
             }
         }
 
-        private DrawElementsType GetDrawType(ValueType valueType)
+        private static DrawElementsType GetDrawType(ValueType valueType)
         {
             switch (valueType)
             {
@@ -114,6 +119,11 @@ namespace ProdigalSoftware.TiVE.Renderer.OpenGL
         #region OpenGLDisplay class
         private sealed class OpenGLDisplay : GameWindow, IDisplay
         {
+            private readonly Stopwatch sw = new Stopwatch();
+            private readonly StatHelper renderTime = new StatHelper();
+            private readonly StatHelper updateTime = new StatHelper();
+
+            private double lastPrintTime;
             private GameLogic game;
 
             /// <summary>
@@ -123,7 +133,7 @@ namespace ProdigalSoftware.TiVE.Renderer.OpenGL
                 : base(1600, 1200, new OpenTK.Graphics.GraphicsMode(new OpenTK.Graphics.ColorFormat(8, 8, 8, 8), 16, 0, 4), "TiVE",
                     GameWindowFlags.Default, DisplayDevice.Default, 3, 5, OpenTK.Graphics.GraphicsContextFlags.ForwardCompatible)
             {
-                VSync = VSyncMode.On;
+                VSync = VSyncMode.Off;
             }
 
             public void RunMainLoop(GameLogic newGame)
@@ -138,12 +148,6 @@ namespace ProdigalSoftware.TiVE.Renderer.OpenGL
             protected override void OnLoad(EventArgs eArgs)
             {
                 base.OnLoad(eArgs);
-
-                if (!game.Initialize())
-                {
-                    Exit();
-                    return;
-                }
 
                 GL.ClearColor(0.1f, 0.1f, 0.1f, 0.0f);
 
@@ -170,12 +174,6 @@ namespace ProdigalSoftware.TiVE.Renderer.OpenGL
                 GL.Viewport(ClientRectangle.X, ClientRectangle.Y, ClientRectangle.Width, ClientRectangle.Height);
                 game.Resize(Width, Height);
             }
-
-            private readonly Stopwatch sw = new Stopwatch();
-            private double lastPrintTime;
-
-            private StatHelper renderTime = new StatHelper();
-            private StatHelper updateTime = new StatHelper();
             
             /// <summary>
             /// Called when it is time to setup the next frame. Add you game logic here.
@@ -213,18 +211,19 @@ namespace ProdigalSoftware.TiVE.Renderer.OpenGL
             /// <param name="e">Contains timing information.</param>
             protected override void OnRenderFrame(FrameEventArgs e)
             {
+                sw.Restart();
                 base.OnRenderFrame(e);
 
-                sw.Restart();
                 GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
                 RenderStatistics stats = game.Render((float)e.Time);
-                sw.Stop();
 
-                renderTime.AddData(sw.ElapsedTicks * 1000f / Stopwatch.Frequency);
+                GlUtils.CheckGLErrors();
 
                 SwapBuffers();
-                //GlUtils.CheckGLErrors();
-                Title = string.Format("TiVE         Update={5}   Render={4}   Voxels={0}  Rendered={1}  Polys={2}  Draws={3}",
+                sw.Stop();
+                renderTime.AddData(sw.ElapsedTicks * 1000f / Stopwatch.Frequency);
+
+                Title = string.Format("TiVE         Update={5:F2}   Render={4:F2}   Voxels={0:D8}  Rendered={1:D8}  Polys={2:D8}  Draws={3:D4}",
                     stats.VoxelCount, stats.RenderedVoxelCount, stats.PolygonCount, stats.DrawCount, renderTime.DisplayedTime, updateTime.DisplayedTime);
             }
         }
@@ -596,6 +595,11 @@ namespace ProdigalSoftware.TiVE.Renderer.OpenGL
                 GC.SuppressFinalize(this);
             }
 
+            public bool IsInitialized
+            {
+                get { return programId != 0; }
+            }
+
             public void AddShader(string shaderSource, ShaderType shaderType)
             {
                 shaders.Add(new Shader(shaderSource, shaderType));
@@ -614,6 +618,11 @@ namespace ProdigalSoftware.TiVE.Renderer.OpenGL
             public void Bind()
             {
                 GL.UseProgram(programId);
+            }
+
+            public void Unbind()
+            {
+                GL.UseProgram(0);
             }
 
             public bool Initialize()
@@ -743,19 +752,32 @@ namespace ProdigalSoftware.TiVE.Renderer.OpenGL
         }
         #endregion
 
+        #region StatHelper class
+        /// <summary>
+        /// Helper class for computing engine statistics
+        /// </summary>
         private sealed class StatHelper
         {
             private float totalTime;
             private int dataCount;
 
+            /// <summary>
+            /// Gets the value to display
+            /// </summary>
             public float DisplayedTime { get; private set; }
 
+            /// <summary>
+            /// Adds the specified value as a new data point
+            /// </summary>
             public void AddData(float data)
             {
                 totalTime += data;
                 dataCount++;
             }
 
+            /// <summary>
+            /// Updates the display time with the average of the data points
+            /// </summary>
             public void UpdateDisplayedTime()
             {
                 DisplayedTime = totalTime / Math.Max(dataCount, 1);
@@ -763,5 +785,6 @@ namespace ProdigalSoftware.TiVE.Renderer.OpenGL
                 dataCount = 0;
             }
         }
+        #endregion
     }
 }

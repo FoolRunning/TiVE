@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using ProdigalSoftware.TiVE.Plugins;
 using ProdigalSoftware.TiVE.Starter;
 using ProdigalSoftware.TiVEPluginFramework;
 
@@ -10,25 +9,9 @@ namespace ProdigalSoftware.TiVE.Renderer.World
         private readonly Dictionary<string, ushort> blockToIndexMap = new Dictionary<string, ushort>();
         private readonly List<BlockInformation> blocks = new List<BlockInformation>();
 
-        private BlockList()
+        public BlockList()
         {
             blocks.Add(null); // zero'th item is always empty space
-        }
-
-        public static BlockList CreateBlockList()
-        {
-            Messages.Print("Creating blocks...");
-
-            BlockList blockList = new BlockList();
-
-            foreach (IBlockGenerator generator in PluginManager.GetPluginsOfType<IBlockGenerator>())
-            {
-                foreach (BlockInformation blockInfo in generator.CreateBlocks())
-                    blockList.AddBlock(blockInfo.BlockName, blockInfo);
-            }
-
-            Messages.AddDoneText();
-            return blockList;
         }
 
         public int BlockCount
