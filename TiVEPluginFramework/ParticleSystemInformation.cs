@@ -11,19 +11,23 @@ namespace ProdigalSoftware.TiVEPluginFramework
         public readonly int ParticlesPerSecond;
         public readonly int MaxParticles;
         public readonly Vector3b Location;
+        public readonly bool TransparentParticles;
 
-        public ParticleSystemInformation(uint[,,] particleVoxels, ParticleController controller, Vector3b location, int particlesPerSecond, int maxParticles)
+        public ParticleSystemInformation(uint[,,] particleVoxels, ParticleController controller, Vector3b location, 
+            int particlesPerSecond, int maxParticles, bool transparentParticles)
         {
             ParticleVoxels = particleVoxels;
             Controller = controller;
             Location = location;
             ParticlesPerSecond = particlesPerSecond;
             MaxParticles = maxParticles;
+            TransparentParticles = transparentParticles;
         }
     }
 
     public interface IParticleSystem
     {
+        int AliveParticles { get; }
         Vector3 Location { get; set; }
         int ParticlesPerSecond { get; set; }
     }

@@ -15,7 +15,7 @@ namespace ProdigalSoftware.TiVEPluginFramework
 
         public abstract void InitializeNew(Particle particle, float startX, float startY, float startZ);
 
-        public static void ApplyVelocity(Particle particle, float timeSinceLastFrame)
+        protected static void ApplyVelocity(Particle particle, float timeSinceLastFrame)
         {
             particle.X += (particle.VelX * timeSinceLastFrame);
             particle.Y += (particle.VelY * timeSinceLastFrame);

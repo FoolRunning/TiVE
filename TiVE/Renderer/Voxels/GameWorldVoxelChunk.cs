@@ -51,7 +51,8 @@ namespace ProdigalSoftware.TiVE.Renderer.Voxels
                 meshData.Dispose();
 
             for (int i = 0; i < particleSystems.Count; i++)
-                particleSystems[i].Dispose();
+                ResourceManager.ParticleManager.RemoveParticleSystem(particleSystems[i]);
+            particleSystems.Clear();
         }
 
         public bool IsDeleted
@@ -142,9 +143,10 @@ namespace ProdigalSoftware.TiVE.Renderer.Voxels
                         if (particleInfo != null)
                         {
                             Vector3b loc = particleInfo.Location;
-                            particleSystems.Add(new ParticleSystem(particleInfo.ParticleVoxels, particleInfo.Controller,
-                                new Vector3b((byte)(voxelX + loc.X), (byte)(voxelY + loc.Y), (byte)(voxelZ + loc.Z)), 
-                                particleInfo.ParticlesPerSecond, particleInfo.MaxParticles));
+                            ParticleSystem system = new ParticleSystem(particleInfo, (worldX * BlockInformation.BlockSize) + loc.X,
+                                (worldY * BlockInformation.BlockSize) + loc.Y, (worldZ * BlockInformation.BlockSize) + loc.Z);
+                            particleSystems.Add(system);
+                            ResourceManager.ParticleManager.AddParticleSystem(system);
                         }
                     }
                 }
@@ -183,7 +185,10 @@ namespace ProdigalSoftware.TiVE.Renderer.Voxels
             lock (syncLock)
             {
                 if (deleted)
+                {
                     meshData.Dispose();
+                    Dispose();
+                }
                 else
                 {
                     mesh = meshData;
@@ -203,12 +208,6 @@ namespace ProdigalSoftware.TiVE.Renderer.Voxels
             
             if (meshData != null)
                 meshData.Initialize();
-        }
-
-        public void Update(float timeSinceLastFrame)
-        {
-            for (int i = 0; i < particleSystems.Count; i++)
-                particleSystems[i].Update(timeSinceLastFrame);
         }
 
         public RenderStatistics RenderOpaque(ref Matrix4 viewProjectionMatrix)
@@ -231,29 +230,6 @@ namespace ProdigalSoftware.TiVE.Renderer.Voxels
 
             TiVEController.Backend.Draw(PrimitiveType.Triangles, meshData);
             return new RenderStatistics(1, chunkPolygonCount, chunkVoxelCount, chunkRenderedVoxelCount);
-        }
-
-        public RenderStatistics RenderTransparent(ref Matrix4 viewProjectionMatrix)
-        {
-            Matrix4 viewProjectionModelMatrix;
-            Matrix4.Mult(ref translationMatrix, ref viewProjectionMatrix, out viewProjectionModelMatrix);
-
-            TiVEController.Backend.SetBlendMode(BlendMode.Additive);
-            int polygonCount = chunkPolygonCount;
-            int voxelCount = chunkVoxelCount;
-            int renderedVoxelCount = chunkRenderedVoxelCount;
-
-            for (int i = 0; i < particleSystems.Count; i++)
-            {
-                ParticleSystem particleSystem = particleSystems[i];
-                particleSystem.Render(ref viewProjectionModelMatrix);
-                polygonCount += particleSystem.PolygonCount;
-                voxelCount += particleSystem.VoxelCount;
-                renderedVoxelCount += particleSystem.RenderedVoxelCount;
-            }
-            TiVEController.Backend.SetBlendMode(BlendMode.None);
-
-            return new RenderStatistics(particleSystems.Count, polygonCount, voxelCount, renderedVoxelCount);
         }
 
         private static void SetVoxelsFromBlock(uint[] voxels,int startX, int startY, int startZ, BlockInformation block)

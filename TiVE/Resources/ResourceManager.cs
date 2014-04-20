@@ -9,9 +9,13 @@ namespace ProdigalSoftware.TiVE.Resources
         public static WorldChunkManager ChunkManager { get; private set; }
         public static GameWorldManager GameWorldManager { get; private set; }
         public static ShaderManager ShaderManager { get; private set; }
+        public static ParticleSystemManager ParticleManager { get; private set; }
 
         public static bool Initialize()
         {
+            GameWorldManager = new GameWorldManager();
+            ParticleManager = new ParticleSystemManager();
+
             PluginManager = new PluginManager();
             if (!PluginManager.LoadPlugins())
                 return false;
@@ -19,8 +23,6 @@ namespace ProdigalSoftware.TiVE.Resources
             BlockListManager = new BlockListManager();
             if (!BlockListManager.Initialize())
                 return false;
-
-            GameWorldManager = new GameWorldManager();
 
             ShaderManager = new ShaderManager();
             if (!ShaderManager.Initialize())
@@ -46,9 +48,14 @@ namespace ProdigalSoftware.TiVE.Resources
             if (ChunkManager != null)
                 ChunkManager.Dispose();
 
+            if (ParticleManager != null)
+                ParticleManager.Dispose();
+
             PluginManager = null;
             BlockListManager = null;
             GameWorldManager = null;
+            ChunkManager = null;
+            ParticleManager = null;
 
             Messages.AddDoneText();
         }
