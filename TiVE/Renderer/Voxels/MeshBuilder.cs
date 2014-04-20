@@ -68,8 +68,8 @@ namespace ProdigalSoftware.TiVE.Renderer.Voxels
         {
             if (vertexCount >= locationData.Length)
             {
-                ResizeArray(ref locationData);
-                ResizeArray(ref colorData);
+                ArrayUtils.ResizeArray(ref locationData);
+                ArrayUtils.ResizeArray(ref colorData);
             }
 
             locationData[vertexCount] = new Vector3b((byte)x, (byte)y, (byte)z);
@@ -81,7 +81,7 @@ namespace ProdigalSoftware.TiVE.Renderer.Voxels
         public void AddIndex(int index)
         {
             if (indexCount >= indexData.Length)
-                ResizeArray(ref indexData);
+                ArrayUtils.ResizeArray(ref indexData);
 
             indexData[indexCount] = index;
             indexCount++;
@@ -132,12 +132,6 @@ namespace ProdigalSoftware.TiVE.Renderer.Voxels
         public IRendererData GetIndexData()
         {
             return TiVEController.Backend.CreateData(indexData, indexCount, 1, DataType.Index, ValueType.UInt, false, false);
-        }
-
-        private static void ResizeArray<T>(ref T[] array)
-        {
-            int newSize = array.Length + (array.Length * 2 / 3) + 1;
-            Array.Resize(ref array, newSize);
         }
     }
 }

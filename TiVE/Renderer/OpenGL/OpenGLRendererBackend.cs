@@ -131,7 +131,7 @@ namespace ProdigalSoftware.TiVE.Renderer.OpenGL
             /// </summary>
             public OpenGLDisplay()
                 : base(1600, 1200, new OpenTK.Graphics.GraphicsMode(new OpenTK.Graphics.ColorFormat(8, 8, 8, 8), 16, 0, 4), "TiVE",
-                    GameWindowFlags.Default, DisplayDevice.Default, 3, 5, OpenTK.Graphics.GraphicsContextFlags.ForwardCompatible)
+                    GameWindowFlags.Default, DisplayDevice.Default, 3, 1, OpenTK.Graphics.GraphicsContextFlags.ForwardCompatible)
             {
                 VSync = VSyncMode.Off;
             }
@@ -381,6 +381,7 @@ namespace ProdigalSoftware.TiVE.Renderer.OpenGL
         {
             private T[] data;
             private int elementCount;
+            private int allocatedDataElementCount;
             private readonly int elementsPerVertex;
             private readonly DataType dataType;
             private readonly ValueType valueType;
@@ -392,6 +393,7 @@ namespace ProdigalSoftware.TiVE.Renderer.OpenGL
             public RendererData(T[] data, int elementCount, int elementsPerVertex, DataType dataType, ValueType valueType, bool normalize, bool dynamic)
             {
                 this.data = data;
+                allocatedDataElementCount = data.Length;
                 this.elementCount = elementCount;
                 this.elementsPerVertex = elementsPerVertex;
                 this.dataType = dataType;
@@ -455,12 +457,13 @@ namespace ProdigalSoftware.TiVE.Renderer.OpenGL
                 if (data == null)
                     throw new InvalidOperationException("Buffers can not be re-initialized");
 
-                int sizeInBytes = elementCount * Marshal.SizeOf(typeof(T));
+                int sizeInBytes = (elementCount > 0 ? elementCount : allocatedDataElementCount) * Marshal.SizeOf(typeof(T));
 
                 // Load data into OpenGL
                 dataVboId = GL.GenBuffer();
                 Bind(target, arrayAttrib);
-                GL.BufferData(target, new IntPtr(sizeInBytes), data, dynamic ? BufferUsageHint.StreamDraw : BufferUsageHint.StaticDraw);
+                T[] dataVal = elementCount > 0 ? data : null;
+                GL.BufferData(target, new IntPtr(sizeInBytes), dataVal, dynamic ? BufferUsageHint.StreamDraw : BufferUsageHint.StaticDraw);
                 GlUtils.CheckGLErrors();
                 data = null;
                 return true;
@@ -479,7 +482,12 @@ namespace ProdigalSoftware.TiVE.Renderer.OpenGL
 
                 elementCount = elementsToUpdate;
                 int sizeInBytes = elementsToUpdate * Marshal.SizeOf(typeof(T2));
-                //GL.MapBufferRange(target, new IntPtr(0), new IntPtr(sizeInBytes), BufferAccessMask.MapWriteBit);
+                if (elementCount > allocatedDataElementCount)
+                {
+                    allocatedDataElementCount = elementCount;
+                    GL.BufferData(target, new IntPtr(sizeInBytes), (T2[])null, dynamic ? BufferUsageHint.StreamDraw : BufferUsageHint.StaticDraw);
+                }
+
                 GL.BufferSubData(target, new IntPtr(0), new IntPtr(sizeInBytes), newData);
                 GlUtils.CheckGLErrors();
             }

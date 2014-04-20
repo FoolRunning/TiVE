@@ -9,11 +9,10 @@ namespace ProdigalSoftware.TiVE.Resources
 {
     internal sealed class WorldChunkManager : IDisposable
     {
-        //private const int ChunkCacheSize = 4000 / GameWorldVoxelChunk.TileSize;
         /// <summary>
         /// Distance in world tiles (outside the viewable area) to start removing loaded chunks
         /// </summary>
-        private const int ChunkUnloadDistance = 2 * GameWorldVoxelChunk.TileSize;
+        private const int ChunkUnloadDistance = 1 * GameWorldVoxelChunk.TileSize;
 
         private readonly List<Tuple<int, GameWorldVoxelChunk>> chunksToDelete = new List<Tuple<int, GameWorldVoxelChunk>>();
         private readonly Dictionary<int, GameWorldVoxelChunk> chunks = new Dictionary<int, GameWorldVoxelChunk>(1200);
@@ -64,9 +63,6 @@ namespace ProdigalSoftware.TiVE.Resources
         {
             foreach (KeyValuePair<int, GameWorldVoxelChunk> chunkInfo in chunks)
             {
-                //if (chunks.Count - chunksToDelete.Count < ChunkCacheSize)
-                //    break;
-
                 if (!chunkInfo.Value.IsInside(startX - ChunkUnloadDistance, startY - ChunkUnloadDistance, endX + ChunkUnloadDistance, endY + ChunkUnloadDistance))
                     chunksToDelete.Add(new Tuple<int, GameWorldVoxelChunk>(chunkInfo.Key, chunkInfo.Value));
             }
@@ -114,12 +110,12 @@ namespace ProdigalSoftware.TiVE.Resources
 
                 if (count == 0)
                 {
-                    Thread.Sleep(4);
+                    Thread.Sleep(2);
                     continue;
                 }
 
                 MeshBuilder meshBuilder = meshBuilders.Find(NotLocked);
-                if (meshBuilder == null && meshBuilders.Count < 5)
+                if (meshBuilder == null && meshBuilders.Count < 3)
                 {
                     meshBuilder = new MeshBuilder(200000, 400000);
                     meshBuilders.Add(meshBuilder);

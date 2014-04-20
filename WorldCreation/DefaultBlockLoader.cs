@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using OpenTK;
 using OpenTK.Graphics;
 using ProdigalSoftware.TiVEPluginFramework;
 using ProdigalSoftware.Utils;
@@ -48,14 +47,14 @@ namespace WorldCreation
                 yield return new BlockInformation(name, voxels);
             }
 
-            uint[, ,] fireVoxels = CreateBlockInfo(false, true, new Color4(20, 20, 20, 255), 1.0f);
+            uint[, ,] fireBlockVoxels = CreateBlockInfo(false, true, new Color4(150, 20, 20, 255), 1.0f);
             uint[,,] particleVoxels = new uint[1, 1, 1];
             particleVoxels[0, 0, 0] = 0xFFFFFFFF;
-            yield return new BlockInformation("fire", fireVoxels, 
-                new ParticleSystemInformation(particleVoxels, new FireUpdater(), new Vector3b(5, 5, 8), 300, 310));
+            yield return new BlockInformation("fire", fireBlockVoxels, 
+                new ParticleSystemInformation(particleVoxels, new FireUpdater(), new Vector3b(5, 5, 8), 500, 510, true));
 
 
-            uint[, ,] fountainVoxels = CreateBlockInfo(false, true, new Color4(20, 20, 200, 255), 1.0f);
+            uint[, ,] fountainBlockVoxels = CreateBlockInfo(false, true, new Color4(20, 20, 150, 255), 1.0f);
             particleVoxels = new uint[3, 3, 3];
             particleVoxels[1, 1, 1] = 0xFFFFFFFF;
             particleVoxels[0, 1, 1] = 0xFFFFFFFF;
@@ -64,8 +63,8 @@ namespace WorldCreation
             particleVoxels[1, 2, 1] = 0xFFFFFFFF;
             particleVoxels[1, 1, 0] = 0xFFFFFFFF;
             particleVoxels[1, 1, 2] = 0xFFFFFFFF;
-            yield return new BlockInformation("fountain", fountainVoxels,
-                new ParticleSystemInformation(particleVoxels, new FountainUpdater(), new Vector3b(3, 3, 7), 500, 1100));
+            yield return new BlockInformation("fountain", fountainBlockVoxels,
+                new ParticleSystemInformation(particleVoxels, new FountainUpdater(), new Vector3b(3, 3, 7), 100, 210, false));
         }
 
         private static uint[, ,] CreateBlockInfo(bool frontOnly, bool sphere, Color4 color, float voxelDensity)
@@ -136,13 +135,16 @@ namespace WorldCreation
 
         private static Color4 CreateColorFromColor(Color4 seed)
         {
-            float scale = (float)(random.NextDouble() * 0.08 + 0.96);
+            float scale = (float)(random.NextDouble() * 0.16 + 0.92);
             return new Color4(Math.Min(seed.R * scale, 1.0f), Math.Min(seed.G * scale, 1.0f), 
                 Math.Min(seed.B * scale, 1.0f), seed.A);
         }
 
         private class FireUpdater : ParticleController
         {
+            private const float FlameDeacceleration = 27.0f;
+            private const float AliveTime = 1.0f;
+
             private readonly Random random = new Random();
             private static readonly Color4b[] colorList = new Color4b[256];
 
@@ -162,9 +164,6 @@ namespace WorldCreation
             {
                 return true;
             }
-
-            private const float FlameDeacceleration = 27.0f;
-            private const float AliveTime = 1.0f;
 
             public override void Update(Particle particle, float timeSinceLastFrame, float systemX, float systemY, float systemZ)
             {
@@ -201,7 +200,7 @@ namespace WorldCreation
                 float angle = (float)random.NextDouble() * 2.0f * 3.141592f;
                 float totalVel = (float)random.NextDouble() * 4.0f + 10.0f;
                 particle.VelX = (float)Math.Cos(angle) * totalVel;
-                particle.VelZ = (float)random.NextDouble() * 10.0f + 4.0f;
+                particle.VelZ = (float)random.NextDouble() * 10.0f + 8.0f;
                 particle.VelY = (float)Math.Sin(angle) * totalVel;
 
                 particle.X = startX;

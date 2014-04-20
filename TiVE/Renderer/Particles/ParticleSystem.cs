@@ -1,148 +1,78 @@
 ﻿using System;
 using OpenTK;
-using ProdigalSoftware.TiVE.Renderer.Voxels;
-using ProdigalSoftware.TiVE.Resources;
 using ProdigalSoftware.TiVEPluginFramework;
 using ProdigalSoftware.Utils;
 
 namespace ProdigalSoftware.TiVE.Renderer.Particles
 {
-    internal sealed class ParticleSystem : IParticleSystem, IDisposable
+    internal sealed class ParticleSystem : IParticleSystem
     {
-        private readonly int polysPerVoxel;
-        private readonly IRendererData voxelInstanceLocationData;
-
-        private readonly ParticleController controller;
-        private readonly Particle[] particles;
-        private readonly Color4b[] colors;
-        private readonly Vector3s[] locations;
-        private int aliveParticleCount;
+        private readonly ParticleSystemInformation systemInfo;
         private float numOfParticlesNeeded;
-        private IVertexDataCollection instances;
-        private IRendererData locationData;
-        private IRendererData colorData;
 
-        public ParticleSystem(uint[,,] particleVoxels, ParticleController controller, Vector3b location, int particlesPerSecond, int maxParticles)
+        public ParticleSystem(ParticleSystemInformation systemInfo, int worldX, int worldY, int worldZ)
         {
-            this.controller = controller;
-            Location = new Vector3(location.X, location.Y, location.Z);
-            ParticlesPerSecond = particlesPerSecond;
-            colors = new Color4b[maxParticles];
-            locations = new Vector3s[maxParticles];
-            particles = new Particle[maxParticles];
-            for (int i = 0; i < maxParticles; i++)
-                particles[i] = new Particle();
-
-            MeshBuilder voxelInstanceBuilder = new MeshBuilder(150, 0);
-            int dummy;
-            VoxelMeshUtils.GenerateMesh(particleVoxels, voxelInstanceBuilder, out dummy, out dummy, out polysPerVoxel);
-            voxelInstanceLocationData = voxelInstanceBuilder.GetLocationData();
+            this.systemInfo = systemInfo;
+            Location = new Vector3(worldX, worldY, worldZ);
+            ParticlesPerSecond = systemInfo.ParticlesPerSecond;
         }
 
-        public void Dispose()
+        public ParticleSystemInformation SystemInformation
         {
-            if (instances != null)
-                instances.Dispose();
-
-            instances = null;
+            get { return systemInfo; }
         }
 
-        public int PolygonCount
-        {
-            get { return aliveParticleCount * polysPerVoxel; }
-        }
-
-        public int VoxelCount
-        {
-            get { return aliveParticleCount; }
-        }
-
-        public int RenderedVoxelCount
-        {
-            get { return aliveParticleCount; }
-        }
+        public int AliveParticles { get; private set; }
 
         public Vector3 Location { get; set; }
 
         public int ParticlesPerSecond { get; set; }
 
-        public void Update(float timeSinceLastFrame)
+        public void Update(float timeSinceLastFrame, Particle[] particleList, Vector3s[] locationArray, Color4b[] colorArray, ref int dataIndex)
         {
-            ParticleController upd = controller;
+            ParticleController upd = systemInfo.Controller;
             upd.BeginUpdate(this, timeSinceLastFrame);
 
-            Vector3s[] locationArray = locations;
-            Color4b[] colorArray = colors;
-            int aliveParticles = aliveParticleCount;
-            Particle[] particleList = particles;
+            int aliveParticles = AliveParticles;
+            numOfParticlesNeeded += ParticlesPerSecond * timeSinceLastFrame;
+            int newParticleCount = Math.Min((int)numOfParticlesNeeded, systemInfo.MaxParticles - aliveParticles);
+            numOfParticlesNeeded -= newParticleCount;
+
             float locX = Location.X;
             float locY = Location.Y;
             float locZ = Location.Z;
-            for (int index = 0; index < aliveParticles; )
+            int dataStartIndex = dataIndex;
+            for (int pi = 0; pi < aliveParticles + newParticleCount; pi++)
             {
-                Particle part = particleList[index];
-                upd.Update(part, timeSinceLastFrame, locX, locY, locZ);
+                Particle part = particleList[pi];
                 if (part.Time > 0.0f)
+                    upd.Update(part, timeSinceLastFrame, locX, locY, locZ);
+                else if (newParticleCount > 0)
                 {
-                    locationArray[index] = new Vector3s((short)part.X, (short)part.Y, (short)part.Z);
-                    colorArray[index] = part.Color;
-                    index++;
+                    // We need new particles, just re-initialize this one
+                    upd.InitializeNew(part, locX, locY, locZ);
+                    newParticleCount--;
+                    aliveParticles++;
                 }
                 else
                 {
-                    // Particle died replace with an alive particle
+                    // Particle died replace with an existing alive particle
                     int lastAliveIndex = aliveParticles - 1;
                     Particle lastAlive = particleList[lastAliveIndex];
-                    particleList[lastAliveIndex] = particleList[index];
-                    particleList[index] = lastAlive;
+                    particleList[lastAliveIndex] = part;
+                    particleList[pi] = lastAlive;
+                    part = lastAlive;
                     aliveParticles--;
+                    // Just replaced current particle with another one. Need to update it.
+                    upd.Update(part, timeSinceLastFrame, locX, locY, locZ);
                 }
+
+                locationArray[dataIndex] = new Vector3s((short)part.X, (short)part.Y, (short)part.Z);
+                colorArray[dataIndex] = part.Color;
+                dataIndex++;
             }
 
-            numOfParticlesNeeded += ParticlesPerSecond * timeSinceLastFrame;
-            int newParticleCount = Math.Min((int)numOfParticlesNeeded, particleList.Length - aliveParticles);
-            numOfParticlesNeeded -= newParticleCount;
-
-            for (int i = 0; i < newParticleCount; i++)
-            {
-                Particle part = particleList[aliveParticles];
-                upd.InitializeNew(part, locX, locY, locZ);
-                locationArray[aliveParticles] = new Vector3s((short)part.X, (short)part.Y, (short)part.Z);
-                colorArray[aliveParticles] = part.Color;
-                aliveParticles++;
-            }
-
-            aliveParticleCount = aliveParticles;
-        }
-
-        public void Render(ref Matrix4 matrixMVP)
-        {
-            IShaderProgram shader = ResourceManager.ShaderManager.GetShaderProgram("Particles");
-            shader.Bind();
-            shader.SetUniform("matrix_ModelViewProjection", ref matrixMVP);
-
-            if (instances == null)
-            {
-                instances = TiVEController.Backend.CreateVertexDataCollection();
-                instances.AddBuffer(voxelInstanceLocationData);
-
-                locationData = TiVEController.Backend.CreateData(locations, locations.Length, 3, DataType.Instance, ValueType.Short, false, true);
-                instances.AddBuffer(locationData);
-
-                colorData = TiVEController.Backend.CreateData(colors, colors.Length, 4, DataType.Instance, ValueType.Byte, true, true);
-                instances.AddBuffer(colorData);
-
-                instances.Initialize();
-            }
-            else
-            {
-                locationData.UpdateData(locations, aliveParticleCount);
-                colorData.UpdateData(colors, aliveParticleCount);
-            }
-
-            instances.Bind();
-
-            TiVEController.Backend.Draw(PrimitiveType.Triangles, instances);
+            AliveParticles = dataIndex - dataStartIndex;
         }
     }
 }
