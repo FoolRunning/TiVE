@@ -60,6 +60,11 @@ namespace ProdigalSoftware.TiVE.Renderer.Particles
             particleSystems.Clear();
         }
 
+        public bool HasTransparency
+        {
+            get { return systemInfo.TransparentParticles; }
+        }
+
         public void Add(ParticleSystem system)
         {
             Debug.Assert(system.SystemInformation == systemInfo);
