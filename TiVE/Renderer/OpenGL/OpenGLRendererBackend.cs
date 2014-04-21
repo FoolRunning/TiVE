@@ -122,6 +122,7 @@ namespace ProdigalSoftware.TiVE.Renderer.OpenGL
             private readonly Stopwatch sw = new Stopwatch();
             private readonly StatHelper renderTime = new StatHelper();
             private readonly StatHelper updateTime = new StatHelper();
+            private readonly StatHelper frameTime = new StatHelper();
 
             private double lastPrintTime;
             private GameLogic game;
@@ -191,11 +192,12 @@ namespace ProdigalSoftware.TiVE.Renderer.OpenGL
                 updateTime.AddData(sw.ElapsedTicks * 1000f / Stopwatch.Frequency);
 
                 lastPrintTime += e.Time;
-                if (lastPrintTime > 0.25)
+                if (lastPrintTime > 0.1)
                 {
-                    lastPrintTime -= 0.25;
+                    lastPrintTime -= 0.1;
                     updateTime.UpdateDisplayedTime();
                     renderTime.UpdateDisplayedTime();
+                    frameTime.UpdateDisplayedTime();
                 }
             }
 
@@ -211,6 +213,8 @@ namespace ProdigalSoftware.TiVE.Renderer.OpenGL
             /// <param name="e">Contains timing information.</param>
             protected override void OnRenderFrame(FrameEventArgs e)
             {
+                frameTime.AddData((float)e.Time * 1000f);
+
                 sw.Restart();
                 base.OnRenderFrame(e);
 
@@ -223,8 +227,9 @@ namespace ProdigalSoftware.TiVE.Renderer.OpenGL
                 sw.Stop();
                 renderTime.AddData(sw.ElapsedTicks * 1000f / Stopwatch.Frequency);
 
-                Title = string.Format("TiVE         Update={5:F2}   Render={4:F2}   Voxels={0:D8}  Rendered={1:D8}  Polys={2:D8}  Draws={3:D4}",
-                    stats.VoxelCount, stats.RenderedVoxelCount, stats.PolygonCount, stats.DrawCount, renderTime.DisplayedTime, updateTime.DisplayedTime);
+                Title = string.Format("TiVE   Frame={6:F2}   Update={5:F2}   Render={4:F2}   Voxels={0:D8}  Rendered={1:D8}  Polys={2:D8}  Draws={3:D4}",
+                    stats.VoxelCount, stats.RenderedVoxelCount, stats.PolygonCount, stats.DrawCount, renderTime.DisplayedTime, 
+                    updateTime.DisplayedTime, frameTime.DisplayedTime);
             }
         }
         #endregion

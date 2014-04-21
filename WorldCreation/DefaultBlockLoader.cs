@@ -51,7 +51,7 @@ namespace WorldCreation
             uint[,,] particleVoxels = new uint[1, 1, 1];
             particleVoxels[0, 0, 0] = 0xFFFFFFFF;
             yield return new BlockInformation("fire", fireBlockVoxels, 
-                new ParticleSystemInformation(particleVoxels, new FireUpdater(), new Vector3b(5, 5, 8), 500, 510, true));
+                new ParticleSystemInformation(particleVoxels, new FireUpdater(), new Vector3b(5, 5, 8), 300, 310, true));
 
 
             uint[, ,] fountainBlockVoxels = CreateBlockInfo(false, true, new Color4(20, 20, 150, 255), 1.0f);
@@ -64,7 +64,7 @@ namespace WorldCreation
             particleVoxels[1, 1, 0] = 0xFFFFFFFF;
             particleVoxels[1, 1, 2] = 0xFFFFFFFF;
             yield return new BlockInformation("fountain", fountainBlockVoxels,
-                new ParticleSystemInformation(particleVoxels, new FountainUpdater(), new Vector3b(3, 3, 7), 100, 210, false));
+                new ParticleSystemInformation(particleVoxels, new FountainUpdater(), new Vector3b(3, 3, 7), 1000, 200, false));
         }
 
         private static uint[, ,] CreateBlockInfo(bool frontOnly, bool sphere, Color4 color, float voxelDensity)
@@ -221,7 +221,7 @@ namespace WorldCreation
             static FountainUpdater()
             {
                 for (int i = 0; i < 256; i++)
-                    colorList[i] = new Color4b((byte)(50 - (int)((255 - i) / 5.0f)), (byte)(150 - (int)((255 - i) / 2.0f)), 255, 255);
+                    colorList[i] = new Color4b((byte)(55 - (int)((255 - i) / 5.0f)), (byte)(150 - (int)((255 - i) / 2.0f)), 255, 255);
             }
 
             #region Implementation of IParticleUpdater
@@ -230,7 +230,7 @@ namespace WorldCreation
                 return true;
             }
 
-            private const float AliveTime = 2.0f;
+            private const float AliveTime = 3.0f;
 
             public override void Update(Particle particle, float timeSinceLastFrame, float systemX, float systemY, float systemZ)
             {

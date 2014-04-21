@@ -41,10 +41,9 @@ namespace ProdigalSoftware.TiVE.Renderer.Particles
             float locX = Location.X;
             float locY = Location.Y;
             float locZ = Location.Z;
-            int dataStartIndex = dataIndex;
-            for (int pi = 0; pi < aliveParticles + newParticleCount; pi++)
+            for (int i = 0; i < aliveParticles; i++)
             {
-                Particle part = particleList[pi];
+                Particle part = particleList[i];
                 if (part.Time > 0.0f)
                     upd.Update(part, timeSinceLastFrame, locX, locY, locZ);
                 else if (newParticleCount > 0)
@@ -52,15 +51,14 @@ namespace ProdigalSoftware.TiVE.Renderer.Particles
                     // We need new particles, just re-initialize this one
                     upd.InitializeNew(part, locX, locY, locZ);
                     newParticleCount--;
-                    aliveParticles++;
                 }
                 else
                 {
                     // Particle died replace with an existing alive particle
                     int lastAliveIndex = aliveParticles - 1;
                     Particle lastAlive = particleList[lastAliveIndex];
-                    particleList[lastAliveIndex] = part;
-                    particleList[pi] = lastAlive;
+                    particleList[lastAliveIndex] = particleList[i];
+                    particleList[i] = lastAlive;
                     part = lastAlive;
                     aliveParticles--;
                     // Just replaced current particle with another one. Need to update it.
@@ -72,7 +70,17 @@ namespace ProdigalSoftware.TiVE.Renderer.Particles
                 dataIndex++;
             }
 
-            AliveParticles = dataIndex - dataStartIndex;
+            for (int i = 0; i < newParticleCount; i++)
+            {
+                Particle part = particleList[aliveParticles];
+                upd.InitializeNew(part, locX, locY, locZ);
+                locationArray[dataIndex] = new Vector3s((short)part.X, (short)part.Y, (short)part.Z);
+                colorArray[dataIndex] = part.Color;
+                dataIndex++;
+                aliveParticles++;
+            }
+
+            AliveParticles = aliveParticles;
         }
     }
 }

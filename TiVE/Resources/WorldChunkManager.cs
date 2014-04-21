@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Threading;
 using ProdigalSoftware.TiVE.Renderer.Voxels;
 using ProdigalSoftware.TiVE.Starter;
@@ -119,7 +118,6 @@ namespace ProdigalSoftware.TiVE.Resources
                 {
                     meshBuilder = new MeshBuilder(200000, 400000);
                     meshBuilders.Add(meshBuilder);
-                    Debug.WriteLine("Meshbuilder count: " + meshBuilders.Count);
                 }
 
                 ChunkLoadInfo chunkInfo;

@@ -14,7 +14,6 @@ namespace ProdigalSoftware.TiVE.Resources
         public static bool Initialize()
         {
             GameWorldManager = new GameWorldManager();
-            ParticleManager = new ParticleSystemManager();
 
             PluginManager = new PluginManager();
             if (!PluginManager.LoadPlugins())
@@ -30,6 +29,10 @@ namespace ProdigalSoftware.TiVE.Resources
 
             ChunkManager = new WorldChunkManager();
             if (!ChunkManager.Initialize())
+                return false;
+
+            ParticleManager = new ParticleSystemManager();
+            if (!ParticleManager.Initialize())
                 return false;
 
             return true;

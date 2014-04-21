@@ -11,7 +11,7 @@ namespace ProdigalSoftware.TiVE.Renderer
     {
         public void Update(Camera camera, float timeSinceLastFrame)
         {
-            ResourceManager.ParticleManager.UpdateAllSystems(timeSinceLastFrame); 
+            //ResourceManager.ParticleManager.UpdateAllSystems(timeSinceLastFrame); 
         }
 
         public void Draw(Camera camera, out RenderStatistics stats)
@@ -56,7 +56,11 @@ namespace ProdigalSoftware.TiVE.Renderer
                 }
             }
 
-            ResourceManager.ParticleManager.Render(ref viewProjectionMatrix);
+            RenderStatistics partStats = ResourceManager.ParticleManager.Render(ref viewProjectionMatrix);
+            polygonCount += partStats.PolygonCount;
+            voxelCount += partStats.VoxelCount;
+            renderedVoxelCount += partStats.RenderedVoxelCount;
+            drawCount += partStats.DrawCount;
 
             //for (int s = 0; s < sprites.Count; s++)
             //{
