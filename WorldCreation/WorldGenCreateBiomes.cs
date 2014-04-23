@@ -25,8 +25,7 @@ namespace WorldCreation
 
             //Debug.WriteLine(scale1 + ", " + scale2 + ", " + scale3);
 
-            // Use parallel for for speed since there is no syncing needed
-            Parallel.For(0, gameWorld.Xsize, x =>
+            for (int x = 0; x < gameWorld.Xsize; x++)
             {
                 double noise = Noise.GetNoise((offset1 + x) * scale1) * 0.6 +
                     Noise.GetNoise((offset2 + x) * scale2) * 0.25 +
@@ -34,7 +33,7 @@ namespace WorldCreation
 
                 int bottomY = gameWorld.Ysize - (int) (noise * 75.0) - 125;
                 FillColumn(gameWorld, x, bottomY);
-            });
+            }
         }
 
         public ushort Priority

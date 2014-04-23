@@ -33,8 +33,7 @@ namespace WorldCreation
             double scaleY3 = random2.NextDouble() * 0.20 + 0.07;
 
             // Use parallel for for speed since there is no syncing needed
-            Parallel.For(0, gameWorld.Xsize, x =>
-            //for (int x = 0; x < gameWorld.Xsize; x++)
+            for (int x = 0; x < gameWorld.Xsize; x++)
                 {
                     for (int y = 0; y < gameWorld.Ysize; y++)
                     {
@@ -72,7 +71,7 @@ namespace WorldCreation
                             gameWorld.SetBlock(x, y, 15, 0);
                         }
                     }
-                });
+                }
         }
 
         public ushort Priority

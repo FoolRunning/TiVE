@@ -53,6 +53,9 @@ namespace WorldCreation
             yield return new BlockInformation("fire", fireBlockVoxels, 
                 new ParticleSystemInformation(particleVoxels, new FireUpdater(), new Vector3b(5, 5, 8), 300, 310, true));
 
+            uint[, ,] snowBlockVoxels = new uint[BlockInformation.BlockSize, BlockInformation.BlockSize, BlockInformation.BlockSize];
+            yield return new BlockInformation("snow", snowBlockVoxels,
+                new ParticleSystemInformation(particleVoxels, new SnowUpdater(), new Vector3b(0, 0, 0), 5, 5, true));
 
             uint[, ,] fountainBlockVoxels = CreateBlockInfo(false, true, new Color4(20, 20, 150, 255), 1.0f);
             particleVoxels = new uint[3, 3, 3];
@@ -140,6 +143,63 @@ namespace WorldCreation
                 Math.Min(seed.B * scale, 1.0f), seed.A);
         }
 
+        private class SnowUpdater : ParticleController
+        {
+            private const float SnowDeacceleration = 21.0f;
+            private const float AliveTime = 30.0f;
+
+            private static readonly Random random = new Random();
+
+            #region Implementation of IParticleUpdater
+            public override bool BeginUpdate(IParticleSystem particleSystem, float timeSinceLastFrame)
+            {
+                return true;
+            }
+
+            public override void Update(Particle particle, float timeSinceLastFrame, float systemX, float systemY, float systemZ)
+            {
+                ApplyVelocity(particle, timeSinceLastFrame);
+
+                if (particle.X > systemX + BlockInformation.BlockSize)
+                    particle.VelX -= SnowDeacceleration * timeSinceLastFrame;
+                if (particle.X < systemX)
+                    particle.VelX += SnowDeacceleration * timeSinceLastFrame;
+                if (particle.Y > systemY + BlockInformation.BlockSize)
+                    particle.VelY -= SnowDeacceleration * timeSinceLastFrame;
+                if (particle.Y < systemY)
+                    particle.VelY += SnowDeacceleration * timeSinceLastFrame;
+
+                if (particle.Z < 0)
+                    InitNewInternal(particle, systemX, systemY, true);
+
+                particle.Time -= timeSinceLastFrame;
+            }
+
+            public override void InitializeNew(Particle particle, float startX, float startY, float startZ)
+            {
+                InitNewInternal(particle, startX, startY, false);
+            }
+            #endregion
+
+            private static void InitNewInternal(Particle particle, float startX, float startY, bool startAtTop)
+            {
+                particle.VelX = (float)random.NextDouble() * 48.0f - 24.0f;
+                particle.VelZ = (float)random.NextDouble() * -30.0f - 20.0f;
+                particle.VelY = (float)random.NextDouble() * 48.0f - 24.0f;
+
+                particle.X = startX + random.Next(BlockInformation.BlockSize);
+                particle.Y = startY + random.Next(BlockInformation.BlockSize);
+                if (startAtTop)
+                    particle.Z = 30 * BlockInformation.BlockSize;
+                else
+                    particle.Z = random.Next(29 * BlockInformation.BlockSize) + 1.0f;
+
+                particle.Color = new Color4b(255, 255, 255, 100);
+                particle.Time = (float)random.NextDouble() * AliveTime / 2.0f + AliveTime / 2.0f;
+            }
+        }
+
+
         private class FireUpdater : ParticleController
         {
             private const float FlameDeacceleration = 27.0f;
@@ -153,9 +213,9 @@ namespace WorldCreation
                 for (int i = 0; i < 256; i++)
                 {
                     if (i < 150)
-                        colorList[i] = new Color4b(255, (byte)(255 - (i * 1.7f)), (byte)(50 - i / 3), 150);
+                        colorList[i] = new Color4b(255, (byte)(255 - (i * 1.7f)), (byte)(50 - i / 3), 200);
                     if (i >= 150)
-                        colorList[i] = new Color4b((byte)(255 - (i - 150) * 2.4f), 0, 0, 150);
+                        colorList[i] = new Color4b((byte)(255 - (i - 150) * 2.4f), 0, 0, 200);
                 }
             }
 
@@ -230,11 +290,11 @@ namespace WorldCreation
                 return true;
             }
 
-            private const float AliveTime = 3.0f;
+            private const float AliveTime = 2.0f;
 
             public override void Update(Particle particle, float timeSinceLastFrame, float systemX, float systemY, float systemZ)
             {
-                particle.VelZ -= 50.0f * timeSinceLastFrame;
+                particle.VelZ -= 100.0f * timeSinceLastFrame;
                 ApplyVelocity(particle, timeSinceLastFrame);
                 particle.Time -= timeSinceLastFrame;
 
@@ -249,9 +309,9 @@ namespace WorldCreation
             public override void InitializeNew(Particle particle, float startX, float startY, float startZ)
             {
                 float angle = (float)random.NextDouble() * 2.0f * 3.141592f;
-                float totalVel = (float)random.NextDouble() * 5.0f + 10.0f;
+                float totalVel = (float)random.NextDouble() * 10.0f + 20.0f;
                 particle.VelX = (float)Math.Cos(angle) * totalVel;
-                particle.VelZ = (float)random.NextDouble() * 5.0f + 35.0f;
+                particle.VelZ = (float)random.NextDouble() * 10.0f + 40.0f;
                 particle.VelY = (float)Math.Sin(angle) * totalVel;
 
                 particle.X = startX;

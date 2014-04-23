@@ -41,7 +41,7 @@ namespace ProdigalSoftware.TiVE.Renderer.Voxels
         public void Dispose()
         {
             IVertexDataCollection meshData;
-            lock (syncLock)
+            using (new PerformanceLock(syncLock))
             {
                 meshData = mesh;
                 mesh = null;
@@ -59,7 +59,7 @@ namespace ProdigalSoftware.TiVE.Renderer.Voxels
         {
             get
             {
-                lock (syncLock)
+                using (new PerformanceLock(syncLock))
                     return deleted;
             }
         }
@@ -182,7 +182,7 @@ namespace ProdigalSoftware.TiVE.Renderer.Voxels
             int voxelCount, renderedVoxelCount, polygonCount;
             IVertexDataCollection meshData = GenerateMesh(voxels, meshBuilder, out voxelCount, out renderedVoxelCount, out polygonCount);
 
-            lock (syncLock)
+            using (new PerformanceLock(syncLock))
             {
                 if (deleted)
                 {
@@ -203,7 +203,7 @@ namespace ProdigalSoftware.TiVE.Renderer.Voxels
         public void Initialize()
         {
             IVertexDataCollection meshData;
-            lock (syncLock)
+            using (new PerformanceLock(syncLock))
                 meshData = mesh;
             
             if (meshData != null)
@@ -213,7 +213,7 @@ namespace ProdigalSoftware.TiVE.Renderer.Voxels
         public RenderStatistics RenderOpaque(ref Matrix4 viewProjectionMatrix)
         {
             IVertexDataCollection meshData;
-            lock (syncLock)
+            using (new PerformanceLock(syncLock))
                 meshData = mesh;
 
             if (meshData == null)
@@ -234,7 +234,7 @@ namespace ProdigalSoftware.TiVE.Renderer.Voxels
 
         private static void SetVoxelsFromBlock(uint[] voxels,int startX, int startY, int startZ, BlockInformation block)
         {
-            uint[, ,] blockData = block.Voxels;
+            uint[] blockData = block.Voxels;
 
             for (int z = 0; z < BlockInformation.BlockSize; z++)
             {
@@ -243,9 +243,15 @@ namespace ProdigalSoftware.TiVE.Renderer.Voxels
                 {
                     int xOff = startX + x;
                     for (int y = 0; y < BlockInformation.BlockSize; y++)
-                        voxels[GetOffset(xOff, startY + y, zOff)] = blockData[x, y, z];
+                        voxels[GetOffset(xOff, startY + y, zOff)] = blockData[GetBlockOffset(x, y, z)];
                 }
             }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static int GetBlockOffset(int x, int y, int z)
+        {
+            return x * BlockInformation.BlockSize * BlockInformation.BlockSize + z * BlockInformation.BlockSize + y;
         }
 
         private static IVertexDataCollection GenerateMesh(uint[] voxels, MeshBuilder meshBuilder, out int voxelCount, out int renderedVoxelCount, out int polygonCount)

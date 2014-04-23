@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading;
 using ProdigalSoftware.TiVE.Renderer.Voxels;
 using ProdigalSoftware.TiVE.Starter;
+using ProdigalSoftware.Utils;
 
 namespace ProdigalSoftware.TiVE.Resources
 {
@@ -16,15 +17,21 @@ namespace ProdigalSoftware.TiVE.Resources
         private readonly List<Tuple<int, GameWorldVoxelChunk>> chunksToDelete = new List<Tuple<int, GameWorldVoxelChunk>>();
         private readonly Dictionary<int, GameWorldVoxelChunk> chunks = new Dictionary<int, GameWorldVoxelChunk>(1200);
         private readonly Queue<ChunkLoadInfo> chunkLoadQueue = new Queue<ChunkLoadInfo>();
+        private readonly List<Thread> chunkCreationThreads = new List<Thread>();
+        private volatile bool endCreationThreads;
 
         public void Dispose()
         {
-            lock (chunkLoadQueue)
+            endCreationThreads = true;
+            foreach (Thread thread in chunkCreationThreads)
+                thread.Join();
+            chunkCreationThreads.Clear();
+
+            using (new PerformanceLock(chunkLoadQueue))
                 chunkLoadQueue.Clear();
 
             foreach (GameWorldVoxelChunk chunk in chunks.Values)
                 chunk.Dispose();
-
             chunks.Clear();
         }
 
@@ -32,9 +39,10 @@ namespace ProdigalSoftware.TiVE.Resources
         {
             Messages.Print("Starting chunk creations threads...");
 
+            endCreationThreads = false;
             int threadCount = Environment.ProcessorCount > 2 ? 2 : 1;
             for (int i = 0; i < threadCount; i++)
-                StartChunkCreateThread();
+                chunkCreationThreads.Add(StartChunkCreateThread());
 
             Messages.AddDoneText();
             return true;
@@ -90,21 +98,22 @@ namespace ProdigalSoftware.TiVE.Resources
             return chunkX + (chunkY << 8) + (chunkZ << 16);
         }
 
-        private void StartChunkCreateThread()
+        private Thread StartChunkCreateThread()
         {
-            Thread chunkCreationThread = new Thread(ChunkCreateLoop);
-            chunkCreationThread.IsBackground = true;
-            chunkCreationThread.Name = "ChunkLoad";
-            chunkCreationThread.Start();
+            Thread thread = new Thread(ChunkCreateLoop);
+            thread.IsBackground = true;
+            thread.Name = "ChunkLoad";
+            thread.Start();
+            return thread;
         }
 
         private void ChunkCreateLoop()
         {
             List<MeshBuilder> meshBuilders = new List<MeshBuilder>();
-            while (true)
+            while (!endCreationThreads)
             {
                 int count;
-                lock (chunkLoadQueue)
+                using (new PerformanceLock(chunkLoadQueue))
                     count = chunkLoadQueue.Count;
 
                 if (count == 0)
@@ -114,14 +123,14 @@ namespace ProdigalSoftware.TiVE.Resources
                 }
 
                 MeshBuilder meshBuilder = meshBuilders.Find(NotLocked);
-                if (meshBuilder == null && meshBuilders.Count < 3)
+                if (meshBuilder == null && meshBuilders.Count < 5)
                 {
                     meshBuilder = new MeshBuilder(200000, 400000);
                     meshBuilders.Add(meshBuilder);
                 }
 
                 ChunkLoadInfo chunkInfo;
-                lock (chunkLoadQueue)
+                using (new PerformanceLock(chunkLoadQueue))
                 {
                     if (meshBuilder == null || chunkLoadQueue.Count == 0)
                         continue; // Check for race condition with multiple threads accessing the queue

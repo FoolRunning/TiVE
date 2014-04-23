@@ -69,7 +69,7 @@ namespace ProdigalSoftware.TiVEBlockEditor
 
         private void UpdateBlock()
         {
-            uint[,,] voxels = editorForm.CurrentBlock.Voxels;
+            BlockInformation block = editorForm.CurrentBlock;
             for (int x = 0; x < BlockInformation.BlockSize; x++)
             {
                 for (int y = 0; y < BlockInformation.BlockSize; y++)
@@ -77,11 +77,9 @@ namespace ProdigalSoftware.TiVEBlockEditor
                     for (int z = 0; z < BlockInformation.BlockSize; z++)
                     {
                         if (random.NextDouble() > (sldrFillDensity.Value / 100.0))
-                            voxels[x, y, z] = 0;
+                            block[x, y, z] = 0;
                         else
-                        {
-                            voxels[x, y, z] = FromColor(CreateColorFromColor(pnlChosenColor.BackColor));
-                        }
+                            block[x, y, z] = FromColor(CreateColorFromColor(pnlChosenColor.BackColor));
                     }
                 }
             }

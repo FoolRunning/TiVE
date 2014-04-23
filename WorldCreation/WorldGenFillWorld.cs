@@ -20,6 +20,7 @@ namespace WorldCreation
             BlockRandomizer sands = new BlockRandomizer(blockList, "sand", 5);
             ushort fire = blockList.GetBlockIndex("fire");
             ushort fountain = blockList.GetBlockIndex("fountain");
+            ushort snow = blockList.GetBlockIndex("snow");
 
             Random random1 = new Random((int)((seed >> 11) & 0xFFFFFFFF));
             Random random2 = new Random((int)((seed >> 15) & 0xFFFFFFFF));
@@ -38,8 +39,7 @@ namespace WorldCreation
             double scaleX3 = random2.NextDouble() * 0.03 + 0.07;
             double scaleY3 = random2.NextDouble() * 0.03 + 0.07;
 
-            // Use parallel for for speed since there is no syncing needed
-            Parallel.For(0, gameWorld.Xsize, x =>
+            for (int x = 0; x < gameWorld.Xsize; x++)
             {
                 for (int y = 0; y < gameWorld.Ysize; y++)
                 {
@@ -86,8 +86,9 @@ namespace WorldCreation
                         if (noiseVal > -0.05 && noiseVal < -0.03)
                             gameWorld.SetBlock(x, y, 12, fire);
                     }
+                    //gameWorld.SetBlock(x, y, 15, snow);
                 }
-            });
+            }
         }
 
         private void Fill(IGameWorld gameWorld, int x, int y, ref int depth, BlockRandomizer block)

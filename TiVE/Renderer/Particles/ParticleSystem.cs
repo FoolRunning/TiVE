@@ -57,11 +57,11 @@ namespace ProdigalSoftware.TiVE.Renderer.Particles
                     // Particle died replace with an existing alive particle
                     int lastAliveIndex = aliveParticles - 1;
                     Particle lastAlive = particleList[lastAliveIndex];
-                    particleList[lastAliveIndex] = particleList[i];
+                    particleList[lastAliveIndex] = part;
                     particleList[i] = lastAlive;
                     part = lastAlive;
                     aliveParticles--;
-                    // Just replaced current particle with another one. Need to update it.
+                    // Just replaced current dead particle with an alive one. Need to update it.
                     upd.Update(part, timeSinceLastFrame, locX, locY, locZ);
                 }
 

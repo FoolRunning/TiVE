@@ -6,6 +6,7 @@ using System.Runtime.InteropServices;
 using OpenTK;
 using OpenTK.Graphics.OpenGL4;
 using ProdigalSoftware.TiVE.Starter;
+using ProdigalSoftware.Utils;
 
 namespace ProdigalSoftware.TiVE.Renderer.OpenGL
 {
@@ -119,7 +120,6 @@ namespace ProdigalSoftware.TiVE.Renderer.OpenGL
         #region OpenGLDisplay class
         private sealed class OpenGLDisplay : GameWindow, IDisplay
         {
-            private readonly Stopwatch sw = new Stopwatch();
             private readonly StatHelper renderTime = new StatHelper();
             private readonly StatHelper updateTime = new StatHelper();
             private readonly StatHelper frameTime = new StatHelper();
@@ -131,16 +131,16 @@ namespace ProdigalSoftware.TiVE.Renderer.OpenGL
             /// Creates a 1600x1200 window with the specified title.
             /// </summary>
             public OpenGLDisplay()
-                : base(1600, 1200, new OpenTK.Graphics.GraphicsMode(new OpenTK.Graphics.ColorFormat(8, 8, 8, 8), 16, 0, 4), "TiVE",
+                : base(1920, 1080, new OpenTK.Graphics.GraphicsMode(new OpenTK.Graphics.ColorFormat(8, 8, 8, 8), 16, 0, 4), "TiVE",
                     GameWindowFlags.Default, DisplayDevice.Default, 3, 1, OpenTK.Graphics.GraphicsContextFlags.ForwardCompatible)
             {
-                VSync = VSyncMode.Off;
+                VSync = VSyncMode.On;
             }
 
             public void RunMainLoop(GameLogic newGame)
             {
                 game = newGame;
-                Run(60, 60);
+                Run(60, 0);
             }
 
             /// <summary>
@@ -182,14 +182,12 @@ namespace ProdigalSoftware.TiVE.Renderer.OpenGL
             /// <param name="e">Contains timing information for framerate independent logic.</param>
             protected override void OnUpdateFrame(FrameEventArgs e)
             {
-                sw.Restart();
+                updateTime.StartTime();
                 base.OnUpdateFrame(e);
 
                 if (!game.UpdateFrame((float)e.Time, Keyboard))
                     Exit();
-                sw.Stop();
-
-                updateTime.AddData(sw.ElapsedTicks * 1000f / Stopwatch.Frequency);
+                updateTime.AddTime();
 
                 lastPrintTime += e.Time;
                 if (lastPrintTime > 0.1)
@@ -215,7 +213,7 @@ namespace ProdigalSoftware.TiVE.Renderer.OpenGL
             {
                 frameTime.AddData((float)e.Time * 1000f);
 
-                sw.Restart();
+                renderTime.StartTime();
                 base.OnRenderFrame(e);
 
                 GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
@@ -223,9 +221,9 @@ namespace ProdigalSoftware.TiVE.Renderer.OpenGL
 
                 GlUtils.CheckGLErrors();
 
+                renderTime.AddTime();
+
                 SwapBuffers();
-                sw.Stop();
-                renderTime.AddData(sw.ElapsedTicks * 1000f / Stopwatch.Frequency);
 
                 Title = string.Format("TiVE   Frame={6:F2}   Update={5:F2}   Render={4:F2}   Voxels={0:D8}  Rendered={1:D8}  Polys={2:D8}  Draws={3:D4}",
                     stats.VoxelCount, stats.RenderedVoxelCount, stats.PolygonCount, stats.DrawCount, renderTime.DisplayedTime, 
@@ -238,7 +236,8 @@ namespace ProdigalSoftware.TiVE.Renderer.OpenGL
         private sealed class MeshVertexDataCollection : IVertexDataCollection
         {
             private readonly List<IRendererData> buffers = new List<IRendererData>();
-            private bool deleted;
+            private volatile bool deleted;
+            private volatile bool initialized;
             private int vertexArrayId;
             private IRendererData indexBuffer;
             private IRendererData firstVertexBuffer;
@@ -251,7 +250,7 @@ namespace ProdigalSoftware.TiVE.Renderer.OpenGL
 
             public void Dispose()
             {
-                lock (buffers)
+                using (new PerformanceLock(buffers))
                 {
                     buffers.ForEach(b => b.Dispose());
                     if (indexBuffer != null)
@@ -300,25 +299,11 @@ namespace ProdigalSoftware.TiVE.Renderer.OpenGL
                 get { return firstInstanceBuffer != null ? firstInstanceBuffer.DataLength : 0; }
             }
 
-            private bool initialized;
-
             public bool IsInitialized 
             {
-                get 
-                {
-                    lock (buffers)
-                        return initialized || deleted;
-                }
+                get { return initialized || deleted; }
             }
-            //public bool IsInitialized
-            //{
-            //    get 
-            //    {
-            //        lock (buffers)
-            //            return vertexArrayId != 0;
-            //    }
-            //}
-
+            
             public void AddBuffer(IRendererData buffer)
             {
                 if (vertexArrayId != 0)
@@ -355,7 +340,7 @@ namespace ProdigalSoftware.TiVE.Renderer.OpenGL
                     return true; // Already initialized
 
                 bool success = true;
-                lock (buffers)
+                using (new PerformanceLock(buffers))
                 {
                     vertexArrayId = GL.GenVertexArray();
                     GL.BindVertexArray(vertexArrayId);
@@ -771,8 +756,11 @@ namespace ProdigalSoftware.TiVE.Renderer.OpenGL
         /// </summary>
         private sealed class StatHelper
         {
+            private static Stopwatch stopwatch = Stopwatch.StartNew();
+
             private float totalTime;
             private int dataCount;
+            private long startTicks;
 
             /// <summary>
             /// Gets the value to display
@@ -786,6 +774,18 @@ namespace ProdigalSoftware.TiVE.Renderer.OpenGL
             {
                 totalTime += data;
                 dataCount++;
+            }
+
+            public void StartTime()
+            {
+                startTicks = stopwatch.ElapsedTicks;
+            }
+
+            public void AddTime()
+            {
+                long endTime = stopwatch.ElapsedTicks;
+                float timeValue = (endTime - startTicks) * 1000.0f / Stopwatch.Frequency;
+                AddData(timeValue);
             }
 
             /// <summary>
