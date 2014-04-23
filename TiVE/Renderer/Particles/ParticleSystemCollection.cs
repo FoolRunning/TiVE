@@ -19,6 +19,7 @@ namespace ProdigalSoftware.TiVE.Renderer.Particles
         private readonly ParticleSystemInformation systemInfo;
 
         private readonly IRendererData voxelInstanceLocationData;
+        private readonly IRendererData voxelInstanceColorData;
         private readonly int polysPerParticle;
         private readonly int voxelsPerParticle;
         private readonly int renderedVoxelsPerParticle;
@@ -40,6 +41,8 @@ namespace ProdigalSoftware.TiVE.Renderer.Particles
             VoxelMeshUtils.GenerateMesh(systemInfo.ParticleVoxels, voxelInstanceBuilder,
                 out voxelsPerParticle, out renderedVoxelsPerParticle, out polysPerParticle);
             voxelInstanceLocationData = voxelInstanceBuilder.GetLocationData();
+            if (!HasTransparency)
+                voxelInstanceColorData = voxelInstanceBuilder.GetColorData();
 
             locations = new Vector3s[systemInfo.MaxParticles * 5];
             colors = new Color4b[systemInfo.MaxParticles * 5];
@@ -56,8 +59,13 @@ namespace ProdigalSoftware.TiVE.Renderer.Particles
         public void Dispose()
         {
             voxelInstanceLocationData.Dispose();
+            
+            if (voxelInstanceColorData != null)
+                voxelInstanceColorData.Dispose();
+            
             if (instances != null)
                 instances.Dispose();
+
             particleSystems.Clear();
             particleSystemIndex.Clear();
         }
@@ -135,6 +143,8 @@ namespace ProdigalSoftware.TiVE.Renderer.Particles
             {
                 instances = TiVEController.Backend.CreateVertexDataCollection();
                 instances.AddBuffer(voxelInstanceLocationData);
+                if (!HasTransparency)
+                    instances.AddBuffer(voxelInstanceColorData);
                 locationData = TiVEController.Backend.CreateData(locations, 0, 3, DataType.Instance, ValueType.Short, false, true);
                 instances.AddBuffer(locationData);
                 colorData = TiVEController.Backend.CreateData(colors, 0, 4, DataType.Instance, ValueType.Byte, true, true);
@@ -145,7 +155,7 @@ namespace ProdigalSoftware.TiVE.Renderer.Particles
             locationData.UpdateData(locations, totalAliveParticles);
             colorData.UpdateData(colors, totalAliveParticles);
 
-            IShaderProgram shader = ResourceManager.ShaderManager.GetShaderProgram("Particles");
+            IShaderProgram shader = ResourceManager.ShaderManager.GetShaderProgram(HasTransparency ? "TransparentParticles" : "SolidParticles");
             shader.Bind();
             shader.SetUniform("matrix_ModelViewProjection", ref matrixMVP);
 
