@@ -6,6 +6,7 @@ using OpenTK;
 using ProdigalSoftware.TiVE.Renderer.Particles;
 using ProdigalSoftware.TiVE.Starter;
 using ProdigalSoftware.TiVEPluginFramework;
+using ProdigalSoftware.Utils;
 
 namespace ProdigalSoftware.TiVE.Resources
 {
@@ -47,7 +48,7 @@ namespace ProdigalSoftware.TiVE.Resources
         public void AddParticleSystem(ParticleSystem system)
         {
             ParticleSystemCollection collection;
-            lock (particleSystemCollections)
+            using (new PerformanceLock(particleSystemCollections))
             {
                 if (!particleSystemCollections.TryGetValue(system.SystemInformation, out collection))
                     particleSystemCollections[system.SystemInformation] = collection = new ParticleSystemCollection(system.SystemInformation);
@@ -58,7 +59,7 @@ namespace ProdigalSoftware.TiVE.Resources
         public void RemoveParticleSystem(ParticleSystem system)
         {
             ParticleSystemCollection collection;
-            lock (particleSystemCollections)
+            using (new PerformanceLock(particleSystemCollections))
                 particleSystemCollections.TryGetValue(system.SystemInformation, out collection);
             
             if (collection != null)
@@ -68,7 +69,7 @@ namespace ProdigalSoftware.TiVE.Resources
         public RenderStatistics Render(ref Matrix4 matrixMVP)
         {
             renderList.Clear();
-            lock (particleSystemCollections)
+            using (new PerformanceLock(particleSystemCollections))
                 renderList.AddRange(particleSystemCollections.Values);
 
             int drawCount = 0;
@@ -117,7 +118,7 @@ namespace ProdigalSoftware.TiVE.Resources
                     float timeSinceLastUpdate = (newTicks - lastTime) / ticksPerSecond;
                     
                     updateList.Clear();
-                    lock (particleSystemCollections)
+                    using (new PerformanceLock(particleSystemCollections))
                         updateList.AddRange(particleSystemCollections.Values);
 
                     for (int i = 0; i < updateList.Count; i++)

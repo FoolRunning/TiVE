@@ -1,5 +1,6 @@
 ﻿using System;
 using ProdigalSoftware.TiVEPluginFramework;
+using ProdigalSoftware.Utils;
 
 namespace ProdigalSoftware.TiVE.Renderer.World
 {
@@ -51,14 +52,14 @@ namespace ProdigalSoftware.TiVE.Renderer.World
                 throw new ArgumentOutOfRangeException("blockIndex", "Block with the specified index does not exist");
 
             ushort[] depthBlocks = worldBlocks[x][y];
-            lock (depthBlocks)
+            using (new PerformanceLock(depthBlocks))
                 depthBlocks[z] = blockIndex;
         }
 
         public ushort GetBlock(int x, int y, int z)
         {
             ushort[] depthBlocks = worldBlocks[x][y];
-            lock (depthBlocks)
+            using (new PerformanceLock(depthBlocks))
                 return depthBlocks[z];
         }
     }

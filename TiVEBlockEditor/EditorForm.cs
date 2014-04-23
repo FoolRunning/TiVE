@@ -103,7 +103,8 @@ namespace ProdigalSoftware.TiVEBlockEditor
             {
                 if (currentBlock != null)
                     currentBlock.Dispose();
-                currentBlock = new SimpleVoxelGroup(blocks[currentBlockIndex].Voxels);
+                //blocks[currentBlockIndex].Voxels;
+                currentBlock = new SimpleVoxelGroup(null);
                 forceUpdateBlock = false;
             }
 

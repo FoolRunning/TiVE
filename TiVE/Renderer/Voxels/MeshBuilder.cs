@@ -27,7 +27,7 @@ namespace ProdigalSoftware.TiVE.Renderer.Voxels
         {
             get 
             {
-                lock (syncRoot)
+                using (new PerformanceLock(syncRoot))
                 {
                     if (locked)
                         return true;
@@ -42,7 +42,7 @@ namespace ProdigalSoftware.TiVE.Renderer.Voxels
 
         public void StartNewMesh()
         {
-            lock (syncRoot)
+            using (new PerformanceLock(syncRoot))
             {
                 locked = true;
                 vertexCount = 0;
@@ -52,7 +52,7 @@ namespace ProdigalSoftware.TiVE.Renderer.Voxels
 
         public void CancelMesh()
         {
-            lock (syncRoot)
+            using (new PerformanceLock(syncRoot))
                 locked = false;
         }
 
@@ -90,7 +90,7 @@ namespace ProdigalSoftware.TiVE.Renderer.Voxels
         public IVertexDataCollection GetMesh()
         {
             IVertexDataCollection meshData;
-            lock (syncRoot)
+            using (new PerformanceLock(syncRoot))
             {
                 locked = false;
                 meshData = TiVEController.Backend.CreateVertexDataCollection();
@@ -106,7 +106,7 @@ namespace ProdigalSoftware.TiVE.Renderer.Voxels
         public IVertexDataCollection GetInstanceData(params IRendererData[] instanceMeshData)
         {
             IVertexDataCollection dataCollection;
-            lock (syncRoot)
+            using (new PerformanceLock(syncRoot))
             {
                 locked = false;
                 dataCollection = TiVEController.Backend.CreateVertexDataCollection();

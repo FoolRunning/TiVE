@@ -175,7 +175,8 @@ Global
 		{DC99C507-28DD-4DBF-B6B4-1F9C99E849F1}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{DC99C507-28DD-4DBF-B6B4-1F9C99E849F1}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{DC99C507-28DD-4DBF-B6B4-1F9C99E849F1}.Release|x64.ActiveCfg = Release|Any CPU
-		{DC99C507-28DD-4DBF-B6B4-1F9C99E849F1}.Release|x86.ActiveCfg = Release|Any CPU
+		{DC99C507-28DD-4DBF-B6B4-1F9C99E849F1}.Release|x86.ActiveCfg = Release|x86
+		{DC99C507-28DD-4DBF-B6B4-1F9C99E849F1}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

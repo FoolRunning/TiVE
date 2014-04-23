@@ -14,6 +14,7 @@ namespace ProdigalSoftware.TiVE.Renderer.Particles
         private readonly List<ParticleSystem> particleSystems = new List<ParticleSystem>();
         /// <summary>Copy of the particle systems list used for updating without locking too long</summary>
         private readonly List<ParticleSystem> updateList = new List<ParticleSystem>();
+        private readonly Dictionary<ParticleSystem, int> particleSystemIndex = new Dictionary<ParticleSystem, int>();
         private readonly List<Particle[]> particles = new List<Particle[]>();
         private readonly ParticleSystemInformation systemInfo;
 
@@ -58,6 +59,7 @@ namespace ProdigalSoftware.TiVE.Renderer.Particles
             if (instances != null)
                 instances.Dispose();
             particleSystems.Clear();
+            particleSystemIndex.Clear();
         }
 
         public bool HasTransparency
@@ -69,12 +71,13 @@ namespace ProdigalSoftware.TiVE.Renderer.Particles
         {
             Debug.Assert(system.SystemInformation == systemInfo);
 
-            lock (particleSystems)
+            using (new PerformanceLock(particleSystems))
             {
                 int availableIndex = particleSystems.FindIndex(sys => sys == null);
                 if (availableIndex >= 0)
                 {
                     particleSystems[availableIndex] = system;
+                    particleSystemIndex[system] = availableIndex;
                     ResetSystemParticles(availableIndex);
                 }
                 else
@@ -84,6 +87,7 @@ namespace ProdigalSoftware.TiVE.Renderer.Particles
                     for (int i = 0; i < 10; i++)
                         AddNewSystem();
                     particleSystems[newIndex] = system;
+                    particleSystemIndex[system] = newIndex;
 
                     int origCount = locations.Length;
                     int newCount = origCount + systemInfo.MaxParticles * 10;
@@ -97,18 +101,21 @@ namespace ProdigalSoftware.TiVE.Renderer.Particles
         {
             Debug.Assert(system.SystemInformation == systemInfo);
 
-            lock (particleSystems)
+            using (new PerformanceLock(particleSystems))
             {
-                int systemIndex = particleSystems.IndexOf(system);
-                if (systemIndex >= 0)
+                int systemIndex;
+                if (particleSystemIndex.TryGetValue(system, out systemIndex))
+                {
                     particleSystems[systemIndex] = null;
+                    particleSystemIndex.Remove(system);
+                }
             }
         }
 
         public void UpdateAll(float timeSinceLastFrame)
         {
             updateList.Clear();
-            lock (particleSystems)
+            using (new PerformanceLock(particleSystems))
                 updateList.AddRange(particleSystems); // Make copy to not lock during the updating
 
             int dataIndex = 0;
