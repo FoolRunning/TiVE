@@ -9,8 +9,19 @@ attrib: in_Color
 uniform: matrix_ModelViewProjection
 
 
-# Shader for the particle effects
-[Particles]
+# Shader for the solid-particle effects
+[SolidParticles]
+vert: ProdigalSoftware.TiVE.Renderer.OpenGL.Shaders.Instances.vert
+frag: ProdigalSoftware.TiVE.Renderer.OpenGL.Shaders.Simple.frag
+attrib: in_Position
+attrib: in_Color
+attrib: in_InstancePos
+attrib: in_InstanceColor
+uniform: matrix_ModelViewProjection
+
+
+# Shader for the transparent-particle effects
+[TransparentParticles]
 vert: ProdigalSoftware.TiVE.Renderer.OpenGL.Shaders.Particles.vert
 frag: ProdigalSoftware.TiVE.Renderer.OpenGL.Shaders.Simple.frag
 attrib: in_Position
