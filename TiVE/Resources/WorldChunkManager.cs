@@ -118,7 +118,7 @@ namespace ProdigalSoftware.TiVE.Resources
 
                 if (count == 0)
                 {
-                    Thread.Sleep(2);
+                    Thread.Sleep(4);
                     continue;
                 }
 

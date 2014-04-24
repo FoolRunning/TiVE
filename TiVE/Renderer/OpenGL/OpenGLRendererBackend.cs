@@ -124,11 +124,16 @@ namespace ProdigalSoftware.TiVE.Renderer.OpenGL
             private readonly StatHelper updateTime = new StatHelper();
             private readonly StatHelper frameTime = new StatHelper();
 
+            private readonly StatHelper drawCount = new StatHelper();
+            private readonly StatHelper voxelCount = new StatHelper();
+            private readonly StatHelper polygonCount = new StatHelper();
+            private readonly StatHelper renderedVoxelCount = new StatHelper();
+
             private double lastPrintTime;
             private GameLogic game;
 
             /// <summary>
-            /// Creates a 1600x1200 window with the specified title.
+            /// Creates a window
             /// </summary>
             public OpenGLDisplay()
                 : base(1920, 1080, new OpenTK.Graphics.GraphicsMode(new OpenTK.Graphics.ColorFormat(8, 8, 8, 8), 16, 0, 4), "TiVE",
@@ -196,6 +201,15 @@ namespace ProdigalSoftware.TiVE.Renderer.OpenGL
                     updateTime.UpdateDisplayedTime();
                     renderTime.UpdateDisplayedTime();
                     frameTime.UpdateDisplayedTime();
+
+                    drawCount.UpdateDisplayedTime();
+                    voxelCount.UpdateDisplayedTime();
+                    renderedVoxelCount.UpdateDisplayedTime();
+                    polygonCount.UpdateDisplayedTime();
+
+                    Title = string.Format("TiVE   Frame={6:F2}   Update={5:F2}   Render={4:F2}   Voxels={0:D8}  Rendered={1:D8}  Polys={2:D8}  Draws={3:D4}",
+                        (int)voxelCount.DisplayedValue, (int)renderedVoxelCount.DisplayedValue, (int)polygonCount.DisplayedValue, (int)drawCount.DisplayedValue,
+                        renderTime.DisplayedValue, updateTime.DisplayedValue, frameTime.DisplayedValue);
                 }
             }
 
@@ -219,15 +233,16 @@ namespace ProdigalSoftware.TiVE.Renderer.OpenGL
                 GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
                 RenderStatistics stats = game.Render((float)e.Time);
 
+                drawCount.AddData(stats.DrawCount);
+                voxelCount.AddData(stats.VoxelCount);
+                polygonCount.AddData(stats.PolygonCount);
+                renderedVoxelCount.AddData(stats.RenderedVoxelCount);
+
                 GlUtils.CheckGLErrors();
 
                 renderTime.AddTime();
 
                 SwapBuffers();
-
-                Title = string.Format("TiVE   Frame={6:F2}   Update={5:F2}   Render={4:F2}   Voxels={0:D8}  Rendered={1:D8}  Polys={2:D8}  Draws={3:D4}",
-                    stats.VoxelCount, stats.RenderedVoxelCount, stats.PolygonCount, stats.DrawCount, renderTime.DisplayedTime, 
-                    updateTime.DisplayedTime, frameTime.DisplayedTime);
             }
         }
         #endregion
@@ -756,7 +771,7 @@ namespace ProdigalSoftware.TiVE.Renderer.OpenGL
         /// </summary>
         private sealed class StatHelper
         {
-            private static Stopwatch stopwatch = Stopwatch.StartNew();
+            private static readonly Stopwatch stopwatch = Stopwatch.StartNew();
 
             private float totalTime;
             private int dataCount;
@@ -765,7 +780,7 @@ namespace ProdigalSoftware.TiVE.Renderer.OpenGL
             /// <summary>
             /// Gets the value to display
             /// </summary>
-            public float DisplayedTime { get; private set; }
+            public float DisplayedValue { get; private set; }
 
             /// <summary>
             /// Adds the specified value as a new data point
@@ -793,7 +808,7 @@ namespace ProdigalSoftware.TiVE.Renderer.OpenGL
             /// </summary>
             public void UpdateDisplayedTime()
             {
-                DisplayedTime = totalTime / Math.Max(dataCount, 1);
+                DisplayedValue = totalTime / Math.Max(dataCount, 1);
                 totalTime = 0;
                 dataCount = 0;
             }

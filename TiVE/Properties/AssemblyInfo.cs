@@ -5,12 +5,12 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("Nova Engine 3")]
+[assembly: AssemblyTitle("TiVE")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Prodigal Software")]
-[assembly: AssemblyProduct("Nova Engine 3")]
-[assembly: AssemblyCopyright("Copyright © 2005-2011 Prodigal Software")]
+[assembly: AssemblyProduct("TiVE")]
+[assembly: AssemblyCopyright("Copyright © 2013-2014 Prodigal Software")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 [assembly: InternalsVisibleTo("TiVEBlockEditor")]

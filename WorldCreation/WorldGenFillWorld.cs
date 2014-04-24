@@ -86,7 +86,7 @@ namespace WorldCreation
                         if (noiseVal > -0.05 && noiseVal < -0.03)
                             gameWorld.SetBlock(x, y, 12, fire);
                     }
-                    //gameWorld.SetBlock(x, y, 15, snow);
+                    gameWorld.SetBlock(x, y, 15, snow);
                 }
             }
         }
