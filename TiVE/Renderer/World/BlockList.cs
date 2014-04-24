@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using ProdigalSoftware.TiVE.Starter;
 using ProdigalSoftware.TiVEPluginFramework;
 
 namespace ProdigalSoftware.TiVE.Renderer.World

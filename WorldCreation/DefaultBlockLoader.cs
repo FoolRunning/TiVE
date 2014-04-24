@@ -43,7 +43,7 @@ namespace WorldCreation
                     voxelDensity = 0.1f;
                     name = "sand" + (i - 15);
                 }
-                uint[, ,] voxels = CreateBlockInfo(i >= 500 && i < 1000, sphere, color, voxelDensity);
+                uint[, ,] voxels = CreateBlockInfo(i >= 5 && i < 10, sphere, color, voxelDensity);
                 yield return new BlockInformation(name, voxels);
             }
 
