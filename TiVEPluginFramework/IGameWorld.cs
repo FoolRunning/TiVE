@@ -8,8 +8,8 @@
 
         int Zsize { get; }
 
-        void SetBlock(int x, int y, int z, ushort blockIndex);
+        void SetBlock(int x, int y, int z, BlockInformation block);
 
-        ushort GetBlock(int x, int y, int z);
+        BlockInformation GetBlock(int x, int y, int z);
     }
 }

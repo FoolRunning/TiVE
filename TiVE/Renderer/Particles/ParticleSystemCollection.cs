@@ -5,6 +5,7 @@ using OpenTK;
 using ProdigalSoftware.TiVE.Renderer.Voxels;
 using ProdigalSoftware.TiVE.Resources;
 using ProdigalSoftware.TiVEPluginFramework;
+using ProdigalSoftware.TiVEPluginFramework.Particles;
 using ProdigalSoftware.Utils;
 
 namespace ProdigalSoftware.TiVE.Renderer.Particles

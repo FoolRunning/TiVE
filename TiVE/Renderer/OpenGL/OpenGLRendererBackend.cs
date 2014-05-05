@@ -94,6 +94,9 @@ namespace ProdigalSoftware.TiVE.Renderer.OpenGL
         #endregion
 
         #region Private helper methods
+        /// <summary>
+        /// Gets the OpenTK primitive type for the specified TiVE primitive type
+        /// </summary>
         private static OpenTK.Graphics.OpenGL4.PrimitiveType GlPrimitiveType(PrimitiveType primitiveType)
         {
             switch (primitiveType)
@@ -105,6 +108,9 @@ namespace ProdigalSoftware.TiVE.Renderer.OpenGL
             }
         }
 
+        /// <summary>
+        /// Gets a OpenTK draw type for the specified value type
+        /// </summary>
         private static DrawElementsType GetDrawType(ValueType valueType)
         {
             switch (valueType)
@@ -139,13 +145,13 @@ namespace ProdigalSoftware.TiVE.Renderer.OpenGL
                 : base(1920, 1080, new OpenTK.Graphics.GraphicsMode(new OpenTK.Graphics.ColorFormat(8, 8, 8, 8), 16, 0, 4), "TiVE",
                     GameWindowFlags.Default, DisplayDevice.Default, 3, 1, OpenTK.Graphics.GraphicsContextFlags.ForwardCompatible)
             {
-                VSync = VSyncMode.On;
+                VSync = VSyncMode.Off;
             }
 
             public void RunMainLoop(GameLogic newGame)
             {
                 game = newGame;
-                Run(60, 0);
+                Run(60, 60);
             }
 
             /// <summary>

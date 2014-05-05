@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace ProdigalSoftware.Utils
+﻿namespace ProdigalSoftware.Utils
 {
     public struct Vector3b
     {
@@ -18,5 +12,12 @@ namespace ProdigalSoftware.Utils
             Y = y;
             Z = z;
         }
+
+        #region Overrides of ValueType
+        public override string ToString()
+        {
+            return string.Format("Vector3b({0},{1},{2})", X, Y, Z);
+        }
+        #endregion
     }
 }

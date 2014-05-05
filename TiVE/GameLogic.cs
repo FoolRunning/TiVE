@@ -9,9 +9,9 @@ namespace ProdigalSoftware.TiVE
 {
     internal sealed class GameLogic : IDisposable
     {
-        public const int WorldXSize = 1000;
-        public const int WorldYSize = 1000;
-        public const int WorldZSize = 16;
+        private const int WorldXSize = 1000;
+        private const int WorldYSize = 1000;
+        private const int WorldZSize = 15;
 
         private IGameWorldRenderer renderer;
 
@@ -65,12 +65,13 @@ namespace ProdigalSoftware.TiVE
                 camLoc.Y -= speed;
 
             if (keyboard[Key.KeypadPlus])
-                camLoc.Z = Math.Max(camLoc.Z - 3.0f, (int)((WorldZSize + 0.2f) * BlockInformation.BlockSize));
+                camLoc.Z = Math.Max(camLoc.Z - 3.0f, 2 * BlockInformation.BlockSize);
+                //camLoc.Z = Math.Max(camLoc.Z - 3.0f, (int)((WorldZSize + 0.5f) * BlockInformation.BlockSize));
             else if (keyboard[Key.KeypadMinus])
                 camLoc.Z = Math.Min(camLoc.Z + 3.0f, 60.0f * BlockInformation.BlockSize);
 
             camera.SetLocation(camLoc.X, camLoc.Y, camLoc.Z);
-            camera.SetLookAtLocation(camLoc.X, camLoc.Y + 50, camLoc.Z - 100);
+            camera.SetLookAtLocation(camLoc.X, camLoc.Y + 150, -20);
             camera.Update();
 
             renderer.Update(camera, timeSinceLastFrame);
@@ -106,6 +107,12 @@ namespace ProdigalSoftware.TiVE
             PolygonCount = polygonCount;
             VoxelCount = voxelCount;
             RenderedVoxelCount = renderedVoxelCount;
+        }
+
+        public static RenderStatistics operator +(RenderStatistics r1, RenderStatistics r2)
+        {
+            return new RenderStatistics(r1.DrawCount + r2.DrawCount, r1.PolygonCount + r2.PolygonCount,
+                r1.VoxelCount + r2.VoxelCount, r1.RenderedVoxelCount + r2.RenderedVoxelCount);
         }
     }
 }

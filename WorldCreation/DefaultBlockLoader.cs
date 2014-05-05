@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using OpenTK.Graphics;
 using ProdigalSoftware.TiVEPluginFramework;
+using ProdigalSoftware.TiVEPluginFramework.Particles;
 using ProdigalSoftware.Utils;
 
 namespace WorldCreation
@@ -43,21 +44,18 @@ namespace WorldCreation
                     voxelDensity = 0.1f;
                     name = "sand" + (i - 15);
                 }
-                uint[, ,] voxels = CreateBlockInfo(i >= 5 && i < 10, sphere, color, voxelDensity);
-                yield return new BlockInformation(name, voxels);
+                yield return CreateBlockInfo(name, i >= 5 && i < 10, sphere, color, voxelDensity);
             }
 
-            uint[, ,] fireBlockVoxels = CreateBlockInfo(false, true, new Color4(150, 20, 20, 255), 1.0f);
             uint[,,] particleVoxels = new uint[1, 1, 1];
             particleVoxels[0, 0, 0] = 0xFFFFFFFF;
-            yield return new BlockInformation("fire", fireBlockVoxels, 
-                new ParticleSystemInformation(particleVoxels, new FireUpdater(), new Vector3b(5, 5, 8), 300, 310, true));
+            yield return CreateBlockInfo("fire", false, true, new Color4(150, 20, 20, 255), 1.0f, 
+                new ParticleSystemInformation(particleVoxels, new FireUpdater(), new Vector3b(5, 5, 8), 300, 310, true, false), 
+                new PointLight(new Vector3b(5, 5, 10), new Color4b(255, 220, 170, 255), 0.1f, 0.0001f));
 
-            uint[, ,] snowBlockVoxels = new uint[BlockInformation.BlockSize, BlockInformation.BlockSize, BlockInformation.BlockSize];
-            yield return new BlockInformation("snow", snowBlockVoxels,
-                new ParticleSystemInformation(particleVoxels, new SnowUpdater(), new Vector3b(0, 0, 0), 5, 5, true));
+            yield return new BlockInformation("snow",
+                new ParticleSystemInformation(particleVoxels, new SnowUpdater(), new Vector3b(0, 0, 0), 5, 5, false, true));
 
-            uint[, ,] fountainBlockVoxels = CreateBlockInfo(false, true, new Color4(20, 20, 150, 255), 1.0f);
             particleVoxels = new uint[3, 3, 3];
             particleVoxels[1, 1, 1] = 0xFFFFFFFF;
             particleVoxels[0, 1, 1] = 0xFFFFFFFF;
@@ -66,14 +64,15 @@ namespace WorldCreation
             particleVoxels[1, 2, 1] = 0xFFFFFFFF;
             particleVoxels[1, 1, 0] = 0xFFFFFFFF;
             particleVoxels[1, 1, 2] = 0xFFFFFFFF;
-            yield return new BlockInformation("fountain", fountainBlockVoxels,
-                new ParticleSystemInformation(particleVoxels, new FountainUpdater(), new Vector3b(3, 3, 7), 1000, 200, false));
+            yield return CreateBlockInfo("fountain", false, true, new Color4(20, 20, 150, 255), 1.0f,
+                new ParticleSystemInformation(particleVoxels, new FountainUpdater(), new Vector3b(3, 3, 7), 1000, 2200, false, true));
         }
 
-        private static uint[, ,] CreateBlockInfo(bool frontOnly, bool sphere, Color4 color, float voxelDensity)
+        private static BlockInformation CreateBlockInfo(string name, bool frontOnly, bool sphere, Color4 color, float voxelDensity,
+            ParticleSystemInformation particleSystem = null, ILight light = null)
         {
+            BlockInformation block = new BlockInformation(name, particleSystem, light);
             const int sphereSize = 4;
-            uint[, ,] voxels = new uint[BlockInformation.BlockSize, BlockInformation.BlockSize, BlockInformation.BlockSize];
             for (int x = 0; x < BlockInformation.BlockSize; x++)
             {
                 for (int y = 0; y < BlockInformation.BlockSize; y++)
@@ -89,7 +88,7 @@ namespace WorldCreation
                         }
 
                         if (random.NextDouble() < voxelDensity)
-                            voxels[x, y, z] = FromColor(CreateColorFromColor(color));
+                            block[x, y, z] = FromColor(CreateColorFromColor(color));
                     }
                 }
             }
@@ -128,7 +127,7 @@ namespace WorldCreation
             //SetVoxel(BlockSize - 1, 0, BlockSize - 1, 0xFFFFFFFF);
             //SetVoxel(BlockSize - 1, BlockSize - 1, BlockSize - 1, 0xFFFFFFFF);
 
-            return voxels;
+            return block;
         }
 
         private static uint FromColor(Color4 color)
@@ -190,9 +189,9 @@ namespace WorldCreation
                 particle.X = startX + random.Next(BlockInformation.BlockSize);
                 particle.Y = startY + random.Next(BlockInformation.BlockSize);
                 if (startAtTop)
-                    particle.Z = 30 * BlockInformation.BlockSize;
+                    particle.Z = 60 * BlockInformation.BlockSize;
                 else
-                    particle.Z = random.Next(29 * BlockInformation.BlockSize) + 1.0f;
+                    particle.Z = random.Next(59 * BlockInformation.BlockSize) + 1.0f;
 
                 particle.Color = new Color4b(255, 255, 255, 100);
                 particle.Time = (float)random.NextDouble() * AliveTime / 2.0f + AliveTime / 2.0f;

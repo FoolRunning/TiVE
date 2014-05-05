@@ -1,10 +1,13 @@
 ﻿using System;
 using OpenTK;
-using ProdigalSoftware.TiVEPluginFramework;
+using ProdigalSoftware.TiVEPluginFramework.Particles;
 using ProdigalSoftware.Utils;
 
 namespace ProdigalSoftware.TiVE.Renderer.Particles
 {
+    /// <summary>
+    /// Represents a single particle emitter. Responsible for updating all particles owned by itself.
+    /// </summary>
     internal sealed class ParticleSystem : IParticleSystem
     {
         private readonly ParticleSystemInformation systemInfo;
@@ -30,7 +33,8 @@ namespace ProdigalSoftware.TiVE.Renderer.Particles
 
         public void Update(float timeSinceLastFrame, Particle[] particleList, Vector3s[] locationArray, Color4b[] colorArray, ref int dataIndex)
         {
-            ParticleController upd = systemInfo.Controller;
+            ParticleSystemInformation sysInfo = systemInfo;
+            ParticleController upd = sysInfo.Controller;
             upd.BeginUpdate(this, timeSinceLastFrame);
 
             int aliveParticles = AliveParticles;
@@ -48,7 +52,7 @@ namespace ProdigalSoftware.TiVE.Renderer.Particles
                     upd.Update(part, timeSinceLastFrame, locX, locY, locZ);
                 else if (newParticleCount > 0)
                 {
-                    // We need new particles, just re-initialize this one
+                    // Particle died, but we need new particles so just re-initialize this one
                     upd.InitializeNew(part, locX, locY, locZ);
                     newParticleCount--;
                 }

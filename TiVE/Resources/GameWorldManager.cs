@@ -17,11 +17,11 @@ namespace ProdigalSoftware.TiVE.Resources
         public bool CreateWorld(int worldXsize, int worldYsize, int worldZsize, long seed)
         {
             Messages.Print("Creating new world...");
-            BlockList blockList = ResourceManager.BlockListManager.BlockList;
-            GameWorld createdWorld = new GameWorld(worldXsize, worldYsize, worldZsize, blockList);
+            GameWorld createdWorld = new GameWorld(worldXsize, worldYsize, worldZsize);
 
             try
             {
+                BlockList blockList = ResourceManager.BlockListManager.BlockList;
                 foreach (IWorldGeneratorStage generator in ResourceManager.PluginManager.GetPluginsOfType<IWorldGeneratorStage>().OrderBy(wg => wg.Priority))
                 {
                     Debug.WriteLine(generator.StageDescription);

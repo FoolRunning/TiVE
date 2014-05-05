@@ -6,6 +6,7 @@ using OpenTK;
 using ProdigalSoftware.TiVE.Renderer.Particles;
 using ProdigalSoftware.TiVE.Starter;
 using ProdigalSoftware.TiVEPluginFramework;
+using ProdigalSoftware.TiVEPluginFramework.Particles;
 using ProdigalSoftware.Utils;
 
 namespace ProdigalSoftware.TiVE.Resources
@@ -72,20 +73,13 @@ namespace ProdigalSoftware.TiVE.Resources
             using (new PerformanceLock(particleSystemCollections))
                 renderList.AddRange(particleSystemCollections.Values);
 
-            int drawCount = 0;
-            int polygonCount = 0;
-            int voxelCount = 0;
-            int renderedVoxelCount = 0;
+            RenderStatistics stats = new RenderStatistics();
             // Render opaque particles first
             for (int i = 0; i < renderList.Count; i++)
             {
                 if (renderList[i].HasTransparency)
                     continue;
-                RenderStatistics stats = renderList[i].Render(ref matrixMVP);
-                drawCount += stats.DrawCount;
-                polygonCount += stats.PolygonCount;
-                voxelCount += stats.VoxelCount;
-                renderedVoxelCount += stats.RenderedVoxelCount;
+                stats += renderList[i].Render(ref matrixMVP);
             }
 
             // Render transparent particles last
@@ -93,14 +87,10 @@ namespace ProdigalSoftware.TiVE.Resources
             {
                 if (!renderList[i].HasTransparency)
                     continue;
-                RenderStatistics stats = renderList[i].Render(ref matrixMVP);
-                drawCount += stats.DrawCount;
-                polygonCount += stats.PolygonCount;
-                voxelCount += stats.VoxelCount;
-                renderedVoxelCount += stats.RenderedVoxelCount;
+                stats += renderList[i].Render(ref matrixMVP);
             }
 
-            return new RenderStatistics(drawCount, polygonCount, voxelCount, renderedVoxelCount);
+            return stats;
         }
 
         private void ParticleUpdateLoop()

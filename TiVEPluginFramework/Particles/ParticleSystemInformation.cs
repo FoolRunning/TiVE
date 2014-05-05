@@ -1,7 +1,6 @@
-﻿using OpenTK;
-using ProdigalSoftware.Utils;
+﻿using ProdigalSoftware.Utils;
 
-namespace ProdigalSoftware.TiVEPluginFramework
+namespace ProdigalSoftware.TiVEPluginFramework.Particles
 {
     public sealed class ParticleSystemInformation
     {
@@ -11,9 +10,10 @@ namespace ProdigalSoftware.TiVEPluginFramework
         public readonly int MaxParticles;
         public readonly Vector3b Location;
         public readonly bool TransparentParticles;
+        public readonly bool IsLit;
 
         public ParticleSystemInformation(uint[,,] particleVoxels, ParticleController controller, Vector3b location, 
-            int particlesPerSecond, int maxParticles, bool transparentParticles)
+            int particlesPerSecond, int maxParticles, bool transparentParticles, bool isLit)
         {
             ParticleVoxels = particleVoxels;
             Controller = controller;
@@ -21,28 +21,7 @@ namespace ProdigalSoftware.TiVEPluginFramework
             ParticlesPerSecond = particlesPerSecond;
             MaxParticles = maxParticles;
             TransparentParticles = transparentParticles;
+            IsLit = isLit;
         }
-    }
-
-    public interface IParticleSystem
-    {
-        int AliveParticles { get; }
-        Vector3 Location { get; set; }
-        int ParticlesPerSecond { get; set; }
-    }
-
-    public sealed class Particle
-    {
-        public float X;
-        public float Y;
-        public float Z;
-        
-        public float VelX;
-        public float VelY;
-        public float VelZ;
-
-        public Color4b Color;
-
-        public float Time;
     }
 }

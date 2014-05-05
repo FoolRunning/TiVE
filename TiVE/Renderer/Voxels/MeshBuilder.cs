@@ -5,6 +5,8 @@ namespace ProdigalSoftware.TiVE.Renderer.Voxels
 {
     internal sealed class MeshBuilder
     {
+        public readonly uint[] Voxels = new uint[GameWorldVoxelChunk.VoxelSize * GameWorldVoxelChunk.VoxelSize * GameWorldVoxelChunk.VoxelSize];
+        
         private WeakReference<IVertexDataCollection> lastCreatedMesh;
         private Vector3b[] locationData;
         private Color4b[] colorData;
@@ -12,7 +14,6 @@ namespace ProdigalSoftware.TiVE.Renderer.Voxels
         private int indexCount;
         private int vertexCount;
         private bool locked;
-        public readonly uint[] Voxels = new uint[GameWorldVoxelChunk.VoxelSize * GameWorldVoxelChunk.VoxelSize * GameWorldVoxelChunk.VoxelSize];
 
         private readonly object syncRoot = new object();
 
@@ -48,12 +49,6 @@ namespace ProdigalSoftware.TiVE.Renderer.Voxels
                 vertexCount = 0;
                 indexCount = 0;
             }
-        }
-
-        public void CancelMesh()
-        {
-            using (new PerformanceLock(syncRoot))
-                locked = false;
         }
 
         public int Add(float x, float y, float z, float cr, float cg, float cb, float ca)
