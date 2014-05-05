@@ -1,7 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
+using OpenTK;
+using ProdigalSoftware.TiVE.Renderer;
 using ProdigalSoftware.TiVE.Renderer.Voxels;
+using ProdigalSoftware.TiVE.Renderer.World;
 using ProdigalSoftware.TiVE.Starter;
 using ProdigalSoftware.Utils;
 
@@ -9,19 +13,34 @@ namespace ProdigalSoftware.TiVE.Resources
 {
     internal sealed class WorldChunkManager : IDisposable
     {
-        /// <summary>
-        /// Distance in world tiles (outside the viewable area) to start removing loaded chunks
-        /// </summary>
-        private const int ChunkUnloadDistance = 1 * GameWorldVoxelChunk.TileSize;
-
-        private readonly List<Tuple<int, GameWorldVoxelChunk>> chunksToDelete = new List<Tuple<int, GameWorldVoxelChunk>>();
-        private readonly Dictionary<int, GameWorldVoxelChunk> chunks = new Dictionary<int, GameWorldVoxelChunk>(1200);
-        private readonly Queue<ChunkLoadInfo> chunkLoadQueue = new Queue<ChunkLoadInfo>();
+        private readonly List<GameWorldVoxelChunk> chunksToDelete = new List<GameWorldVoxelChunk>();
+        private readonly HashSet<GameWorldVoxelChunk> loadedChunks = new HashSet<GameWorldVoxelChunk>();
+        private readonly List<GameWorldVoxelChunk> loadedChunksList = new List<GameWorldVoxelChunk>(1200);
+        private readonly Queue<GameWorldVoxelChunk> chunkLoadQueue = new Queue<GameWorldVoxelChunk>();
         private readonly List<Thread> chunkCreationThreads = new List<Thread>();
+        
+        private readonly bool useInstancing;
+        private IRendererData voxelInstanceLocationData;
+        private IRendererData voxelInstanceColorData;
+        private int polysPerVoxel;
+
         private volatile bool endCreationThreads;
+
+        private int chunkMinX;
+        private int chunkMaxX;
+        private int chunkMinY;
+        private int chunkMaxY;
+        private int chunkMaxZ;
+
+        public WorldChunkManager(bool useInstancing)
+        {
+            this.useInstancing = useInstancing;
+        }
 
         public void Dispose()
         {
+            Debug.Assert(Thread.CurrentThread.Name == "Main UI");
+
             endCreationThreads = true;
             foreach (Thread thread in chunkCreationThreads)
                 thread.Join();
@@ -30,79 +49,125 @@ namespace ProdigalSoftware.TiVE.Resources
             using (new PerformanceLock(chunkLoadQueue))
                 chunkLoadQueue.Clear();
 
-            foreach (GameWorldVoxelChunk chunk in chunks.Values)
+            foreach (GameWorldVoxelChunk chunk in loadedChunksList)
                 chunk.Dispose();
-            chunks.Clear();
+            loadedChunksList.Clear();
+            loadedChunks.Clear();
+
+            if (voxelInstanceLocationData != null)
+            {
+                voxelInstanceLocationData.Unlock();
+                voxelInstanceLocationData.Dispose();
+            }
+
+            if (voxelInstanceColorData != null)
+            {
+                voxelInstanceColorData.Unlock();
+                voxelInstanceColorData.Dispose();
+            }
         }
 
         public bool Initialize()
         {
             Messages.Print("Starting chunk creations threads...");
 
+            if (useInstancing)
+            {
+                MeshBuilder voxelInstanceBuilder = new MeshBuilder(20, 0);
+                polysPerVoxel = SimpleVoxelGroup.CreateVoxel(voxelInstanceBuilder, VoxelSides.All, 0, 0, 0, 255, 255, 255, 255);
+                voxelInstanceLocationData = voxelInstanceBuilder.GetLocationData();
+                voxelInstanceLocationData.Lock();
+                voxelInstanceColorData = voxelInstanceBuilder.GetColorData();
+                voxelInstanceColorData.Lock();
+            }
+
             endCreationThreads = false;
             int threadCount = Environment.ProcessorCount > 2 ? 2 : 1;
             for (int i = 0; i < threadCount; i++)
-                chunkCreationThreads.Add(StartChunkCreateThread());
+                chunkCreationThreads.Add(StartChunkCreateThread(i + 1));
 
             Messages.AddDoneText();
             return true;
         }
 
-        public GameWorldVoxelChunk GetOrCreateChunk(int chunkX, int chunkY, int chunkZ)
+        public void UpdateCameraPos(int camMinX, int camMaxX, int camMinY, int camMaxY)
         {
-            int key = GetChunkKey(chunkX, chunkY, chunkZ);
-            GameWorldVoxelChunk chunk;
-            if (!chunks.TryGetValue(key, out chunk))
-                chunks[key] = chunk = CreateChunk(chunkX, chunkY, chunkZ);
-            return chunk;
-        }
+            Debug.Assert(Thread.CurrentThread.Name == "Main UI");
 
-        public void InitializeChunks()
-        {
-            foreach (GameWorldVoxelChunk chunk in chunks.Values)
+            GameWorld gameWorld = ResourceManager.GameWorldManager.GameWorld;
+            chunkMinX = Math.Max(0, Math.Min(gameWorld.XChunkSize, camMinX / GameWorldVoxelChunk.TileSize - 1));
+            chunkMaxX = Math.Max(0, Math.Min(gameWorld.XChunkSize, (int)Math.Ceiling(camMaxX / (float)GameWorldVoxelChunk.TileSize) + 1));
+            chunkMinY = Math.Max(0, Math.Min(gameWorld.YChunkSize, camMinY / GameWorldVoxelChunk.TileSize - 1));
+            chunkMaxY = Math.Max(0, Math.Min(gameWorld.YChunkSize, (int)Math.Ceiling(camMaxY / (float)GameWorldVoxelChunk.TileSize) + 1));
+            chunkMaxZ = Math.Max((int)Math.Ceiling(gameWorld.Zsize / (float)GameWorldVoxelChunk.TileSize), 1);
+
+            for (int i = 0; i < loadedChunksList.Count; i++)
             {
-                //if (!chunk.IsInitialized)
-                    chunk.Initialize();
+                GameWorldVoxelChunk chunk = loadedChunksList[i];
+                if (!chunk.IsInside(chunkMinX, chunkMinY, chunkMaxX, chunkMaxY))
+                    chunksToDelete.Add(chunk);
+            }
+
+            for (int chunkZ = chunkMaxZ - 1; chunkZ >= 0; chunkZ--)
+            {
+                for (int chunkX = chunkMinX; chunkX < chunkMaxX; chunkX++)
+                {
+                    for (int chunkY = chunkMinY; chunkY < chunkMaxY; chunkY++)
+                    {
+                        GameWorldVoxelChunk chunk = gameWorld.GetChunk(chunkX, chunkY, chunkZ);
+                        if (!loadedChunks.Contains(chunk))
+                        {
+                            chunk.PrepareForLoad();
+                            using (new PerformanceLock(chunkLoadQueue))
+                                chunkLoadQueue.Enqueue(chunk);
+                            loadedChunks.Add(chunk);
+                            loadedChunksList.Add(chunk);
+                        }
+                    }
+                }
             }
         }
 
-        public void CleanupChunksOutside(int startX, int startY, int endX, int endY)
+        public RenderStatistics Render(ref Matrix4 viewProjectionMatrix)
         {
-            foreach (KeyValuePair<int, GameWorldVoxelChunk> chunkInfo in chunks)
-            {
-                if (!chunkInfo.Value.IsInside(startX - ChunkUnloadDistance, startY - ChunkUnloadDistance, endX + ChunkUnloadDistance, endY + ChunkUnloadDistance))
-                    chunksToDelete.Add(new Tuple<int, GameWorldVoxelChunk>(chunkInfo.Key, chunkInfo.Value));
-            }
+            Debug.Assert(Thread.CurrentThread.Name == "Main UI");
 
             for (int i = 0; i < chunksToDelete.Count; i++)
             {
-                Tuple<int, GameWorldVoxelChunk> chunkInfo = chunksToDelete[i];
-                chunks.Remove(chunkInfo.Item1);
-                chunkInfo.Item2.Dispose();
+                GameWorldVoxelChunk chunk = chunksToDelete[i];
+                loadedChunks.Remove(chunk);
+                loadedChunksList.Remove(chunk);
+                chunk.Dispose();
             }
 
             chunksToDelete.Clear();
+
+            for (int i = 0; i < loadedChunksList.Count; i++)
+            {
+                GameWorldVoxelChunk chunk = loadedChunksList[i];
+                if (!chunk.IsInitialized)
+                    chunk.Initialize();
+            }
+
+            RenderStatistics stats = new RenderStatistics();
+            GameWorld gameWorld = ResourceManager.GameWorldManager.GameWorld;
+            for (int chunkZ = chunkMaxZ - 1; chunkZ >= 0; chunkZ--)
+            {
+                for (int chunkX = chunkMinX; chunkX < chunkMaxX; chunkX++)
+                {
+                    for (int chunkY = chunkMinY; chunkY < chunkMaxY; chunkY++)
+                        stats += gameWorld.GetChunk(chunkX, chunkY, chunkZ).Render(ref viewProjectionMatrix);
+                }
+            }
+
+            return stats;
         }
 
-        private GameWorldVoxelChunk CreateChunk(int chunkX, int chunkY, int chunkZ)
-        {
-            GameWorldVoxelChunk chunk = new GameWorldVoxelChunk(chunkX * GameWorldVoxelChunk.TileSize, chunkY * GameWorldVoxelChunk.TileSize, chunkZ * GameWorldVoxelChunk.TileSize);
-            ChunkLoadInfo info = new ChunkLoadInfo(chunk);
-            lock(chunkLoadQueue)
-                chunkLoadQueue.Enqueue(info);
-            return chunk;
-        }
-
-        private static int GetChunkKey(int chunkX, int chunkY, int chunkZ)
-        {
-            return chunkX + (chunkY << 8) + (chunkZ << 16);
-        }
-
-        private Thread StartChunkCreateThread()
+        private Thread StartChunkCreateThread(int num)
         {
             Thread thread = new Thread(ChunkCreateLoop);
             thread.IsBackground = true;
-            thread.Name = "ChunkLoad";
+            thread.Name = "ChunkLoad" + num;
             thread.Start();
             return thread;
         }
@@ -123,23 +188,23 @@ namespace ProdigalSoftware.TiVE.Resources
                 }
 
                 MeshBuilder meshBuilder = meshBuilders.Find(NotLocked);
-                if (meshBuilder == null && meshBuilders.Count < 5)
+                if (meshBuilder == null && meshBuilders.Count < 15)
                 {
                     meshBuilder = new MeshBuilder(200000, 400000);
                     meshBuilders.Add(meshBuilder);
                 }
 
-                ChunkLoadInfo chunkInfo;
+                GameWorldVoxelChunk chunk;
                 using (new PerformanceLock(chunkLoadQueue))
                 {
                     if (meshBuilder == null || chunkLoadQueue.Count == 0)
                         continue; // Check for race condition with multiple threads accessing the queue
 
-                    chunkInfo = chunkLoadQueue.Dequeue();
+                    chunk = chunkLoadQueue.Dequeue();
                 }
 
-                if (!chunkInfo.Chunk.IsDeleted)
-                    chunkInfo.Load(meshBuilder);
+                if (!chunk.IsDeleted)
+                    chunk.Load(meshBuilder);
             }
         }
 

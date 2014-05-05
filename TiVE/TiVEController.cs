@@ -9,7 +9,7 @@ namespace ProdigalSoftware.TiVE
 {
     public static class TiVEController
     {
-        internal static IRendererBackend Backend = new OpenGLRendererBackend();
+        internal static readonly IRendererBackend Backend = new OpenGLRendererBackend();
 
         private static StarterForm starterForm;
 

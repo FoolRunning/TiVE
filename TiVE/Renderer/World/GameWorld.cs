@@ -1,6 +1,7 @@
 ﻿using System;
+using System.Runtime.CompilerServices;
+using ProdigalSoftware.TiVE.Renderer.Voxels;
 using ProdigalSoftware.TiVEPluginFramework;
-using ProdigalSoftware.Utils;
 
 namespace ProdigalSoftware.TiVE.Renderer.World
 {
@@ -9,58 +10,108 @@ namespace ProdigalSoftware.TiVE.Renderer.World
     /// </summary>
     internal sealed class GameWorld : IGameWorld
     {
-        private readonly ushort[][][] worldBlocks;
-        private readonly int xSize;
-        private readonly int ySize;
-        private readonly int zSize;
-        private readonly BlockList blockList;
+        private readonly BlockInformation[] worldBlocks;
+        private readonly int xWorldSize;
+        private readonly int yWorldSize;
+        private readonly int zWorldSize;
 
-        internal GameWorld(int xSize, int ySize, int zSize, BlockList blockList)
+        private readonly GameWorldVoxelChunk[] worldChunks;
+        private readonly int xChunkSize;
+        private readonly int yChunkSize;
+        private readonly int zChunkSize;
+
+        internal GameWorld(int xWorldSize, int yWorldSize, int zWorldSize)
         {
-            this.xSize = xSize;
-            this.ySize = ySize;
-            this.zSize = zSize;
+            this.xWorldSize = xWorldSize;
+            this.yWorldSize = yWorldSize;
+            this.zWorldSize = zWorldSize;
 
-            this.blockList = blockList;
-            worldBlocks = new ushort[xSize][][];
-            for (int x = 0; x < xSize; x++)
+            worldBlocks = new BlockInformation[xWorldSize * yWorldSize * zWorldSize];
+            for (int i = 0; i < worldBlocks.Length; i++)
+                worldBlocks[i] = BlockInformation.Empty;
+
+            xChunkSize = (int)Math.Ceiling(xWorldSize / (float)GameWorldVoxelChunk.TileSize);
+            yChunkSize = (int)Math.Ceiling(yWorldSize / (float)GameWorldVoxelChunk.TileSize);
+            zChunkSize = (int)Math.Ceiling(zWorldSize / (float)GameWorldVoxelChunk.TileSize);
+            worldChunks = new GameWorldVoxelChunk[xChunkSize * yChunkSize * zChunkSize];
+            for (int z = 0; z < zChunkSize; z++)
             {
-                worldBlocks[x] = new ushort[ySize][];
-                for (int y = 0; y < ySize; y++)
-                    worldBlocks[x][y] = new ushort[zSize];
+                for (int x = 0; x < xChunkSize; x++)
+                {
+                    for (int y = 0; y < yChunkSize; y++)
+                        worldChunks[GetChunkOffset(x, y, z)] = new GameWorldVoxelChunk(x, y, z, true);
+                }
             }
         }
 
         public int Xsize
         {
-            get { return xSize; }
+            get { return xWorldSize; }
         }
 
         public int Ysize
         {
-            get { return ySize; }
+            get { return yWorldSize; }
         }
 
         public int Zsize
         {
-            get { return zSize; }
+            get { return zWorldSize; }
         }
 
-        public void SetBlock(int x, int y, int z, ushort blockIndex)
+        public BlockInformation GetBlock(int x, int y, int z)
         {
-            if (blockIndex >= blockList.BlockCount)
-                throw new ArgumentOutOfRangeException("blockIndex", "Block with the specified index does not exist");
-
-            ushort[] depthBlocks = worldBlocks[x][y];
-            using (new PerformanceLock(depthBlocks))
-                depthBlocks[z] = blockIndex;
+            return worldBlocks[GetBlockOffset(x, y, z)];
         }
 
-        public ushort GetBlock(int x, int y, int z)
+        public void SetBlock(int x, int y, int z, BlockInformation block)
         {
-            ushort[] depthBlocks = worldBlocks[x][y];
-            using (new PerformanceLock(depthBlocks))
-                return depthBlocks[z];
+            worldBlocks[GetBlockOffset(x, y, z)] = block ?? BlockInformation.Empty;
+        }
+
+        public int XChunkSize
+        {
+            get { return xChunkSize; }
+        }
+
+        public int YChunkSize
+        {
+            get { return yChunkSize; }
+        }
+
+        public int ZChunkSize
+        {
+            get { return zChunkSize; }
+        }
+
+        public GameWorldVoxelChunk GetChunk(int chunkX, int chunkY, int chunkZ)
+        {
+            return worldChunks[GetChunkOffset(chunkX, chunkY, chunkZ)];
+        }
+
+        public void SetChunk(int chunkX, int chunkY, int chunkZ, GameWorldVoxelChunk chunk)
+        {
+            worldChunks[GetChunkOffset(chunkX, chunkY, chunkZ)] = chunk;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private int GetBlockOffset(int x, int y, int z)
+        {
+#if DEBUG
+            if (x < 0 || x >= xWorldSize || y < 0 || y >= yWorldSize || z < 0 || z >= zWorldSize)
+                throw new ArgumentException(string.Format("World location ({0}, {1}, {2}) out of range.", x, y, z));
+#endif
+            return x * yWorldSize * zWorldSize + y * zWorldSize + z;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private int GetChunkOffset(int x, int y, int z)
+        {
+#if DEBUG
+            if (x < 0 || x >= xChunkSize || y < 0 || y >= yChunkSize || z < 0 || z >= zChunkSize)
+                throw new ArgumentException(string.Format("Chunk location ({0}, {1}, {2}) out of range.", x, y, z));
+#endif
+            return x * xChunkSize * zChunkSize + z * yChunkSize + y; // y-axis major for speed
         }
     }
 }

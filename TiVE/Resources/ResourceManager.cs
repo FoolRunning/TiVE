@@ -27,7 +27,7 @@ namespace ProdigalSoftware.TiVE.Resources
             if (!ShaderManager.Initialize())
                 return false;
 
-            ChunkManager = new WorldChunkManager();
+            ChunkManager = new WorldChunkManager(true);
             if (!ChunkManager.Initialize())
                 return false;
 

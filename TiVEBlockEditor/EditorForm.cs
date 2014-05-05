@@ -49,7 +49,7 @@ namespace ProdigalSoftware.TiVEBlockEditor
         private void btnNewBlock_Click(object sender, System.EventArgs e)
         {
             currentBlockIndex = blocks.Count;
-            blocks.Add(new BlockInformation("New Block", new uint[BlockInformation.BlockSize,BlockInformation.BlockSize,BlockInformation.BlockSize]));
+            blocks.Add(new BlockInformation("New Block"));
             UpdateState();
             ForceBlockUpdate();
         }

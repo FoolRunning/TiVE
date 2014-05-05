@@ -119,7 +119,6 @@
     <Compile Include="Renderer\Sprite.cs" />
     <Compile Include="Renderer\Voxels\IndexedVoxelGroup.cs" />
     <Compile Include="Renderer\World\BlockList.cs" />
-    <Compile Include="Renderer\World\WorldBlock.cs" />
     <Compile Include="Renderer\World\GameWorld.cs" />
     <Compile Include="Resources\GameWorldManager.cs" />
     <Compile Include="Resources\ResourceManager.cs" />

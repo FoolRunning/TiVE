@@ -90,20 +90,20 @@ namespace ProdigalSoftware.TiVE.Renderer.Voxels
                 polygonCount += 2;
             }
 
-            //if ((sides & VoxelSides.Top) != 0)
-            //{
-            //    byte crt = (byte)Math.Min(255, cr + BigColorDiff);
-            //    byte cgt = (byte)Math.Min(255, cg + BigColorDiff);
-            //    byte cbt = (byte)Math.Min(255, cb + BigColorDiff);
-            //    meshBuilder.Add(x, y + 1, z, crt, cgt, cbt, ca);
-            //    meshBuilder.Add(x + 1, y + 1, z, crt, cgt, cbt, ca);
-            //    meshBuilder.Add(x + 1, y + 1, z + 1, crt, cgt, cbt, ca);
+            if ((sides & VoxelSides.Top) != 0)
+            {
+                byte crt = (byte)Math.Min(255, cr + BigColorDiff);
+                byte cgt = (byte)Math.Min(255, cg + BigColorDiff);
+                byte cbt = (byte)Math.Min(255, cb + BigColorDiff);
+                meshBuilder.Add(x, y + 1, z, crt, cgt, cbt, ca);
+                meshBuilder.Add(x + 1, y + 1, z, crt, cgt, cbt, ca);
+                meshBuilder.Add(x + 1, y + 1, z + 1, crt, cgt, cbt, ca);
 
-            //    meshBuilder.Add(x, y + 1, z, crt, cgt, cbt, ca);
-            //    meshBuilder.Add(x + 1, y + 1, z + 1, crt, cgt, cbt, ca);
-            //    meshBuilder.Add(x, y + 1, z + 1, crt, cgt, cbt, ca);
-            //    polygonCount += 2;
-            //}
+                meshBuilder.Add(x, y + 1, z, crt, cgt, cbt, ca);
+                meshBuilder.Add(x + 1, y + 1, z + 1, crt, cgt, cbt, ca);
+                meshBuilder.Add(x, y + 1, z + 1, crt, cgt, cbt, ca);
+                polygonCount += 2;
+            }
 
             return polygonCount;
         }
