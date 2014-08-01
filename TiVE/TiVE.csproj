@@ -93,6 +93,7 @@
   <ItemGroup>
     <Compile Include="Renderer\Particles\ParticleSystemCollection.cs" />
     <Compile Include="Renderer\Voxels\VoxelMeshUtils.cs" />
+    <Compile Include="Resources\LightManager.cs" />
     <Compile Include="Resources\ParticleSystemManager.cs" />
     <Compile Include="Resources\PluginManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -182,6 +183,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Plugins\" />
+    <Folder Include="Renderer\GUI\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

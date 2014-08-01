@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
+using ProdigalSoftware.TiVEPluginFramework.Lighting;
 using ProdigalSoftware.TiVEPluginFramework.Particles;
 
 namespace ProdigalSoftware.TiVEPluginFramework
@@ -43,7 +44,7 @@ namespace ProdigalSoftware.TiVEPluginFramework
             if (x < 0 || x >= BlockSize || y < 0 || y >= BlockSize || z < 0 || z >= BlockSize)
                 throw new ArgumentException(string.Format("Voxel location ({0}, {1}, {2}) out of range.", x, y, z));
 #endif
-            return x * BlockSize * BlockSize + z * BlockSize + y; // y-axis major for speed
+            return (x * BlockSize + z) * BlockSize + y; // y-axis major for speed
         }
     }
 }

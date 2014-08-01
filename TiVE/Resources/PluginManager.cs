@@ -35,13 +35,13 @@ namespace ProdigalSoftware.TiVE.Resources
             string[] pluginFiles = Directory.GetFiles(pluginPath, "*.tive", SearchOption.AllDirectories);
 
             List<string> warnings = new List<string>();
-            foreach (Assembly asm in pluginFiles.Select(Assembly.LoadFile))
+            foreach (Assembly asm in pluginFiles.Select(Assembly.LoadFile).Concat(new[] { Assembly.GetEntryAssembly() }))
             {
                 try
                 {
                     foreach (Type pluginType in asm.GetExportedTypes().Where(t => !t.IsAbstract && t.IsClass))
                     {
-                        foreach (Type pluginInterface in pluginType.GetInterfaces().Where(pi => pi.FullName.Contains("ProdigalSoftware.TiVEPluginFramework")))
+                        foreach (Type pluginInterface in pluginType.GetInterfaces().Where(pi => pi.FullName.StartsWith("ProdigalSoftware.TiVEPluginFramework", StringComparison.Ordinal)))
                         {
                             if (pluginType.GetConstructor(Type.EmptyTypes) == null)
                             {

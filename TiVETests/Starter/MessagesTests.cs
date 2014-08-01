@@ -1,7 +1,7 @@
 ﻿using NUnit.Framework;
 using ProdigalSoftware.TiVE.Starter;
 
-namespace ProdigalSoftware.TiVETests.Starter
+namespace TiVETests.Starter
 {
     [TestFixture]
     public class MessagesTests
@@ -11,10 +11,10 @@ namespace ProdigalSoftware.TiVETests.Starter
         {
             Messages.Print("This");
             Messages.Print("is");
-            Messages.Print("a");
+            Messages.Println("a");
             Messages.Println("test.");
 
-            Assert.AreEqual("Thisisatest.\n", Messages.AllText);
+            Assert.AreEqual("Thisisa\ntest.\n", Messages.AllText);
         }
     }
 }

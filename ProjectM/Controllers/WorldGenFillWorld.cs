@@ -1,7 +1,7 @@
 ﻿using System;
 using ProdigalSoftware.TiVEPluginFramework;
 
-namespace WorldCreation
+namespace ProdigalSoftware.ProjectM.Controllers
 {
     /// <summary>
     /// World generation stage to fill the game world with blocks.

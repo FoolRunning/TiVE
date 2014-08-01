@@ -409,7 +409,7 @@ namespace ProdigalSoftware.TiVE.Renderer.Voxels
             if (x < 0 || x >= VoxelSize || y < 0 || y >= VoxelSize || z < 0 || z >= VoxelSize)
                 throw new ArgumentException(string.Format("Voxel location ({0}, {1}, {2}) out of range.", x, y, z));
 #endif
-            return x * VoxelSize * VoxelSize + z * VoxelSize + y;
+            return (x * VoxelSize + z) * VoxelSize + y;
         }
     }
 }

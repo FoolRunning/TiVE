@@ -10,6 +10,7 @@ namespace ProdigalSoftware.TiVE.Resources
         public static GameWorldManager GameWorldManager { get; private set; }
         public static ShaderManager ShaderManager { get; private set; }
         public static ParticleSystemManager ParticleManager { get; private set; }
+        public static LightManager LightManager { get; private set; }
 
         public static bool Initialize()
         {
@@ -27,13 +28,15 @@ namespace ProdigalSoftware.TiVE.Resources
             if (!ShaderManager.Initialize())
                 return false;
 
-            ChunkManager = new WorldChunkManager(true);
+            ChunkManager = new WorldChunkManager(false);
             if (!ChunkManager.Initialize())
                 return false;
 
             ParticleManager = new ParticleSystemManager();
             if (!ParticleManager.Initialize())
                 return false;
+
+            LightManager = new LightManager();
 
             return true;
         }

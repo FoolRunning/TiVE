@@ -85,12 +85,16 @@
     <Compile Include="ICamera.cs" />
     <Compile Include="IGameWorld.cs" />
     <Compile Include="IWorldGeneratorStage.cs" />
+    <Compile Include="Lighting\AmbientLight.cs" />
+    <Compile Include="Lighting\DirectionalLight.cs" />
+    <Compile Include="Lighting\ILight.cs" />
+    <Compile Include="Lighting\PointLight.cs" />
     <Compile Include="Noise.cs" />
     <Compile Include="Particles\IParticleSystem.cs" />
     <Compile Include="Particles\Particle.cs" />
     <Compile Include="Particles\ParticleController.cs" />
     <Compile Include="Particles\ParticleSystemInformation.cs" />
-    <Compile Include="Lights.cs" />
+    <Compile Include="Lighting\LightUtils.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

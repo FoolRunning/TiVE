@@ -4,7 +4,6 @@ using System.Diagnostics;
 using OpenTK;
 using ProdigalSoftware.TiVE.Renderer.Voxels;
 using ProdigalSoftware.TiVE.Resources;
-using ProdigalSoftware.TiVEPluginFramework;
 using ProdigalSoftware.TiVEPluginFramework.Particles;
 using ProdigalSoftware.Utils;
 
@@ -94,7 +93,7 @@ namespace ProdigalSoftware.TiVE.Renderer.Particles
 
                     int newIndex = particleSystems.Count;
                     for (int i = 0; i < 10; i++)
-                        AddNewSystem();
+                        AddNewBlankSystem();
                     particleSystems[newIndex] = system;
                     particleSystemIndex[system] = newIndex;
 
@@ -186,7 +185,7 @@ namespace ProdigalSoftware.TiVE.Renderer.Particles
                 particleList[i].Time = 0.0f;
         }
 
-        private void AddNewSystem()
+        private void AddNewBlankSystem()
         {
             particleSystems.Add(null);
 
