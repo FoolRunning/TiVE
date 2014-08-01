@@ -1,7 +1,7 @@
 ﻿using NUnit.Framework;
 using ProdigalSoftware.TiVEPluginFramework.Particles;
 
-namespace TiVEPluginFrameworkTests
+namespace TiVEPluginFrameworkTests.Particles
 {
     /// <summary>
     /// Tests for the ParticleController class

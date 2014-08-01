@@ -81,6 +81,7 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="OpenTK, Version=1.1.0.0, Culture=neutral, PublicKeyToken=bad199fe84eb3df4, processorArchitecture=MSIL" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Drawing" />
@@ -92,20 +93,30 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Controllers\DefaultBlockLoader.cs" />
+    <Compile Include="Controllers\WorldGen1.cs" />
+    <Compile Include="Controllers\WorldGenAddResources.cs" />
+    <Compile Include="Controllers\WorldGenCreateBiomes.cs" />
+    <Compile Include="Controllers\WorldGenCreateCaves.cs" />
+    <Compile Include="Controllers\WorldGenFillWorld.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="..\WorldCreation\bin\x86\Debug\WorldCreation.tive">
-      <Link>Plugins\WorldCreation.tive</Link>
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\TiVEPluginFramework\TiVEPluginFramework.csproj">
+      <Project>{42f81808-5a13-4501-b184-18b4197512c3}</Project>
+      <Name>TiVEPluginFramework</Name>
+    </ProjectReference>
     <ProjectReference Include="..\TiVE\TiVE.csproj">
       <Project>{36a8e85b-b645-4bd0-a1ab-fb00448d5742}</Project>
       <Name>TiVE</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Utils\Utils.csproj">
+      <Project>{DC99C507-28DD-4DBF-B6B4-1F9C99E849F1}</Project>
+      <Name>Utils</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup />

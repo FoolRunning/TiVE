@@ -25,7 +25,9 @@ namespace ProdigalSoftware.TiVE.Renderer
             worldMaxY = Math.Min(worldMaxY, gameWorld.Ysize);
             viewProjectionMatrix = Matrix4.Mult(camera.ViewMatrix, camera.ProjectionMatrix);
 
+            ResourceManager.LightManager.UpdateCameraPos(worldMinX, worldMaxX, worldMinY, worldMaxY);
             ResourceManager.ChunkManager.UpdateCameraPos(worldMinX, worldMaxX, worldMinY, worldMaxY);
+            ResourceManager.ParticleManager.UpdateCameraPos(worldMinX, worldMaxX, worldMinY, worldMaxY);
         }
 
         public void Draw(Camera camera, out RenderStatistics stats)

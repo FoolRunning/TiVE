@@ -39,7 +39,7 @@ namespace ProdigalSoftware.TiVE.Renderer.World
                 for (int x = 0; x < xChunkSize; x++)
                 {
                     for (int y = 0; y < yChunkSize; y++)
-                        worldChunks[GetChunkOffset(x, y, z)] = new GameWorldVoxelChunk(x, y, z, true);
+                        worldChunks[GetChunkOffset(x, y, z)] = new GameWorldVoxelChunk(x, y, z, false);
                 }
             }
         }
@@ -101,7 +101,7 @@ namespace ProdigalSoftware.TiVE.Renderer.World
             if (x < 0 || x >= xWorldSize || y < 0 || y >= yWorldSize || z < 0 || z >= zWorldSize)
                 throw new ArgumentException(string.Format("World location ({0}, {1}, {2}) out of range.", x, y, z));
 #endif
-            return x * yWorldSize * zWorldSize + y * zWorldSize + z;
+            return (x * zWorldSize + z) * yWorldSize + y; // y-axis major for speed
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -111,7 +111,7 @@ namespace ProdigalSoftware.TiVE.Renderer.World
             if (x < 0 || x >= xChunkSize || y < 0 || y >= yChunkSize || z < 0 || z >= zChunkSize)
                 throw new ArgumentException(string.Format("Chunk location ({0}, {1}, {2}) out of range.", x, y, z));
 #endif
-            return x * xChunkSize * zChunkSize + z * yChunkSize + y; // y-axis major for speed
+            return (x * zChunkSize + z) * yChunkSize + y; // y-axis major for speed
         }
     }
 }

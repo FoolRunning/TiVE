@@ -61,11 +61,11 @@ namespace ProdigalSoftware.TiVE.Renderer.Voxels
 
         public int Add(int x, int y, int z, byte cr, byte cg, byte cb, byte ca)
         {
-            if (vertexCount >= locationData.Length)
-            {
-                ArrayUtils.ResizeArray(ref locationData);
-                ArrayUtils.ResizeArray(ref colorData);
-            }
+            //if (vertexCount >= locationData.Length)
+            //{
+            //    ArrayUtils.ResizeArray(ref locationData);
+            //    ArrayUtils.ResizeArray(ref colorData);
+            //}
 
             locationData[vertexCount] = new Vector3b((byte)x, (byte)y, (byte)z);
             colorData[vertexCount] = new Color4b(cr, cg, cb, ca);
@@ -75,8 +75,8 @@ namespace ProdigalSoftware.TiVE.Renderer.Voxels
 
         public void AddIndex(int index)
         {
-            if (indexCount >= indexData.Length)
-                ArrayUtils.ResizeArray(ref indexData);
+            //if (indexCount >= indexData.Length)
+            //    ArrayUtils.ResizeArray(ref indexData);
 
             indexData[indexCount] = index;
             indexCount++;

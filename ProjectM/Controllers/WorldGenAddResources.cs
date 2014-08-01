@@ -1,7 +1,6 @@
-﻿using System;
-using ProdigalSoftware.TiVEPluginFramework;
+﻿using ProdigalSoftware.TiVEPluginFramework;
 
-namespace WorldCreation
+namespace ProdigalSoftware.ProjectM.Controllers
 {
     public class WorldGenAddResources : IWorldGeneratorStage
     {

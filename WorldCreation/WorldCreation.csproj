@@ -79,12 +79,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="DefaultBlockLoader.cs" />
-    <Compile Include="WorldGen1.cs" />
-    <Compile Include="WorldGenCreateBiomes.cs" />
-    <Compile Include="WorldGenCreateCaves.cs" />
-    <Compile Include="WorldGenAddResources.cs" />
-    <Compile Include="WorldGenFillWorld.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

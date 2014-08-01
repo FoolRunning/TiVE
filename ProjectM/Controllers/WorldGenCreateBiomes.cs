@@ -1,8 +1,7 @@
 ﻿using System;
-using System.Threading.Tasks;
 using ProdigalSoftware.TiVEPluginFramework;
 
-namespace WorldCreation
+namespace ProdigalSoftware.ProjectM.Controllers
 {
     /// <summary>
     /// World generation stage to create the bioms of the game world

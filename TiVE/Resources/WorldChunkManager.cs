@@ -73,7 +73,7 @@ namespace ProdigalSoftware.TiVE.Resources
 
             if (useInstancing)
             {
-                MeshBuilder voxelInstanceBuilder = new MeshBuilder(20, 0);
+                MeshBuilder voxelInstanceBuilder = new MeshBuilder(30, 0);
                 polysPerVoxel = SimpleVoxelGroup.CreateVoxel(voxelInstanceBuilder, VoxelSides.All, 0, 0, 0, 255, 255, 255, 255);
                 voxelInstanceLocationData = voxelInstanceBuilder.GetLocationData();
                 voxelInstanceLocationData.Lock();
@@ -104,7 +104,7 @@ namespace ProdigalSoftware.TiVE.Resources
             for (int i = 0; i < loadedChunksList.Count; i++)
             {
                 GameWorldVoxelChunk chunk = loadedChunksList[i];
-                if (!chunk.IsInside(chunkMinX, chunkMinY, chunkMaxX, chunkMaxY))
+                if (!chunk.IsInside(chunkMinX - 1, chunkMinY - 1, chunkMaxX + 1, chunkMaxY + 1))
                     chunksToDelete.Add(chunk);
             }
 
@@ -183,21 +183,24 @@ namespace ProdigalSoftware.TiVE.Resources
 
                 if (count == 0)
                 {
-                    Thread.Sleep(4);
+                    Thread.Sleep(1);
                     continue;
                 }
 
                 MeshBuilder meshBuilder = meshBuilders.Find(NotLocked);
-                if (meshBuilder == null && meshBuilders.Count < 15)
+                if (meshBuilder == null && meshBuilders.Count < 5)
                 {
-                    meshBuilder = new MeshBuilder(200000, 400000);
+                    meshBuilder = new MeshBuilder(800000, 800000);
                     meshBuilders.Add(meshBuilder);
                 }
+
+                if (meshBuilder == null)
+                    continue;
 
                 GameWorldVoxelChunk chunk;
                 using (new PerformanceLock(chunkLoadQueue))
                 {
-                    if (meshBuilder == null || chunkLoadQueue.Count == 0)
+                    if (chunkLoadQueue.Count == 0)
                         continue; // Check for race condition with multiple threads accessing the queue
 
                     chunk = chunkLoadQueue.Dequeue();

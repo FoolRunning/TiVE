@@ -2,10 +2,11 @@
 using System.Collections.Generic;
 using OpenTK.Graphics;
 using ProdigalSoftware.TiVEPluginFramework;
+using ProdigalSoftware.TiVEPluginFramework.Lighting;
 using ProdigalSoftware.TiVEPluginFramework.Particles;
 using ProdigalSoftware.Utils;
 
-namespace WorldCreation
+namespace ProdigalSoftware.ProjectM.Controllers
 {
     public class DefaultBlockLoader : IBlockGenerator
     {

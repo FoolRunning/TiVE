@@ -1,7 +1,6 @@
-﻿using System;
-using ProdigalSoftware.TiVEPluginFramework;
+﻿using ProdigalSoftware.TiVEPluginFramework;
 
-namespace WorldCreation
+namespace ProdigalSoftware.ProjectM.Controllers
 {
     /// <summary>
     /// World generation stage that clears the top of the world to create an overworld (outside the caves)
