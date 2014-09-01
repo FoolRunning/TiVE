@@ -33,7 +33,10 @@ namespace ProdigalSoftware.TiVEPluginFramework
         /// </summary>
         public uint this[int x, int y, int z]
         {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get { return voxels[GetOffset(x, y, z)]; }
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set { voxels[GetOffset(x, y, z)] = value; }
         }
 
@@ -44,7 +47,7 @@ namespace ProdigalSoftware.TiVEPluginFramework
             if (x < 0 || x >= BlockSize || y < 0 || y >= BlockSize || z < 0 || z >= BlockSize)
                 throw new ArgumentException(string.Format("Voxel location ({0}, {1}, {2}) out of range.", x, y, z));
 #endif
-            return (x * BlockSize + z) * BlockSize + y; // y-axis major for speed
+            return (z * BlockSize + x) * BlockSize + y; // y-axis major for speed
         }
     }
 }

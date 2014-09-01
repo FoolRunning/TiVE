@@ -7,7 +7,6 @@ namespace ProdigalSoftware.TiVE.Renderer.Voxels
     {
         public readonly uint[] Voxels = new uint[GameWorldVoxelChunk.VoxelSize * GameWorldVoxelChunk.VoxelSize * GameWorldVoxelChunk.VoxelSize];
         
-        private WeakReference<IVertexDataCollection> lastCreatedMesh;
         private Vector3b[] locationData;
         private Color4b[] colorData;
         private int[] indexData;
@@ -29,44 +28,31 @@ namespace ProdigalSoftware.TiVE.Renderer.Voxels
             get 
             {
                 using (new PerformanceLock(syncRoot))
-                {
-                    if (locked)
-                        return true;
-                    if (lastCreatedMesh == null)
-                        return false;
-
-                    IVertexDataCollection strong;
-                    return lastCreatedMesh.TryGetTarget(out strong) && !strong.IsInitialized;
-                }
+                    return locked;
             }
+        }
+
+        public void DropMesh()
+        {
+            using (new PerformanceLock(syncRoot))
+                locked = false;
         }
 
         public void StartNewMesh()
         {
             using (new PerformanceLock(syncRoot))
             {
+                if (locked)
+                    throw new InvalidOperationException("New mesh can not be started when there is a mesh in progress");
+
                 locked = true;
                 vertexCount = 0;
                 indexCount = 0;
             }
         }
 
-        public int Add(float x, float y, float z, float cr, float cg, float cb, float ca)
-        {
-            //vertexData.Add(new Vector3(x, y, z));
-            //colorData.Add(new Color4b(cr, cg, cb, ca));
-
-            return vertexCount++;
-        }
-
         public int Add(int x, int y, int z, byte cr, byte cg, byte cb, byte ca)
         {
-            //if (vertexCount >= locationData.Length)
-            //{
-            //    ArrayUtils.ResizeArray(ref locationData);
-            //    ArrayUtils.ResizeArray(ref colorData);
-            //}
-
             locationData[vertexCount] = new Vector3b((byte)x, (byte)y, (byte)z);
             colorData[vertexCount] = new Color4b(cr, cg, cb, ca);
 
@@ -75,9 +61,6 @@ namespace ProdigalSoftware.TiVE.Renderer.Voxels
 
         public void AddIndex(int index)
         {
-            //if (indexCount >= indexData.Length)
-            //    ArrayUtils.ResizeArray(ref indexData);
-
             indexData[indexCount] = index;
             indexCount++;
         }
@@ -87,13 +70,12 @@ namespace ProdigalSoftware.TiVE.Renderer.Voxels
             IVertexDataCollection meshData;
             using (new PerformanceLock(syncRoot))
             {
-                locked = false;
                 meshData = TiVEController.Backend.CreateVertexDataCollection();
                 meshData.AddBuffer(GetLocationData());
                 meshData.AddBuffer(GetColorData());
                 if (indexCount > 0)
                     meshData.AddBuffer(GetIndexData());
-                lastCreatedMesh = new WeakReference<IVertexDataCollection>(meshData);
+                locked = false;
             }
             return meshData;
         }
@@ -103,13 +85,12 @@ namespace ProdigalSoftware.TiVE.Renderer.Voxels
             IVertexDataCollection dataCollection;
             using (new PerformanceLock(syncRoot))
             {
-                locked = false;
                 dataCollection = TiVEController.Backend.CreateVertexDataCollection();
                 foreach (IRendererData data in instanceMeshData)
                     dataCollection.AddBuffer(data);
                 dataCollection.AddBuffer(TiVEController.Backend.CreateData(locationData, vertexCount, 3, DataType.Instance, ValueType.Byte, false, false));
                 dataCollection.AddBuffer(TiVEController.Backend.CreateData(colorData, vertexCount, 4, DataType.Instance, ValueType.Byte, true, false));
-                lastCreatedMesh = new WeakReference<IVertexDataCollection>(dataCollection);
+                locked = false;
             }
             return dataCollection;
         }
@@ -127,6 +108,11 @@ namespace ProdigalSoftware.TiVE.Renderer.Voxels
         public IRendererData GetIndexData()
         {
             return TiVEController.Backend.CreateData(indexData, indexCount, 1, DataType.Index, ValueType.UInt, false, false);
+        }
+
+        public override string ToString()
+        {
+            return string.Format("MeshBuilder locked={0} ({1}vert {2}ind)", locked, vertexCount, indexCount);
         }
     }
 }

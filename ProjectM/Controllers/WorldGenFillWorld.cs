@@ -85,7 +85,7 @@ namespace ProdigalSoftware.ProjectM.Controllers
                         if (noiseVal > -0.05 && noiseVal < -0.03)
                             gameWorld.SetBlock(x, y, depth, fire);
                     }
-                    if (random1.NextDouble() < 0.2)
+                    //if (random1.NextDouble() < 0.2)
                         gameWorld.SetBlock(x, y, gameWorld.Zsize - 1, snow);
                 }
             }

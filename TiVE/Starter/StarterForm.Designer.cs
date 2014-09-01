@@ -198,7 +198,7 @@
             this.Name = "StarterForm";
             this.ShowIcon = false;
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-            this.Text = "NovaStarterForm";
+            this.Text = "TiVE Launcher";
             this.tableLayoutPanel1.ResumeLayout(false);
             this.tabControl1.ResumeLayout(false);
             this.tableLayoutPanel2.ResumeLayout(false);
