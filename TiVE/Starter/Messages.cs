@@ -199,7 +199,7 @@ namespace ProdigalSoftware.TiVE.Starter
             if (!value)
             {
                 AddWarning(message);
-                Debug.Fail(message);
+                //Debug.Fail(message);
             }
         }
 
@@ -413,6 +413,9 @@ namespace ProdigalSoftware.TiVE.Starter
         /// </summary>
         private static void AddTextInfo(Message info)
         {
+            if (m_createdScreen.IsDisposed)
+                return;
+
             m_createdScreen.AddMessage(info);
             if (TextAdded != null) 
                 TextAdded();

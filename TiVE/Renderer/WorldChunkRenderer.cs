@@ -25,6 +25,7 @@ namespace ProdigalSoftware.TiVE.Renderer
             worldMaxY = Math.Min(worldMaxY, gameWorld.Ysize);
             viewProjectionMatrix = Matrix4.Mult(camera.ViewMatrix, camera.ProjectionMatrix);
 
+            ResourceManager.BlockListManager.UpdateAnimations(timeSinceLastFrame);
             ResourceManager.LightManager.UpdateCameraPos(worldMinX, worldMaxX, worldMinY, worldMaxY);
             ResourceManager.ChunkManager.UpdateCameraPos(worldMinX, worldMaxX, worldMinY, worldMaxY);
             ResourceManager.ParticleManager.UpdateCameraPos(worldMinX, worldMaxX, worldMinY, worldMaxY);
@@ -34,20 +35,6 @@ namespace ProdigalSoftware.TiVE.Renderer
         {
             stats = ResourceManager.ChunkManager.Render(ref viewProjectionMatrix);
             stats += ResourceManager.ParticleManager.Render(ref viewProjectionMatrix);
-
-            //for (int s = 0; s < sprites.Count; s++)
-            //{
-            //    Sprite sprite = sprites[s];
-
-            //    translationMatrix.M41 = sprite.X;
-            //    translationMatrix.M42 = sprite.Y;
-            //    translationMatrix.M43 = sprite.Z;
-            //    Matrix4 viewProjectionModelMatrix = translationMatrix * viewProjectionMatrix;
-
-            //    sprites[s].RenderOpaque(ref viewProjectionModelMatrix);
-            //    drawCount++;
-            //    polygonCount += sprites[s].PolygonCount;
-            //}
         }
 
         private static void GetWorldView(Camera camera, float distance, out int minX, out int maxX, out int minY, out int maxY)

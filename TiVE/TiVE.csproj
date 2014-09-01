@@ -92,13 +92,13 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Renderer\Particles\ParticleSystemCollection.cs" />
+    <Compile Include="Renderer\Voxels\MeshBuilder.cs" />
     <Compile Include="Renderer\Voxels\VoxelMeshUtils.cs" />
     <Compile Include="Resources\LightManager.cs" />
     <Compile Include="Resources\ParticleSystemManager.cs" />
     <Compile Include="Resources\PluginManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Renderer\Particles\ParticleSystem.cs" />
-    <Compile Include="Renderer\Voxels\MeshBuilder.cs" />
     <Compile Include="Renderer\Voxels\GameWorldVoxelChunk.cs" />
     <Compile Include="Renderer\Voxels\VoxelGroup.cs" />
     <Compile Include="Resources\BlockListManager.cs" />

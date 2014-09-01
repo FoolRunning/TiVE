@@ -80,6 +80,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BlockInformation.cs" />
+    <Compile Include="BlockAnimationDefinition.cs" />
     <Compile Include="IBlockGenerator.cs" />
     <Compile Include="IBlockList.cs" />
     <Compile Include="ICamera.cs" />

@@ -16,8 +16,8 @@ namespace ProdigalSoftware.TiVE.Resources
 
             foreach (IBlockGenerator generator in ResourceManager.PluginManager.GetPluginsOfType<IBlockGenerator>())
             {
-                foreach (BlockInformation blockInfo in generator.CreateBlocks())
-                    blockList.AddBlock(blockInfo.BlockName, blockInfo);
+                blockList.AddBlocks(generator.CreateBlocks());
+                blockList.AddAnimations(generator.CreateAnimations());
             }
 
             if (blockList.BlockCount == 0)
@@ -36,6 +36,11 @@ namespace ProdigalSoftware.TiVE.Resources
         public void Dispose()
         {
             BlockList = null;
+        }
+
+        public void UpdateAnimations(float timeSinceLastFrame)
+        {
+            BlockList.UpdateAnimationMap(timeSinceLastFrame);
         }
     }
 }

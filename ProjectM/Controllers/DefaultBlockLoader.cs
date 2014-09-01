@@ -41,7 +41,7 @@ namespace ProdigalSoftware.ProjectM.Controllers
                 }
                 else
                 {
-                    color = new Color4(140, 100, 20, 255);
+                    color = new Color4(120, 100, 20, 255);
                     voxelDensity = 0.1f;
                     name = "sand" + (i - 15);
                 }
@@ -67,6 +67,12 @@ namespace ProdigalSoftware.ProjectM.Controllers
             particleVoxels[1, 1, 2] = 0xFFFFFFFF;
             yield return CreateBlockInfo("fountain", false, true, new Color4(20, 20, 150, 255), 1.0f,
                 new ParticleSystemInformation(particleVoxels, new FountainUpdater(), new Vector3b(3, 3, 7), 1000, 2200, false, true));
+        }
+
+        public IEnumerable<BlockAnimationDefinition> CreateAnimations()
+        {
+            //yield return new BlockAnimationDefinition(100, "sand0", "sand1", "sand2", "sand3", "sand0");
+            return null;
         }
 
         private static BlockInformation CreateBlockInfo(string name, bool frontOnly, bool sphere, Color4 color, float voxelDensity,

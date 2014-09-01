@@ -21,41 +21,45 @@ namespace ProdigalSoftware.TiVE.Renderer.Voxels
         private const int BigColorDiff = 20;
         #endregion
 
-        private readonly int chunkStartX;
-        private readonly int chunkStartY;
-        private readonly int chunkStartZ;
+        private readonly List<ParticleSystem> particleSystems = new List<ParticleSystem>();
+        private readonly object syncLock = new object();
+        private readonly int chunkX;
+        private readonly int chunkY;
+        private readonly int chunkZ;
         private readonly bool useInstancing;
         private Matrix4 translationMatrix;
         private bool deleted;
         private IVertexDataCollection mesh;
-        private readonly List<ParticleSystem> particleSystems = new List<ParticleSystem>();
-        private readonly object syncLock = new object();
+        private MeshBuilder meshBuilder;
         private int chunkPolygonCount;
         private int chunkVoxelCount;
         private int chunkRenderedVoxelCount;
 
         public GameWorldVoxelChunk(int chunkStartX, int chunkStartY, int chunkStartZ, bool useInstancing)
         {
-            this.chunkStartX = chunkStartX;
-            this.chunkStartY = chunkStartY;
-            this.chunkStartZ = chunkStartZ;
+            this.chunkX = chunkStartX;
+            this.chunkY = chunkStartY;
+            this.chunkZ = chunkStartZ;
             this.useInstancing = useInstancing;
-            
+
             translationMatrix = Matrix4.CreateTranslation(chunkStartX * TileSize * BlockInformation.BlockSize,
                 chunkStartY * TileSize * BlockInformation.BlockSize, chunkStartZ * TileSize * BlockInformation.BlockSize);
         }
 
         public void Dispose()
         {
-            IVertexDataCollection meshData;
             using (new PerformanceLock(syncLock))
             {
-                meshData = mesh;
+                if (meshBuilder != null)
+                    meshBuilder.DropMesh();
+
+                if (mesh != null)
+                    mesh.Dispose();
+
+                meshBuilder = null;
                 mesh = null;
                 deleted = true;
             }
-            if (meshData != null)
-                meshData.Dispose();
 
             for (int i = 0; i < particleSystems.Count; i++)
                 ResourceManager.ParticleManager.RemoveParticleSystem(particleSystems[i]);
@@ -71,21 +75,9 @@ namespace ProdigalSoftware.TiVE.Renderer.Voxels
             }
         }
 
-        public bool IsInitialized
-        {
-            get
-            {
-                IVertexDataCollection meshData;
-                using (new PerformanceLock(syncLock))
-                    meshData = mesh;
-                return meshData != null && meshData.IsInitialized;
-            }
-        }
-
         public bool IsInside(int checkChunkStartX, int checkChunkStartY, int checkChunkEndX, int checkChunkEndY)
         {
-            return checkChunkStartX <= chunkStartX + TileSize && checkChunkEndX >= chunkStartX &&
-                checkChunkStartY <= chunkStartY + TileSize && checkChunkEndY >= chunkStartY;
+            return checkChunkStartX <= chunkX && checkChunkEndX >= chunkX && checkChunkStartY <= chunkY && checkChunkEndY >= chunkY;
         }
 
         public void PrepareForLoad()
@@ -94,8 +86,10 @@ namespace ProdigalSoftware.TiVE.Renderer.Voxels
                 deleted = false;
         }
 
-        public void Load(MeshBuilder meshBuilder)
+        public void Load(MeshBuilder newMeshBuilder)
         {
+            Debug.Assert(newMeshBuilder.IsLocked);
+
             GameWorld gameWorld = ResourceManager.GameWorldManager.GameWorld;
 
             //Debug.WriteLine("Started chunk ({0},{1},{2})", chunkStartX, chunkStartY, chunkStartZ);
@@ -104,14 +98,14 @@ namespace ProdigalSoftware.TiVE.Renderer.Voxels
             int tileMaxZ = Math.Min(gameWorld.Zsize, TileSize);
 
             particleSystems.Clear();
-            uint[] voxels = meshBuilder.Voxels;
+            uint[] voxels = newMeshBuilder.Voxels;
             Debug.Assert(voxels.Length >= VoxelSize * VoxelSize * VoxelSize);
 
             Array.Clear(voxels, 0, voxels.Length);
 
-            int worldStartX = chunkStartX * TileSize;
-            int worldStartY = chunkStartY * TileSize;
-            int worldStartZ = chunkStartZ * TileSize;
+            int worldStartX = chunkX * TileSize;
+            int worldStartY = chunkY * TileSize;
+            int worldStartZ = chunkZ * TileSize;
 
             for (int tileX = 0; tileX < tileMaxX; tileX++)
             {
@@ -144,7 +138,6 @@ namespace ProdigalSoftware.TiVE.Renderer.Voxels
                             ParticleSystem system = new ParticleSystem(particleInfo, (worldX * BlockInformation.BlockSize) + loc.X,
                                 (worldY * BlockInformation.BlockSize) + loc.Y, (worldZ * BlockInformation.BlockSize) + loc.Z);
                             particleSystems.Add(system);
-                            ResourceManager.ParticleManager.AddParticleSystem(system);
                         }
                     }
                 }
@@ -175,43 +168,44 @@ namespace ProdigalSoftware.TiVE.Renderer.Voxels
             //}
 
             int voxelCount, renderedVoxelCount, polygonCount;
-            IVertexDataCollection meshData = GenerateMesh(voxels, meshBuilder, out voxelCount, out renderedVoxelCount, out polygonCount);
+            GenerateMesh(voxels, newMeshBuilder, out voxelCount, out renderedVoxelCount, out polygonCount);
 
             using (new PerformanceLock(syncLock))
             {
+                meshBuilder = newMeshBuilder;
+                chunkPolygonCount = polygonCount;
+                chunkVoxelCount = voxelCount;
+                chunkRenderedVoxelCount = renderedVoxelCount;
+
+                for (int i = 0; i < particleSystems.Count; i++)
+                    ResourceManager.ParticleManager.AddParticleSystem(particleSystems[i]);
+                
                 if (deleted)
-                {
-                    meshData.Dispose();
-                    Dispose();
-                }
-                else
-                {
-                    mesh = meshData;
-                    chunkPolygonCount = polygonCount;
-                    chunkVoxelCount = voxelCount;
-                    chunkRenderedVoxelCount = renderedVoxelCount;
-                }
+                    Dispose(); // Chunk was deleted while loading
             }
-        }
-
-        public void Initialize()
-        {
-            IVertexDataCollection meshData;
-            using (new PerformanceLock(syncLock))
-                meshData = mesh;
-
-            if (meshData != null)
-                meshData.Initialize();
         }
 
         public RenderStatistics Render(ref Matrix4 viewProjectionMatrix)
         {
             IVertexDataCollection meshData;
             using (new PerformanceLock(syncLock))
-                meshData = mesh;
+            {
+                if (meshBuilder != null)
+                {
+                    if (mesh != null)
+                        mesh.Dispose();
 
-            if (meshData == null || !meshData.IsInitialized)
-                return new RenderStatistics(); // Not loaded yet
+                    mesh = meshBuilder.GetMesh();
+                    meshBuilder = null;
+                    mesh.Initialize();
+                }
+                meshData = mesh;
+            }
+
+            if (meshData == null || chunkPolygonCount == 0)
+                return new RenderStatistics(); // Nothing to render for this chunk
+
+            Debug.Assert(meshData.IsInitialized);
 
             IShaderProgram shader = ResourceManager.ShaderManager.GetShaderProgram("MainWorld");
             shader.Bind();
@@ -224,7 +218,12 @@ namespace ProdigalSoftware.TiVE.Renderer.Voxels
             return new RenderStatistics(1, chunkPolygonCount, chunkVoxelCount, chunkRenderedVoxelCount);
         }
 
-        private static void SetVoxelsFromBlock(uint[] voxels,int startX, int startY, int startZ, BlockInformation block)
+        public override string ToString()
+        {
+            return string.Format("Chunk ({0}, {1}, {2}) {3}v", chunkX, chunkY, chunkZ, chunkVoxelCount);
+        }
+
+        private static void SetVoxelsFromBlock(uint[] voxels, int startX, int startY, int startZ, BlockInformation block)
         {
             for (int z = 0; z < BlockInformation.BlockSize; z++)
             {
@@ -238,13 +237,12 @@ namespace ProdigalSoftware.TiVE.Renderer.Voxels
             }
         }
 
-        private static IVertexDataCollection GenerateMesh(uint[] voxels, MeshBuilder meshBuilder, out int voxelCount, out int renderedVoxelCount, out int polygonCount)
+        private static void GenerateMesh(uint[] voxels, MeshBuilder meshBuilder, out int voxelCount, out int renderedVoxelCount, out int polygonCount)
         {
             voxelCount = 0;
             renderedVoxelCount = 0;
             polygonCount = 0;
 
-            meshBuilder.StartNewMesh();
             for (int z = 0; z < VoxelSize; z++)
             {
                 for (int x = 0; x < VoxelSize; x++)
@@ -283,7 +281,6 @@ namespace ProdigalSoftware.TiVE.Renderer.Voxels
                     }
                 }
             }
-            return meshBuilder.GetMesh();
         }
 
         private static int AddVoxel(MeshBuilder meshBuilder, VoxelSides sides, int x, int y, int z, byte cr, byte cg, byte cb, byte ca)
@@ -409,7 +406,7 @@ namespace ProdigalSoftware.TiVE.Renderer.Voxels
             if (x < 0 || x >= VoxelSize || y < 0 || y >= VoxelSize || z < 0 || z >= VoxelSize)
                 throw new ArgumentException(string.Format("Voxel location ({0}, {1}, {2}) out of range.", x, y, z));
 #endif
-            return (x * VoxelSize + z) * VoxelSize + y;
+            return (z * VoxelSize + x) * VoxelSize + y;
         }
     }
 }
