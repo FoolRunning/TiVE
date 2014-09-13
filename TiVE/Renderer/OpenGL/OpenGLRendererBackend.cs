@@ -142,16 +142,16 @@ namespace ProdigalSoftware.TiVE.Renderer.OpenGL
             /// Creates a window
             /// </summary>
             public OpenGLDisplay()
-                : base(1920, 1080, new OpenTK.Graphics.GraphicsMode(new OpenTK.Graphics.ColorFormat(8, 8, 8, 8), 16, 0, 4), "TiVE",
+                : base(1920, 1080, new OpenTK.Graphics.GraphicsMode(new OpenTK.Graphics.ColorFormat(8, 8, 8, 8), 16, 0, 0), "TiVE",
                     GameWindowFlags.Default, DisplayDevice.Default, 3, 1, OpenTK.Graphics.GraphicsContextFlags.ForwardCompatible)
             {
-                VSync = VSyncMode.On;
+                VSync = VSyncMode.Off;
             }
 
             public void RunMainLoop(GameLogic newGame)
             {
                 game = newGame;
-                Run(60);
+                Run(60, 60);
             }
 
             /// <summary>

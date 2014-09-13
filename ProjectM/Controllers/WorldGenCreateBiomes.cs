@@ -24,13 +24,13 @@ namespace ProdigalSoftware.ProjectM.Controllers
 
             //Debug.WriteLine(scale1 + ", " + scale2 + ", " + scale3);
 
-            for (int x = 0; x < gameWorld.Xsize; x++)
+            for (int x = 0; x < gameWorld.BlockSizeX; x++)
             {
                 double noise = Noise.GetNoise((offset1 + x) * scale1) * 0.6 +
                     Noise.GetNoise((offset2 + x) * scale2) * 0.25 +
                     Noise.GetNoise((offset3 + x) * scale3) * 0.15;
 
-                int bottomY = gameWorld.Ysize - (int) (noise * 75.0) - 125;
+                int bottomY = gameWorld.BlockSizeY - (int) (noise * 75.0) - 125;
                 FillColumn(gameWorld, x, bottomY);
             }
         }

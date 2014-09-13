@@ -32,43 +32,43 @@ namespace ProdigalSoftware.ProjectM.Controllers
             double scaleY3 = random2.NextDouble() * 0.20 + 0.07;
 
             // Use parallel for for speed since there is no syncing needed
-            for (int x = 0; x < gameWorld.Xsize; x++)
+            for (int x = 0; x < gameWorld.BlockSizeX; x++)
             {
-                for (int y = 0; y < gameWorld.Ysize; y++)
+                for (int y = 0; y < gameWorld.BlockSizeY; y++)
                 {
                     double noiseVal = Noise.GetNoise((xOff1 + x) * scaleX1, (yOff1 + y) * scaleY1) * 0.7f +
                             Noise.GetNoise((xOff2 + x) * scaleX2, (yOff2 + y) * scaleY2) * 0.4f +
                             Noise.GetNoise((xOff3 + x) * scaleX3, (yOff3 + y) * scaleY3) * 0.2f;
                     if (noiseVal > 0.2)
                     {
-                        gameWorld.SetBlock(x, y, 1, null);
-                        gameWorld.SetBlock(x, y, 2, null);
-                        gameWorld.SetBlock(x, y, 3, null);
+                        gameWorld[x, y, 1] = null;
+                        gameWorld[x, y, 2] = null;
+                        gameWorld[x, y, 3] = null;
                     }
                     if (noiseVal > 0.3)
                     {
-                        gameWorld.SetBlock(x, y, 4, null);
-                        gameWorld.SetBlock(x, y, 5, null);
-                        gameWorld.SetBlock(x, y, 6, null);
+                        gameWorld[x, y, 4] = null;
+                        gameWorld[x, y, 5] = null;
+                        gameWorld[x, y, 6] = null;
                     }
                     if (noiseVal > 0.4)
                     {
-                        gameWorld.SetBlock(x, y, 7, null);
-                        gameWorld.SetBlock(x, y, 8, null);
-                        gameWorld.SetBlock(x, y, 9, null);
+                        gameWorld[x, y, 7] = null;
+                        gameWorld[x, y, 8] = null;
+                        gameWorld[x, y, 9] = null;
                     }
                     if (noiseVal > 0.5)
                     {
-                        gameWorld.SetBlock(x, y, 10, null);
-                        gameWorld.SetBlock(x, y, 11, null);
-                        gameWorld.SetBlock(x, y, 12, null);
+                        gameWorld[x, y, 10] = null;
+                        gameWorld[x, y, 11] = null;
+                        gameWorld[x, y, 12] = null;
                     }
                     if (noiseVal > 0.6)
                     {
-                        gameWorld.SetBlock(x, y, 13, null);
-                        gameWorld.SetBlock(x, y, 14, null);
-                        //gameWorld.SetBlock(x, y, 14, null);
-                        //gameWorld.SetBlock(x, y, 15, null);
+                        gameWorld[x, y, 13] = null;
+                        gameWorld[x, y, 14] = null;
+                        //gameWorld[x, y, 14] null);
+                        //gameWorld[x, y, 15] null);
                     }
                 }
             }
