@@ -2,14 +2,12 @@
 {
     public interface IGameWorld
     {
-        int Xsize { get; }
+        int BlockSizeX { get; }
 
-        int Ysize { get; }
+        int BlockSizeY { get; }
 
-        int Zsize { get; }
+        int BlockSizeZ { get; }
 
-        void SetBlock(int x, int y, int z, BlockInformation block);
-
-        BlockInformation GetBlock(int x, int y, int z);
+        BlockInformation this[int x, int y, int z] { get; set; }
     }
 }

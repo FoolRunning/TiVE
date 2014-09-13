@@ -35,15 +35,15 @@ namespace ProdigalSoftware.TiVE.Renderer.Voxels
         private int chunkVoxelCount;
         private int chunkRenderedVoxelCount;
 
-        public GameWorldVoxelChunk(int chunkStartX, int chunkStartY, int chunkStartZ, bool useInstancing)
+        public GameWorldVoxelChunk(int chunkX, int chunkY, int chunkZ, bool useInstancing)
         {
-            this.chunkX = chunkStartX;
-            this.chunkY = chunkStartY;
-            this.chunkZ = chunkStartZ;
+            this.chunkX = chunkX;
+            this.chunkY = chunkY;
+            this.chunkZ = chunkZ;
             this.useInstancing = useInstancing;
 
-            translationMatrix = Matrix4.CreateTranslation(chunkStartX * TileSize * BlockInformation.BlockSize,
-                chunkStartY * TileSize * BlockInformation.BlockSize, chunkStartZ * TileSize * BlockInformation.BlockSize);
+            translationMatrix = Matrix4.CreateTranslation(chunkX * TileSize * BlockInformation.BlockSize,
+                chunkY * TileSize * BlockInformation.BlockSize, chunkZ * TileSize * BlockInformation.BlockSize);
         }
 
         public void Dispose()
@@ -93,82 +93,77 @@ namespace ProdigalSoftware.TiVE.Renderer.Voxels
             GameWorld gameWorld = ResourceManager.GameWorldManager.GameWorld;
 
             //Debug.WriteLine("Started chunk ({0},{1},{2})", chunkStartX, chunkStartY, chunkStartZ);
-            int tileMaxX = Math.Min(gameWorld.Xsize, TileSize);
-            int tileMaxY = Math.Min(gameWorld.Ysize, TileSize);
-            int tileMaxZ = Math.Min(gameWorld.Zsize, TileSize);
-
             particleSystems.Clear();
-            uint[] voxels = newMeshBuilder.Voxels;
-            Debug.Assert(voxels.Length >= VoxelSize * VoxelSize * VoxelSize);
 
-            Array.Clear(voxels, 0, voxels.Length);
+            int maxVoxelX = gameWorld.WorldSizeX;
+            int maxVoxelY = gameWorld.WorldSizeY;
+            int maxVoxelZ = gameWorld.WorldSizeZ;
 
-            int worldStartX = chunkX * TileSize;
-            int worldStartY = chunkY * TileSize;
-            int worldStartZ = chunkZ * TileSize;
+            int worldVoxelStartX = chunkX * TileSize * BlockInformation.BlockSize;
+            int worldVoxelEndX = Math.Min((chunkX + 1) * TileSize * BlockInformation.BlockSize, maxVoxelX);
+            int worldVoxelStartY = chunkY * TileSize * BlockInformation.BlockSize;
+            int worldVoxelEndY = Math.Min((chunkY + 1) * TileSize * BlockInformation.BlockSize, maxVoxelY);
+            int worldVoxelStartZ = chunkZ * TileSize * BlockInformation.BlockSize;
+            int worldVoxelEndZ = Math.Min((chunkZ + 1) * TileSize * BlockInformation.BlockSize, maxVoxelZ);
 
-            for (int tileX = 0; tileX < tileMaxX; tileX++)
+            int voxelCount = 0;
+            int renderedVoxelCount = 0;
+            int polygonCount = 0;
+
+            for (int x = worldVoxelStartX; x < worldVoxelEndX; x++)
             {
-                int worldX = worldStartX + tileX;
-                if (worldX < 0 || worldX >= gameWorld.Xsize)
-                    continue;
-                int voxelX = tileX * BlockInformation.BlockSize;
+                int cx = x - worldVoxelStartX;
 
-                for (int tileY = 0; tileY < tileMaxY; tileY++)
+                for (int z = worldVoxelStartZ; z < worldVoxelEndZ; z++)
                 {
-                    int worldY = worldStartY + tileY;
-                    if (worldY < 0 || worldY >= gameWorld.Ysize)
-                        continue;
-                    int voxelY = tileY * BlockInformation.BlockSize;
+                    int cz = z - worldVoxelStartZ;
 
-                    for (int tileZ = 0; tileZ < tileMaxZ; tileZ++)
+                    for (int y = worldVoxelStartY; y < worldVoxelEndY; y++)
                     {
-                        int worldZ = worldStartZ + tileZ;
-                        if (worldZ < 0 || worldZ >= gameWorld.Zsize)
+                        uint color = gameWorld.GetVoxel(x, y, z);
+                        if (color == 0)
                             continue;
-                        int voxelZ = tileZ * BlockInformation.BlockSize;
 
-                        BlockInformation block = gameWorld.GetBlock(worldX, worldY, worldZ);
-                        SetVoxelsFromBlock(voxels, voxelX, voxelY, voxelZ, block);
+                        voxelCount++;
 
-                        ParticleSystemInformation particleInfo = block.ParticleSystem;
-                        if (particleInfo != null)
+                        VoxelSides sides = VoxelSides.None;
+                        if (z == maxVoxelZ - 1 || gameWorld.GetVoxel(x, y, z + 1) == 0)
+                            sides |= VoxelSides.Front;
+                        //if (!IsZLineSet(x, y, z, 1)) // The back face is never shown to the camera, so there is no need to create it
+                        //    sizes |= VoxelSides.Back;
+                        if (x == 0 || gameWorld.GetVoxel(x - 1, y, z) == 0)
+                            sides |= VoxelSides.Left;
+                        if (x == maxVoxelX - 1 || gameWorld.GetVoxel(x + 1, y, z) == 0)
+                            sides |= VoxelSides.Right;
+                        if (y == 0 || gameWorld.GetVoxel(x, y - 1, z) == 0)
+                            sides |= VoxelSides.Bottom;
+                        if (y == maxVoxelY - 1 || gameWorld.GetVoxel(x, y + 1, z) == 0)
+                            sides |= VoxelSides.Top;
+
+                        if (sides != VoxelSides.None)
                         {
-                            Vector3b loc = particleInfo.Location;
-                            ParticleSystem system = new ParticleSystem(particleInfo, (worldX * BlockInformation.BlockSize) + loc.X,
-                                (worldY * BlockInformation.BlockSize) + loc.Y, (worldZ * BlockInformation.BlockSize) + loc.Z);
-                            particleSystems.Add(system);
+                            byte a = (byte)((color >> 24) & 0xFF);
+                            byte r = (byte)(((color >> 16) & 0xFF));
+                            byte g = (byte)(((color >> 8) & 0xFF));
+                            byte b = (byte)(((color >> 0) & 0xFF));
+                            polygonCount += AddVoxel(newMeshBuilder, sides, cx, y - worldVoxelStartY, cz, r, g, b, a);
+                            renderedVoxelCount++;
                         }
                     }
                 }
             }
-            //voxelGroup.DetermineVoxelVisibility();
 
-            //const uint color = 0xFF0F0F0F; //E0E0E0;
-            //const int ChunkVoxelSize = TileSize * BlockInformation.BlockSize;
-            //int maxVoxelZ = tileMaxZ * BlockInformation.BlockSize;
-            //for (int x = 0; x < ChunkVoxelSize; x++)
-            //{
-            //    voxels[GetOffset(x, 0, maxVoxelZ - 1)] = color;
-            //    voxels[GetOffset(x, ChunkVoxelSize - 1, maxVoxelZ - 1)] = color;
-            //}
+            //            BlockInformation block = gameWorld.GetBlock(worldX, worldY, worldZ);
+            //            SetVoxelsFromBlock(voxels, voxelX, voxelY, voxelZ, block);
 
-            //for (int y = 0; y < ChunkVoxelSize; y++)
-            //{
-            //    voxels[GetOffset(0, y, maxVoxelZ - 1)] = color;
-            //    voxels[GetOffset(ChunkVoxelSize - 1, y, maxVoxelZ - 1)] = color;
-            //}
-
-            //for (int z = 0; z < maxVoxelZ; z++)
-            //{
-            //    voxels[GetOffset(0, 0, z)] = color;
-            //    voxels[GetOffset(ChunkVoxelSize - 1, 0, z)] = color;
-            //    voxels[GetOffset(ChunkVoxelSize - 1, ChunkVoxelSize - 1, z)] = color;
-            //    voxels[GetOffset(0, ChunkVoxelSize - 1, z)] = color;
-            //}
-
-            int voxelCount, renderedVoxelCount, polygonCount;
-            GenerateMesh(voxels, newMeshBuilder, out voxelCount, out renderedVoxelCount, out polygonCount);
+            //            ParticleSystemInformation particleInfo = block.ParticleSystem;
+            //            if (particleInfo != null)
+            //            {
+            //                Vector3b loc = particleInfo.Location;
+            //                ParticleSystem system = new ParticleSystem(particleInfo, (worldX * BlockInformation.BlockSize) + loc.X,
+            //                    (worldY * BlockInformation.BlockSize) + loc.Y, (worldZ * BlockInformation.BlockSize) + loc.Z);
+            //                particleSystems.Add(system);
+            //            }
 
             using (new PerformanceLock(syncLock))
             {
@@ -196,8 +191,10 @@ namespace ProdigalSoftware.TiVE.Renderer.Voxels
                         mesh.Dispose();
 
                     mesh = meshBuilder.GetMesh();
-                    meshBuilder = null;
                     mesh.Initialize();
+                    
+                    meshBuilder.DropMesh(); // Release builder - Must be called after initializing the mesh
+                    meshBuilder = null;
                 }
                 meshData = mesh;
             }
@@ -221,66 +218,6 @@ namespace ProdigalSoftware.TiVE.Renderer.Voxels
         public override string ToString()
         {
             return string.Format("Chunk ({0}, {1}, {2}) {3}v", chunkX, chunkY, chunkZ, chunkVoxelCount);
-        }
-
-        private static void SetVoxelsFromBlock(uint[] voxels, int startX, int startY, int startZ, BlockInformation block)
-        {
-            for (int z = 0; z < BlockInformation.BlockSize; z++)
-            {
-                int zOff = startZ + z;
-                for (int x = 0; x < BlockInformation.BlockSize; x++)
-                {
-                    int xOff = startX + x;
-                    for (int y = 0; y < BlockInformation.BlockSize; y++)
-                        voxels[GetOffset(xOff, startY + y, zOff)] = block[x, y, z];
-                }
-            }
-        }
-
-        private static void GenerateMesh(uint[] voxels, MeshBuilder meshBuilder, out int voxelCount, out int renderedVoxelCount, out int polygonCount)
-        {
-            voxelCount = 0;
-            renderedVoxelCount = 0;
-            polygonCount = 0;
-
-            for (int z = 0; z < VoxelSize; z++)
-            {
-                for (int x = 0; x < VoxelSize; x++)
-                {
-                    for (int y = 0; y < VoxelSize; y++)
-                    {
-                        uint color = voxels[GetOffset(x, y, z)];
-                        if (color == 0)
-                            continue;
-
-                        voxelCount++;
-
-                        VoxelSides sides = VoxelSides.None;
-                        if (z == VoxelSize - 1 || voxels[GetOffset(x, y, z + 1)] == 0)
-                            sides |= VoxelSides.Front;
-                        //if (!IsZLineSet(x, y, z, 1)) // The back face is never shown to the camera, so there is no need to create it
-                        //    sizes |= VoxelSides.Back;
-                        if (x == 0 || voxels[GetOffset(x - 1, y, z)] == 0)
-                            sides |= VoxelSides.Left;
-                        if (x == VoxelSize - 1 || voxels[GetOffset(x + 1, y, z)] == 0)
-                            sides |= VoxelSides.Right;
-                        if (y == 0 || voxels[GetOffset(x, y - 1, z)] == 0)
-                            sides |= VoxelSides.Bottom;
-                        if (y == VoxelSize - 1 || voxels[GetOffset(x, y + 1, z)] == 0)
-                            sides |= VoxelSides.Top;
-
-                        //VoxelSides sides = (VoxelSides)((color & 0xFC000000) >> 26);
-                        if (sides != VoxelSides.None)
-                        {
-                            byte r = (byte)(((color >> 16) & 0xFF));
-                            byte g = (byte)(((color >> 8) & 0xFF));
-                            byte b = (byte)(((color >> 0) & 0xFF));
-                            polygonCount += AddVoxel(meshBuilder, sides, x, y, z, r, g, b, 255 /*(byte)((color >> 24) & 0xFF)*/);
-                            renderedVoxelCount++;
-                        }
-                    }
-                }
-            }
         }
 
         private static int AddVoxel(MeshBuilder meshBuilder, VoxelSides sides, int x, int y, int z, byte cr, byte cg, byte cb, byte ca)
@@ -397,16 +334,6 @@ namespace ProdigalSoftware.TiVE.Renderer.Voxels
             }
 
             return polygonCount;
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static int GetOffset(int x, int y, int z)
-        {
-#if DEBUG
-            if (x < 0 || x >= VoxelSize || y < 0 || y >= VoxelSize || z < 0 || z >= VoxelSize)
-                throw new ArgumentException(string.Format("Voxel location ({0}, {1}, {2}) out of range.", x, y, z));
-#endif
-            return (z * VoxelSize + x) * VoxelSize + y;
         }
     }
 }

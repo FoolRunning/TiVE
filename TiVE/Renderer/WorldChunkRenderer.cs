@@ -21,8 +21,8 @@ namespace ProdigalSoftware.TiVE.Renderer
             GameWorld gameWorld = ResourceManager.GameWorldManager.GameWorld;
             worldMinX = Math.Max(worldMinX, 0);
             worldMinY = Math.Max(worldMinY, 0);
-            worldMaxX = Math.Min(worldMaxX, gameWorld.Xsize);
-            worldMaxY = Math.Min(worldMaxY, gameWorld.Ysize);
+            worldMaxX = Math.Min(worldMaxX, gameWorld.BlockSizeX);
+            worldMaxY = Math.Min(worldMaxY, gameWorld.BlockSizeY);
             viewProjectionMatrix = Matrix4.Mult(camera.ViewMatrix, camera.ProjectionMatrix);
 
             ResourceManager.BlockListManager.UpdateAnimations(timeSinceLastFrame);

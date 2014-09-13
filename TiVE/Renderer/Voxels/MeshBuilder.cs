@@ -67,31 +67,21 @@ namespace ProdigalSoftware.TiVE.Renderer.Voxels
 
         public IVertexDataCollection GetMesh()
         {
-            IVertexDataCollection meshData;
-            using (new PerformanceLock(syncRoot))
-            {
-                meshData = TiVEController.Backend.CreateVertexDataCollection();
-                meshData.AddBuffer(GetLocationData());
-                meshData.AddBuffer(GetColorData());
-                if (indexCount > 0)
-                    meshData.AddBuffer(GetIndexData());
-                locked = false;
-            }
+            IVertexDataCollection meshData = TiVEController.Backend.CreateVertexDataCollection();
+            meshData.AddBuffer(GetLocationData());
+            meshData.AddBuffer(GetColorData());
+            if (indexCount > 0)
+                meshData.AddBuffer(GetIndexData());
             return meshData;
         }
 
         public IVertexDataCollection GetInstanceData(params IRendererData[] instanceMeshData)
         {
-            IVertexDataCollection dataCollection;
-            using (new PerformanceLock(syncRoot))
-            {
-                dataCollection = TiVEController.Backend.CreateVertexDataCollection();
-                foreach (IRendererData data in instanceMeshData)
-                    dataCollection.AddBuffer(data);
-                dataCollection.AddBuffer(TiVEController.Backend.CreateData(locationData, vertexCount, 3, DataType.Instance, ValueType.Byte, false, false));
-                dataCollection.AddBuffer(TiVEController.Backend.CreateData(colorData, vertexCount, 4, DataType.Instance, ValueType.Byte, true, false));
-                locked = false;
-            }
+            IVertexDataCollection dataCollection = TiVEController.Backend.CreateVertexDataCollection();
+            foreach (IRendererData data in instanceMeshData)
+                dataCollection.AddBuffer(data);
+            dataCollection.AddBuffer(TiVEController.Backend.CreateData(locationData, vertexCount, 3, DataType.Instance, ValueType.Byte, false, false));
+            dataCollection.AddBuffer(TiVEController.Backend.CreateData(colorData, vertexCount, 4, DataType.Instance, ValueType.Byte, true, false));
             return dataCollection;
         }
 

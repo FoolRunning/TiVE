@@ -96,11 +96,11 @@ namespace ProdigalSoftware.TiVE.Resources
             Debug.Assert(Thread.CurrentThread.Name == "Main UI");
 
             GameWorld gameWorld = ResourceManager.GameWorldManager.GameWorld;
-            chunkMinX = Math.Max(0, Math.Min(gameWorld.XChunkSize, camMinX / GameWorldVoxelChunk.TileSize - 1));
-            chunkMaxX = Math.Max(0, Math.Min(gameWorld.XChunkSize, (int)Math.Ceiling(camMaxX / (float)GameWorldVoxelChunk.TileSize) + 1));
-            chunkMinY = Math.Max(0, Math.Min(gameWorld.YChunkSize, camMinY / GameWorldVoxelChunk.TileSize - 1));
-            chunkMaxY = Math.Max(0, Math.Min(gameWorld.YChunkSize, (int)Math.Ceiling(camMaxY / (float)GameWorldVoxelChunk.TileSize) + 1));
-            chunkMaxZ = Math.Max((int)Math.Ceiling(gameWorld.Zsize / (float)GameWorldVoxelChunk.TileSize), 1);
+            chunkMinX = Math.Max(0, Math.Min(gameWorld.ChunkSizeX, camMinX / GameWorldVoxelChunk.TileSize - 1));
+            chunkMaxX = Math.Max(0, Math.Min(gameWorld.ChunkSizeX, (int)Math.Ceiling(camMaxX / (float)GameWorldVoxelChunk.TileSize) + 1));
+            chunkMinY = Math.Max(0, Math.Min(gameWorld.ChunkSizeY, camMinY / GameWorldVoxelChunk.TileSize - 1));
+            chunkMaxY = Math.Max(0, Math.Min(gameWorld.ChunkSizeY, (int)Math.Ceiling(camMaxY / (float)GameWorldVoxelChunk.TileSize) + 1));
+            chunkMaxZ = Math.Max((int)Math.Ceiling(gameWorld.BlockSizeZ / (float)GameWorldVoxelChunk.TileSize), 1);
 
             for (int i = 0; i < loadedChunksList.Count; i++)
             {
@@ -150,22 +150,21 @@ namespace ProdigalSoftware.TiVE.Resources
             int worldStartY = chunkY * GameWorldVoxelChunk.TileSize;
             int worldStartZ = chunkZ * GameWorldVoxelChunk.TileSize;
 
-            int worldEndX = Math.Min(gameWorld.Xsize, worldStartX + GameWorldVoxelChunk.TileSize);
-            int worldEndY = Math.Min(gameWorld.Ysize, worldStartY + GameWorldVoxelChunk.TileSize);
-            int worldEndZ = Math.Min(gameWorld.Xsize, worldStartZ + GameWorldVoxelChunk.TileSize);
+            int worldEndX = Math.Min(gameWorld.BlockSizeX, worldStartX + GameWorldVoxelChunk.TileSize);
+            int worldEndY = Math.Min(gameWorld.BlockSizeY, worldStartY + GameWorldVoxelChunk.TileSize);
+            int worldEndZ = Math.Min(gameWorld.BlockSizeZ, worldStartZ + GameWorldVoxelChunk.TileSize);
 
             bool changedChunk = false;
-            int maxZ = gameWorld.Zsize;
             for (int z = worldStartZ; z < worldEndZ; z++)
             {
                 for (int x = worldStartX; x < worldEndX; x++)
                 {
                     for (int y = worldStartY; y < worldEndY; y++)
                     {
-                        BlockInformation newBlock = blockList.NextFrameFor(gameWorld.GetBlock(x, y, z));
+                        BlockInformation newBlock = blockList.NextFrameFor(gameWorld[x, y, z]);
                         if (newBlock != null)
                         {
-                            gameWorld.SetBlock(x, y, z, newBlock);
+                            gameWorld[x, y, z] = newBlock;
                             changedChunk = true;
                         }
                     }

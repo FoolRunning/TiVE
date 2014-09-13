@@ -38,16 +38,16 @@ namespace ProdigalSoftware.ProjectM.Controllers
             double scaleX3 = random2.NextDouble() * 0.015 + 0.07;
             double scaleY3 = random2.NextDouble() * 0.015 + 0.07;
 
-            for (int x = 0; x < gameWorld.Xsize; x++)
+            for (int x = 0; x < gameWorld.BlockSizeX; x++)
             {
-                for (int y = 0; y < gameWorld.Ysize; y++)
+                for (int y = 0; y < gameWorld.BlockSizeY; y++)
                 {
                     //if (gameWorld.GetBiome(x, y) == 0)
                     //    continue;
                     double noiseVal = Noise.GetNoise((xOff1 + x) * scaleX1, (yOff1 + y) * scaleY1) *
                             Noise.GetNoise((xOff2 + x) * scaleX2, (yOff2 + y) * scaleY2) +
                             Noise.GetNoise((xOff3 + x) * scaleX3, (yOff3 + y) * scaleY3) * 0.5f;
-                    gameWorld.SetBlock(x, y, 0, backWalls.NextBlock());
+                    gameWorld[x, y, 0] = backWalls.NextBlock();
                     int depth = 1;
                     if (noiseVal > 0.2)
                     {
@@ -59,7 +59,7 @@ namespace ProdigalSoftware.ProjectM.Controllers
                         if (noiseVal > 0.8)
                             Fill(gameWorld, x, y, ref depth, dirts);
                         if (noiseVal > 0.85)
-                            gameWorld.SetBlock(x, y, depth, fountain);
+                            gameWorld[x, y, depth] = fountain;
                     }
                     else if (noiseVal < -0.3)
                     {
@@ -71,7 +71,7 @@ namespace ProdigalSoftware.ProjectM.Controllers
                         if (noiseVal < -0.8)
                             Fill(gameWorld, x, y, ref depth, sands);
                         if (noiseVal < -0.85)
-                            gameWorld.SetBlock(x, y, depth, fountain);
+                            gameWorld[x, y, depth] = fountain;
                     }
                     else
                     {
@@ -83,10 +83,10 @@ namespace ProdigalSoftware.ProjectM.Controllers
                         if (noiseVal > -0.1 && noiseVal <= 0.0)
                             Fill(gameWorld, x, y, ref depth, stones);
                         if (noiseVal > -0.05 && noiseVal < -0.03)
-                            gameWorld.SetBlock(x, y, depth, fire);
+                            gameWorld[x, y, depth] = fire;
                     }
                     //if (random1.NextDouble() < 0.2)
-                        gameWorld.SetBlock(x, y, gameWorld.Zsize - 1, snow);
+                        gameWorld[x, y, gameWorld.BlockSizeZ - 1] = snow;
                 }
             }
         }
@@ -94,7 +94,7 @@ namespace ProdigalSoftware.ProjectM.Controllers
         private void Fill(IGameWorld gameWorld, int x, int y, ref int depth, BlockRandomizer block)
         {
             for (int i = 0; i < 3; i++)
-                gameWorld.SetBlock(x, y, depth++, block.NextBlock());
+                gameWorld[x, y, depth++] = block.NextBlock();
         }
 
         public ushort Priority
