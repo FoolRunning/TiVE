@@ -20,7 +20,7 @@ namespace ProdigalSoftware.TiVE.Renderer
 
     internal interface IRendererBackend
     {
-        IDisplay CreateDisplay();
+        IDisplay CreateDisplay(int width, int height, bool fullScreen, bool vsync);
 
         void Draw(PrimitiveType primitiveType, IVertexDataCollection data);
 

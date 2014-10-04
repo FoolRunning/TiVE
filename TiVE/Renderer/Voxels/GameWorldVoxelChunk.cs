@@ -15,9 +15,6 @@ namespace ProdigalSoftware.TiVE.Renderer.Voxels
     {
         #region Constants
         public const int TileSize = 5;
-        public const int VoxelSize = BlockInformation.BlockSize * TileSize;
-        private const int SmallColorDiff = 10;
-        private const int BigColorDiff = 20;
         #endregion
 
         protected MeshBuilder meshBuilder;
@@ -74,6 +71,15 @@ namespace ProdigalSoftware.TiVE.Renderer.Voxels
             { 
                 using (new PerformanceLock(syncLock))
                     return meshBuilder; 
+            }
+        }
+
+        public bool NeedsInitialization 
+        {
+            get
+            {
+                using (new PerformanceLock(syncLock))
+                    return meshBuilder != null;
             }
         }
 
@@ -146,29 +152,38 @@ namespace ProdigalSoftware.TiVE.Renderer.Voxels
             }
         }
 
-        public RenderStatistics Render(IRendererData voxelInstanceLocationData, IRendererData voxelInstanceColorData, ref Matrix4 viewProjectionMatrix)
+        public bool Initialize(IRendererData voxelInstanceLocationData, IRendererData voxelInstanceColorData)
         {
-            IVertexDataCollection meshData;
             using (new PerformanceLock(syncLock))
             {
-                if (meshBuilder != null)
+                if (meshBuilder == null)
+                    return false;
+                
+                if (mesh != null)
+                    mesh.Dispose();
+
+                if (chunkPolygonCount > 0)
                 {
-                    if (mesh != null)
-                        mesh.Dispose();
-
-                    if (chunkPolygonCount > 0)
-                    {
-                        mesh = GetMesh(voxelInstanceLocationData, voxelInstanceColorData);
-                        mesh.Initialize();
-                    }
-
-                    meshBuilder.DropMesh(); // Release builder - Must be called after initializing the mesh
-                    meshBuilder = null;
+                    mesh = GetMesh(voxelInstanceLocationData, voxelInstanceColorData);
+                    mesh.Initialize();
                 }
-                meshData = mesh;
-            }
 
-            if (meshData == null || chunkPolygonCount == 0)
+                meshBuilder.DropMesh(); // Release builder - Must be called after initializing the mesh
+                meshBuilder = null;
+            }
+            return chunkPolygonCount > 0;
+        }
+
+        public RenderStatistics Render(ref Matrix4 viewProjectionMatrix)
+        {
+            if (chunkPolygonCount == 0)
+                return new RenderStatistics(); // Nothing to render for this chunk
+
+            IVertexDataCollection meshData;
+            using (new PerformanceLock(syncLock))
+                meshData = mesh;
+
+            if (meshData == null)
                 return new RenderStatistics(); // Nothing to render for this chunk
 
             Debug.Assert(meshData.IsInitialized);
