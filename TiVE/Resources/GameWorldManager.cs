@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Linq;
 using ProdigalSoftware.TiVE.Renderer.World;
 using ProdigalSoftware.TiVE.Starter;
@@ -17,14 +16,14 @@ namespace ProdigalSoftware.TiVE.Resources
         public bool CreateWorld(int worldXsize, int worldYsize, int worldZsize, long seed)
         {
             Messages.Print("Creating new world...");
-            GameWorld createdWorld = new GameWorld(worldXsize, worldYsize, worldZsize);
+            GameWorld createdWorld = new GameWorld(worldXsize, worldYsize, worldZsize, false);
 
             try
             {
                 BlockList blockList = ResourceManager.BlockListManager.BlockList;
                 foreach (IWorldGeneratorStage generator in ResourceManager.PluginManager.GetPluginsOfType<IWorldGeneratorStage>().OrderBy(wg => wg.Priority))
                 {
-                    Debug.WriteLine(generator.StageDescription);
+                    Console.WriteLine(generator.StageDescription);
                     generator.UpdateWorld(createdWorld, seed, blockList);
                 }
             }

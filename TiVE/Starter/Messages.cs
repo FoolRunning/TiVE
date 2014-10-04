@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Drawing;
 using System.Diagnostics;
-using ProdigalSoftware.TiVE.Properties;
 
 namespace ProdigalSoftware.TiVE.Starter
 {
@@ -99,7 +98,6 @@ namespace ProdigalSoftware.TiVE.Starter
         public static void AddDebug(string message)
         {
             AddFontSizeChange(12);
-            AddFontStyleChange(FontStyle.Regular);
             PrintTabbedln(message, DEBUG_COLOR);
         }
 
@@ -118,7 +116,6 @@ namespace ProdigalSoftware.TiVE.Starter
         /// </summary>
         public static void AddError(string message)
         {
-            AddFontStyleChange(FontStyle.Bold);
             Println(message, ERROR_COLOR);
             Debug.WriteLine(message);
         }
@@ -167,11 +164,9 @@ namespace ProdigalSoftware.TiVE.Starter
             {
                 AddError(e.Message);
 
-                string[] stackTraceLines = e.StackTrace.Split(new[] {'\n', '\r'}, StringSplitOptions.RemoveEmptyEntries);
-                foreach (string stackLine in stackTraceLines)
+                foreach (string stackLine in e.StackTrace.Split(new[] {'\n', '\r'}, StringSplitOptions.RemoveEmptyEntries))
                 {
                     AddFontSizeChange(10);
-                    AddFontStyleChange(FontStyle.Regular);
                     Println(stackLine);
                 }
 
@@ -185,7 +180,6 @@ namespace ProdigalSoftware.TiVE.Starter
         public static void AddWarning(string message)
         {
             AddFontSizeChange(10);
-            AddFontStyleChange(FontStyle.Bold);
             Println(message, WARNING_COLOR);
 
             Debug.WriteLine(message);
@@ -268,8 +262,11 @@ namespace ProdigalSoftware.TiVE.Starter
         /// </summary>
         public static void Println(string text, Color color)
         {
-            AddTextInfo(new TextMessage(text, color));
-            AddNewLine();
+            foreach (string line in text.Split(new[] {'\r', '\n'}, StringSplitOptions.RemoveEmptyEntries))
+            {
+                AddTextInfo(new TextMessage(line, color));
+                AddNewLine();
+            }
         }
 
         /// <summary>

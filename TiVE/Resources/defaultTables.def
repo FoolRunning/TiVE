@@ -1,0 +1,3 @@
+﻿[particle]
+timeToLive:     float,  required, 1.0
+startColor:     color,          , (FFFFFF)

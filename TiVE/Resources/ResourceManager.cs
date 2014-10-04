@@ -1,4 +1,5 @@
-﻿using ProdigalSoftware.TiVE.Starter;
+﻿using System;
+using ProdigalSoftware.TiVE.Starter;
 
 namespace ProdigalSoftware.TiVE.Resources
 {
@@ -11,6 +12,8 @@ namespace ProdigalSoftware.TiVE.Resources
         public static ShaderManager ShaderManager { get; private set; }
         public static ParticleSystemManager ParticleManager { get; private set; }
         public static LightManager LightManager { get; private set; }
+        public static LuaScripts LuaScripts { get; private set; }
+        public static ResourceTableDefinitionManager TableDefinitionManager { get; private set; }
 
         public static bool Initialize()
         {
@@ -18,6 +21,14 @@ namespace ProdigalSoftware.TiVE.Resources
 
             PluginManager = new PluginManager();
             if (!PluginManager.LoadPlugins())
+                return false;
+
+            TableDefinitionManager = new ResourceTableDefinitionManager();
+            if (!TableDefinitionManager.Initialize())
+                return false;
+
+            LuaScripts = new LuaScripts();
+            if (!LuaScripts.Initialize())
                 return false;
 
             BlockListManager = new BlockListManager();
@@ -28,7 +39,7 @@ namespace ProdigalSoftware.TiVE.Resources
             if (!ShaderManager.Initialize())
                 return false;
 
-            ChunkManager = new WorldChunkManager(false);
+            ChunkManager = new WorldChunkManager();
             if (!ChunkManager.Initialize())
                 return false;
 
@@ -57,11 +68,25 @@ namespace ProdigalSoftware.TiVE.Resources
             if (ParticleManager != null)
                 ParticleManager.Dispose();
 
+            if (TableDefinitionManager != null)
+                TableDefinitionManager.Dispose();
+
+            if (LuaScripts != null)
+                LuaScripts.Dispose();
+
+            if (PluginManager != null)
+                PluginManager.Dispose();
+
             PluginManager = null;
             BlockListManager = null;
             GameWorldManager = null;
             ChunkManager = null;
             ParticleManager = null;
+            TableDefinitionManager = null;
+            LuaScripts = null;
+            LightManager = null;
+
+            GC.Collect();
 
             Messages.AddDoneText();
         }

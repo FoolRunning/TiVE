@@ -1,0 +1,4 @@
+﻿[player]
+locationX:	float,	required, 0.0
+locationY:	float,	required, 0.0
+locationZ:	float,	required, 0.0

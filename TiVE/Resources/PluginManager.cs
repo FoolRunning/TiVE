@@ -24,15 +24,7 @@ namespace ProdigalSoftware.TiVE.Resources
             }
 
             string pluginPath = Path.Combine(path, PluginDir);
-            if (!Directory.Exists(pluginPath))
-            {
-                Messages.AddFailText();
-                Messages.AddWarning(PluginDir + " directory was not found.");
-                return false;
-            }
-
-            pluginInterfaceMap.Clear();
-            string[] pluginFiles = Directory.GetFiles(pluginPath, "*.tive", SearchOption.AllDirectories);
+            string[] pluginFiles = Directory.Exists(pluginPath) ? Directory.GetFiles(pluginPath, "*.tive", SearchOption.AllDirectories) : new string[0];
 
             List<string> warnings = new List<string>();
             foreach (Assembly asm in pluginFiles.Select(Assembly.LoadFile).Concat(new[] { Assembly.GetEntryAssembly() }))
@@ -57,7 +49,7 @@ namespace ProdigalSoftware.TiVE.Resources
                 }
                 catch (Exception e)
                 {
-                    warnings.Add("Failed to load " + asm.FullName);
+                    warnings.Add("Failed to load plugins in " + asm.FullName);
                     warnings.Add(e.ToString());
                 }
             }
@@ -71,6 +63,11 @@ namespace ProdigalSoftware.TiVE.Resources
                 Messages.AddWarning(warning);
 
             return pluginInterfaceMap.Count > 0;
+        }
+
+        public void Dispose()
+        {
+            pluginInterfaceMap.Clear();
         }
 
         public IEnumerable<T> GetPluginsOfType<T>() where T : class

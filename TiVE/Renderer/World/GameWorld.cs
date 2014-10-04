@@ -25,7 +25,7 @@ namespace ProdigalSoftware.TiVE.Renderer.World
         private readonly int chunkSizeY;
         private readonly int chunkSizeZ;
 
-        internal GameWorld(int blockSizeX, int blockSizeY, int blockSizeZ)
+        internal GameWorld(int blockSizeX, int blockSizeY, int blockSizeZ, bool useInstancing)
         {
             this.blockSizeX = blockSizeX;
             this.blockSizeY = blockSizeY;
@@ -48,7 +48,7 @@ namespace ProdigalSoftware.TiVE.Renderer.World
                 for (int x = 0; x < chunkSizeX; x++)
                 {
                     for (int y = 0; y < chunkSizeY; y++)
-                        worldChunks[GetChunkOffset(x, y, z)] = new GameWorldVoxelChunk(x, y, z, false);
+                        worldChunks[GetChunkOffset(x, y, z)] = useInstancing ? new InstancedGameWorldVoxelChunk(x, y, z) : new GameWorldVoxelChunk(x, y, z);
                 }
             }
         }

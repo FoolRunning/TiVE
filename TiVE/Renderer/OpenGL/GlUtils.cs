@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using OpenTK.Graphics.OpenGL;
 using ProdigalSoftware.TiVE.Starter;
 
@@ -9,9 +10,9 @@ namespace ProdigalSoftware.TiVE.Renderer.OpenGL
         /// <summary>
         /// Checks for an OpenGL error and spits out the error and stack trace if there is an error.
         /// </summary>
+        [Conditional("DEBUG")]
         public static void CheckGLErrors()
         {
-#if DEBUG
             ErrorCode error = GL.GetError();
             if (error != ErrorCode.NoError)
                 DisplayError(error);
@@ -21,7 +22,6 @@ namespace ProdigalSoftware.TiVE.Renderer.OpenGL
         {
             Messages.AddWarning("Found OpenGL error: " + code);
             Messages.AddWarning(Environment.StackTrace);
-#endif
         }
     }
 }

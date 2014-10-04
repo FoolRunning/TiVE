@@ -1,0 +1,11 @@
+﻿fountain = {
+	startColor = {4, 23, 255, 255}
+	endColor = {55, 150, 255, 255}
+	timeToLive = 2.0
+--	"initialVelocity" : [1, -6.0],
+--	"finalVelocity" : [-2, -6.0],
+--	"variance" : {
+--	  "initialVelocity" : [8, 6.0],
+--	  "finalVelocity" : [-2, -6.0]
+--	}
+}

@@ -1,11 +1,22 @@
 ﻿# Shder definitions for OpenGL
 
-# Shader for the tiles in the main game world
+# Shader for the tiles in the main game world - non-instanced
 [MainWorld]
 vert: ProdigalSoftware.TiVE.Renderer.OpenGL.Shaders.Simple.vert
 frag: ProdigalSoftware.TiVE.Renderer.OpenGL.Shaders.Simple.frag
 attrib: in_Position
 attrib: in_Color
+uniform: matrix_ModelViewProjection
+
+
+# Shader for the tiles in the main game world - instanced
+[MainWorldInstanced]
+vert: ProdigalSoftware.TiVE.Renderer.OpenGL.Shaders.Instances.vert
+frag: ProdigalSoftware.TiVE.Renderer.OpenGL.Shaders.Simple.frag
+attrib: in_Position
+attrib: in_Color
+attrib: in_InstancePos
+attrib: in_InstanceColor
 uniform: matrix_ModelViewProjection
 
 
