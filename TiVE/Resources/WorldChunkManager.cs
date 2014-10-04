@@ -14,6 +14,8 @@ namespace ProdigalSoftware.TiVE.Resources
 {
     internal sealed class WorldChunkManager : IDisposable
     {
+        private const int MaxChunkUpdatesPerFrame = 7;
+
         private readonly List<GameWorldVoxelChunk> chunksToDelete = new List<GameWorldVoxelChunk>();
         private readonly HashSet<GameWorldVoxelChunk> loadedChunks = new HashSet<GameWorldVoxelChunk>();
         private readonly List<GameWorldVoxelChunk> loadedChunksList = new List<GameWorldVoxelChunk>(1200);
@@ -164,6 +166,8 @@ namespace ProdigalSoftware.TiVE.Resources
 
             chunksToDelete.Clear();
 
+            int initializedChunkCount = 0;
+            int excessUninitializedChunkCount = 0;
             RenderStatistics stats = new RenderStatistics();
             GameWorld gameWorld = ResourceManager.GameWorldManager.GameWorld;
             for (int chunkZ = chunkMaxZ - 1; chunkZ >= 0; chunkZ--)
@@ -171,9 +175,25 @@ namespace ProdigalSoftware.TiVE.Resources
                 for (int chunkX = chunkMinX; chunkX < chunkMaxX; chunkX++)
                 {
                     for (int chunkY = chunkMinY; chunkY < chunkMaxY; chunkY++)
-                        stats += gameWorld.GetChunk(chunkX, chunkY, chunkZ).Render(voxelInstanceLocationData, voxelInstanceColorData, ref viewProjectionMatrix);
+                    {
+                        GameWorldVoxelChunk chunk = gameWorld.GetChunk(chunkX, chunkY, chunkZ);
+                        if (chunk.NeedsInitialization)
+                        {
+                            if (initializedChunkCount < MaxChunkUpdatesPerFrame)
+                            {
+                                if (chunk.Initialize(voxelInstanceLocationData, voxelInstanceColorData))
+                                    initializedChunkCount++;
+                            }
+                            else
+                                excessUninitializedChunkCount++;
+                        }
+                            
+                        stats += chunk.Render(ref viewProjectionMatrix);
+                    }
                 }
             }
+            if (excessUninitializedChunkCount > 0)
+                Console.WriteLine("Maxed chunk initializations for this frame by " + excessUninitializedChunkCount);
 
             return stats;
         }

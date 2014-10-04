@@ -13,9 +13,9 @@ namespace ProdigalSoftware.TiVE.Renderer.OpenGL
     internal sealed class OpenGLRendererBackend : IRendererBackend
     {
         #region IRendererBackend implementation
-        public IDisplay CreateDisplay()
+        public IDisplay CreateDisplay(int width, int height, bool fullscreen, bool vsync)
         {
-            return new OpenGLDisplay();
+            return new OpenGLDisplay(width, height, fullscreen, vsync);
         }
 
         public void Draw(PrimitiveType primitiveType, IVertexDataCollection data)
@@ -135,17 +135,20 @@ namespace ProdigalSoftware.TiVE.Renderer.OpenGL
             private readonly CountStatHelper polygonCount = new CountStatHelper(8, false);
             private readonly CountStatHelper renderedVoxelCount = new CountStatHelper(8, false);
 
+            private readonly bool vsync;
             private double lastPrintTime;
             private GameLogic game;
 
             /// <summary>
             /// Creates a window
             /// </summary>
-            public OpenGLDisplay()
-                : base(1920, 1080, new OpenTK.Graphics.GraphicsMode(new OpenTK.Graphics.ColorFormat(8, 8, 8, 8), 16, 0, 0), "TiVE",
-                    GameWindowFlags.Default, DisplayDevice.Default, 3, 1, OpenTK.Graphics.GraphicsContextFlags.ForwardCompatible)
+            public OpenGLDisplay(int width, int height, bool fullscreen, bool vsync)
+                : base(width, height, new OpenTK.Graphics.GraphicsMode(new OpenTK.Graphics.ColorFormat(8, 8, 8, 8), 16, 0, 0), "TiVE",
+                    fullscreen ? GameWindowFlags.Fullscreen : GameWindowFlags.Default, 
+                    DisplayDevice.Default, 3, 1, OpenTK.Graphics.GraphicsContextFlags.ForwardCompatible)
             {
-                VSync = VSyncMode.Off;
+                this.vsync = vsync;
+                VSync = vsync ? VSyncMode.On : VSyncMode.Off;
                 UpdateFrame += OpenGLDisplay_UpdateFrame;
                 RenderFrame += OpenGLDisplay_RenderFrame;
                 Load += OpenGLDisplay_Load;
@@ -155,7 +158,7 @@ namespace ProdigalSoftware.TiVE.Renderer.OpenGL
             public void RunMainLoop(GameLogic newGame)
             {
                 game = newGame;
-                Run(60, 60);
+                Run(60, vsync ? 0 : 60);
             }
 
             /// <summary>

@@ -9,13 +9,10 @@ namespace ProdigalSoftware.TiVE.Renderer.Voxels
         }
 
         #region Overrides of GameWorldVoxelChunk
-
-        #region Overrides of GameWorldVoxelChunk
         protected override string ShaderName
         {
             get { return "MainWorldInstanced"; }
         }
-        #endregion
 
         protected override void CreateMesh(MeshBuilder newMeshBuilder, GameWorld gameWorld, 
             int worldVoxelStartX, int worldVoxelEndX, int worldVoxelStartY, int worldVoxelEndY, int worldVoxelStartZ, int worldVoxelEndZ, 
