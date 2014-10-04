@@ -20,10 +20,8 @@ namespace ProdigalSoftware.TiVE.Resources
         private readonly List<Thread> chunkCreationThreads = new List<Thread>();
         private readonly Queue<GameWorldVoxelChunk> chunkLoadQueue = new Queue<GameWorldVoxelChunk>();
         
-        private readonly bool useInstancing;
         private IRendererData voxelInstanceLocationData;
         private IRendererData voxelInstanceColorData;
-        private int polysPerVoxel;
 
         private volatile bool endCreationThreads;
 
@@ -33,9 +31,23 @@ namespace ProdigalSoftware.TiVE.Resources
         private int chunkMaxY;
         private int chunkMaxZ;
 
-        public WorldChunkManager(bool useInstancing)
+        public bool Initialize()
         {
-            this.useInstancing = useInstancing;
+            Messages.Print("Starting chunk creations threads...");
+
+            MeshBuilder voxelInstanceBuilder = new MeshBuilder(30, 0);
+            SimpleVoxelGroup.CreateVoxel(voxelInstanceBuilder, VoxelSides.All, 0, 0, 0, 235, 235, 235, 255);
+            voxelInstanceLocationData = voxelInstanceBuilder.GetLocationData();
+            voxelInstanceLocationData.Lock();
+            voxelInstanceColorData = voxelInstanceBuilder.GetColorData();
+            voxelInstanceColorData.Lock();
+
+            endCreationThreads = false;
+            for (int i = 0; i < 3; i++)
+                chunkCreationThreads.Add(StartChunkCreateThread(i + 1));
+
+            Messages.AddDoneText();
+            return true;
         }
 
         public void Dispose()
@@ -68,29 +80,6 @@ namespace ProdigalSoftware.TiVE.Resources
             }
         }
 
-        public bool Initialize()
-        {
-            Messages.Print("Starting chunk creations threads...");
-
-            if (useInstancing)
-            {
-                MeshBuilder voxelInstanceBuilder = new MeshBuilder(30, 0);
-                polysPerVoxel = SimpleVoxelGroup.CreateVoxel(voxelInstanceBuilder, VoxelSides.All, 0, 0, 0, 255, 255, 255, 255);
-                voxelInstanceLocationData = voxelInstanceBuilder.GetLocationData();
-                voxelInstanceLocationData.Lock();
-                voxelInstanceColorData = voxelInstanceBuilder.GetColorData();
-                voxelInstanceColorData.Lock();
-            }
-
-            endCreationThreads = false;
-            int threadCount = Environment.ProcessorCount > 2 ? 2 : 1;
-            for (int i = 0; i < threadCount; i++)
-                chunkCreationThreads.Add(StartChunkCreateThread(i + 1));
-
-            Messages.AddDoneText();
-            return true;
-        }
-
         public void UpdateCameraPos(int camMinX, int camMaxX, int camMinY, int camMaxY)
         {
             Debug.Assert(Thread.CurrentThread.Name == "Main UI");
@@ -110,19 +99,6 @@ namespace ProdigalSoftware.TiVE.Resources
             }
 
             BlockList blockList = ResourceManager.BlockListManager.BlockList;
-            //for (int chunkZ = chunkMaxZ - 1; chunkZ >= 0; chunkZ--)
-            //{
-            //    for (int chunkX = chunkMinX; chunkX < chunkMaxX; chunkX++)
-            //    {
-            //        for (int chunkY = chunkMinY; chunkY < chunkMaxY; chunkY++)
-            //        {
-            //            GameWorldVoxelChunk chunk = gameWorld.GetChunk(chunkX, chunkY, chunkZ);
-            //            if (loadedChunks.Contains(chunk) && UpdateBlockAnimationsInChunk(chunkX, chunkY, chunkZ, gameWorld, blockList))
-            //                UpdateChunk(chunk);
-            //        }
-            //    }
-            //}
-
             for (int chunkZ = chunkMaxZ - 1; chunkZ >= 0; chunkZ--)
             {
                 for (int chunkX = chunkMinX; chunkX < chunkMaxX; chunkX++)
@@ -195,7 +171,7 @@ namespace ProdigalSoftware.TiVE.Resources
                 for (int chunkX = chunkMinX; chunkX < chunkMaxX; chunkX++)
                 {
                     for (int chunkY = chunkMinY; chunkY < chunkMaxY; chunkY++)
-                        stats += gameWorld.GetChunk(chunkX, chunkY, chunkZ).Render(ref viewProjectionMatrix);
+                        stats += gameWorld.GetChunk(chunkX, chunkY, chunkZ).Render(voxelInstanceLocationData, voxelInstanceColorData, ref viewProjectionMatrix);
                 }
             }
 
@@ -226,6 +202,7 @@ namespace ProdigalSoftware.TiVE.Resources
         private void ChunkCreateLoop()
         {
             List<MeshBuilder> meshBuilders = new List<MeshBuilder>();
+            int bottleneckCount = 0;
             while (!endCreationThreads)
             {
                 int count;
@@ -251,7 +228,30 @@ namespace ProdigalSoftware.TiVE.Resources
                     {
                         meshBuilder = new MeshBuilder(800000, 800000);
                         meshBuilders.Add(meshBuilder);
-                        Debug.WriteLine(meshBuilders.Count);
+                        Console.WriteLine(meshBuilders.Count);
+                    }
+                    else if (meshBuilder == null)
+                    {
+                        bottleneckCount++;
+                        if (bottleneckCount > 100) // 300ms give or take
+                        {
+                            // Too many chunks are waiting to be intialized. Most likely there are chunks that were not properly disposed.
+                            Console.WriteLine("Mesh creation bottlenecked!");
+
+                            GameWorld gameWorld = ResourceManager.GameWorldManager.GameWorld;
+                            for (int z = 0; z < gameWorld.ChunkSizeZ; z++)
+                            {
+                                for (int x = 0; x < gameWorld.ChunkSizeX; x++)
+                                {
+                                    for (int y = 0; y < gameWorld.ChunkSizeY; y++)
+                                    {
+                                        GameWorldVoxelChunk oldChunk = gameWorld.GetChunk(x, y, z);
+                                        if (oldChunk.MeshBuilder != null)
+                                            chunksToDelete.Add(oldChunk);
+                                    }
+                                }
+                            }
+                        }
                     }
 
                     if (meshBuilder == null)

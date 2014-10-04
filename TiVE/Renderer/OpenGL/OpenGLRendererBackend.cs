@@ -146,33 +146,16 @@ namespace ProdigalSoftware.TiVE.Renderer.OpenGL
                     GameWindowFlags.Default, DisplayDevice.Default, 3, 1, OpenTK.Graphics.GraphicsContextFlags.ForwardCompatible)
             {
                 VSync = VSyncMode.Off;
+                UpdateFrame += OpenGLDisplay_UpdateFrame;
+                RenderFrame += OpenGLDisplay_RenderFrame;
+                Load += OpenGLDisplay_Load;
+                Unload += OpenGLDisplay_Unload;
             }
 
             public void RunMainLoop(GameLogic newGame)
             {
                 game = newGame;
                 Run(60, 60);
-            }
-
-            /// <summary>
-            /// 
-            /// </summary>
-            protected override void OnLoad(EventArgs eArgs)
-            {
-                base.OnLoad(eArgs);
-
-                GL.ClearColor(0.1f, 0.1f, 0.1f, 0.0f);
-
-                GL.Enable(EnableCap.DepthTest);
-                GL.DepthFunc(DepthFunction.Less);
-
-                GL.Enable(EnableCap.CullFace);
-                GL.CullFace(CullFaceMode.Back);
-                GL.FrontFace(FrontFaceDirection.Cw);
-
-                GL.Disable(EnableCap.Blend);
-
-                GlUtils.CheckGLErrors();
             }
 
             /// <summary>
@@ -186,15 +169,10 @@ namespace ProdigalSoftware.TiVE.Renderer.OpenGL
                 GL.Viewport(ClientRectangle.X, ClientRectangle.Y, ClientRectangle.Width, ClientRectangle.Height);
                 game.Resize(Width, Height);
             }
-            
-            /// <summary>
-            /// Called when it is time to setup the next frame. Add you game logic here.
-            /// </summary>
-            /// <param name="e">Contains timing information for framerate independent logic.</param>
-            protected override void OnUpdateFrame(FrameEventArgs e)
+
+            void OpenGLDisplay_UpdateFrame(object sender, FrameEventArgs e)
             {
                 updateTime.StartTime();
-                base.OnUpdateFrame(e);
 
                 if (!game.UpdateFrame((float)e.Time, Keyboard))
                     Exit();
@@ -219,24 +197,34 @@ namespace ProdigalSoftware.TiVE.Renderer.OpenGL
                 }
             }
 
-            protected override void OnUnload(EventArgs e)
+            void OpenGLDisplay_Load(object sender, EventArgs e)
             {
-                game.Dispose();
-                base.OnUnload(e);
+                GL.ClearColor(0.1f, 0.1f, 0.1f, 0.0f);
+
+                GL.Enable(EnableCap.DepthTest);
+                GL.DepthFunc(DepthFunction.Less);
+
+                GL.Enable(EnableCap.CullFace);
+                GL.CullFace(CullFaceMode.Back);
+                GL.FrontFace(FrontFaceDirection.Cw);
+
+                GL.Disable(EnableCap.Blend);
+
+                GlUtils.CheckGLErrors();
             }
 
-            /// <summary>
-            /// Called when it is time to render the next frame. Add your rendering code here.
-            /// </summary>
-            /// <param name="e">Contains timing information.</param>
-            protected override void OnRenderFrame(FrameEventArgs e)
+            void OpenGLDisplay_Unload(object sender, EventArgs e)
+            {
+                game.Dispose();
+            }
+
+            void OpenGLDisplay_RenderFrame(object sender, FrameEventArgs e)
             {
                 frameTime.AddTime();
                 frameTime.StartTime();
                 //frameTime.AddData((float)e.Time * 1000f);
 
                 renderTime.StartTime();
-                base.OnRenderFrame(e);
 
                 GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
                 RenderStatistics stats = game.Render((float)e.Time);

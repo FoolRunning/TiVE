@@ -75,6 +75,17 @@
     <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="DynamicLua">
+      <HintPath>..\packages\DynamicLua.1.1.2.0\lib\net40-Client\DynamicLua.dll</HintPath>
+    </Reference>
+    <Reference Include="KeraLua, Version=1.3.0.0, Culture=neutral, PublicKeyToken=04d04586786c6f34, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\NLua.1.3.0.2\lib\net45\x86\KeraLua.dll</HintPath>
+    </Reference>
+    <Reference Include="NLua, Version=1.3.0.0, Culture=neutral, PublicKeyToken=8df2ab518030ea95, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\NLua.1.3.0.2\lib\net45\x86\NLua.dll</HintPath>
+    </Reference>
     <Reference Include="OpenTK, Version=1.1.0.0, Culture=neutral, PublicKeyToken=bad199fe84eb3df4, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\..\Libraries\OpenTK\1.1\Binaries\OpenTK\Release\OpenTK.dll</HintPath>
@@ -92,9 +103,11 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Renderer\Particles\ParticleSystemCollection.cs" />
+    <Compile Include="Renderer\Voxels\InstancedGameWorldVoxelChunk.cs" />
     <Compile Include="Renderer\Voxels\MeshBuilder.cs" />
     <Compile Include="Renderer\Voxels\VoxelMeshUtils.cs" />
     <Compile Include="Resources\LightManager.cs" />
+    <Compile Include="Resources\LuaScripts.cs" />
     <Compile Include="Resources\ParticleSystemManager.cs" />
     <Compile Include="Resources\PluginManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -102,6 +115,7 @@
     <Compile Include="Renderer\Voxels\GameWorldVoxelChunk.cs" />
     <Compile Include="Renderer\Voxels\VoxelGroup.cs" />
     <Compile Include="Resources\BlockListManager.cs" />
+    <Compile Include="Resources\ResourceTableDefinitionManager.cs" />
     <Compile Include="Resources\ShaderManager.cs" />
     <Compile Include="Resources\WorldChunkManager.cs" />
     <Compile Include="GameLogic.cs" />
@@ -140,6 +154,7 @@
     <Compile Include="Starter\TextMessages.cs" />
     <Compile Include="Starter\TextState.cs" />
     <Compile Include="TiVEController.cs" />
+    <Compile Include="TiVEException.cs" />
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
@@ -156,6 +171,7 @@
     <EmbeddedResource Include="Starter\StarterForm.resx">
       <DependentUpon>StarterForm.cs</DependentUpon>
     </EmbeddedResource>
+    <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
@@ -185,7 +201,14 @@
     <Folder Include="Plugins\" />
     <Folder Include="Renderer\GUI\" />
   </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\defaultTables.def" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>
+xcopy /s /y "C:\Programming\Stuff to backup\VS Projects\ProjectM\packages\NLua.1.3.0.2\lib\native\x64\*.*" "$(TargetDir)"</PostBuildEvent>
+  </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

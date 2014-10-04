@@ -17,6 +17,14 @@ namespace ProdigalSoftware.Utils
             A = a;
         }
 
+        public Color4b(float r, float g, float b, float a)
+        {
+            R = (byte)(Math.Min(0, Math.Max(255, r * 255)));
+            G = (byte)(Math.Min(0, Math.Max(255, g * 255)));
+            B = (byte)(Math.Min(0, Math.Max(255, b * 255)));
+            A = (byte)(Math.Min(0, Math.Max(255, a * 255)));
+        }
+
         public static Color4b operator +(Color4b c1, Color4b c2)
         {
             return new Color4b((byte)Math.Min(255, c1.R + c2.R), (byte)Math.Min(255, c1.G + c2.G), (byte)Math.Min(255, c1.B + c2.B), (byte)Math.Min(255, c1.A + c2.A));

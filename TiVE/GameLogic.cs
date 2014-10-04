@@ -25,8 +25,11 @@ namespace ProdigalSoftware.TiVE
         public bool Initialize()
         {
             if (!ResourceManager.Initialize())
+            {
+                ResourceManager.Cleanup();
                 return false;
-            
+            }
+
             //camera.SetLocation(1263 * BlockInformation.BlockSize, 1747 * BlockInformation.BlockSize, 300);
             camera.SetLocation(250 * BlockInformation.BlockSize, 250 * BlockInformation.BlockSize, 300);
             camera.FoV = (float)Math.PI / 4;

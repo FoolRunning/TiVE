@@ -5,11 +5,9 @@ namespace ProdigalSoftware.TiVE.Renderer.Voxels
 {
     internal sealed class MeshBuilder
     {
-        public readonly uint[] Voxels = new uint[GameWorldVoxelChunk.VoxelSize * GameWorldVoxelChunk.VoxelSize * GameWorldVoxelChunk.VoxelSize];
-        
-        private Vector3b[] locationData;
-        private Color4b[] colorData;
-        private int[] indexData;
+        private readonly Vector3b[] locationData;
+        private readonly Color4b[] colorData;
+        private readonly int[] indexData;
         private int indexCount;
         private int vertexCount;
         private bool locked;

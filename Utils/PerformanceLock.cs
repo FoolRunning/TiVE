@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Threading;
 
 namespace ProdigalSoftware.Utils
@@ -23,7 +22,7 @@ namespace ProdigalSoftware.Utils
             Monitor.TryEnter(obj, 1, ref lockTaken);
             if (!lockTaken)
             {
-                Debug.WriteLine("Lock on " + obj + " took too long!");
+                Console.WriteLine("Lock on " + obj + " took too long!");
                 Monitor.Enter(obj); // wait forever now to make sure we get the lock
             }
         }
