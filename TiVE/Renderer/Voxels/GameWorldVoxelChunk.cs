@@ -1,12 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using OpenTK;
-using ProdigalSoftware.TiVE.Renderer.Particles;
 using ProdigalSoftware.TiVE.Renderer.World;
 using ProdigalSoftware.TiVE.Resources;
 using ProdigalSoftware.TiVEPluginFramework;
-using ProdigalSoftware.TiVEPluginFramework.Particles;
 using ProdigalSoftware.Utils;
 
 namespace ProdigalSoftware.TiVE.Renderer.Voxels
@@ -18,7 +15,6 @@ namespace ProdigalSoftware.TiVE.Renderer.Voxels
         #endregion
 
         protected MeshBuilder meshBuilder;
-        private readonly List<ParticleSystem> particleSystems = new List<ParticleSystem>();
         private readonly object syncLock = new object();
         private readonly int chunkX;
         private readonly int chunkY;
@@ -54,10 +50,6 @@ namespace ProdigalSoftware.TiVE.Renderer.Voxels
                 mesh = null;
                 deleted = true;
             }
-
-            for (int i = 0; i < particleSystems.Count; i++)
-                ResourceManager.ParticleManager.RemoveParticleSystem(particleSystems[i]);
-            particleSystems.Clear();
         }
 
         protected virtual string ShaderName 
@@ -110,32 +102,19 @@ namespace ProdigalSoftware.TiVE.Renderer.Voxels
             GameWorld gameWorld = ResourceManager.GameWorldManager.GameWorld;
 
             //Debug.WriteLine("Started chunk ({0},{1},{2})", chunkStartX, chunkStartY, chunkStartZ);
-            particleSystems.Clear();
 
             int worldVoxelStartX = chunkX * TileSize * BlockInformation.BlockSize;
-            int worldVoxelEndX = Math.Min((chunkX + 1) * TileSize * BlockInformation.BlockSize, gameWorld.WorldSizeX);
+            int worldVoxelEndX = Math.Min((chunkX + 1) * TileSize * BlockInformation.BlockSize, gameWorld.VoxelSize.X);
             int worldVoxelStartY = chunkY * TileSize * BlockInformation.BlockSize;
-            int worldVoxelEndY = Math.Min((chunkY + 1) * TileSize * BlockInformation.BlockSize, gameWorld.WorldSizeY);
+            int worldVoxelEndY = Math.Min((chunkY + 1) * TileSize * BlockInformation.BlockSize, gameWorld.VoxelSize.Y);
             int worldVoxelStartZ = chunkZ * TileSize * BlockInformation.BlockSize;
-            int worldVoxelEndZ = Math.Min((chunkZ + 1) * TileSize * BlockInformation.BlockSize, gameWorld.WorldSizeZ);
+            int worldVoxelEndZ = Math.Min((chunkZ + 1) * TileSize * BlockInformation.BlockSize, gameWorld.VoxelSize.Z);
 
             int voxelCount;
             int renderedVoxelCount;
             int polygonCount;
             CreateMesh(newMeshBuilder, gameWorld, worldVoxelStartX, worldVoxelEndX, worldVoxelStartY, worldVoxelEndY, worldVoxelStartZ, worldVoxelEndZ, 
                 out voxelCount, out renderedVoxelCount, out polygonCount);
-
-            //            BlockInformation block = gameWorld.GetBlock(worldX, worldY, worldZ);
-            //            SetVoxelsFromBlock(voxels, voxelX, voxelY, voxelZ, block);
-
-            //            ParticleSystemInformation particleInfo = block.ParticleSystem;
-            //            if (particleInfo != null)
-            //            {
-            //                Vector3b loc = particleInfo.Location;
-            //                ParticleSystem system = new ParticleSystem(particleInfo, (worldX * BlockInformation.BlockSize) + loc.X,
-            //                    (worldY * BlockInformation.BlockSize) + loc.Y, (worldZ * BlockInformation.BlockSize) + loc.Z);
-            //                particleSystems.Add(system);
-            //            }
 
             using (new PerformanceLock(syncLock))
             {
@@ -144,9 +123,6 @@ namespace ProdigalSoftware.TiVE.Renderer.Voxels
                 chunkVoxelCount = voxelCount;
                 chunkRenderedVoxelCount = renderedVoxelCount;
 
-                for (int i = 0; i < particleSystems.Count; i++)
-                    ResourceManager.ParticleManager.AddParticleSystem(particleSystems[i]);
-                
                 if (deleted)
                     Dispose(); // Chunk was deleted while loading
             }
@@ -211,9 +187,11 @@ namespace ProdigalSoftware.TiVE.Renderer.Voxels
             voxelCount = 0;
             renderedVoxelCount = 0;
             polygonCount = 0;
-            int maxVoxelX = gameWorld.WorldSizeX;
-            int maxVoxelY = gameWorld.WorldSizeY;
-            int maxVoxelZ = gameWorld.WorldSizeZ;
+            int maxVoxelX = gameWorld.VoxelSize.X;
+            int maxVoxelY = gameWorld.VoxelSize.Y;
+            int maxVoxelZ = gameWorld.VoxelSize.Z;
+
+            LightManager lightManger = ResourceManager.LightManager;
 
             for (int x = worldVoxelStartX; x < worldVoxelEndX; x++)
             {
@@ -234,7 +212,7 @@ namespace ProdigalSoftware.TiVE.Renderer.Voxels
                         VoxelSides sides = VoxelSides.None;
                         if (z == maxVoxelZ - 1 || gameWorld.GetVoxel(x, y, z + 1) == 0)
                             sides |= VoxelSides.Front;
-                        //if (!IsZLineSet(x, y, z, 1)) // The back face is never shown to the camera, so there is no need to create it
+                        //if (z == 0 || gameWorld.GetVoxel(x, y, z - 1) == 0) // The back face is never shown to the camera, so there is no need to create it
                         //    sizes |= VoxelSides.Back;
                         if (x == 0 || gameWorld.GetVoxel(x - 1, y, z) == 0)
                             sides |= VoxelSides.Left;
@@ -247,10 +225,15 @@ namespace ProdigalSoftware.TiVE.Renderer.Voxels
 
                         if (sides != VoxelSides.None)
                         {
+                            float percentR;
+                            float percentG;
+                            float percentB;
+                            lightManger.GetLightAt(x, y, z, out percentR, out percentG, out percentB);
                             byte a = (byte)((color >> 24) & 0xFF);
-                            byte r = (byte)(((color >> 16) & 0xFF));
-                            byte g = (byte)(((color >> 8) & 0xFF));
-                            byte b = (byte)(((color >> 0) & 0xFF));
+                            byte r = (byte)Math.Min(255, (((color >> 16) & 0xFF)) * percentR);
+                            byte g = (byte)Math.Min(255, (((color >> 8) & 0xFF)) * percentG);
+                            byte b = (byte)Math.Min(255, (((color >> 0) & 0xFF)) * percentB);
+
                             //polygonCount += IndexedVoxelGroup.CreateVoxel(newMeshBuilder, sides, cx, y - worldVoxelStartY, cz, r, g, b, a);
                             polygonCount += SimpleVoxelGroup.CreateVoxel(newMeshBuilder, sides, cx, y - worldVoxelStartY, cz, r, g, b, a);
                             renderedVoxelCount++;

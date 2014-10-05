@@ -32,9 +32,9 @@ namespace ProdigalSoftware.ProjectM.Controllers
             double scaleY3 = random2.NextDouble() * 0.20 + 0.07;
 
             // Use parallel for for speed since there is no syncing needed
-            for (int x = 0; x < gameWorld.BlockSizeX; x++)
+            for (int x = 0; x < gameWorld.BlockSize.X; x++)
             {
-                for (int y = 0; y < gameWorld.BlockSizeY; y++)
+                for (int y = 0; y < gameWorld.BlockSize.Y; y++)
                 {
                     double noiseVal = Noise.GetNoise((xOff1 + x) * scaleX1, (yOff1 + y) * scaleY1) * 0.7f +
                             Noise.GetNoise((xOff2 + x) * scaleX2, (yOff2 + y) * scaleY2) * 0.4f +

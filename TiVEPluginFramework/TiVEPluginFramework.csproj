@@ -88,7 +88,6 @@
     <Compile Include="ITableDefinitionProvider.cs" />
     <Compile Include="IWorldGeneratorStage.cs" />
     <Compile Include="Lighting\AmbientLight.cs" />
-    <Compile Include="Lighting\DirectionalLight.cs" />
     <Compile Include="Lighting\ILight.cs" />
     <Compile Include="Lighting\PointLight.cs" />
     <Compile Include="Noise.cs" />

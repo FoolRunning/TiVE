@@ -1,13 +1,11 @@
-﻿namespace ProdigalSoftware.TiVEPluginFramework
+﻿using ProdigalSoftware.Utils;
+
+namespace ProdigalSoftware.TiVEPluginFramework
 {
     public interface IGameWorld
     {
-        int BlockSizeX { get; }
+        Vector3i BlockSize { get; }
 
-        int BlockSizeY { get; }
-
-        int BlockSizeZ { get; }
-
-        BlockInformation this[int x, int y, int z] { get; set; }
+        BlockInformation this[int blockX, int blockY, int blockZ] { get; set; }
     }
 }

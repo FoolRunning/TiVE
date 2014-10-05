@@ -4,19 +4,24 @@ namespace ProdigalSoftware.TiVEPluginFramework.Lighting
 {
     public sealed class AmbientLight : ILight
     {
-        private readonly Color4b color;
+        private readonly Color4f color;
 
-        public AmbientLight(Color4b color)
+        public AmbientLight(Color4f color)
         {
             this.color = color;
         }
 
-        public float MaxDist
+        public float MaxVoxelDist
         {
             get { return float.MaxValue; }
         }
 
-        public Color4b GetColorAtDist(float dist)
+        public Vector3b Location
+        {
+            get { return new Vector3b(); }
+        }
+
+        public Color4f GetColorAtDistSquared(float dist)
         {
             return color;
         }

@@ -20,6 +20,7 @@ namespace ProdigalSoftware.ProjectM.Controllers
             BlockInformation fire = blockList["fire"];
             BlockInformation fountain = blockList["fountain"];
             BlockInformation snow = blockList["snow"];
+            BlockInformation redLight = blockList["redLight"];
 
             Random random1 = new Random((int)((seed >> 11) & 0xFFFFFFFF));
             Random random2 = new Random((int)((seed >> 15) & 0xFFFFFFFF));
@@ -38,9 +39,9 @@ namespace ProdigalSoftware.ProjectM.Controllers
             double scaleX3 = random2.NextDouble() * 0.015 + 0.07;
             double scaleY3 = random2.NextDouble() * 0.015 + 0.07;
 
-            for (int x = 0; x < gameWorld.BlockSizeX; x++)
+            for (int x = 0; x < gameWorld.BlockSize.X; x++)
             {
-                for (int y = 0; y < gameWorld.BlockSizeY; y++)
+                for (int y = 0; y < gameWorld.BlockSize.Y; y++)
                 {
                     //if (gameWorld.GetBiome(x, y) == 0)
                     //    continue;
@@ -82,11 +83,14 @@ namespace ProdigalSoftware.ProjectM.Controllers
                             Fill(gameWorld, x, y, ref depth, stones);
                         if (noiseVal > -0.1 && noiseVal <= 0.0)
                             Fill(gameWorld, x, y, ref depth, stones);
-                        if (noiseVal > -0.05 && noiseVal < -0.03)
+                        if (noiseVal > -0.05 && noiseVal < -0.04)
                             gameWorld[x, y, depth] = fire;
                     }
+                    if (random1.NextDouble() < 0.01)
+                        gameWorld[x, y, random1.Next(gameWorld.BlockSize.Z - 1)] = redLight;
+
                     //if (random1.NextDouble() < 0.2)
-                        gameWorld[x, y, gameWorld.BlockSizeZ - 1] = snow;
+                        gameWorld[x, y, gameWorld.BlockSize.Z - 1] = snow;
                 }
             }
         }

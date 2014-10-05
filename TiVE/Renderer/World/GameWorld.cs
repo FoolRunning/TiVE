@@ -1,156 +1,169 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using ProdigalSoftware.TiVE.Renderer.Voxels;
 using ProdigalSoftware.TiVEPluginFramework;
+using ProdigalSoftware.Utils;
 
 namespace ProdigalSoftware.TiVE.Renderer.World
 {
     /// <summary>
-    /// Contains the information about the game world. 
+    /// Contains the information about the game world.
     /// </summary>
     internal sealed class GameWorld : IGameWorld
     {
-        private readonly int worldSizeX;
-        private readonly int worldSizeY;
-        private readonly int worldSizeZ;
+        private readonly Vector3i voxelSize;
+        private readonly Vector3i blockSize;
+        private readonly Vector3i chunkSize;
 
-        private readonly BlockInformation[] worldBlocks;
-        private readonly int blockSizeX;
-        private readonly int blockSizeY;
-        private readonly int blockSizeZ;
-
+        private readonly Block[] worldBlocks;
         private readonly GameWorldVoxelChunk[] worldChunks;
-        private readonly int chunkSizeX;
-        private readonly int chunkSizeY;
-        private readonly int chunkSizeZ;
 
         internal GameWorld(int blockSizeX, int blockSizeY, int blockSizeZ, bool useInstancing)
         {
-            this.blockSizeX = blockSizeX;
-            this.blockSizeY = blockSizeY;
-            this.blockSizeZ = blockSizeZ;
+            blockSize = new Vector3i(blockSizeX, blockSizeY, blockSizeZ);
+            voxelSize = new Vector3i(blockSizeX * BlockInformation.BlockSize, blockSizeY * BlockInformation.BlockSize, blockSizeZ * BlockInformation.BlockSize);
+            chunkSize = new Vector3i((int)Math.Ceiling(blockSizeX / (float)GameWorldVoxelChunk.TileSize),
+                (int)Math.Ceiling(blockSizeY / (float)GameWorldVoxelChunk.TileSize),
+                (int)Math.Ceiling(blockSizeZ / (float)GameWorldVoxelChunk.TileSize));
 
-            worldSizeX = blockSizeX * BlockInformation.BlockSize;
-            worldSizeY = blockSizeX * BlockInformation.BlockSize;
-            worldSizeZ = blockSizeX * BlockInformation.BlockSize;
-
-            worldBlocks = new BlockInformation[blockSizeX * blockSizeY * blockSizeZ];
+            worldBlocks = new Block[blockSizeX * blockSizeY * blockSizeZ];
             for (int i = 0; i < worldBlocks.Length; i++)
-                worldBlocks[i] = BlockInformation.Empty;
+                worldBlocks[i] = new Block();
 
-            chunkSizeX = (int)Math.Ceiling(blockSizeX / (float)GameWorldVoxelChunk.TileSize);
-            chunkSizeY = (int)Math.Ceiling(blockSizeY / (float)GameWorldVoxelChunk.TileSize);
-            chunkSizeZ = (int)Math.Ceiling(blockSizeZ / (float)GameWorldVoxelChunk.TileSize);
-            worldChunks = new GameWorldVoxelChunk[chunkSizeX * chunkSizeY * chunkSizeZ];
-            for (int z = 0; z < chunkSizeZ; z++)
+            worldChunks = new GameWorldVoxelChunk[chunkSize.X * chunkSize.Y * chunkSize.Z];
+            for (int z = 0; z < chunkSize.Z; z++)
             {
-                for (int x = 0; x < chunkSizeX; x++)
+                for (int x = 0; x < chunkSize.X; x++)
                 {
-                    for (int y = 0; y < chunkSizeY; y++)
+                    for (int y = 0; y < chunkSize.Y; y++)
                         worldChunks[GetChunkOffset(x, y, z)] = useInstancing ? new InstancedGameWorldVoxelChunk(x, y, z) : new GameWorldVoxelChunk(x, y, z);
                 }
             }
         }
 
-        public int WorldSizeX
+        /// <summary>
+        /// Gets the absolute voxel size of the game world
+        /// </summary>
+        public Vector3i VoxelSize
         {
-            get { return worldSizeX; }
+            get { return voxelSize; }
         }
 
-        public int WorldSizeY
+        /// <summary>
+        /// Gets the size of the game world in chunks
+        /// </summary>
+        public Vector3i ChunkSize
         {
-            get { return worldSizeY; }
+            get { return chunkSize; }
         }
 
-        public int WorldSizeZ
+        #region Implementation of IGameWorld
+        /// <summary>
+        /// Gets the size of the game world in blocks
+        /// </summary>
+        public Vector3i BlockSize
         {
-            get { return worldSizeZ; }
+            get { return blockSize; }
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public uint GetVoxel(int worldX, int worldY, int worldZ)
+        /// <summary>
+        /// Gets/sets the block in the game world at the specified block location
+        /// </summary>
+        public BlockInformation this[int blockX, int blockY, int blockZ]
         {
-            Debug.Assert(worldX >= 0 && worldX < worldSizeX);
-            Debug.Assert(worldY >= 0 && worldY < worldSizeY);
-            Debug.Assert(worldZ >= 0 && worldZ < worldSizeZ);
-
-            int blockX = worldX / BlockInformation.BlockSize;
-            int blockY = worldY / BlockInformation.BlockSize;
-            int blockZ = worldZ / BlockInformation.BlockSize;
-
-            int voxelX = worldX % BlockInformation.BlockSize;
-            int voxelY = worldY % BlockInformation.BlockSize;
-            int voxelZ = worldZ % BlockInformation.BlockSize;
-
-            BlockInformation block = worldBlocks[GetBlockOffset(blockX, blockY, blockZ)];
-            return block[voxelX, voxelY, voxelZ];
+            get { return worldBlocks[GetBlockOffset(blockX, blockY, blockZ)].BlockInfo; }
+            set { worldBlocks[GetBlockOffset(blockX, blockY, blockZ)].BlockInfo = value ?? BlockInformation.Empty; }
         }
-
-        public int BlockSizeX
-        {
-            get { return blockSizeX; }
-        }
-
-        public int BlockSizeY
-        {
-            get { return blockSizeY; }
-        }
-
-        public int BlockSizeZ
-        {
-            get { return blockSizeZ; }
-        }
-
-        public BlockInformation this[int x, int y, int z]
-        {
-            get { return worldBlocks[GetBlockOffset(x, y, z)]; }
-            set { worldBlocks[GetBlockOffset(x, y, z)] = value ?? BlockInformation.Empty; }
-        }
-
-        public int ChunkSizeX
-        {
-            get { return chunkSizeX; }
-        }
-
-        public int ChunkSizeY
-        {
-            get { return chunkSizeY; }
-        }
-
-        public int ChunkSizeZ
-        {
-            get { return chunkSizeZ; }
-        }
+        #endregion
 
         public GameWorldVoxelChunk GetChunk(int chunkX, int chunkY, int chunkZ)
         {
             return worldChunks[GetChunkOffset(chunkX, chunkY, chunkZ)];
         }
 
-        public void SetChunk(int chunkX, int chunkY, int chunkZ, GameWorldVoxelChunk chunk)
+        public List<LightInfo> GetLights(int blockX, int blockY, int blockZ)
         {
-            worldChunks[GetChunkOffset(chunkX, chunkY, chunkZ)] = chunk;
+            return worldBlocks[GetBlockOffset(blockX, blockY, blockZ)].Lights;
         }
 
+        /// <summary>
+        /// Gets the voxel in the game world at the specified absolute voxel location
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public uint GetVoxel(int voxelX, int voxelY, int voxelZ)
+        {
+            BlockInformation block = GetBlockAtWorld(voxelX, voxelY, voxelZ);
+
+            int blockVoxelX = voxelX % BlockInformation.BlockSize;
+            int blockVoxelY = voxelY % BlockInformation.BlockSize;
+            int blockVoxelZ = voxelZ % BlockInformation.BlockSize;
+            return block[blockVoxelX, blockVoxelY, blockVoxelZ];
+        }
+
+        /// <summary>
+        /// Gets the block containing the specified absolute voxel location
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public BlockInformation GetBlockAtWorld(int voxelX, int voxelY, int voxelZ)
+        {
+            CheckConstraints(voxelX, voxelY, voxelZ, voxelSize);
+
+            int blockX = voxelX / BlockInformation.BlockSize;
+            int blockY = voxelY / BlockInformation.BlockSize;
+            int blockZ = voxelZ / BlockInformation.BlockSize;
+
+            return worldBlocks[GetBlockOffset(blockX, blockY, blockZ)].BlockInfo;
+        }
+
+        /// <summary>
+        /// Gets the offset into the game world blocks array for the block at the specified location
+        /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private int GetBlockOffset(int x, int y, int z)
         {
-            Debug.Assert(x >= 0 && x < blockSizeX);
-            Debug.Assert(y >= 0 && y < blockSizeY);
-            Debug.Assert(z >= 0 && z < blockSizeZ);
-
-            return (x * blockSizeZ + z) * blockSizeY + y; // y-axis major for speed
+            CheckConstraints(x, y, z, blockSize);
+            return (x * blockSize.Z + z) * blockSize.Y + y; // y-axis major for speed
         }
 
+        /// <summary>
+        /// Gets the offset into the game world chunks array for the chunk at the specified location
+        /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private int GetChunkOffset(int x, int y, int z)
         {
-            Debug.Assert(x >= 0 && x < chunkSizeX);
-            Debug.Assert(y >= 0 && y < chunkSizeY);
-            Debug.Assert(z >= 0 && z < chunkSizeZ);
-
-            return (x * chunkSizeZ + z) * chunkSizeY + y; // y-axis major for speed
+            CheckConstraints(x, y, z, chunkSize);
+            return (x * chunkSize.Z + z) * chunkSize.Y + y; // y-axis major for speed
         }
+
+        [Conditional("DEBUG")]
+        private void CheckConstraints(int x, int y, int z, Vector3i size)
+        {
+            if (x < 0 || x >= size.X)
+                throw new ArgumentOutOfRangeException("x");
+            if (y < 0 || y >= size.Y)
+                throw new ArgumentOutOfRangeException("y");
+            if (z < 0 || z >= size.Z)
+                throw new ArgumentOutOfRangeException("z");
+        }
+
+        #region Block class
+        /// <summary>
+        /// Represents one block in the game world
+        /// </summary>
+        private sealed class Block
+        {
+            /// <summary>
+            /// Information about the block (can not be null)
+            /// </summary>
+            public BlockInformation BlockInfo = BlockInformation.Empty;
+            
+            /// <summary>
+            /// List of lights that affect this block or null for none
+            /// </summary>
+            public List<LightInfo> Lights = new List<LightInfo>();
+        }
+        #endregion
     }
 }

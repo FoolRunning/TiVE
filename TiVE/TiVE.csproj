@@ -106,6 +106,7 @@
     <Compile Include="Renderer\Voxels\InstancedGameWorldVoxelChunk.cs" />
     <Compile Include="Renderer\Voxels\MeshBuilder.cs" />
     <Compile Include="Renderer\Voxels\VoxelMeshUtils.cs" />
+    <Compile Include="Renderer\World\LightInfo.cs" />
     <Compile Include="Resources\LightManager.cs" />
     <Compile Include="Resources\LuaScripts.cs" />
     <Compile Include="Resources\ParticleSystemManager.cs" />

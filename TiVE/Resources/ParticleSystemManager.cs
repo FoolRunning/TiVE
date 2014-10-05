@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Threading;
 using OpenTK;
 using ProdigalSoftware.TiVE.Renderer.Particles;
+using ProdigalSoftware.TiVE.Renderer.Voxels;
 using ProdigalSoftware.TiVE.Renderer.World;
 using ProdigalSoftware.TiVE.Starter;
 using ProdigalSoftware.TiVEPluginFramework;
@@ -25,47 +26,6 @@ namespace ProdigalSoftware.TiVE.Resources
         private readonly List<SystemInfo> systemsToDelete = new List<SystemInfo>();
         private Thread particleUpdateThread;
         private volatile bool stopThread;
-
-        private struct SystemInfo
-        {
-            public readonly int X;
-            public readonly int Y;
-            public readonly int Z;
-            public readonly ParticleSystem System;
-
-            public SystemInfo(int x, int y, int z)
-            {
-                X = x;
-                Y = y;
-                Z = z;
-                System = null;
-            }
-
-            public SystemInfo(int x, int y, int z, ParticleSystem system)
-            {
-                X = x;
-                Y = y;
-                Z = z;
-                this.System = system;
-            }
-
-            #region Overrides of Object
-            public override bool Equals(object obj)
-            {
-                if (obj is SystemInfo)
-                {
-                    SystemInfo other = (SystemInfo)obj;
-                    return other.X == X && other.Y == Y && other.Z == Z;
-                }
-                return false;
-            }
-
-            public override int GetHashCode()
-            {
-                return X << 20 ^ Y << 20 ^ Z;
-            }
-            #endregion
-        }
 
         public void Dispose()
         {
@@ -94,6 +54,8 @@ namespace ProdigalSoftware.TiVE.Resources
         {
             Debug.Assert(Thread.CurrentThread.Name == "Main UI");
 
+            camMinY = Math.Max(camMinY - GameWorldVoxelChunk.TileSize, 0);
+
             foreach (SystemInfo runningSystem in runningSystems)
             {
                 if (runningSystem.X < camMinX || runningSystem.X >= camMaxX ||
@@ -112,7 +74,7 @@ namespace ProdigalSoftware.TiVE.Resources
             systemsToDelete.Clear();
 
             GameWorld gameWorld = ResourceManager.GameWorldManager.GameWorld;
-            for (int z = 0; z < gameWorld.BlockSizeZ; z++)
+            for (int z = 0; z < gameWorld.BlockSize.Z; z++)
             {
                 for (int x = camMinX; x < camMaxX; x++)
                 {
@@ -206,5 +168,44 @@ namespace ProdigalSoftware.TiVE.Resources
             }
             sw.Stop();
         }
+
+        #region SystemInfo struct
+        private sealed class SystemInfo
+        {
+            public readonly int X;
+            public readonly int Y;
+            public readonly int Z;
+            public readonly ParticleSystem System;
+
+            public SystemInfo(int x, int y, int z)
+            {
+                X = x;
+                Y = y;
+                Z = z;
+                System = null;
+            }
+
+            public SystemInfo(int x, int y, int z, ParticleSystem system)
+            {
+                X = x;
+                Y = y;
+                Z = z;
+                System = system;
+            }
+
+            #region Overrides of Object
+            public override bool Equals(object obj)
+            {
+                SystemInfo other = obj as SystemInfo;
+                return other != null && other.X == X && other.Y == Y && other.Z == Z;
+            }
+
+            public override int GetHashCode()
+            {
+                return X << 20 ^ Y << 20 ^ Z;
+            }
+            #endregion
+        }
+        #endregion
     }
 }

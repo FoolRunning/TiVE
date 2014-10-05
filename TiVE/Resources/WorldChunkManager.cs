@@ -87,11 +87,11 @@ namespace ProdigalSoftware.TiVE.Resources
             Debug.Assert(Thread.CurrentThread.Name == "Main UI");
 
             GameWorld gameWorld = ResourceManager.GameWorldManager.GameWorld;
-            chunkMinX = Math.Max(0, Math.Min(gameWorld.ChunkSizeX, camMinX / GameWorldVoxelChunk.TileSize - 1));
-            chunkMaxX = Math.Max(0, Math.Min(gameWorld.ChunkSizeX, (int)Math.Ceiling(camMaxX / (float)GameWorldVoxelChunk.TileSize) + 1));
-            chunkMinY = Math.Max(0, Math.Min(gameWorld.ChunkSizeY, camMinY / GameWorldVoxelChunk.TileSize - 1));
-            chunkMaxY = Math.Max(0, Math.Min(gameWorld.ChunkSizeY, (int)Math.Ceiling(camMaxY / (float)GameWorldVoxelChunk.TileSize) + 1));
-            chunkMaxZ = Math.Max((int)Math.Ceiling(gameWorld.BlockSizeZ / (float)GameWorldVoxelChunk.TileSize), 1);
+            chunkMinX = Math.Max(0, Math.Min(gameWorld.ChunkSize.X, camMinX / GameWorldVoxelChunk.TileSize - 1));
+            chunkMaxX = Math.Max(0, Math.Min(gameWorld.ChunkSize.X, (int)Math.Ceiling(camMaxX / (float)GameWorldVoxelChunk.TileSize) + 1));
+            chunkMinY = Math.Max(0, Math.Min(gameWorld.ChunkSize.Y, camMinY / GameWorldVoxelChunk.TileSize - 1));
+            chunkMaxY = Math.Max(0, Math.Min(gameWorld.ChunkSize.Y, (int)Math.Ceiling(camMaxY / (float)GameWorldVoxelChunk.TileSize) + 1));
+            chunkMaxZ = Math.Max((int)Math.Ceiling(gameWorld.BlockSize.Z / (float)GameWorldVoxelChunk.TileSize), 1);
 
             for (int i = 0; i < loadedChunksList.Count; i++)
             {
@@ -128,9 +128,9 @@ namespace ProdigalSoftware.TiVE.Resources
             int worldStartY = chunkY * GameWorldVoxelChunk.TileSize;
             int worldStartZ = chunkZ * GameWorldVoxelChunk.TileSize;
 
-            int worldEndX = Math.Min(gameWorld.BlockSizeX, worldStartX + GameWorldVoxelChunk.TileSize);
-            int worldEndY = Math.Min(gameWorld.BlockSizeY, worldStartY + GameWorldVoxelChunk.TileSize);
-            int worldEndZ = Math.Min(gameWorld.BlockSizeZ, worldStartZ + GameWorldVoxelChunk.TileSize);
+            int worldEndX = Math.Min(gameWorld.BlockSize.X, worldStartX + GameWorldVoxelChunk.TileSize);
+            int worldEndY = Math.Min(gameWorld.BlockSize.Y, worldStartY + GameWorldVoxelChunk.TileSize);
+            int worldEndZ = Math.Min(gameWorld.BlockSize.Z, worldStartZ + GameWorldVoxelChunk.TileSize);
 
             bool changedChunk = false;
             for (int z = worldStartZ; z < worldEndZ; z++)
@@ -255,15 +255,16 @@ namespace ProdigalSoftware.TiVE.Resources
                         bottleneckCount++;
                         if (bottleneckCount > 100) // 300ms give or take
                         {
+                            bottleneckCount = 0;
                             // Too many chunks are waiting to be intialized. Most likely there are chunks that were not properly disposed.
                             Console.WriteLine("Mesh creation bottlenecked!");
 
                             GameWorld gameWorld = ResourceManager.GameWorldManager.GameWorld;
-                            for (int z = 0; z < gameWorld.ChunkSizeZ; z++)
+                            for (int z = 0; z < gameWorld.ChunkSize.Z; z++)
                             {
-                                for (int x = 0; x < gameWorld.ChunkSizeX; x++)
+                                for (int x = 0; x < gameWorld.ChunkSize.X; x++)
                                 {
-                                    for (int y = 0; y < gameWorld.ChunkSizeY; y++)
+                                    for (int y = 0; y < gameWorld.ChunkSize.Y; y++)
                                     {
                                         GameWorldVoxelChunk oldChunk = gameWorld.GetChunk(x, y, z);
                                         if (oldChunk.MeshBuilder != null)
