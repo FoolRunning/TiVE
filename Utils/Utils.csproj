@@ -77,9 +77,11 @@
   <ItemGroup>
     <Compile Include="ArrayUtils.cs" />
     <Compile Include="Color4b.cs" />
+    <Compile Include="Color4f.cs" />
     <Compile Include="MathUtils.cs" />
     <Compile Include="PerformanceLock.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Vector3i.cs" />
     <Compile Include="Vector3b.cs" />
     <Compile Include="Vector3s.cs" />
   </ItemGroup>

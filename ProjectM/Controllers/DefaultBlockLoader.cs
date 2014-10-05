@@ -50,12 +50,15 @@ namespace ProdigalSoftware.ProjectM.Controllers
 
             uint[,,] particleVoxels = new uint[1, 1, 1];
             particleVoxels[0, 0, 0] = 0xFFFFFFFF;
-            yield return CreateBlockInfo("fire", false, true, new Color4(150, 20, 20, 255), 1.0f, 
-                new ParticleSystemInformation(particleVoxels, new FireUpdater(), new Vector3b(5, 5, 8), 300, 310, true, false), 
-                new PointLight(new Vector3b(5, 5, 10), new Color4b(255, 220, 170, 255), 0.1f, 0.0001f));
+            yield return new BlockInformation("fire", 
+                new ParticleSystemInformation(particleVoxels, new FireUpdater(), new Vector3b(5, 5, 1), 300, 310, true, false),
+                new PointLight(new Vector3b(5, 5, 1), new Color4f(1.0f, 0.7f, 0.5f, 1.0f), 0.005f));
+
+            yield return CreateBlockInfo("redLight", false, true, new Color4(255, 40, 40, 255), 1.0f, null,
+                new PointLight(new Vector3b(5, 5, 5), new Color4f(1.0f, 0.05f, 0.05f, 1.0f), 0.005f));
 
             yield return new BlockInformation("snow",
-                new ParticleSystemInformation(particleVoxels, new SnowUpdater(), new Vector3b(0, 0, 0), 5, 5, false, true));
+                new ParticleSystemInformation(particleVoxels, new SnowUpdater(), new Vector3b(0, 0, 0), 1, 1, false, true));
 
             particleVoxels = new uint[3, 3, 3];
             particleVoxels[1, 1, 1] = 0xFFFFFFFF;

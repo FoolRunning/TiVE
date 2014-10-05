@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Runtime.CompilerServices;
 using OpenTK;
+using ProdigalSoftware.TiVE.Resources;
 using ProdigalSoftware.TiVEPluginFramework.Particles;
 using ProdigalSoftware.Utils;
 
@@ -42,6 +44,8 @@ namespace ProdigalSoftware.TiVE.Renderer.Particles
             int newParticleCount = Math.Min((int)numOfParticlesNeeded, systemInfo.MaxParticles - aliveParticles);
             numOfParticlesNeeded -= newParticleCount;
 
+            LightManager lightManager = ResourceManager.LightManager;
+
             float locX = Location.X;
             float locY = Location.Y;
             float locZ = Location.Z;
@@ -69,8 +73,11 @@ namespace ProdigalSoftware.TiVE.Renderer.Particles
                     upd.Update(part, timeSinceLastFrame, locX, locY, locZ);
                 }
 
-                locationArray[dataIndex] = new Vector3s((short)part.X, (short)part.Y, (short)part.Z);
-                colorArray[dataIndex] = part.Color;
+                short partX = (short)part.X;
+                short partY = (short)part.Y;
+                short partZ = (short)part.Z;
+                locationArray[dataIndex] = new Vector3s(partX, partY, partZ);
+                colorArray[dataIndex] = systemInfo.IsLit ? CalculateParticleColor(partX, partY, partZ, part.Color, lightManager) : part.Color;
                 dataIndex++;
             }
 
@@ -78,13 +85,27 @@ namespace ProdigalSoftware.TiVE.Renderer.Particles
             {
                 Particle part = particleList[aliveParticles];
                 upd.InitializeNew(part, locX, locY, locZ);
-                locationArray[dataIndex] = new Vector3s((short)part.X, (short)part.Y, (short)part.Z);
-                colorArray[dataIndex] = part.Color;
+                short partX = (short)part.X;
+                short partY = (short)part.Y;
+                short partZ = (short)part.Z;
+                locationArray[dataIndex] = new Vector3s(partX, partY, partZ);
+                colorArray[dataIndex] = systemInfo.IsLit ? CalculateParticleColor(partX, partY, partZ, part.Color, lightManager) : part.Color;
                 dataIndex++;
                 aliveParticles++;
             }
 
             AliveParticles = aliveParticles;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private Color4b CalculateParticleColor(short partX, short partY, short partZ, Color4b color, LightManager lightManager)
+        {
+            float percentR;
+            float percentG;
+            float percentB;
+            lightManager.GetLightAt(partX, partY, partZ, out percentR, out percentG, out percentB);
+            return new Color4b((byte)Math.Min(255, color.R * percentR), (byte)Math.Min(255, color.G * percentG),
+                (byte)Math.Min(255, color.B * percentB), 255);
         }
     }
 }

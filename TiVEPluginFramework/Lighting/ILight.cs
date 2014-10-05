@@ -4,8 +4,10 @@ namespace ProdigalSoftware.TiVEPluginFramework.Lighting
 {
     public interface ILight
     {
-        float MaxDist { get; }
+        float MaxVoxelDist { get; }
 
-        Color4b GetColorAtDist(float dist);
+        Vector3b Location { get; }
+
+        Color4f GetColorAtDistSquared(float dist);
     }
 }

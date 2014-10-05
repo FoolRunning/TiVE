@@ -20,9 +20,9 @@ namespace ProdigalSoftware.TiVE.Renderer.Voxels
         {
             voxelCount = 0;
             renderedVoxelCount = 0;
-            int maxVoxelX = gameWorld.WorldSizeX;
-            int maxVoxelY = gameWorld.WorldSizeY;
-            int maxVoxelZ = gameWorld.WorldSizeZ;
+            int maxVoxelX = gameWorld.VoxelSize.X;
+            int maxVoxelY = gameWorld.VoxelSize.Y;
+            int maxVoxelZ = gameWorld.VoxelSize.Z;
 
             for (int x = worldVoxelStartX; x < worldVoxelEndX; x++)
             {

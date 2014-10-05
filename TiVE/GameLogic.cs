@@ -11,7 +11,7 @@ namespace ProdigalSoftware.TiVE
     {
         private const int WorldXSize = 500;
         private const int WorldYSize = 500;
-        private const int WorldZSize = 15;
+        private const int WorldZSize = 17;
 
         private IGameWorldRenderer renderer;
 
@@ -36,6 +36,9 @@ namespace ProdigalSoftware.TiVE
 
             if (!ResourceManager.GameWorldManager.CreateWorld(WorldXSize, WorldYSize, WorldZSize, LongRandom() /* 123456789123456789*/))
                 return false;
+
+            // Calculate static lighting
+            ResourceManager.LightManager.CalcualteLightsForGameWorld(ResourceManager.GameWorldManager.GameWorld);
 
             renderer = new WorldChunkRenderer();
             return true;

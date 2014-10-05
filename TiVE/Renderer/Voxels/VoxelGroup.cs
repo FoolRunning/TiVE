@@ -21,8 +21,8 @@ namespace ProdigalSoftware.TiVE.Renderer.Voxels
     internal abstract class VoxelGroup
     {
         #region Constants
-        protected const int SmallColorDiff = 10;
-        protected const int BigColorDiff = 20;
+        protected const int SmallColorDiff = 5;
+        protected const int BigColorDiff = 10;
 
         private const string VertexShaderSource = @"
             #version 150 core 
