@@ -4,6 +4,8 @@ namespace ProdigalSoftware.Utils
 {
     public struct Color4f
     {
+        public static readonly Color4f Empty = new Color4f();
+
         public readonly float R;
         public readonly float G;
         public readonly float B;

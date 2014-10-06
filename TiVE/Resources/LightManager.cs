@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
+using System.Threading;
 using ProdigalSoftware.TiVE.Renderer.World;
 using ProdigalSoftware.TiVE.Starter;
 using ProdigalSoftware.TiVEPluginFramework.Lighting;
@@ -11,10 +11,12 @@ namespace ProdigalSoftware.TiVE.Resources
 {
     internal sealed class LightManager
     {
-        private const int MaxLightsPerBlock = 3;
+        public const int MaxLightsPerBlock = 3;
 
         private readonly ILight ambientLight;
         private GameWorld gameWorld;
+        private volatile int totalComplete;
+        private volatile int lastPercentComplete;
 
         public LightManager()
         {
@@ -27,41 +29,52 @@ namespace ProdigalSoftware.TiVE.Resources
             
             gameWorld = newGameWorld;
 
-            int sizeX = newGameWorld.BlockSize.X;
-            int sizeY = newGameWorld.BlockSize.Y;
-            int sizeZ = newGameWorld.BlockSize.Z;
+            int mid = newGameWorld.BlockSize.X / 2;
+            Thread thread1 = StartLightCalculationThread(0, mid, newGameWorld);
+            Thread thread2 = StartLightCalculationThread(mid, newGameWorld.BlockSize.X, newGameWorld);
 
-            int lastPercentComplete = 0;
-            int totalComplete = 0;
-            Parallel.For(0, sizeX, x =>
-                //for (int x = 0; x < sizeX; x++)
+            thread1.Join();
+            thread2.Join();
+            Messages.AddDoneText();
+        }
+
+        private Thread StartLightCalculationThread(int startX, int endX, GameWorld newGameWorld)
+        {
+            Thread thread = new Thread(() =>
             {
-                totalComplete++;
-                int percentComplete = totalComplete * 100 / (sizeX - 1);
-                if (percentComplete != lastPercentComplete)
-                {
-                    Console.WriteLine("Calculating lighting: {0}%", percentComplete);
-                    lastPercentComplete = percentComplete;
-                }
-                for (int z = 0; z < sizeZ; z++)
-                {
-                    for (int y = 0; y < sizeY; y++)
-                    {
-                        BlockInformation block = newGameWorld[x, y, z];
-                        ILight light = block.Light;
-                        if (light == null)
-                            continue;
+                int sizeX = newGameWorld.BlockSize.X;
+                int sizeY = newGameWorld.BlockSize.Y;
+                int sizeZ = newGameWorld.BlockSize.Z;
 
-                        LightInfo lightInfo = new LightInfo(x, y, z, light);
-                        int maxLightBlockDist = (int)Math.Ceiling(light.MaxVoxelDist / BlockInformation.BlockSize) + 1;
-                        for (int lz = z - maxLightBlockDist; lz < z + maxLightBlockDist; lz++)
+                for (int x = startX; x < endX; x++)
+                {
+                    int percentComplete = totalComplete * 100 / (sizeX - 1);
+                    if (percentComplete != lastPercentComplete)
+                    {
+                        Console.WriteLine("Calculating lighting: {0}%", percentComplete);
+                        lastPercentComplete = percentComplete;
+                    }
+
+                    for (int z = 0; z < sizeZ; z++)
+                    {
+                        for (int y = 0; y < sizeY; y++)
                         {
-                            for (int lx = x - maxLightBlockDist; lx < x + maxLightBlockDist; lx++)
+                            BlockInformation block = newGameWorld[x, y, z];
+                            ILight light = block.Light;
+                            if (light == null)
+                                continue;
+
+                            LightInfo lightInfo = new LightInfo(x, y, z, light);
+                            int maxLightBlockDist = (int)Math.Ceiling(light.MaxVoxelDist / BlockInformation.BlockSize) + 1;
+                            for (int lz = z - maxLightBlockDist; lz < z + maxLightBlockDist; lz++)
                             {
-                                for (int ly = y - maxLightBlockDist; ly < y + maxLightBlockDist; ly++)
+                                for (int lx = x - maxLightBlockDist; lx < x + maxLightBlockDist; lx++)
                                 {
-                                    if (lx >= 0 && lx < sizeX && ly >= 0 && ly < sizeY && lz >= 0 && lz < sizeZ)
+                                    for (int ly = y - maxLightBlockDist; ly < y + maxLightBlockDist; ly++)
                                     {
+                                        if (lx < 0 || lx >= sizeX || ly < 0 || ly >= sizeY || lz < 0 || lz >= sizeZ) 
+                                            continue;
+
                                         List<LightInfo> blockLights = newGameWorld.GetLights(lx, ly, lz);
                                         using (new PerformanceLock(blockLights))
                                         {
@@ -99,10 +112,11 @@ namespace ProdigalSoftware.TiVE.Resources
                             }
                         }
                     }
+                    totalComplete++;
                 }
             });
-
-            Messages.AddDoneText();
+            thread.Start();
+            return thread;
         }
 
         public void GetLightAt(int voxelX, int voxelY, int voxelZ, out float percentR, out float percentG, out float percentB)
