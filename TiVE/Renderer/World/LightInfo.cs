@@ -9,14 +9,14 @@ namespace ProdigalSoftware.TiVE.Renderer.World
         private readonly int voxelLocX;
         private readonly int voxelLocY;
         private readonly int voxelLocZ;
-        private readonly ILight Light;
+        private readonly ILight light;
 
         public LightInfo(int blockX, int blockY, int blockZ, ILight light)
         {
             voxelLocX = light.Location.X + blockX * BlockInformation.BlockSize;
             voxelLocY = light.Location.Y + blockY * BlockInformation.BlockSize;
             voxelLocZ = light.Location.Z + blockZ * BlockInformation.BlockSize;
-            Light = light;
+            this.light = light;
         }
 
         public Color4f GetLightAtVoxel(int voxelX, int voxelY, int voxelZ)
@@ -25,7 +25,7 @@ namespace ProdigalSoftware.TiVE.Renderer.World
             int lightLocY = voxelLocY - voxelY;
             int lightLocZ = voxelLocZ - voxelZ;
             float distSquared = lightLocX * lightLocX + lightLocY * lightLocY + lightLocZ * lightLocZ;
-            return Light.GetColorAtDistSquared(distSquared);
+            return light.GetColorAtDistSquared(distSquared);
         }
     }
 

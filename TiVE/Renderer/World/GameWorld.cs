@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using ProdigalSoftware.TiVE.Renderer.Voxels;
+using ProdigalSoftware.TiVE.Resources;
 using ProdigalSoftware.TiVEPluginFramework;
 using ProdigalSoftware.Utils;
 
@@ -30,7 +31,7 @@ namespace ProdigalSoftware.TiVE.Renderer.World
 
             worldBlocks = new Block[blockSizeX * blockSizeY * blockSizeZ];
             for (int i = 0; i < worldBlocks.Length; i++)
-                worldBlocks[i] = new Block();
+                worldBlocks[i] = new Block(BlockInformation.Empty, new List<LightInfo>(LightManager.MaxLightsPerBlock));
 
             worldChunks = new GameWorldVoxelChunk[chunkSize.X * chunkSize.Y * chunkSize.Z];
             for (int z = 0; z < chunkSize.Z; z++)
@@ -138,7 +139,7 @@ namespace ProdigalSoftware.TiVE.Renderer.World
         }
 
         [Conditional("DEBUG")]
-        private void CheckConstraints(int x, int y, int z, Vector3i size)
+        private static void CheckConstraints(int x, int y, int z, Vector3i size)
         {
             if (x < 0 || x >= size.X)
                 throw new ArgumentOutOfRangeException("x");
@@ -152,17 +153,23 @@ namespace ProdigalSoftware.TiVE.Renderer.World
         /// <summary>
         /// Represents one block in the game world
         /// </summary>
-        private sealed class Block
+        private struct Block
         {
             /// <summary>
-            /// Information about the block (can not be null)
+            /// Information about the block
             /// </summary>
-            public BlockInformation BlockInfo = BlockInformation.Empty;
+            public BlockInformation BlockInfo;
             
             /// <summary>
-            /// List of lights that affect this block or null for none
+            /// List of lights that affect this block
             /// </summary>
-            public List<LightInfo> Lights = new List<LightInfo>();
+            public readonly List<LightInfo> Lights;
+
+            public Block(BlockInformation blockInfo, List<LightInfo> lights)
+            {
+                BlockInfo = blockInfo;
+                Lights = lights;
+            }
         }
         #endregion
     }

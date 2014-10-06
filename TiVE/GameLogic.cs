@@ -11,7 +11,7 @@ namespace ProdigalSoftware.TiVE
     {
         private const int WorldXSize = 500;
         private const int WorldYSize = 500;
-        private const int WorldZSize = 17;
+        private const int WorldZSize = 20;
 
         private IGameWorldRenderer renderer;
 

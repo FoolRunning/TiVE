@@ -29,7 +29,8 @@ namespace ProdigalSoftware.ProjectM.Controllers
                 }
                 else if (i < 10)
                 {
-                    color = new Color4(62, 25, 1, 255);
+                    //color = new Color4(62, 25, 1, 255);
+                    color = new Color4(235, 235, 235, 255);
                     voxelDensity = 1.0f;
                     name = "back" + (i - 5);
                 }
@@ -52,13 +53,13 @@ namespace ProdigalSoftware.ProjectM.Controllers
             particleVoxels[0, 0, 0] = 0xFFFFFFFF;
             yield return new BlockInformation("fire", 
                 new ParticleSystemInformation(particleVoxels, new FireUpdater(), new Vector3b(5, 5, 1), 300, 310, true, false),
-                new PointLight(new Vector3b(5, 5, 1), new Color4f(1.0f, 0.7f, 0.5f, 1.0f), 0.005f));
+                new PointLight(new Vector3b(5, 5, 1), new Color4f(1.0f, 0.9f, 0.8f, 1.0f), 0.005f));
 
             yield return CreateBlockInfo("redLight", false, true, new Color4(255, 40, 40, 255), 1.0f, null,
                 new PointLight(new Vector3b(5, 5, 5), new Color4f(1.0f, 0.05f, 0.05f, 1.0f), 0.005f));
 
             yield return new BlockInformation("snow",
-                new ParticleSystemInformation(particleVoxels, new SnowUpdater(), new Vector3b(0, 0, 0), 1, 1, false, true));
+                new ParticleSystemInformation(particleVoxels, new SnowUpdater(), new Vector3b(0, 0, 0), 100, 1, false, true));
 
             particleVoxels = new uint[3, 3, 3];
             particleVoxels[1, 1, 1] = 0xFFFFFFFF;

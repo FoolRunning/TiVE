@@ -115,8 +115,8 @@ namespace ProdigalSoftware.TiVE.Resources
                             loadedChunks.Add(chunk);
                             loadedChunksList.Add(chunk);
                         }
-                        else if (UpdateBlockAnimationsInChunk(chunkX, chunkY, chunkZ, gameWorld, blockList))
-                            UpdateChunk(chunk);
+                        //else if (UpdateBlockAnimationsInChunk(chunkX, chunkY, chunkZ, gameWorld, blockList))
+                        //    UpdateChunk(chunk);
                     }
                 }
             }
@@ -222,69 +222,64 @@ namespace ProdigalSoftware.TiVE.Resources
         private void ChunkCreateLoop()
         {
             List<MeshBuilder> meshBuilders = new List<MeshBuilder>();
+            for (int i = 0; i < 10; i++)
+                meshBuilders.Add(new MeshBuilder(800000, 800000));
+
             int bottleneckCount = 0;
             while (!endCreationThreads)
             {
+                Thread.Sleep(3);
+
                 int count;
                 using (new PerformanceLock(chunkLoadQueue))
                     count = chunkLoadQueue.Count;
 
                 if (count == 0)
-                {
-                    Thread.Sleep(3);
                     continue;
+
+                MeshBuilder meshBuilder = meshBuilders.Find(NotLocked);
+                if (meshBuilder == null)
+                {
+                    bottleneckCount++;
+                    if (bottleneckCount > 100) // 300ms give or take
+                    {
+                        bottleneckCount = 0;
+                        // Too many chunks are waiting to be intialized. Most likely there are chunks that were not properly disposed.
+                        Console.WriteLine("Mesh creation bottlenecked!");
+
+                        GameWorld gameWorld = ResourceManager.GameWorldManager.GameWorld;
+                        for (int z = 0; z < gameWorld.ChunkSize.Z; z++)
+                        {
+                            for (int x = 0; x < gameWorld.ChunkSize.X; x++)
+                            {
+                                for (int y = 0; y < gameWorld.ChunkSize.Y; y++)
+                                {
+                                    GameWorldVoxelChunk oldChunk = gameWorld.GetChunk(x, y, z);
+                                    if (oldChunk.MeshBuilder != null)
+                                        chunksToDelete.Add(oldChunk);
+                                }
+                            }
+                        }
+                    }
                 }
 
-                MeshBuilder meshBuilder;
-                GameWorldVoxelChunk chunk;
+                if (meshBuilder == null)
+                    continue; // No free meshbuilders to use
 
+                bottleneckCount = 0;
+
+                GameWorldVoxelChunk chunk;
                 using (new PerformanceLock(chunkLoadQueue))
                 {
                     if (chunkLoadQueue.Count == 0)
                         continue; // Check for race condition with multiple threads accessing the queue
 
-                    meshBuilder = meshBuilders.Find(NotLocked);
-                    if (meshBuilder == null && meshBuilders.Count < 15)
-                    {
-                        meshBuilder = new MeshBuilder(800000, 800000);
-                        meshBuilders.Add(meshBuilder);
-                        Console.WriteLine(meshBuilders.Count);
-                    }
-                    else if (meshBuilder == null)
-                    {
-                        bottleneckCount++;
-                        if (bottleneckCount > 100) // 300ms give or take
-                        {
-                            bottleneckCount = 0;
-                            // Too many chunks are waiting to be intialized. Most likely there are chunks that were not properly disposed.
-                            Console.WriteLine("Mesh creation bottlenecked!");
-
-                            GameWorld gameWorld = ResourceManager.GameWorldManager.GameWorld;
-                            for (int z = 0; z < gameWorld.ChunkSize.Z; z++)
-                            {
-                                for (int x = 0; x < gameWorld.ChunkSize.X; x++)
-                                {
-                                    for (int y = 0; y < gameWorld.ChunkSize.Y; y++)
-                                    {
-                                        GameWorldVoxelChunk oldChunk = gameWorld.GetChunk(x, y, z);
-                                        if (oldChunk.MeshBuilder != null)
-                                            chunksToDelete.Add(oldChunk);
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    if (meshBuilder == null)
-                        continue; // No free meshbuilders to use
-
                     chunk = chunkLoadQueue.Dequeue();
                     if (chunk.IsDeleted)
                         continue; // Chunk got deleted while waiting to be loaded
-
-                    meshBuilder.StartNewMesh();
                 }
 
+                meshBuilder.StartNewMesh();
                 chunk.Load(meshBuilder);
             }
         }
