@@ -53,7 +53,10 @@ namespace ProdigalSoftware.TiVE.Renderer.Particles
             {
                 Particle part = particleList[i];
                 if (part.Time > 0.0f)
+                {
+                    // Normal case - particle is still alive, so just update it
                     upd.Update(part, timeSinceLastFrame, locX, locY, locZ);
+                }
                 else if (newParticleCount > 0)
                 {
                     // Particle died, but we need new particles so just re-initialize this one
@@ -81,6 +84,7 @@ namespace ProdigalSoftware.TiVE.Renderer.Particles
                 dataIndex++;
             }
 
+            // Intialize any new particles that are still needed
             for (int i = 0; i < newParticleCount; i++)
             {
                 Particle part = particleList[aliveParticles];
@@ -98,7 +102,7 @@ namespace ProdigalSoftware.TiVE.Renderer.Particles
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private Color4b CalculateParticleColor(short partX, short partY, short partZ, Color4b color, LightManager lightManager)
+        private static Color4b CalculateParticleColor(short partX, short partY, short partZ, Color4b color, LightManager lightManager)
         {
             float percentR;
             float percentG;

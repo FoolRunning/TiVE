@@ -17,10 +17,10 @@ namespace ProdigalSoftware.ProjectM.Controllers
             BlockRandomizer dirts = new BlockRandomizer(blockList, "dirt", 5);
             BlockRandomizer stones = new BlockRandomizer(blockList, "stone", 5);
             BlockRandomizer sands = new BlockRandomizer(blockList, "sand", 5);
+            BlockRandomizer lights = new BlockRandomizer(blockList, "light", 6);
             BlockInformation fire = blockList["fire"];
             BlockInformation fountain = blockList["fountain"];
             BlockInformation snow = blockList["snow"];
-            BlockInformation redLight = blockList["redLight"];
 
             Random random1 = new Random((int)((seed >> 11) & 0xFFFFFFFF));
             Random random2 = new Random((int)((seed >> 15) & 0xFFFFFFFF));
@@ -87,7 +87,7 @@ namespace ProdigalSoftware.ProjectM.Controllers
                             gameWorld[x, y, depth] = fire;
                     }
                     if (random1.NextDouble() < 0.01)
-                        gameWorld[x, y, random1.Next(gameWorld.BlockSize.Z - 1)] = redLight;
+                        gameWorld[x, y, random1.Next(15)] = lights.NextBlock();
 
                     //if (random1.NextDouble() < 0.2)
                         gameWorld[x, y, gameWorld.BlockSize.Z - 1] = snow;
