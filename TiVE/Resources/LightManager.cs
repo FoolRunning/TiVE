@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 using ProdigalSoftware.TiVE.Renderer.World;
 using ProdigalSoftware.TiVE.Starter;
@@ -29,16 +30,20 @@ namespace ProdigalSoftware.TiVE.Resources
             
             gameWorld = newGameWorld;
 
+            Stopwatch sw = Stopwatch.StartNew();
             int mid = newGameWorld.BlockSize.X / 2;
-            Thread thread1 = StartLightCalculationThread(0, mid, newGameWorld);
-            Thread thread2 = StartLightCalculationThread(mid, newGameWorld.BlockSize.X, newGameWorld);
+            Thread thread1 = StartLightCalculationThread("Light 1", 0, mid, newGameWorld);
+            Thread thread2 = StartLightCalculationThread("Light 2", mid, newGameWorld.BlockSize.X, newGameWorld);
 
             thread1.Join();
             thread2.Join();
+
+            sw.Stop();
+            Console.WriteLine("Lighting took {0}ms", sw.ElapsedTicks * 1000.0f / Stopwatch.Frequency);
             Messages.AddDoneText();
         }
 
-        private Thread StartLightCalculationThread(int startX, int endX, GameWorld newGameWorld)
+        private Thread StartLightCalculationThread(string threadName, int startX, int endX, GameWorld newGameWorld)
         {
             Thread thread = new Thread(() =>
             {
@@ -65,7 +70,7 @@ namespace ProdigalSoftware.TiVE.Resources
                                 continue;
 
                             LightInfo lightInfo = new LightInfo(x, y, z, light);
-                            int maxLightBlockDist = (int)Math.Ceiling(light.MaxVoxelDist / BlockInformation.BlockSize) + 1;
+                            int maxLightBlockDist = (int)Math.Ceiling(light.MaxVoxelDist / BlockInformation.BlockSize);
                             for (int lz = z - maxLightBlockDist; lz < z + maxLightBlockDist; lz++)
                             {
                                 for (int lx = x - maxLightBlockDist; lx < x + maxLightBlockDist; lx++)
@@ -115,6 +120,8 @@ namespace ProdigalSoftware.TiVE.Resources
                     totalComplete++;
                 }
             });
+
+            thread.Name = threadName;
             thread.Start();
             return thread;
         }

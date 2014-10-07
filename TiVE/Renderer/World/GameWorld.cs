@@ -31,7 +31,7 @@ namespace ProdigalSoftware.TiVE.Renderer.World
 
             worldBlocks = new Block[blockSizeX * blockSizeY * blockSizeZ];
             for (int i = 0; i < worldBlocks.Length; i++)
-                worldBlocks[i] = new Block(BlockInformation.Empty, new List<LightInfo>(LightManager.MaxLightsPerBlock));
+                worldBlocks[i] = new Block(BlockInformation.Empty);
 
             worldChunks = new GameWorldVoxelChunk[chunkSize.X * chunkSize.Y * chunkSize.Z];
             for (int z = 0; z < chunkSize.Z; z++)
@@ -89,13 +89,23 @@ namespace ProdigalSoftware.TiVE.Renderer.World
             return worldBlocks[GetBlockOffset(blockX, blockY, blockZ)].Lights;
         }
 
+        public BlockState GetBlockState(int blockX, int blockY, int blockZ)
+        {
+            return worldBlocks[GetBlockOffset(blockX, blockY, blockZ)].State;
+        }
+
+        public void SetBlockState(int blockX, int blockY, int blockZ, BlockState state)
+        {
+            worldBlocks[GetBlockOffset(blockX, blockY, blockZ)].State = state;
+        }
+
         /// <summary>
         /// Gets the voxel in the game world at the specified absolute voxel location
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public uint GetVoxel(int voxelX, int voxelY, int voxelZ)
         {
-            BlockInformation block = GetBlockAtWorld(voxelX, voxelY, voxelZ);
+            BlockInformation block = GetBlockAtVoxel(voxelX, voxelY, voxelZ);
 
             int blockVoxelX = voxelX % BlockInformation.BlockSize;
             int blockVoxelY = voxelY % BlockInformation.BlockSize;
@@ -107,7 +117,7 @@ namespace ProdigalSoftware.TiVE.Renderer.World
         /// Gets the block containing the specified absolute voxel location
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public BlockInformation GetBlockAtWorld(int voxelX, int voxelY, int voxelZ)
+        public BlockInformation GetBlockAtVoxel(int voxelX, int voxelY, int voxelZ)
         {
             CheckConstraints(voxelX, voxelY, voxelZ, voxelSize);
 
@@ -118,6 +128,7 @@ namespace ProdigalSoftware.TiVE.Renderer.World
             return worldBlocks[GetBlockOffset(blockX, blockY, blockZ)].BlockInfo;
         }
 
+        #region Private helper methods
         /// <summary>
         /// Gets the offset into the game world blocks array for the block at the specified location
         /// </summary>
@@ -138,6 +149,10 @@ namespace ProdigalSoftware.TiVE.Renderer.World
             return (x * chunkSize.Z + z) * chunkSize.Y + y; // y-axis major for speed
         }
 
+        /// <summary>
+        /// Throws an ArgumentOutOfRangeException if the specified location is outside the bounds of the specified size.
+        /// This method is not compiled into release builds.
+        /// </summary>
         [Conditional("DEBUG")]
         private static void CheckConstraints(int x, int y, int z, Vector3i size)
         {
@@ -148,6 +163,7 @@ namespace ProdigalSoftware.TiVE.Renderer.World
             if (z < 0 || z >= size.Z)
                 throw new ArgumentOutOfRangeException("z");
         }
+        #endregion
 
         #region Block class
         /// <summary>
@@ -165,10 +181,16 @@ namespace ProdigalSoftware.TiVE.Renderer.World
             /// </summary>
             public readonly List<LightInfo> Lights;
 
-            public Block(BlockInformation blockInfo, List<LightInfo> lights)
+            /// <summary>
+            /// Information about the state of the block
+            /// </summary>
+            public BlockState State;
+
+            public Block(BlockInformation blockInfo)
             {
                 BlockInfo = blockInfo;
-                Lights = lights;
+                Lights = new List<LightInfo>(LightManager.MaxLightsPerBlock);
+                State = new BlockState();
             }
         }
         #endregion

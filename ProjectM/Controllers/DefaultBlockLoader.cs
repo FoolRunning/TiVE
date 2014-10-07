@@ -55,11 +55,26 @@ namespace ProdigalSoftware.ProjectM.Controllers
                 new ParticleSystemInformation(particleVoxels, new FireUpdater(), new Vector3b(5, 5, 1), 300, 310, true, false),
                 new PointLight(new Vector3b(5, 5, 1), new Color4f(1.0f, 0.9f, 0.8f, 1.0f), 0.005f));
 
-            yield return CreateBlockInfo("redLight", false, true, new Color4(255, 40, 40, 255), 1.0f, null,
+            yield return CreateBlockInfo("light0", false, true, new Color4(255, 40, 40, 255), 1.0f, null,
                 new PointLight(new Vector3b(5, 5, 5), new Color4f(1.0f, 0.05f, 0.05f, 1.0f), 0.005f));
 
+            yield return CreateBlockInfo("light1", false, true, new Color4(255, 255, 40, 255), 1.0f, null,
+                new PointLight(new Vector3b(5, 5, 5), new Color4f(1.0f, 1.0f, 0.05f, 1.0f), 0.005f));
+
+            yield return CreateBlockInfo("light2", false, true, new Color4(40, 255, 40, 255), 1.0f, null,
+                new PointLight(new Vector3b(5, 5, 5), new Color4f(0.05f, 1.0f, 0.05f, 1.0f), 0.005f));
+
+            yield return CreateBlockInfo("light3", false, true, new Color4(40, 255, 255, 255), 1.0f, null,
+                new PointLight(new Vector3b(5, 5, 5), new Color4f(0.05f, 1.0f, 1.0f, 1.0f), 0.005f));
+
+            yield return CreateBlockInfo("light4", false, true, new Color4(40, 40, 255, 255), 1.0f, null,
+                new PointLight(new Vector3b(5, 5, 5), new Color4f(0.05f, 0.05f, 1.0f, 1.0f), 0.005f));
+
+            yield return CreateBlockInfo("light5", false, true, new Color4(255, 40, 255, 255), 1.0f, null,
+                new PointLight(new Vector3b(5, 5, 5), new Color4f(1.0f, 0.05f, 1.0f, 1.0f), 0.005f));
+
             yield return new BlockInformation("snow",
-                new ParticleSystemInformation(particleVoxels, new SnowUpdater(), new Vector3b(0, 0, 0), 100, 1, false, true));
+                new ParticleSystemInformation(particleVoxels, new SnowUpdater(), new Vector3b(0, 0, 0), 100, 50, false, true));
 
             particleVoxels = new uint[3, 3, 3];
             particleVoxels[1, 1, 1] = 0xFFFFFFFF;

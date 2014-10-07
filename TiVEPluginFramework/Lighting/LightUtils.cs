@@ -4,7 +4,7 @@ namespace ProdigalSoftware.TiVEPluginFramework.Lighting
 {
     public static class LightUtils
     {
-        private const float MinLightValue = 0.05f; // 5% of the light
+        private const float MinLightValue = 0.01f; // 0.003f (0.3%) produces the best result as that is less then a single light value's worth
 
         /// <summary>
         /// 

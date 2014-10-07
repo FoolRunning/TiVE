@@ -1,4 +1,5 @@
-﻿using ProdigalSoftware.TiVEPluginFramework;
+﻿using System.Runtime.CompilerServices;
+using ProdigalSoftware.TiVEPluginFramework;
 using ProdigalSoftware.TiVEPluginFramework.Lighting;
 using ProdigalSoftware.Utils;
 
@@ -19,6 +20,7 @@ namespace ProdigalSoftware.TiVE.Renderer.World
             this.light = light;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Color4f GetLightAtVoxel(int voxelX, int voxelY, int voxelZ)
         {
             int lightLocX = voxelLocX - voxelX;
