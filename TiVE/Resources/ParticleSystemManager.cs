@@ -156,6 +156,8 @@ namespace ProdigalSoftware.TiVE.Resources
                 if (newTicks >= lastTime + particleUpdateTime)
                 {
                     float timeSinceLastUpdate = (newTicks - lastTime) / ticksPerSecond;
+                    if (timeSinceLastUpdate > 0.1f)
+                        timeSinceLastUpdate = 0.1f;
                     
                     updateList.Clear();
                     using (new PerformanceLock(particleSystemCollections))
