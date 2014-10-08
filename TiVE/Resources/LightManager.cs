@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using ProdigalSoftware.TiVE.Renderer.World;
 using ProdigalSoftware.TiVE.Starter;
@@ -14,14 +15,14 @@ namespace ProdigalSoftware.TiVE.Resources
     {
         public const int MaxLightsPerBlock = 3;
 
-        private readonly ILight ambientLight;
+        private readonly Color4f ambientLight;
         private GameWorld gameWorld;
         private volatile int totalComplete;
         private volatile int lastPercentComplete;
 
         public LightManager()
         {
-            ambientLight = new AmbientLight(new Color4f(0.05f, 0.05f, 0.05f, 1.0f));
+            ambientLight = new Color4f(0.05f, 0.05f, 0.05f, 1.0f);
         }
 
         public void CalcualteLightsForGameWorld(GameWorld newGameWorld)
@@ -31,16 +32,51 @@ namespace ProdigalSoftware.TiVE.Resources
             gameWorld = newGameWorld;
 
             Stopwatch sw = Stopwatch.StartNew();
-            int mid = newGameWorld.BlockSize.X / 2;
-            Thread thread1 = StartLightCalculationThread("Light 1", 0, mid, newGameWorld);
-            Thread thread2 = StartLightCalculationThread("Light 2", mid, newGameWorld.BlockSize.X, newGameWorld);
+            int mid1 = newGameWorld.BlockSize.X / 3;
+            int mid2 = newGameWorld.BlockSize.X * 2 / 3;
+            Thread thread1 = StartLightCalculationThread("Light 1", 0, mid1, newGameWorld);
+            thread1.Priority = ThreadPriority.AboveNormal;
+            Thread thread2 = StartLightCalculationThread("Light 2", mid1, mid2, newGameWorld);
+            thread2.Priority = ThreadPriority.AboveNormal;
+            Thread thread3 = StartLightCalculationThread("Light 3", mid2, newGameWorld.BlockSize.X, newGameWorld);
+            thread3.Priority = ThreadPriority.AboveNormal;
 
             thread1.Join();
             thread2.Join();
+            thread3.Join();
 
             sw.Stop();
             Console.WriteLine("Lighting took {0}ms", sw.ElapsedTicks * 1000.0f / Stopwatch.Frequency);
             Messages.AddDoneText();
+        }
+
+        public void GetAmbientLight(out float percentR, out float percentG, out float percentB)
+        {
+            Color4f color = ambientLight;
+            percentR = color.R;
+            percentG = color.G;
+            percentB = color.B;
+        }
+
+        public void GetLightAt(int voxelX, int voxelY, int voxelZ, out float percentR, out float percentG, out float percentB)
+        {
+            Color4f color = ambientLight;
+            percentR = color.R;
+            percentG = color.G;
+            percentB = color.B;
+
+            int blockX = voxelX / BlockInformation.BlockSize;
+            int blockY = voxelY / BlockInformation.BlockSize;
+            int blockZ = voxelZ / BlockInformation.BlockSize;
+
+            List<LightInfo> blockLights = gameWorld.GetLights(blockX, blockY, blockZ);
+            for (int i = 0; i < blockLights.Count; i++)
+            {
+                color = blockLights[i].GetLightAtVoxel(voxelX, voxelY, voxelZ);
+                percentR += color.R;
+                percentG += color.G;
+                percentB += color.B;
+            }
         }
 
         private Thread StartLightCalculationThread(string threadName, int startX, int endX, GameWorld newGameWorld)
@@ -124,36 +160,6 @@ namespace ProdigalSoftware.TiVE.Resources
             thread.Name = threadName;
             thread.Start();
             return thread;
-        }
-
-        public void GetLightAt(int voxelX, int voxelY, int voxelZ, out float percentR, out float percentG, out float percentB)
-        {
-            percentR = percentG = percentB = 0.0f;
-
-            if (ambientLight != null)
-            {
-                Color4f color = ambientLight.GetColorAtDistSquared(0.0f);
-                percentR += color.R;
-                percentG += color.G;
-                percentB += color.B;
-            }
-
-            Vector3i worldSize = gameWorld.VoxelSize;
-            if (voxelX < 0 || voxelX >= worldSize.X || voxelY < 0 || voxelY >= worldSize.Y || voxelZ < 0 || voxelZ >= worldSize.Z)
-                return; // voxel is outside the game world (probably a particle) so just return the ambient light
-
-            int blockX = voxelX / BlockInformation.BlockSize;
-            int blockY = voxelY / BlockInformation.BlockSize;
-            int blockZ = voxelZ / BlockInformation.BlockSize;
-
-            List<LightInfo> blockLights = gameWorld.GetLights(blockX, blockY, blockZ);
-            for (int i = 0; i < blockLights.Count; i++)
-            {
-                Color4f color = blockLights[i].GetLightAtVoxel(voxelX, voxelY, voxelZ);
-                percentR += color.R;
-                percentG += color.G;
-                percentB += color.B;
-            }
         }
     }
 }

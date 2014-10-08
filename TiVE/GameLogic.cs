@@ -9,8 +9,8 @@ namespace ProdigalSoftware.TiVE
 {
     internal sealed class GameLogic : IDisposable
     {
-        private const int WorldXSize = 150;
-        private const int WorldYSize = 150;
+        private const int WorldXSize = 500;
+        private const int WorldYSize = 500;
         private const int WorldZSize = 20;
 
         private IGameWorldRenderer renderer;
@@ -31,7 +31,7 @@ namespace ProdigalSoftware.TiVE
             }
 
             //camera.SetLocation(1263 * BlockInformation.BlockSize, 1747 * BlockInformation.BlockSize, 300);
-            camera.SetLocation(WorldXSize * BlockInformation.BlockSize / 2, WorldYSize * BlockInformation.BlockSize / 2, 300);
+            camera.SetLocation(WorldXSize * BlockInformation.BlockSize / 2, WorldYSize * BlockInformation.BlockSize / 2, 345);
             camera.FoV = (float)Math.PI / 4;
 
             if (!ResourceManager.GameWorldManager.CreateWorld(WorldXSize, WorldYSize, WorldZSize, LongRandom() /* 123456789123456789*/))

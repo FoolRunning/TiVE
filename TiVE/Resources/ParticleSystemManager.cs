@@ -42,6 +42,7 @@ namespace ProdigalSoftware.TiVE.Resources
             Messages.Print("Starting particle update thread...");
 
             particleUpdateThread = new Thread(ParticleUpdateLoop);
+            particleUpdateThread.Priority = ThreadPriority.BelowNormal;
             particleUpdateThread.IsBackground = true;
             particleUpdateThread.Name = "ParticleUpdate";
             particleUpdateThread.Start();
