@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using OpenTK;
 using ProdigalSoftware.TiVE.Renderer.Voxels;
+using ProdigalSoftware.TiVE.Renderer.World;
 using ProdigalSoftware.TiVE.Resources;
 using ProdigalSoftware.TiVEPluginFramework.Particles;
 using ProdigalSoftware.Utils;
@@ -27,7 +28,6 @@ namespace ProdigalSoftware.TiVE.Renderer.Particles
         private readonly ParticleSystemInformation systemInfo;
 
         private readonly IRendererData voxelInstanceLocationData;
-        private readonly IRendererData voxelInstanceColorData;
         private readonly int polysPerParticle;
         private readonly int voxelsPerParticle;
         private readonly int renderedVoxelsPerParticle;
@@ -55,8 +55,6 @@ namespace ProdigalSoftware.TiVE.Renderer.Particles
             VoxelMeshUtils.GenerateMesh(systemInfo.ParticleVoxels, voxelInstanceBuilder,
                 out voxelsPerParticle, out renderedVoxelsPerParticle, out polysPerParticle);
             voxelInstanceLocationData = voxelInstanceBuilder.GetLocationData();
-            if (!HasTransparency)
-                voxelInstanceColorData = voxelInstanceBuilder.GetColorData();
 
             locations = new Vector3s[systemInfo.MaxParticles * 5];
             colors = new Color4b[systemInfo.MaxParticles * 5];
@@ -72,9 +70,6 @@ namespace ProdigalSoftware.TiVE.Renderer.Particles
         public void Dispose()
         {
             voxelInstanceLocationData.Dispose();
-
-            if (voxelInstanceColorData != null)
-                voxelInstanceColorData.Dispose();
 
             if (instances != null)
                 instances.Dispose();
@@ -157,12 +152,14 @@ namespace ProdigalSoftware.TiVE.Renderer.Particles
             using (new PerformanceLock(particleSystems))
                 updateList.AddRange(particleSystems); // Make copy to not lock during the updating
 
+            GameWorld gameWorld = ResourceManager.GameWorldManager.GameWorld;
+
             int dataIndex = 0;
             for (int i = 0; i < updateList.Count; i++)
             {
                 ParticleSystem system = updateList[i];
                 if (system != null)
-                    system.Update(timeSinceLastFrame, particles[i], locations, colors, ref dataIndex);
+                    system.Update(timeSinceLastFrame, particles[i], locations, colors, gameWorld, ref dataIndex);
             }
 
             totalAliveParticles = dataIndex;
@@ -178,8 +175,6 @@ namespace ProdigalSoftware.TiVE.Renderer.Particles
                 // Initialize the data for use in the renderer
                 instances = TiVEController.Backend.CreateVertexDataCollection();
                 instances.AddBuffer(voxelInstanceLocationData);
-                if (!HasTransparency)
-                    instances.AddBuffer(voxelInstanceColorData);
                 locationData = TiVEController.Backend.CreateData(locations, 0, 3, DataType.Instance, ValueType.Short, false, true);
                 instances.AddBuffer(locationData);
                 colorData = TiVEController.Backend.CreateData(colors, 0, 4, DataType.Instance, ValueType.Byte, true, true);

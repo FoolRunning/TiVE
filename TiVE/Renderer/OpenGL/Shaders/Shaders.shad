@@ -14,7 +14,6 @@ uniform: matrix_ModelViewProjection
 vert: ProdigalSoftware.TiVE.Renderer.OpenGL.Shaders.Instances.vert
 frag: ProdigalSoftware.TiVE.Renderer.OpenGL.Shaders.Simple.frag
 attrib: in_Position
-attrib: in_Color
 attrib: in_InstancePos
 attrib: in_InstanceColor
 uniform: matrix_ModelViewProjection
@@ -25,7 +24,6 @@ uniform: matrix_ModelViewProjection
 vert: ProdigalSoftware.TiVE.Renderer.OpenGL.Shaders.Instances.vert
 frag: ProdigalSoftware.TiVE.Renderer.OpenGL.Shaders.Simple.frag
 attrib: in_Position
-attrib: in_Color
 attrib: in_InstancePos
 attrib: in_InstanceColor
 uniform: matrix_ModelViewProjection
@@ -33,7 +31,7 @@ uniform: matrix_ModelViewProjection
 
 # Shader for the transparent-particle effects
 [TransparentParticles]
-vert: ProdigalSoftware.TiVE.Renderer.OpenGL.Shaders.Particles.vert
+vert: ProdigalSoftware.TiVE.Renderer.OpenGL.Shaders.Instances.vert
 frag: ProdigalSoftware.TiVE.Renderer.OpenGL.Shaders.Simple.frag
 attrib: in_Position
 attrib: in_InstancePos

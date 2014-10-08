@@ -128,7 +128,7 @@ namespace ProdigalSoftware.TiVE.Renderer.Voxels
             }
         }
 
-        public bool Initialize(IRendererData voxelInstanceLocationData, IRendererData voxelInstanceColorData)
+        public bool Initialize(IRendererData voxelInstanceLocationData)
         {
             using (new PerformanceLock(syncLock))
             {
@@ -140,7 +140,7 @@ namespace ProdigalSoftware.TiVE.Renderer.Voxels
 
                 if (chunkPolygonCount > 0)
                 {
-                    mesh = GetMesh(voxelInstanceLocationData, voxelInstanceColorData);
+                    mesh = GetMesh(voxelInstanceLocationData);
                     mesh.Initialize();
                 }
 
@@ -230,12 +230,11 @@ namespace ProdigalSoftware.TiVE.Renderer.Voxels
                             float percentB;
                             lightManger.GetLightAt(x, y, z, out percentR, out percentG, out percentB);
                             byte a = (byte)((color >> 24) & 0xFF);
-                            byte r = (byte)Math.Min(255, (((color >> 16) & 0xFF)) * percentR);
-                            byte g = (byte)Math.Min(255, (((color >> 8) & 0xFF)) * percentG);
-                            byte b = (byte)Math.Min(255, (((color >> 0) & 0xFF)) * percentB);
+                            byte r = (byte)Math.Min(255, (int)(((color >> 16) & 0xFF) * percentR));
+                            byte g = (byte)Math.Min(255, (int)(((color >> 8) & 0xFF) * percentG));
+                            byte b = (byte)Math.Min(255, (int)(((color >> 0) & 0xFF) * percentB));
 
-                            //polygonCount += IndexedVoxelGroup.CreateVoxel(newMeshBuilder, sides, cx, y - worldVoxelStartY, cz, r, g, b, a);
-                            polygonCount += SimpleVoxelGroup.CreateVoxel(newMeshBuilder, sides, cx, y - worldVoxelStartY, cz, r, g, b, a);
+                            polygonCount += IndexedVoxelGroup.CreateVoxel(newMeshBuilder, sides, cx, y - worldVoxelStartY, cz, r, g, b, a);
                             renderedVoxelCount++;
                         }
                     }
@@ -243,7 +242,7 @@ namespace ProdigalSoftware.TiVE.Renderer.Voxels
             }
         }
 
-        protected virtual IVertexDataCollection GetMesh(IRendererData voxelInstanceLocationData, IRendererData voxelInstanceColorData)
+        protected virtual IVertexDataCollection GetMesh(IRendererData voxelInstanceLocationData)
         {
             return meshBuilder.GetMesh();
         }

@@ -186,7 +186,6 @@
     <EmbeddedResource Include="Renderer\OpenGL\Shaders\Simple.vert" />
     <EmbeddedResource Include="Renderer\OpenGL\Shaders\Instances.vert" />
     <EmbeddedResource Include="Renderer\OpenGL\Shaders\Shaders.shad" />
-    <EmbeddedResource Include="Renderer\OpenGL\Shaders\Particles.vert" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\TiVEPluginFramework\TiVEPluginFramework.csproj">

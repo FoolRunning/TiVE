@@ -23,7 +23,6 @@ namespace ProdigalSoftware.TiVE.Resources
         private readonly Queue<GameWorldVoxelChunk> chunkLoadQueue = new Queue<GameWorldVoxelChunk>();
         
         private IRendererData voxelInstanceLocationData;
-        private IRendererData voxelInstanceColorData;
 
         private volatile bool endCreationThreads;
 
@@ -41,8 +40,6 @@ namespace ProdigalSoftware.TiVE.Resources
             SimpleVoxelGroup.CreateVoxel(voxelInstanceBuilder, VoxelSides.All, 0, 0, 0, 235, 235, 235, 255);
             voxelInstanceLocationData = voxelInstanceBuilder.GetLocationData();
             voxelInstanceLocationData.Lock();
-            voxelInstanceColorData = voxelInstanceBuilder.GetColorData();
-            voxelInstanceColorData.Lock();
 
             endCreationThreads = false;
             for (int i = 0; i < 3; i++)
@@ -73,12 +70,6 @@ namespace ProdigalSoftware.TiVE.Resources
             {
                 voxelInstanceLocationData.Unlock();
                 voxelInstanceLocationData.Dispose();
-            }
-
-            if (voxelInstanceColorData != null)
-            {
-                voxelInstanceColorData.Unlock();
-                voxelInstanceColorData.Dispose();
             }
         }
 
@@ -181,7 +172,7 @@ namespace ProdigalSoftware.TiVE.Resources
                         {
                             if (initializedChunkCount < MaxChunkUpdatesPerFrame)
                             {
-                                if (chunk.Initialize(voxelInstanceLocationData, voxelInstanceColorData))
+                                if (chunk.Initialize(voxelInstanceLocationData))
                                     initializedChunkCount++;
                             }
                             else
@@ -223,7 +214,7 @@ namespace ProdigalSoftware.TiVE.Resources
         {
             List<MeshBuilder> meshBuilders = new List<MeshBuilder>();
             for (int i = 0; i < 10; i++)
-                meshBuilders.Add(new MeshBuilder(800000, 800000));
+                meshBuilders.Add(new MeshBuilder(500000, 1000000));
 
             int bottleneckCount = 0;
             while (!endCreationThreads)

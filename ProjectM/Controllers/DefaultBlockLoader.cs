@@ -74,7 +74,7 @@ namespace ProdigalSoftware.ProjectM.Controllers
                 new PointLight(new Vector3b(5, 5, 5), new Color4f(1.0f, 0.05f, 1.0f, 1.0f), 0.005f));
 
             yield return new BlockInformation("snow",
-                new ParticleSystemInformation(particleVoxels, new SnowUpdater(), new Vector3b(0, 0, 0), 100, 50, false, true));
+                new ParticleSystemInformation(particleVoxels, new SnowUpdater(), new Vector3b(0, 0, 0), 100, 1, false, true));
 
             particleVoxels = new uint[3, 3, 3];
             particleVoxels[1, 1, 1] = 0xFFFFFFFF;
