@@ -191,8 +191,6 @@ namespace ProdigalSoftware.TiVE.Renderer.Voxels
             int maxVoxelY = gameWorld.VoxelSize.Y;
             int maxVoxelZ = gameWorld.VoxelSize.Z;
 
-            LightManager lightManger = ResourceManager.LightManager;
-
             for (int x = worldVoxelStartX; x < worldVoxelEndX; x++)
             {
                 int cx = x - worldVoxelStartX;
@@ -228,11 +226,16 @@ namespace ProdigalSoftware.TiVE.Renderer.Voxels
                             float percentR;
                             float percentG;
                             float percentB;
-                            lightManger.GetLightAt(x, y, z, out percentR, out percentG, out percentB);
+                            gameWorld.GetLightAt(x, y, z, out percentR, out percentG, out percentB);
                             byte a = (byte)((color >> 24) & 0xFF);
                             byte r = (byte)Math.Min(255, (int)(((color >> 16) & 0xFF) * percentR));
                             byte g = (byte)Math.Min(255, (int)(((color >> 8) & 0xFF) * percentG));
                             byte b = (byte)Math.Min(255, (int)(((color >> 0) & 0xFF) * percentB));
+
+                            //byte a = (byte)((color >> 24) & 0xFF);
+                            //byte r = (byte)((color >> 16) & 0xFF);
+                            //byte g = (byte)((color >> 8) & 0xFF);
+                            //byte b = (byte)((color >> 0) & 0xFF);
 
                             polygonCount += IndexedVoxelGroup.CreateVoxel(newMeshBuilder, sides, cx, y - worldVoxelStartY, cz, r, g, b, a);
                             renderedVoxelCount++;

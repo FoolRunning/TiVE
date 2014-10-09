@@ -25,7 +25,6 @@ namespace ProdigalSoftware.TiVE.Renderer.Voxels
             int maxVoxelX = gameWorld.VoxelSize.X;
             int maxVoxelY = gameWorld.VoxelSize.Y;
             int maxVoxelZ = gameWorld.VoxelSize.Z;
-            LightManager lightManger = ResourceManager.LightManager;
 
             for (int x = worldVoxelStartX; x < worldVoxelEndX; x++)
             {
@@ -52,7 +51,7 @@ namespace ProdigalSoftware.TiVE.Renderer.Voxels
                             float percentR;
                             float percentG;
                             float percentB;
-                            lightManger.GetLightAt(x, y, z, out percentR, out percentG, out percentB);
+                            gameWorld.GetLightAt(x, y, z, out percentR, out percentG, out percentB);
                             byte a = (byte)((color >> 24) & 0xFF);
                             byte r = (byte)Math.Min(255, (int)(((color >> 16) & 0xFF) * percentR));
                             byte g = (byte)Math.Min(255, (int)(((color >> 8) & 0xFF) * percentG));

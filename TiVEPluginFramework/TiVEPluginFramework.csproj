@@ -95,7 +95,6 @@
     <Compile Include="Particles\Particle.cs" />
     <Compile Include="Particles\ParticleController.cs" />
     <Compile Include="Particles\ParticleSystemInformation.cs" />
-    <Compile Include="Lighting\LightUtils.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

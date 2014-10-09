@@ -158,22 +158,22 @@ namespace ProdigalSoftware.TiVE.Resources
                     float timeSinceLastUpdate = (newTicks - lastTime) / ticksPerSecond;
                     if (timeSinceLastUpdate > 0.1f)
                         timeSinceLastUpdate = 0.1f;
-                    
+
+                    lastTime = newTicks;
+
                     updateList.Clear();
                     using (new PerformanceLock(particleSystemCollections))
                         updateList.AddRange(particleSystemCollections.Values);
 
                     for (int i = 0; i < updateList.Count; i++)
                         updateList[i].UpdateAll(timeSinceLastUpdate);
-
-                    lastTime = newTicks;
                 }
             }
             sw.Stop();
         }
 
         #region SystemInfo struct
-        private sealed class SystemInfo
+        private struct SystemInfo
         {
             public readonly int X;
             public readonly int Y;
@@ -196,18 +196,16 @@ namespace ProdigalSoftware.TiVE.Resources
                 System = system;
             }
 
-            #region Overrides of Object
             public override bool Equals(object obj)
             {
-                SystemInfo other = obj as SystemInfo;
-                return other != null && other.X == X && other.Y == Y && other.Z == Z;
+                SystemInfo other = (SystemInfo)obj;
+                return other.X == X && other.Y == Y && other.Z == Z;
             }
 
             public override int GetHashCode()
             {
-                return X << 20 ^ Y << 20 ^ Z;
+                return X << 20 ^ Y << 10 ^ Z;
             }
-            #endregion
         }
         #endregion
     }

@@ -2,6 +2,7 @@
 using OpenTK;
 using OpenTK.Input;
 using ProdigalSoftware.TiVE.Renderer;
+using ProdigalSoftware.TiVE.Renderer.Lighting;
 using ProdigalSoftware.TiVE.Resources;
 using ProdigalSoftware.TiVEPluginFramework;
 
@@ -9,8 +10,8 @@ namespace ProdigalSoftware.TiVE
 {
     internal sealed class GameLogic : IDisposable
     {
-        private const int WorldXSize = 500;
-        private const int WorldYSize = 500;
+        private const int WorldXSize = 300;
+        private const int WorldYSize = 300;
         private const int WorldZSize = 20;
 
         private IGameWorldRenderer renderer;
@@ -34,11 +35,14 @@ namespace ProdigalSoftware.TiVE
             camera.SetLocation(WorldXSize * BlockInformation.BlockSize / 2, WorldYSize * BlockInformation.BlockSize / 2, 345);
             camera.FoV = (float)Math.PI / 4;
 
-            if (!ResourceManager.GameWorldManager.CreateWorld(WorldXSize, WorldYSize, WorldZSize, LongRandom() /* 123456789123456789*/))
+            if (!ResourceManager.GameWorldManager.CreateWorld(WorldXSize, WorldYSize, WorldZSize, /* LongRandom()*/ 123456789123456789))
                 return false;
 
             // Calculate static lighting
-            ResourceManager.LightManager.CalcualteLightsForGameWorld(ResourceManager.GameWorldManager.GameWorld);
+
+            const float minLightValue = 0.05f; // 0.002f (0.2%) produces the best result as that is less then a single light value's worth
+            StaticLightingHelper lightingHelper = new StaticLightingHelper(ResourceManager.GameWorldManager.GameWorld, 10, minLightValue);
+            lightingHelper.Calculate();
 
             renderer = new WorldChunkRenderer();
             return true;
@@ -56,11 +60,11 @@ namespace ProdigalSoftware.TiVE
 
             Vector3 camLoc = camera.Location;
 
-            float speed = 4;
+            float speed = 2;
             if (keyboard[Key.ShiftLeft])
-                speed = 20;
+                speed = 10;
             else if (keyboard[Key.ControlLeft])
-                speed = 0.4f;
+                speed = 0.2f;
             if (keyboard[Key.A])
                 camLoc.X -= speed;
             if (keyboard[Key.D])

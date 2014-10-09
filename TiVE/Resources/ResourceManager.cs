@@ -11,7 +11,6 @@ namespace ProdigalSoftware.TiVE.Resources
         public static GameWorldManager GameWorldManager { get; private set; }
         public static ShaderManager ShaderManager { get; private set; }
         public static ParticleSystemManager ParticleManager { get; private set; }
-        public static LightManager LightManager { get; private set; }
         public static LuaScripts LuaScripts { get; private set; }
         public static ResourceTableDefinitionManager TableDefinitionManager { get; private set; }
 
@@ -46,8 +45,6 @@ namespace ProdigalSoftware.TiVE.Resources
             ParticleManager = new ParticleSystemManager();
             if (!ParticleManager.Initialize())
                 return false;
-
-            LightManager = new LightManager();
 
             return true;
         }
@@ -84,7 +81,6 @@ namespace ProdigalSoftware.TiVE.Resources
             ParticleManager = null;
             TableDefinitionManager = null;
             LuaScripts = null;
-            LightManager = null;
 
             GC.Collect();
 

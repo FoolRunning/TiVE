@@ -217,7 +217,7 @@ namespace ProdigalSoftware.ProjectM.Controllers
                 if (startAtTop)
                     particle.Z = 60 * BlockInformation.BlockSize;
                 else
-                    particle.Z = random.Next(59 * BlockInformation.BlockSize) + 1.0f;
+                    particle.Z = random.Next(57 * BlockInformation.BlockSize) + 3 * BlockInformation.BlockSize;
 
                 particle.Color = new Color4b(255, 255, 255, 100);
                 particle.Time = (float)random.NextDouble() * AliveTime / 2.0f + AliveTime / 2.0f;
