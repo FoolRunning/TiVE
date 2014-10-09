@@ -102,12 +102,13 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Renderer\Lighting\LightUtils.cs" />
     <Compile Include="Renderer\Particles\ParticleSystemCollection.cs" />
     <Compile Include="Renderer\Voxels\InstancedGameWorldVoxelChunk.cs" />
     <Compile Include="Renderer\Voxels\MeshBuilder.cs" />
     <Compile Include="Renderer\Voxels\VoxelMeshUtils.cs" />
-    <Compile Include="Renderer\World\LightInfo.cs" />
-    <Compile Include="Resources\LightManager.cs" />
+    <Compile Include="Renderer\Lighting\LightInfo.cs" />
+    <Compile Include="Renderer\Lighting\StaticLightingHelper.cs" />
     <Compile Include="Resources\LuaScripts.cs" />
     <Compile Include="Resources\ParticleSystemManager.cs" />
     <Compile Include="Resources\PluginManager.cs" />

@@ -2,7 +2,6 @@
 using System.Runtime.CompilerServices;
 using OpenTK;
 using ProdigalSoftware.TiVE.Renderer.World;
-using ProdigalSoftware.TiVE.Resources;
 using ProdigalSoftware.TiVEPluginFramework.Particles;
 using ProdigalSoftware.Utils;
 
@@ -44,8 +43,6 @@ namespace ProdigalSoftware.TiVE.Renderer.Particles
             numOfParticlesNeeded += ParticlesPerSecond * timeSinceLastFrame;
             int newParticleCount = Math.Min((int)numOfParticlesNeeded, systemInfo.MaxParticles - aliveParticles);
             numOfParticlesNeeded -= newParticleCount;
-
-            LightManager lightManager = ResourceManager.LightManager;
             Vector3i worldSize = gameWorld.VoxelSize;
             bool isLit = systemInfo.IsLit;
 
@@ -84,7 +81,7 @@ namespace ProdigalSoftware.TiVE.Renderer.Particles
                 short partZ = (short)part.Z;
                 locationArray[dataIndex] = new Vector3s(partX, partY, partZ);
 
-                colorArray[dataIndex] = isLit ? CalculateParticleColor(partX, partY, partZ, part.Color, worldSize, lightManager) : part.Color;
+                colorArray[dataIndex] = isLit ? CalculateParticleColor(partX, partY, partZ, part.Color, worldSize, gameWorld) : part.Color;
                 dataIndex++;
             }
 
@@ -98,7 +95,7 @@ namespace ProdigalSoftware.TiVE.Renderer.Particles
                 short partY = (short)part.Y;
                 short partZ = (short)part.Z;
                 locationArray[dataIndex] = new Vector3s(partX, partY, partZ);
-                colorArray[dataIndex] = isLit ? CalculateParticleColor(partX, partY, partZ, part.Color, worldSize, lightManager) : part.Color;
+                colorArray[dataIndex] = isLit ? CalculateParticleColor(partX, partY, partZ, part.Color, worldSize, gameWorld) : part.Color;
 
                 dataIndex++;
                 aliveParticles++;
@@ -108,15 +105,15 @@ namespace ProdigalSoftware.TiVE.Renderer.Particles
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static Color4b CalculateParticleColor(short partX, short partY, short partZ, Color4b color, Vector3i worldSize, LightManager lightManager)
+        private static Color4b CalculateParticleColor(int partX, int partY, int partZ, Color4b color, Vector3i worldSize, GameWorld gameWorld)
         {
             float percentR;
             float percentG;
             float percentB;
             if (partX < 0 || partX >= worldSize.X || partY < 0 || partY >= worldSize.Y || partZ < 0 || partZ >= worldSize.Z)
-                lightManager.GetAmbientLight(out percentR, out percentG, out percentB);
+                gameWorld.GetAmbientLight(out percentR, out percentG, out percentB);
             else
-                lightManager.GetLightAt(partX, partY, partZ, out percentR, out percentG, out percentB);
+                gameWorld.GetLightAt(partX, partY, partZ, out percentR, out percentG, out percentB);
 
             return new Color4b((byte)Math.Min(255, color.R * percentR), (byte)Math.Min(255, color.G * percentG),
                 (byte)Math.Min(255, color.B * percentB), 255);

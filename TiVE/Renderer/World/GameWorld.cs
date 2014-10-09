@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using ProdigalSoftware.TiVE.Renderer.Lighting;
 using ProdigalSoftware.TiVE.Renderer.Voxels;
 using ProdigalSoftware.TiVE.Resources;
 using ProdigalSoftware.TiVEPluginFramework;
@@ -20,6 +21,7 @@ namespace ProdigalSoftware.TiVE.Renderer.World
 
         private readonly Block[] worldBlocks;
         private readonly GameWorldVoxelChunk[] worldChunks;
+        private readonly Color4f ambientLight;
 
         internal GameWorld(int blockSizeX, int blockSizeY, int blockSizeZ, bool useInstancing)
         {
@@ -42,6 +44,8 @@ namespace ProdigalSoftware.TiVE.Renderer.World
                         worldChunks[GetChunkOffset(x, y, z)] = useInstancing ? new InstancedGameWorldVoxelChunk(x, y, z) : new GameWorldVoxelChunk(x, y, z);
                 }
             }
+            
+            ambientLight = new Color4f(0.05f, 0.05f, 0.05f, 1.0f);
         }
 
         /// <summary>
@@ -79,6 +83,40 @@ namespace ProdigalSoftware.TiVE.Renderer.World
         }
         #endregion
 
+        public void GetAmbientLight(out float percentR, out float percentG, out float percentB)
+        {
+            Color4f color = ambientLight;
+            percentR = color.R;
+            percentG = color.G;
+            percentB = color.B;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <remarks>Very performance-critical method</remarks>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void GetLightAt(int voxelX, int voxelY, int voxelZ, out float percentR, out float percentG, out float percentB)
+        {
+            Color4f color = ambientLight;
+            percentR = color.R;
+            percentG = color.G;
+            percentB = color.B;
+
+            int blockX = voxelX / BlockInformation.BlockSize;
+            int blockY = voxelY / BlockInformation.BlockSize;
+            int blockZ = voxelZ / BlockInformation.BlockSize;
+
+            List<LightInfo> blockLights = worldBlocks[GetBlockOffset(blockX, blockY, blockZ)].Lights;
+            for (int i = 0; i < blockLights.Count; i++)
+            {
+                color = GetLightAtVoxel(blockLights[i], voxelX, voxelY, voxelZ);
+                percentR += color.R;
+                percentG += color.G;
+                percentB += color.B;
+            }
+        }
+
         public GameWorldVoxelChunk GetChunk(int chunkX, int chunkY, int chunkZ)
         {
             return worldChunks[GetChunkOffset(chunkX, chunkY, chunkZ)];
@@ -102,22 +140,9 @@ namespace ProdigalSoftware.TiVE.Renderer.World
         /// <summary>
         /// Gets the voxel in the game world at the specified absolute voxel location
         /// </summary>
+        /// <remarks>Very performance-critical method</remarks>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public uint GetVoxel(int voxelX, int voxelY, int voxelZ)
-        {
-            BlockInformation block = GetBlockAtVoxel(voxelX, voxelY, voxelZ);
-
-            int blockVoxelX = voxelX % BlockInformation.BlockSize;
-            int blockVoxelY = voxelY % BlockInformation.BlockSize;
-            int blockVoxelZ = voxelZ % BlockInformation.BlockSize;
-            return block[blockVoxelX, blockVoxelY, blockVoxelZ];
-        }
-
-        /// <summary>
-        /// Gets the block containing the specified absolute voxel location
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public BlockInformation GetBlockAtVoxel(int voxelX, int voxelY, int voxelZ)
         {
             CheckConstraints(voxelX, voxelY, voxelZ, voxelSize);
 
@@ -125,7 +150,12 @@ namespace ProdigalSoftware.TiVE.Renderer.World
             int blockY = voxelY / BlockInformation.BlockSize;
             int blockZ = voxelZ / BlockInformation.BlockSize;
 
-            return worldBlocks[GetBlockOffset(blockX, blockY, blockZ)].BlockInfo;
+            BlockInformation block = worldBlocks[GetBlockOffset(blockX, blockY, blockZ)].BlockInfo;
+
+            int blockVoxelX = voxelX % BlockInformation.BlockSize;
+            int blockVoxelY = voxelY % BlockInformation.BlockSize;
+            int blockVoxelZ = voxelZ % BlockInformation.BlockSize;
+            return block[blockVoxelX, blockVoxelY, blockVoxelZ];
         }
 
         #region Private helper methods
@@ -147,6 +177,15 @@ namespace ProdigalSoftware.TiVE.Renderer.World
         {
             CheckConstraints(x, y, z, chunkSize);
             return (x * chunkSize.Z + z) * chunkSize.Y + y; // y-axis major for speed
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static Color4f GetLightAtVoxel(LightInfo lightInfo, int voxelX, int voxelY, int voxelZ)
+        {
+            float lightPercent = LightUtils.GetLightPercentage(lightInfo, voxelX, voxelY, voxelZ);
+
+            Color4f color = lightInfo.Light.Color;
+            return new Color4f(color.R * lightPercent, color.G * lightPercent, color.B * lightPercent, 1.0f);
         }
 
         /// <summary>
@@ -189,7 +228,7 @@ namespace ProdigalSoftware.TiVE.Renderer.World
             public Block(BlockInformation blockInfo)
             {
                 BlockInfo = blockInfo;
-                Lights = new List<LightInfo>(LightManager.MaxLightsPerBlock);
+                Lights = new List<LightInfo>(10);
                 State = new BlockState();
             }
         }
