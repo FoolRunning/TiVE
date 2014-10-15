@@ -150,11 +150,11 @@ namespace ProdigalSoftware.TiVE.Renderer.World
             int blockY = voxelY / BlockInformation.BlockSize;
             int blockZ = voxelZ / BlockInformation.BlockSize;
 
-            BlockInformation block = worldBlocks[GetBlockOffset(blockX, blockY, blockZ)].BlockInfo;
-
             int blockVoxelX = voxelX % BlockInformation.BlockSize;
             int blockVoxelY = voxelY % BlockInformation.BlockSize;
             int blockVoxelZ = voxelZ % BlockInformation.BlockSize;
+
+            BlockInformation block = worldBlocks[GetBlockOffset(blockX, blockY, blockZ)].BlockInfo;
             return block[blockVoxelX, blockVoxelY, blockVoxelZ];
         }
 

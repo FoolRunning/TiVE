@@ -99,8 +99,14 @@
     <Compile Include="Starter\MessagesTests.cs" />
     <Compile Include="UnitTest1.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="World\BlockListTests.cs" />
+    <Compile Include="World\GameWorldTests.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\TiVEPluginFramework\TiVEPluginFramework.csproj">
+      <Project>{42f81808-5a13-4501-b184-18b4197512c3}</Project>
+      <Name>TiVEPluginFramework</Name>
+    </ProjectReference>
     <ProjectReference Include="..\TiVE\TiVE.csproj">
       <Project>{36a8e85b-b645-4bd0-a1ab-fb00448d5742}</Project>
       <Name>TiVE</Name>

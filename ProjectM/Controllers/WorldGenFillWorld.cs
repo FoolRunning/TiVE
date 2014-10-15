@@ -87,7 +87,7 @@ namespace ProdigalSoftware.ProjectM.Controllers
                             gameWorld[x, y, depth] = fire;
                     }
                     if (random1.NextDouble() < 0.01)
-                        gameWorld[x, y, random1.Next(15)] = lights.NextBlock();
+                        gameWorld[x, y, random1.Next(gameWorld.BlockSize.Z - 3)] = lights.NextBlock();
 
                     //if (random1.NextDouble() < 0.2)
                         gameWorld[x, y, gameWorld.BlockSize.Z - 1] = snow;

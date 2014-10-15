@@ -90,8 +90,8 @@ namespace ProdigalSoftware.ProjectM.Controllers
 
         public IEnumerable<BlockAnimationDefinition> CreateAnimations()
         {
-            //yield return new BlockAnimationDefinition(100, "sand0", "sand1", "sand2", "sand3", "sand0");
-            return null;
+            yield return new BlockAnimationDefinition(1000, "sand0", "sand1", "sand2", "sand3", "sand0");
+            //return null;
         }
 
         private static BlockInformation CreateBlockInfo(string name, bool frontOnly, bool sphere, Color4 color, float voxelDensity,
@@ -197,7 +197,7 @@ namespace ProdigalSoftware.ProjectM.Controllers
                 if (particle.Z < 0)
                     InitNewInternal(particle, systemX, systemY, true);
 
-                particle.Time -= timeSinceLastFrame;
+                //particle.Time -= timeSinceLastFrame;
             }
 
             public override void InitializeNew(Particle particle, float startX, float startY, float startZ)
@@ -215,9 +215,9 @@ namespace ProdigalSoftware.ProjectM.Controllers
                 particle.X = startX + random.Next(BlockInformation.BlockSize);
                 particle.Y = startY + random.Next(BlockInformation.BlockSize);
                 if (startAtTop)
-                    particle.Z = 60 * BlockInformation.BlockSize;
+                    particle.Z = 59 * BlockInformation.BlockSize;
                 else
-                    particle.Z = random.Next(57 * BlockInformation.BlockSize) + 3 * BlockInformation.BlockSize;
+                    particle.Z = random.Next(56 * BlockInformation.BlockSize) + 3 * BlockInformation.BlockSize;
 
                 particle.Color = new Color4b(255, 255, 255, 100);
                 particle.Time = (float)random.NextDouble() * AliveTime / 2.0f + AliveTime / 2.0f;

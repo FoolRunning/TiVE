@@ -53,17 +53,17 @@ namespace ProdigalSoftware.TiVE.Resources
         {
             Messages.Print("Deleting resources...");
 
+            if (ChunkManager != null)
+                ChunkManager.Dispose(); // Must happen before block list dispose
+
+            if (ParticleManager != null)
+                ParticleManager.Dispose();
+
             if (ShaderManager != null)
                 ShaderManager.Dispose();
 
             if (BlockListManager != null)
                 BlockListManager.Dispose();
-
-            if (ChunkManager != null)
-                ChunkManager.Dispose();
-
-            if (ParticleManager != null)
-                ParticleManager.Dispose();
 
             if (TableDefinitionManager != null)
                 TableDefinitionManager.Dispose();

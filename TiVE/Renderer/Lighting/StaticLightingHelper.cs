@@ -33,11 +33,8 @@ namespace ProdigalSoftware.TiVE.Renderer.Lighting
             int mid1 = gameWorld.BlockSize.X / 3;
             int mid2 = gameWorld.BlockSize.X * 2 / 3;
             Thread thread1 = StartLightCalculationThread("Light 1", 0, mid1);
-            thread1.Priority = ThreadPriority.AboveNormal;
             Thread thread2 = StartLightCalculationThread("Light 2", mid1, mid2);
-            thread2.Priority = ThreadPriority.AboveNormal;
             Thread thread3 = StartLightCalculationThread("Light 3", mid2, gameWorld.BlockSize.X);
-            thread3.Priority = ThreadPriority.AboveNormal;
 
             thread1.Join();
             thread2.Join();
@@ -88,7 +85,6 @@ namespace ProdigalSoftware.TiVE.Renderer.Lighting
             int sizeX = gameWorld.BlockSize.X;
             int sizeY = gameWorld.BlockSize.Y;
             int sizeZ = gameWorld.BlockSize.Z;
-            LightInfo lightInfo = new LightInfo(blockX, blockY, blockZ, light);
             float maxVoxelDist = (float)Math.Sqrt(1.0 / (light.Attenuation * minLightValue));
             int maxLightBlockDist = (int)Math.Ceiling(maxVoxelDist / BlockInformation.BlockSize);
 
@@ -98,6 +94,7 @@ namespace ProdigalSoftware.TiVE.Renderer.Lighting
             int endX = Math.Min(sizeX, blockX + maxLightBlockDist);
             int endY = Math.Min(sizeY, blockY + maxLightBlockDist);
             int endZ = Math.Min(sizeZ, blockZ + maxLightBlockDist);
+            LightInfo lightInfo = new LightInfo(blockX, blockY, blockZ, light);
 
             for (int lz = startZ; lz < endZ; lz++)
             {
@@ -116,15 +113,14 @@ namespace ProdigalSoftware.TiVE.Renderer.Lighting
                                 int vx = lx * BlockInformation.BlockSize + 5;
                                 int vy = ly * BlockInformation.BlockSize + 5;
                                 int vz = lz * BlockInformation.BlockSize + 5;
-                                LightInfo leastLight = blockLights[0];
+
                                 int leastLightIndex = 0;
-                                float leastPercentage = LightUtils.GetLightPercentage(leastLight, vx, vy, vz);
+                                float leastPercentage = LightUtils.GetLightPercentage(blockLights[0], vx, vy, vz);
                                 for (int i = 1; i < blockLights.Count; i++)
                                 {
                                     float lightPercentage = LightUtils.GetLightPercentage(blockLights[i], vx, vy, vz);
-                                    if (lightPercentage < LightUtils.GetLightPercentage(leastLight, vx, vy, vz))
+                                    if (lightPercentage < leastPercentage)
                                     {
-                                        leastLight = blockLights[i];
                                         leastLightIndex = i;
                                         leastPercentage = lightPercentage;
                                     }
