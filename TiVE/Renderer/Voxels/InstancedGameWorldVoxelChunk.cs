@@ -16,8 +16,8 @@ namespace ProdigalSoftware.TiVE.Renderer.Voxels
             get { return "MainWorldInstanced"; }
         }
 
-        protected override void CreateMesh(MeshBuilder newMeshBuilder, GameWorld gameWorld, 
-            int worldVoxelStartX, int worldVoxelEndX, int worldVoxelStartY, int worldVoxelEndY, int worldVoxelStartZ, int worldVoxelEndZ, 
+        protected void CreateMesh(MeshBuilder newMeshBuilder, GameWorld gameWorld, 
+            int voxelStartX, int voxelEndX, int voxelStartY, int voxelEndY, int voxelStartZ, int voxelEndZ, 
             out int voxelCount, out int renderedVoxelCount, out int polygonCount)
         {
             voxelCount = 0;
@@ -26,15 +26,15 @@ namespace ProdigalSoftware.TiVE.Renderer.Voxels
             int maxVoxelY = gameWorld.VoxelSize.Y;
             int maxVoxelZ = gameWorld.VoxelSize.Z;
 
-            for (int x = worldVoxelStartX; x < worldVoxelEndX; x++)
+            for (int x = voxelStartX; x < voxelEndX; x++)
             {
-                int cx = x - worldVoxelStartX;
+                int cx = x - voxelStartX;
 
-                for (int z = worldVoxelStartZ; z < worldVoxelEndZ; z++)
+                for (int z = voxelStartZ; z < voxelEndZ; z++)
                 {
-                    int cz = z - worldVoxelStartZ;
+                    int cz = z - voxelStartZ;
 
-                    for (int y = worldVoxelStartY; y < worldVoxelEndY; y++)
+                    for (int y = voxelStartY; y < voxelEndY; y++)
                     {
                         uint color = gameWorld.GetVoxel(x, y, z);
                         if (color == 0)
@@ -57,7 +57,7 @@ namespace ProdigalSoftware.TiVE.Renderer.Voxels
                             byte g = (byte)Math.Min(255, (int)(((color >> 8) & 0xFF) * percentG));
                             byte b = (byte)Math.Min(255, (int)(((color >> 0) & 0xFF) * percentB));
 
-                            newMeshBuilder.Add(cx, y - worldVoxelStartY, cz, r, g, b, a);
+                            newMeshBuilder.Add(cx, y - voxelStartY, cz, r, g, b, a);
                             renderedVoxelCount++;
                         }
                     }

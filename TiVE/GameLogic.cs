@@ -40,7 +40,7 @@ namespace ProdigalSoftware.TiVE
 
             // Calculate static lighting
 
-            const float minLightValue = 0.05f; // 0.002f (0.2%) produces the best result as that is less then a single light value's worth
+            const float minLightValue = 0.01f; // 0.002f (0.2%) produces the best result as that is less then a single light value's worth
             StaticLightingHelper lightingHelper = new StaticLightingHelper(ResourceManager.GameWorldManager.GameWorld, 10, minLightValue);
             lightingHelper.Calculate();
 

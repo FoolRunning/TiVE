@@ -10,6 +10,7 @@ namespace ProdigalSoftware.TiVE.Renderer.World
         private readonly Dictionary<string, BlockInformation> blockToIndexMap = new Dictionary<string, BlockInformation>();
         private readonly List<AnimationInfo> animationsList = new List<AnimationInfo>();
         private readonly Dictionary<BlockInformation, BlockInformation> blockAnimationMap = new Dictionary<BlockInformation, BlockInformation>();
+        private readonly HashSet<BlockInformation> blocksBelongingToAnimations = new HashSet<BlockInformation>();
 
         public int BlockCount
         {
@@ -35,8 +36,14 @@ namespace ProdigalSoftware.TiVE.Renderer.World
                 if (animationsList.Exists(ani => animationInfo.AnimationSequence.Any(bl => ani.AnimationSequence.Contains(bl))))
                     throw new InvalidOperationException("Block is already used as an animation and can not belong to two animations");
 
+                blocksBelongingToAnimations.UnionWith(animationInfo.AnimationSequence);
                 animationsList.Add(animationInfo);
             }
+        }
+
+        public bool BelongsToAnimation(BlockInformation block)
+        {
+            return blocksBelongingToAnimations.Contains(block);
         }
 
         public void UpdateAnimationMap(float timeSinceLastUpdate)

@@ -95,39 +95,6 @@ namespace ProdigalSoftware.TiVE.Renderer.Voxels
                 deleted = false;
         }
 
-        public void Load(MeshBuilder newMeshBuilder)
-        {
-            Debug.Assert(newMeshBuilder.IsLocked);
-
-            GameWorld gameWorld = ResourceManager.GameWorldManager.GameWorld;
-
-            //Debug.WriteLine("Started chunk ({0},{1},{2})", chunkStartX, chunkStartY, chunkStartZ);
-
-            int worldVoxelStartX = chunkX * TileSize * BlockInformation.BlockSize;
-            int worldVoxelEndX = Math.Min((chunkX + 1) * TileSize * BlockInformation.BlockSize, gameWorld.VoxelSize.X);
-            int worldVoxelStartY = chunkY * TileSize * BlockInformation.BlockSize;
-            int worldVoxelEndY = Math.Min((chunkY + 1) * TileSize * BlockInformation.BlockSize, gameWorld.VoxelSize.Y);
-            int worldVoxelStartZ = chunkZ * TileSize * BlockInformation.BlockSize;
-            int worldVoxelEndZ = Math.Min((chunkZ + 1) * TileSize * BlockInformation.BlockSize, gameWorld.VoxelSize.Z);
-
-            int voxelCount;
-            int renderedVoxelCount;
-            int polygonCount;
-            CreateMesh(newMeshBuilder, gameWorld, worldVoxelStartX, worldVoxelEndX, worldVoxelStartY, worldVoxelEndY, worldVoxelStartZ, worldVoxelEndZ, 
-                out voxelCount, out renderedVoxelCount, out polygonCount);
-
-            using (new PerformanceLock(syncLock))
-            {
-                meshBuilder = newMeshBuilder;
-                chunkPolygonCount = polygonCount;
-                chunkVoxelCount = voxelCount;
-                chunkRenderedVoxelCount = renderedVoxelCount;
-
-                if (deleted)
-                    Dispose(); // Chunk was deleted while loading
-            }
-        }
-
         public bool Initialize(IRendererData voxelInstanceLocationData)
         {
             using (new PerformanceLock(syncLock))
@@ -180,67 +147,177 @@ namespace ProdigalSoftware.TiVE.Renderer.Voxels
             return string.Format("Chunk ({0}, {1}, {2}) {3}v", chunkX, chunkY, chunkZ, chunkVoxelCount);
         }
 
-        protected virtual void CreateMesh(MeshBuilder newMeshBuilder, GameWorld gameWorld,
-            int worldVoxelStartX, int worldVoxelEndX, int worldVoxelStartY, int worldVoxelEndY, int worldVoxelStartZ, int worldVoxelEndZ,
-            out int voxelCount, out int renderedVoxelCount, out int polygonCount)
+        public void Load(MeshBuilder newMeshBuilder)
         {
-            voxelCount = 0;
-            renderedVoxelCount = 0;
-            polygonCount = 0;
+            Debug.Assert(newMeshBuilder.IsLocked);
+
+            GameWorld gameWorld = ResourceManager.GameWorldManager.GameWorld;
+            BlockList blockList = ResourceManager.BlockListManager.BlockList;
+
+            //Debug.WriteLine("Started chunk ({0},{1},{2})", chunkStartX, chunkStartY, chunkStartZ);
+
+            int voxelStartX = chunkX * TileSize * BlockInformation.BlockSize;
+            int voxelStartY = chunkY * TileSize * BlockInformation.BlockSize;
+            int voxelStartZ = chunkZ * TileSize * BlockInformation.BlockSize;
+
+            int blockStartX = chunkX * TileSize;
+            int blockEndX = Math.Min((chunkX + 1) * TileSize, gameWorld.BlockSize.X);
+            int blockStartY = chunkY * TileSize;
+            int blockEndY = Math.Min((chunkY + 1) * TileSize, gameWorld.BlockSize.Y);
+            int blockStartZ = chunkZ * TileSize;
+            int blockEndZ = Math.Min((chunkZ + 1) * TileSize, gameWorld.BlockSize.Z);
+
             int maxVoxelX = gameWorld.VoxelSize.X;
             int maxVoxelY = gameWorld.VoxelSize.Y;
             int maxVoxelZ = gameWorld.VoxelSize.Z;
 
-            for (int x = worldVoxelStartX; x < worldVoxelEndX; x++)
+            int voxelCount = 0;
+            int renderedVoxelCount = 0;
+            int polygonCount = 0;
+
+            for (int z = blockEndZ - 1; z >= blockStartZ; z--)
             {
-                int cx = x - worldVoxelStartX;
-
-                for (int z = worldVoxelStartZ; z < worldVoxelEndZ; z++)
+                for (int x = blockStartX; x < blockEndX; x++)
                 {
-                    int cz = z - worldVoxelStartZ;
-
-                    for (int y = worldVoxelStartY; y < worldVoxelEndY; y++)
+                    for (int y = blockStartY; y < blockEndY; y++)
                     {
-                        uint color = gameWorld.GetVoxel(x, y, z);
-                        if (color == 0)
+                        BlockInformation block = gameWorld[x, y, z];
+                        if (block == BlockInformation.Empty || blockList.BelongsToAnimation(block))
                             continue;
 
-                        voxelCount++;
-
-                        VoxelSides sides = VoxelSides.None;
-                        if (z == maxVoxelZ - 1 || gameWorld.GetVoxel(x, y, z + 1) == 0)
-                            sides |= VoxelSides.Front;
-                        //if (z == 0 || gameWorld.GetVoxel(x, y, z - 1) == 0) // The back face is never shown to the camera, so there is no need to create it
-                        //    sizes |= VoxelSides.Back;
-                        if (x == 0 || gameWorld.GetVoxel(x - 1, y, z) == 0)
-                            sides |= VoxelSides.Left;
-                        if (x == maxVoxelX - 1 || gameWorld.GetVoxel(x + 1, y, z) == 0)
-                            sides |= VoxelSides.Right;
-                        if (y == 0 || gameWorld.GetVoxel(x, y - 1, z) == 0)
-                            sides |= VoxelSides.Bottom;
-                        if (y == maxVoxelY - 1 || gameWorld.GetVoxel(x, y + 1, z) == 0)
-                            sides |= VoxelSides.Top;
-
-                        if (sides != VoxelSides.None)
+                        for (int bz = BlockInformation.BlockSize - 1; bz >= 0; bz--)
                         {
-                            float percentR;
-                            float percentG;
-                            float percentB;
-                            gameWorld.GetLightAt(x, y, z, out percentR, out percentG, out percentB);
-                            byte a = (byte)((color >> 24) & 0xFF);
-                            byte r = (byte)Math.Min(255, (int)(((color >> 16) & 0xFF) * percentR));
-                            byte g = (byte)Math.Min(255, (int)(((color >> 8) & 0xFF) * percentG));
-                            byte b = (byte)Math.Min(255, (int)(((color >> 0) & 0xFF) * percentB));
+                            int voxelZ = z * BlockInformation.BlockSize + bz;
+                            int chunkVoxelZ = voxelZ - voxelStartZ;
+                            for (int bx = 0; bx < BlockInformation.BlockSize; bx++)
+                            {
+                                int voxelX = x * BlockInformation.BlockSize + bx;
+                                int chunkVoxelX = voxelX - voxelStartX;
+                                for (int by = 0; by < BlockInformation.BlockSize; by++)
+                                {
+                                    uint color = block[bx, by, bz];
+                                    if (color == 0)
+                                        continue;
+                                    
+                                    int voxelY = y * BlockInformation.BlockSize + by;
 
-                            //byte a = (byte)((color >> 24) & 0xFF);
-                            //byte r = (byte)((color >> 16) & 0xFF);
-                            //byte g = (byte)((color >> 8) & 0xFF);
-                            //byte b = (byte)((color >> 0) & 0xFF);
+                                    voxelCount++;
 
-                            polygonCount += IndexedVoxelGroup.CreateVoxel(newMeshBuilder, sides, cx, y - worldVoxelStartY, cz, r, g, b, a);
-                            renderedVoxelCount++;
+                                    VoxelSides sides = VoxelSides.None;
+
+                                    // Check to see if the front side is visible
+                                    if (bz < BlockInformation.BlockSize - 1)
+                                    {
+                                        if (block[bx, by, bz + 1] == 0)
+                                            sides |= VoxelSides.Front;
+                                    }
+                                    else if (bz == BlockInformation.BlockSize - 1)
+                                    {
+                                        if (voxelZ == maxVoxelZ - 1 || gameWorld.GetVoxel(voxelX, voxelY, voxelZ + 1) == 0)
+                                            sides |= VoxelSides.Front;
+                                    }
+
+                                    // The back face is never shown to the camera, so there is no need to create it
+                                    //if (bz > 0)
+                                    //{
+                                    //    if (block[bx, by, bz - 1] == 0)
+                                    //        sides |= VoxelSides.Back;
+                                    //}
+                                    //else if (bz == 0)
+                                    //{
+                                    //    if (voxelZ > 0 && gameWorld.GetVoxel(voxelX, voxelY, voxelZ - 1) == 0)
+                                    //        sides |= VoxelSides.Back;
+                                    //}
+
+                                    // Check to see if the left side is visible
+                                    if (bx > 0)
+                                    {
+                                        if (block[bx - 1, by, bz] == 0)
+                                            sides |= VoxelSides.Left;
+                                    }
+                                    else if (bx == 0)
+                                    {
+                                        if (voxelX == 0 || gameWorld.GetVoxel(voxelX - 1, voxelY, voxelZ) == 0)
+                                            sides |= VoxelSides.Left;
+                                    }
+
+                                    // Check to see if the right side is visible
+                                    if (bx < BlockInformation.BlockSize - 1)
+                                    {
+                                        if (block[bx + 1, by, bz] == 0)
+                                            sides |= VoxelSides.Right;
+                                    }
+                                    else if (bx == BlockInformation.BlockSize - 1)
+                                    {
+                                        if (voxelX == maxVoxelX - 1 || gameWorld.GetVoxel(voxelX + 1, voxelY, voxelZ) == 0)
+                                            sides |= VoxelSides.Right;
+                                    }
+
+                                    // Check to see if the bottom side is visible
+                                    if (by > 0)
+                                    {
+                                        if (block[bx, by - 1, bz] == 0)
+                                            sides |= VoxelSides.Bottom;
+                                    }
+                                    else if (by == 0)
+                                    {
+                                        if (voxelY == 0 || gameWorld.GetVoxel(voxelX, voxelY - 1, voxelZ) == 0)
+                                            sides |= VoxelSides.Bottom;
+                                    }
+
+                                    // Check to see if the top side is visible
+                                    if (by < BlockInformation.BlockSize - 1)
+                                    {
+                                        if (block[bx, by + 1, bz] == 0)
+                                            sides |= VoxelSides.Top;
+                                    }
+                                    else if (by == BlockInformation.BlockSize - 1)
+                                    {
+                                        if (voxelY == maxVoxelY - 1 || gameWorld.GetVoxel(voxelX, voxelY + 1, voxelZ) == 0)
+                                            sides |= VoxelSides.Top;
+                                    }
+
+                                    if (sides != VoxelSides.None)
+                                    {
+                                        float percentR;
+                                        float percentG;
+                                        float percentB;
+                                        gameWorld.GetLightAt(voxelX, voxelY, voxelZ, out percentR, out percentG, out percentB);
+                                        byte a = (byte)((color >> 24) & 0xFF);
+                                        byte r = (byte)Math.Min(255, (int)(((color >> 16) & 0xFF) * percentR));
+                                        byte g = (byte)Math.Min(255, (int)(((color >> 8) & 0xFF) * percentG));
+                                        byte b = (byte)Math.Min(255, (int)(((color >> 0) & 0xFF) * percentB));
+
+                                        //byte a = (byte)((color >> 24) & 0xFF);
+                                        //byte r = (byte)((color >> 16) & 0xFF);
+                                        //byte g = (byte)((color >> 8) & 0xFF);
+                                        //byte b = (byte)((color >> 0) & 0xFF);
+
+                                        polygonCount += IndexedVoxelGroup.CreateVoxel(
+                                            newMeshBuilder, sides, chunkVoxelX, voxelY - voxelStartY, chunkVoxelZ, r, g, b, a);
+                                        renderedVoxelCount++;
+                                    }
+                                }
+                            }
                         }
                     }
+                }
+            }
+
+            using (new PerformanceLock(syncLock))
+            {
+                meshBuilder = newMeshBuilder;
+                chunkPolygonCount = polygonCount;
+                chunkVoxelCount = voxelCount;
+                chunkRenderedVoxelCount = renderedVoxelCount;
+
+                if (deleted)
+                    Dispose(); // Chunk was deleted while loading
+                else if (polygonCount == 0)
+                {
+                    // Resulted in no mesh data (i.e. all blocks were empty) so just release the lock on the mesh builder
+                    meshBuilder.DropMesh();
+                    meshBuilder = null;
                 }
             }
         }
