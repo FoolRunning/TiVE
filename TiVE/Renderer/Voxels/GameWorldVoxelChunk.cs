@@ -8,13 +8,13 @@ using ProdigalSoftware.Utils;
 
 namespace ProdigalSoftware.TiVE.Renderer.Voxels
 {
-    internal class GameWorldVoxelChunk : IDisposable
+    internal sealed class GameWorldVoxelChunk : IDisposable
     {
         #region Constants
         public const int TileSize = 5;
         #endregion
 
-        protected MeshBuilder meshBuilder;
+        private MeshBuilder meshBuilder;
         private readonly object syncLock = new object();
         private readonly int chunkX;
         private readonly int chunkY;
@@ -50,11 +50,6 @@ namespace ProdigalSoftware.TiVE.Renderer.Voxels
                 mesh = null;
                 deleted = true;
             }
-        }
-
-        protected virtual string ShaderName 
-        {
-            get { return "MainWorld"; }
         }
 
         public MeshBuilder MeshBuilder 
@@ -95,7 +90,7 @@ namespace ProdigalSoftware.TiVE.Renderer.Voxels
                 deleted = false;
         }
 
-        public bool Initialize(IRendererData voxelInstanceLocationData)
+        public bool Initialize()
         {
             using (new PerformanceLock(syncLock))
             {
@@ -107,7 +102,7 @@ namespace ProdigalSoftware.TiVE.Renderer.Voxels
 
                 if (chunkPolygonCount > 0)
                 {
-                    mesh = GetMesh(voxelInstanceLocationData);
+                    mesh = meshBuilder.GetMesh();
                     mesh.Initialize();
                 }
 
@@ -131,7 +126,7 @@ namespace ProdigalSoftware.TiVE.Renderer.Voxels
 
             Debug.Assert(meshData.IsInitialized);
 
-            IShaderProgram shader = ResourceManager.ShaderManager.GetShaderProgram(ShaderName);
+            IShaderProgram shader = ResourceManager.ShaderManager.GetShaderProgram("MainWorld");
             shader.Bind();
 
             Matrix4 viewProjectionModelMatrix;
@@ -279,22 +274,19 @@ namespace ProdigalSoftware.TiVE.Renderer.Voxels
 
                                     if (sides != VoxelSides.None)
                                     {
-                                        float percentR;
-                                        float percentG;
-                                        float percentB;
-                                        gameWorld.GetLightAt(voxelX, voxelY, voxelZ, out percentR, out percentG, out percentB);
+                                        Color3f lightColor = gameWorld.GetLightAt(voxelX, voxelY, voxelZ);
                                         byte a = (byte)((color >> 24) & 0xFF);
-                                        byte r = (byte)Math.Min(255, (int)(((color >> 16) & 0xFF) * percentR));
-                                        byte g = (byte)Math.Min(255, (int)(((color >> 8) & 0xFF) * percentG));
-                                        byte b = (byte)Math.Min(255, (int)(((color >> 0) & 0xFF) * percentB));
+                                        byte r = (byte)Math.Min(255, (int)(((color >> 16) & 0xFF) * lightColor.R));
+                                        byte g = (byte)Math.Min(255, (int)(((color >> 8) & 0xFF) * lightColor.G));
+                                        byte b = (byte)Math.Min(255, (int)(((color >> 0) & 0xFF) * lightColor.B));
 
                                         //byte a = (byte)((color >> 24) & 0xFF);
                                         //byte r = (byte)((color >> 16) & 0xFF);
                                         //byte g = (byte)((color >> 8) & 0xFF);
                                         //byte b = (byte)((color >> 0) & 0xFF);
 
-                                        polygonCount += IndexedVoxelGroup.CreateVoxel(
-                                            newMeshBuilder, sides, chunkVoxelX, voxelY - voxelStartY, chunkVoxelZ, r, g, b, a);
+                                        polygonCount += IndexedVoxelGroup.CreateVoxel(newMeshBuilder, sides, 
+                                            chunkVoxelX, voxelY - voxelStartY, chunkVoxelZ, new Color4b(r, g, b, a));
                                         renderedVoxelCount++;
                                     }
                                 }
@@ -304,27 +296,28 @@ namespace ProdigalSoftware.TiVE.Renderer.Voxels
                 }
             }
 
+            if (polygonCount == 0)
+            {
+                // Loading resulted in no mesh data (i.e. all blocks were empty) so just release the lock on the mesh builder since we're done with it.
+                newMeshBuilder.DropMesh();
+                return;
+            }
+
             using (new PerformanceLock(syncLock))
             {
-                meshBuilder = newMeshBuilder;
-                chunkPolygonCount = polygonCount;
-                chunkVoxelCount = voxelCount;
-                chunkRenderedVoxelCount = renderedVoxelCount;
-
                 if (deleted)
-                    Dispose(); // Chunk was deleted while loading
-                else if (polygonCount == 0)
                 {
-                    // Resulted in no mesh data (i.e. all blocks were empty) so just release the lock on the mesh builder
-                    meshBuilder.DropMesh();
-                    meshBuilder = null;
+                    // Chunk was deleted during load so just release the lock on the mesh builder since we're done with it.
+                    newMeshBuilder.DropMesh();
+                }
+                else
+                {
+                    meshBuilder = newMeshBuilder;
+                    chunkPolygonCount = polygonCount;
+                    chunkVoxelCount = voxelCount;
+                    chunkRenderedVoxelCount = renderedVoxelCount;
                 }
             }
-        }
-
-        protected virtual IVertexDataCollection GetMesh(IRendererData voxelInstanceLocationData)
-        {
-            return meshBuilder.GetMesh();
         }
     }
 }

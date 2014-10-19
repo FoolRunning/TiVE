@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.CompilerServices;
 using ProdigalSoftware.Utils;
 
 namespace ProdigalSoftware.TiVE.Renderer.Voxels
@@ -49,14 +50,16 @@ namespace ProdigalSoftware.TiVE.Renderer.Voxels
             }
         }
 
-        public int Add(int x, int y, int z, byte cr, byte cg, byte cb, byte ca)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public int Add(int x, int y, int z, Color4b color)
         {
             locationData[vertexCount] = new Vector3b((byte)x, (byte)y, (byte)z);
-            colorData[vertexCount] = new Color4b(cr, cg, cb, ca);
+            colorData[vertexCount] = color;
 
             return vertexCount++;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void AddIndex(int index)
         {
             indexData[indexCount] = index;

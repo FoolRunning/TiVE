@@ -6,7 +6,7 @@ namespace ProdigalSoftware.TiVEPluginFramework.Lighting
     {
         Vector3b Location { get; }
 
-        Color4f Color { get; }
+        Color3f Color { get; }
 
         float Attenuation { get; }
     }

@@ -10,7 +10,7 @@ namespace TiVETests.World
         [Test]
         public void Indexer()
         {
-            GameWorld gameWorld = new GameWorld(3, 3, 3, false);
+            GameWorld gameWorld = new GameWorld(3, 3, 3);
             Assert.That(gameWorld.BlockSize.X, Is.EqualTo(3));
             Assert.That(gameWorld.BlockSize.Y, Is.EqualTo(3));
             Assert.That(gameWorld.BlockSize.Z, Is.EqualTo(3));
@@ -56,7 +56,7 @@ namespace TiVETests.World
         [Test]
         public void GetChunk()
         {
-            GameWorld gameWorld = new GameWorld(3, 7, 13, false);
+            GameWorld gameWorld = new GameWorld(3, 7, 13);
             Assert.That(gameWorld.ChunkSize.X, Is.EqualTo(1));
             Assert.That(gameWorld.ChunkSize.Y, Is.EqualTo(2));
             Assert.That(gameWorld.ChunkSize.Z, Is.EqualTo(3));

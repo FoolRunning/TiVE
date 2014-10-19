@@ -489,7 +489,7 @@ namespace ProdigalSoftware.TiVE.Renderer.OpenGL
                 if (elementCount > allocatedDataElementCount)
                 {
                     allocatedDataElementCount = elementCount;
-                    GL.BufferData(target, new IntPtr(sizeInBytes), (T2[])null, dynamic ? BufferUsageHint.StreamDraw : BufferUsageHint.StaticDraw);
+                    GL.BufferData(target, new IntPtr(sizeInBytes), (T2[])null, BufferUsageHint.StreamDraw);
                 }
 
                 GL.BufferSubData(target, new IntPtr(0), new IntPtr(sizeInBytes), newData);

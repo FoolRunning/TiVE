@@ -30,7 +30,8 @@ namespace ProdigalSoftware.TiVE.Resources
         public void Dispose()
         {
             stopThread = true;
-            particleUpdateThread.Join();
+            if (particleUpdateThread.IsAlive)
+                particleUpdateThread.Join();
 
             foreach (ParticleSystemCollection systemCollection in particleSystemCollections.Values)
                 systemCollection.Dispose();
@@ -96,27 +97,6 @@ namespace ProdigalSoftware.TiVE.Resources
             }
         }
 
-        public void AddParticleSystem(ParticleSystem system)
-        {
-            ParticleSystemCollection collection;
-            using (new PerformanceLock(particleSystemCollections))
-            {
-                if (!particleSystemCollections.TryGetValue(system.SystemInformation, out collection))
-                    particleSystemCollections[system.SystemInformation] = collection = new ParticleSystemCollection(system.SystemInformation);
-            }
-            collection.Add(system);
-        }
-
-        public void RemoveParticleSystem(ParticleSystem system)
-        {
-            ParticleSystemCollection collection;
-            using (new PerformanceLock(particleSystemCollections))
-                particleSystemCollections.TryGetValue(system.SystemInformation, out collection);
-            
-            if (collection != null)
-                collection.Remove(system);
-        }
-
         public RenderStatistics Render(ref Matrix4 matrixMVP)
         {
             renderList.Clear();
@@ -141,6 +121,27 @@ namespace ProdigalSoftware.TiVE.Resources
             }
 
             return stats;
+        }
+
+        private void AddParticleSystem(ParticleSystem system)
+        {
+            ParticleSystemCollection collection;
+            using (new PerformanceLock(particleSystemCollections))
+            {
+                if (!particleSystemCollections.TryGetValue(system.SystemInformation, out collection))
+                    particleSystemCollections[system.SystemInformation] = collection = new ParticleSystemCollection(system.SystemInformation);
+            }
+            collection.Add(system);
+        }
+
+        private void RemoveParticleSystem(ParticleSystem system)
+        {
+            ParticleSystemCollection collection;
+            using (new PerformanceLock(particleSystemCollections))
+                particleSystemCollections.TryGetValue(system.SystemInformation, out collection);
+
+            if (collection != null)
+                collection.Remove(system);
         }
 
         private void ParticleUpdateLoop()

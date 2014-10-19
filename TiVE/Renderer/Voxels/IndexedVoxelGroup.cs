@@ -1,4 +1,6 @@
-﻿namespace ProdigalSoftware.TiVE.Renderer.Voxels
+﻿using ProdigalSoftware.Utils;
+
+namespace ProdigalSoftware.TiVE.Renderer.Voxels
 {
     internal sealed class IndexedVoxelGroup : VoxelGroup
     {
@@ -10,21 +12,21 @@
         {
         }
 
-        protected override int AddVoxel(MeshBuilder meshBuilder, VoxelSides sides, int x, int y, int z, byte cr, byte cg, byte cb, byte ca)
+        protected override int AddVoxel(MeshBuilder meshBuilder, VoxelSides sides, int x, int y, int z, Color4b color)
         {
-            return CreateVoxel(meshBuilder, sides, x, y, z, cr, cg, cb, ca);
+            return CreateVoxel(meshBuilder, sides, x, y, z, color);
         }
         
-        public static int CreateVoxel(MeshBuilder meshBuilder, VoxelSides sides, int x, int y, int z, byte cr, byte cg, byte cb, byte ca)
+        public static int CreateVoxel(MeshBuilder meshBuilder, VoxelSides sides, int x, int y, int z, Color4b color)
         {
-            int v1 = meshBuilder.Add(x, y + 1, z, cr, cg, cb, ca);
-            int v2 = meshBuilder.Add(x + 1, y + 1, z, cr, cg, cb, ca);
-            int v3 = meshBuilder.Add(x + 1, y + 1, z + 1, cr, cg, cb, ca);
-            int v4 = meshBuilder.Add(x, y + 1, z + 1, cr, cg, cb, ca);
-            int v5 = meshBuilder.Add(x, y, z, cr, cg, cb, ca);
-            int v6 = meshBuilder.Add(x + 1, y, z, cr, cg, cb, ca);
-            int v7 = meshBuilder.Add(x + 1, y, z + 1, cr, cg, cb, ca);
-            int v8 = meshBuilder.Add(x, y, z + 1, cr, cg, cb, ca);
+            int v1 = meshBuilder.Add(x, y + 1, z, color);
+            int v2 = meshBuilder.Add(x + 1, y + 1, z, color);
+            int v3 = meshBuilder.Add(x + 1, y + 1, z + 1, color);
+            int v4 = meshBuilder.Add(x, y + 1, z + 1, color);
+            int v5 = meshBuilder.Add(x, y, z, color);
+            int v6 = meshBuilder.Add(x + 1, y, z, color);
+            int v7 = meshBuilder.Add(x + 1, y, z + 1, color);
+            int v8 = meshBuilder.Add(x, y, z + 1, color);
 
             int polygonCount = 0;
             if ((sides & VoxelSides.Front) != 0)

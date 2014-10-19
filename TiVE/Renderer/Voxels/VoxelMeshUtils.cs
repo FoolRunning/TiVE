@@ -1,4 +1,6 @@
-﻿namespace ProdigalSoftware.TiVE.Renderer.Voxels
+﻿using ProdigalSoftware.Utils;
+
+namespace ProdigalSoftware.TiVE.Renderer.Voxels
 {
     internal static class VoxelMeshUtils
     {
@@ -25,24 +27,23 @@
                         voxelCount++;
 
                         VoxelSides sides = VoxelSides.None;
+                        //if (z == 0 || voxels[x, y, z - 1] == 0) // The back face is never shown to the camera, so there is no need to create it
+                        //    sides |= VoxelSides.Back;
                         if (z == zSize - 1 || voxels[x, y, z + 1] == 0)
                             sides |= VoxelSides.Front;
-                        //if (!IsZLineSet(x, y, z, 1)) // The back face is never shown to the camera, so there is no need to create it
-                        //    sizes |= VoxelSides.Back;
                         if (x == 0 || voxels[x - 1, y, z] == 0)
                             sides |= VoxelSides.Left;
                         if (x == xSize - 1 || voxels[x + 1, y, z] == 0)
                             sides |= VoxelSides.Right;
                         if (y == 0 || voxels[x, y - 1, z] == 0)
                             sides |= VoxelSides.Bottom;
-                        //if (y == ySize - 1 || voxels[x, y + 1, z] == 0) // Top face is never shown to the camera
-                        //    sides |= VoxelSides.Top;
+                        if (y == ySize - 1 || voxels[x, y + 1, z] == 0) // Top face is never shown to the camera
+                            sides |= VoxelSides.Top;
 
-                        //VoxelSides sides = (VoxelSides)((color & 0xFC000000) >> 26);
                         if (sides != VoxelSides.None)
                         {
                             polygonCount += SimpleVoxelGroup.CreateVoxel(meshBuilder, sides, x, y, z,
-                                (byte)((color >> 16) & 0xFF), (byte)((color >> 8) & 0xFF), (byte)((color >> 0) & 0xFF), (byte)((color >> 24) & 0xFF));
+                                new Color4b((byte)((color >> 16) & 0xFF), (byte)((color >> 8) & 0xFF), (byte)((color >> 0) & 0xFF), (byte)((color >> 24) & 0xFF)));
                             renderedVoxelCount++;
                         }
                     }

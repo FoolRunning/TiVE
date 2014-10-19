@@ -11,6 +11,7 @@ namespace ProdigalSoftware.TiVE.Renderer
         public float Z;
 
         private readonly IndexedVoxelGroup voxels;
+
         public Sprite(int spriteXSize, int spriteYSize, int spriteZSize)
         {
             voxels = new IndexedVoxelGroup(spriteXSize, spriteYSize, spriteZSize);

@@ -2,6 +2,7 @@
 using System;
 using System.Diagnostics;
 using OpenTK;
+using ProdigalSoftware.Utils;
 
 namespace ProdigalSoftware.TiVE.Renderer.Voxels
 {
@@ -373,7 +374,7 @@ namespace ProdigalSoftware.TiVE.Renderer.Voxels
                         if (sides != VoxelSides.None)
                         {
                             polygonCount += AddVoxel(meshBuilder, sides, x, y, z, 
-                                (byte)((color >> 16) & 0xFF), (byte)((color >> 8) & 0xFF), (byte)((color >> 0) & 0xFF), 255 /*(byte)((color >> 24) & 0xFF)*/);
+                                new Color4b((byte)((color >> 16) & 0xFF), (byte)((color >> 8) & 0xFF), (byte)((color >> 0) & 0xFF), 255 /*(byte)((color >> 24) & 0xFF)*/));
                             renderedVoxelCount++;
                         }
                     }
@@ -392,6 +393,6 @@ namespace ProdigalSoftware.TiVE.Renderer.Voxels
             return meshData;
         }
 
-        protected abstract int AddVoxel(MeshBuilder meshBuilder, VoxelSides sides, int x, int y, int z, byte cr, byte cg, byte cb, byte ca);
+        protected abstract int AddVoxel(MeshBuilder meshBuilder, VoxelSides sides, int x, int y, int z, Color4b color);
     }
 }

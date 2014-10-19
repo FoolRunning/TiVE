@@ -107,16 +107,14 @@ namespace ProdigalSoftware.TiVE.Renderer.Particles
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static Color4b CalculateParticleColor(int partX, int partY, int partZ, Color4b color, Vector3i worldSize, GameWorld gameWorld)
         {
-            float percentR;
-            float percentG;
-            float percentB;
+            Color3f lightColor;
             if (partX < 0 || partX >= worldSize.X || partY < 0 || partY >= worldSize.Y || partZ < 0 || partZ >= worldSize.Z)
-                gameWorld.GetAmbientLight(out percentR, out percentG, out percentB);
+                lightColor = gameWorld.AmbientLight;
             else
-                gameWorld.GetLightAt(partX, partY, partZ, out percentR, out percentG, out percentB);
+                lightColor = gameWorld.GetLightAt(partX, partY, partZ);
 
-            return new Color4b((byte)Math.Min(255, color.R * percentR), (byte)Math.Min(255, color.G * percentG),
-                (byte)Math.Min(255, color.B * percentB), 255);
+            return new Color4b((byte)Math.Min(255, color.R * lightColor.R), (byte)Math.Min(255, color.G * lightColor.G),
+                (byte)Math.Min(255, color.B * lightColor.B), 255);
         }
     }
 }

@@ -4,7 +4,6 @@ using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using ProdigalSoftware.TiVE.Renderer.Lighting;
 using ProdigalSoftware.TiVE.Renderer.Voxels;
-using ProdigalSoftware.TiVE.Resources;
 using ProdigalSoftware.TiVEPluginFramework;
 using ProdigalSoftware.Utils;
 
@@ -21,9 +20,9 @@ namespace ProdigalSoftware.TiVE.Renderer.World
 
         private readonly Block[] worldBlocks;
         private readonly GameWorldVoxelChunk[] worldChunks;
-        private readonly Color4f ambientLight;
+        private readonly Color3f ambientLight;
 
-        internal GameWorld(int blockSizeX, int blockSizeY, int blockSizeZ, bool useInstancing)
+        internal GameWorld(int blockSizeX, int blockSizeY, int blockSizeZ)
         {
             blockSize = new Vector3i(blockSizeX, blockSizeY, blockSizeZ);
             voxelSize = new Vector3i(blockSizeX * BlockInformation.BlockSize, blockSizeY * BlockInformation.BlockSize, blockSizeZ * BlockInformation.BlockSize);
@@ -41,11 +40,11 @@ namespace ProdigalSoftware.TiVE.Renderer.World
                 for (int x = 0; x < chunkSize.X; x++)
                 {
                     for (int y = 0; y < chunkSize.Y; y++)
-                        worldChunks[GetChunkOffset(x, y, z)] = useInstancing ? new InstancedGameWorldVoxelChunk(x, y, z) : new GameWorldVoxelChunk(x, y, z);
+                        worldChunks[GetChunkOffset(x, y, z)] = new GameWorldVoxelChunk(x, y, z);
                 }
             }
             
-            ambientLight = new Color4f(0.05f, 0.05f, 0.05f, 1.0f);
+            ambientLight = new Color3f(0.05f, 0.05f, 0.05f);
         }
 
         /// <summary>
@@ -83,12 +82,9 @@ namespace ProdigalSoftware.TiVE.Renderer.World
         }
         #endregion
 
-        public void GetAmbientLight(out float percentR, out float percentG, out float percentB)
+        public Color3f AmbientLight
         {
-            Color4f color = ambientLight;
-            percentR = color.R;
-            percentG = color.G;
-            percentB = color.B;
+            get { return ambientLight; }
         }
 
         /// <summary>
@@ -96,25 +92,22 @@ namespace ProdigalSoftware.TiVE.Renderer.World
         /// </summary>
         /// <remarks>Very performance-critical method</remarks>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void GetLightAt(int voxelX, int voxelY, int voxelZ, out float percentR, out float percentG, out float percentB)
+        public Color3f GetLightAt(int voxelX, int voxelY, int voxelZ)
         {
-            Color4f color = ambientLight;
-            percentR = color.R;
-            percentG = color.G;
-            percentB = color.B;
+            Color3f color = ambientLight;
 
             int blockX = voxelX / BlockInformation.BlockSize;
             int blockY = voxelY / BlockInformation.BlockSize;
             int blockZ = voxelZ / BlockInformation.BlockSize;
 
+            //return ambientLight + worldBlocks[GetBlockOffset(blockX, blockY, blockZ)].BlockLight;
             List<LightInfo> blockLights = worldBlocks[GetBlockOffset(blockX, blockY, blockZ)].Lights;
             for (int i = 0; i < blockLights.Count; i++)
             {
-                color = GetLightAtVoxel(blockLights[i], voxelX, voxelY, voxelZ);
-                percentR += color.R;
-                percentG += color.G;
-                percentB += color.B;
+                LightInfo lightInfo = blockLights[i];
+                color += lightInfo.Light.Color * LightUtils.GetLightPercentage(lightInfo, voxelX, voxelY, voxelZ);
             }
+            return color;
         }
 
         public GameWorldVoxelChunk GetChunk(int chunkX, int chunkY, int chunkZ)
@@ -125,6 +118,16 @@ namespace ProdigalSoftware.TiVE.Renderer.World
         public List<LightInfo> GetLights(int blockX, int blockY, int blockZ)
         {
             return worldBlocks[GetBlockOffset(blockX, blockY, blockZ)].Lights;
+        }
+
+        public Color3f GetBlockLight(int blockX, int blockY, int blockZ)
+        {
+            return worldBlocks[GetBlockOffset(blockX, blockY, blockZ)].BlockLight;
+        }
+
+        public void SetBlockLight(int blockX, int blockY, int blockZ, Color3f light)
+        {
+            worldBlocks[GetBlockOffset(blockX, blockY, blockZ)].BlockLight = light;
         }
 
         public BlockState GetBlockState(int blockX, int blockY, int blockZ)
@@ -179,15 +182,6 @@ namespace ProdigalSoftware.TiVE.Renderer.World
             return (x * chunkSize.Z + z) * chunkSize.Y + y; // y-axis major for speed
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static Color4f GetLightAtVoxel(LightInfo lightInfo, int voxelX, int voxelY, int voxelZ)
-        {
-            float lightPercent = LightUtils.GetLightPercentage(lightInfo, voxelX, voxelY, voxelZ);
-
-            Color4f color = lightInfo.Light.Color;
-            return new Color4f(color.R * lightPercent, color.G * lightPercent, color.B * lightPercent, 1.0f);
-        }
-
         /// <summary>
         /// Throws an ArgumentOutOfRangeException if the specified location is outside the bounds of the specified size.
         /// This method is not compiled into release builds.
@@ -220,6 +214,8 @@ namespace ProdigalSoftware.TiVE.Renderer.World
             /// </summary>
             public readonly List<LightInfo> Lights;
 
+            public Color3f BlockLight;
+
             /// <summary>
             /// Information about the state of the block
             /// </summary>
@@ -230,6 +226,7 @@ namespace ProdigalSoftware.TiVE.Renderer.World
                 BlockInfo = blockInfo;
                 Lights = new List<LightInfo>(10);
                 State = new BlockState();
+                BlockLight = new Color3f();
             }
         }
         #endregion

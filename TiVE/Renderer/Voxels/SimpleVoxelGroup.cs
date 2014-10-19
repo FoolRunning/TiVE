@@ -1,4 +1,5 @@
 ﻿using System;
+using ProdigalSoftware.Utils;
 
 namespace ProdigalSoftware.TiVE.Renderer.Voxels
 {
@@ -12,23 +13,23 @@ namespace ProdigalSoftware.TiVE.Renderer.Voxels
         {
         }
 
-        protected override int AddVoxel(MeshBuilder meshBuilder, VoxelSides sides, int x, int y, int z, byte cr, byte cg, byte cb, byte ca)
+        protected override int AddVoxel(MeshBuilder meshBuilder, VoxelSides sides, int x, int y, int z, Color4b color)
         {
-            return CreateVoxel(meshBuilder, sides, x, y, z, cr, cg, cb, ca);
+            return CreateVoxel(meshBuilder, sides, x, y, z, color);
         }
 
-        public static int CreateVoxel(MeshBuilder meshBuilder, VoxelSides sides, int x, int y, int z, byte cr, byte cg, byte cb, byte ca)
+        public static int CreateVoxel(MeshBuilder meshBuilder, VoxelSides sides, int x, int y, int z, Color4b color)
         {
             int polygonCount = 0;
             if ((sides & VoxelSides.Front) != 0)
             {
-                meshBuilder.Add(x, y, z + 1, cr, cg, cb, ca);
-                meshBuilder.Add(x + 1, y + 1, z + 1, cr, cg, cb, ca);
-                meshBuilder.Add(x + 1, y, z + 1, cr, cg, cb, ca);
+                meshBuilder.Add(x, y, z + 1, color);
+                meshBuilder.Add(x + 1, y + 1, z + 1, color);
+                meshBuilder.Add(x + 1, y, z + 1, color);
 
-                meshBuilder.Add(x + 1, y + 1, z + 1, cr, cg, cb, ca);
-                meshBuilder.Add(x, y, z + 1, cr, cg, cb, ca);
-                meshBuilder.Add(x, y + 1, z + 1, cr, cg, cb, ca);
+                meshBuilder.Add(x + 1, y + 1, z + 1, color);
+                meshBuilder.Add(x, y, z + 1, color);
+                meshBuilder.Add(x, y + 1, z + 1, color);
                 polygonCount += 2;
             }
 
@@ -47,49 +48,49 @@ namespace ProdigalSoftware.TiVE.Renderer.Voxels
 
             if ((sides & VoxelSides.Left) != 0)
             {
-                meshBuilder.Add(x, y, z, cr, cg, cb, ca);
-                meshBuilder.Add(x, y + 1, z, cr, cg, cb, ca);
-                meshBuilder.Add(x, y + 1, z + 1, cr, cg, cb, ca);
+                meshBuilder.Add(x, y, z, color);
+                meshBuilder.Add(x, y + 1, z, color);
+                meshBuilder.Add(x, y + 1, z + 1, color);
 
-                meshBuilder.Add(x, y + 1, z + 1, cr, cg, cb, ca);
-                meshBuilder.Add(x, y, z + 1, cr, cg, cb, ca);
-                meshBuilder.Add(x, y, z, cr, cg, cb, ca);
+                meshBuilder.Add(x, y + 1, z + 1, color);
+                meshBuilder.Add(x, y, z + 1, color);
+                meshBuilder.Add(x, y, z, color);
                 polygonCount += 2;
             }
 
             if ((sides & VoxelSides.Right) != 0)
             {
-                meshBuilder.Add(x + 1, y, z, cr, cg, cb, ca);
-                meshBuilder.Add(x + 1, y + 1, z + 1, cr, cg, cb, ca);
-                meshBuilder.Add(x + 1, y + 1, z, cr, cg, cb, ca);
+                meshBuilder.Add(x + 1, y, z, color);
+                meshBuilder.Add(x + 1, y + 1, z + 1, color);
+                meshBuilder.Add(x + 1, y + 1, z, color);
 
-                meshBuilder.Add(x + 1, y + 1, z + 1, cr, cg, cb, ca);
-                meshBuilder.Add(x + 1, y, z, cr, cg, cb, ca);
-                meshBuilder.Add(x + 1, y, z + 1, cr, cg, cb, ca);
+                meshBuilder.Add(x + 1, y + 1, z + 1, color);
+                meshBuilder.Add(x + 1, y, z, color);
+                meshBuilder.Add(x + 1, y, z + 1, color);
                 polygonCount += 2;
             }
 
             if ((sides & VoxelSides.Bottom) != 0)
             {
-                meshBuilder.Add(x, y, z, cr, cg, cb, ca);
-                meshBuilder.Add(x + 1, y, z + 1, cr, cg, cb, ca);
-                meshBuilder.Add(x + 1, y, z, cr, cg, cb, ca);
+                meshBuilder.Add(x, y, z, color);
+                meshBuilder.Add(x + 1, y, z + 1, color);
+                meshBuilder.Add(x + 1, y, z, color);
 
-                meshBuilder.Add(x, y, z, cr, cg, cb, ca);
-                meshBuilder.Add(x, y, z + 1, cr, cg, cb, ca);
-                meshBuilder.Add(x + 1, y, z + 1, cr, cg, cb, ca);
+                meshBuilder.Add(x, y, z, color);
+                meshBuilder.Add(x, y, z + 1, color);
+                meshBuilder.Add(x + 1, y, z + 1, color);
                 polygonCount += 2;
             }
 
             if ((sides & VoxelSides.Top) != 0)
             {
-                meshBuilder.Add(x, y + 1, z, cr, cg, cb, ca);
-                meshBuilder.Add(x + 1, y + 1, z, cr, cg, cb, ca);
-                meshBuilder.Add(x + 1, y + 1, z + 1, cr, cg, cb, ca);
+                meshBuilder.Add(x, y + 1, z, color);
+                meshBuilder.Add(x + 1, y + 1, z, color);
+                meshBuilder.Add(x + 1, y + 1, z + 1, color);
 
-                meshBuilder.Add(x, y + 1, z, cr, cg, cb, ca);
-                meshBuilder.Add(x + 1, y + 1, z + 1, cr, cg, cb, ca);
-                meshBuilder.Add(x, y + 1, z + 1, cr, cg, cb, ca);
+                meshBuilder.Add(x, y + 1, z, color);
+                meshBuilder.Add(x + 1, y + 1, z + 1, color);
+                meshBuilder.Add(x, y + 1, z + 1, color);
                 polygonCount += 2;
             }
 

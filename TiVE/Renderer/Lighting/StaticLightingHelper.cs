@@ -102,6 +102,13 @@ namespace ProdigalSoftware.TiVE.Renderer.Lighting
                 {
                     for (int ly = startY; ly < endY; ly++)
                     {
+                        int vx = lx * BlockInformation.BlockSize + 5;
+                        int vy = ly * BlockInformation.BlockSize + 5;
+                        int vz = lz * BlockInformation.BlockSize + 5;
+                        float blockPercentage = LightUtils.GetLightPercentage(lightInfo, vx, vy, vz);
+                        Color3f color = gameWorld.GetBlockLight(lx, ly, lz);
+                        gameWorld.SetBlockLight(lx, ly, lz, color + (light.Color * blockPercentage));
+
                         List<LightInfo> blockLights = gameWorld.GetLights(lx, ly, lz);
                         using (new PerformanceLock(blockLights))
                         {
@@ -110,10 +117,6 @@ namespace ProdigalSoftware.TiVE.Renderer.Lighting
                             else
                             {
                                 // Too many lights on this block. Remove the light that affects the block the least.
-                                int vx = lx * BlockInformation.BlockSize + 5;
-                                int vy = ly * BlockInformation.BlockSize + 5;
-                                int vz = lz * BlockInformation.BlockSize + 5;
-
                                 int leastLightIndex = 0;
                                 float leastPercentage = LightUtils.GetLightPercentage(blockLights[0], vx, vy, vz);
                                 for (int i = 1; i < blockLights.Count; i++)
@@ -126,7 +129,7 @@ namespace ProdigalSoftware.TiVE.Renderer.Lighting
                                     }
                                 }
 
-                                if (leastPercentage < LightUtils.GetLightPercentage(lightInfo, vx, vy, vz))
+                                if (leastPercentage < blockPercentage)
                                 {
                                     // Found an existing light that is less intense then the new light
                                     blockLights[leastLightIndex] = lightInfo;
