@@ -3,15 +3,13 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
 using OpenTK;
-using ProdigalSoftware.TiVE.Renderer.Particles;
-using ProdigalSoftware.TiVE.Renderer.Voxels;
 using ProdigalSoftware.TiVE.Renderer.World;
 using ProdigalSoftware.TiVE.Starter;
 using ProdigalSoftware.TiVEPluginFramework;
 using ProdigalSoftware.TiVEPluginFramework.Particles;
 using ProdigalSoftware.Utils;
 
-namespace ProdigalSoftware.TiVE.Resources
+namespace ProdigalSoftware.TiVE.Renderer.Particles
 {
     internal sealed class ParticleSystemManager : IDisposable
     {
@@ -205,7 +203,8 @@ namespace ProdigalSoftware.TiVE.Resources
 
             public override int GetHashCode()
             {
-                return X << 20 ^ Y << 10 ^ Z;
+                // 12 bits for x and y and 8 bits for z (Enough for unique hashes for each block of a 4096x4096x256 world)
+                return ((X & 0xFFF) << 20) ^ ((Y & 0xFFF) << 8) ^ (Z & 0xFF);
             }
         }
         #endregion

@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using IrrKlang;
 
 namespace ProdigalSoftware.TiVE.Sound.irrKlang

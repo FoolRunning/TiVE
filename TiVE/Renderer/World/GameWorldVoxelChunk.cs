@@ -1,12 +1,11 @@
 ﻿using System;
 using System.Diagnostics;
 using OpenTK;
-using ProdigalSoftware.TiVE.Renderer.World;
-using ProdigalSoftware.TiVE.Resources;
+using ProdigalSoftware.TiVE.Renderer.Voxels;
 using ProdigalSoftware.TiVEPluginFramework;
 using ProdigalSoftware.Utils;
 
-namespace ProdigalSoftware.TiVE.Renderer.Voxels
+namespace ProdigalSoftware.TiVE.Renderer.World
 {
     internal sealed class GameWorldVoxelChunk : IDisposable
     {

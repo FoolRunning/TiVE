@@ -3,13 +3,12 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
 using OpenTK;
-using ProdigalSoftware.TiVEPluginFramework;
 using ProdigalSoftware.TiVE.Renderer.Voxels;
-using ProdigalSoftware.TiVE.Renderer.World;
 using ProdigalSoftware.TiVE.Starter;
+using ProdigalSoftware.TiVEPluginFramework;
 using ProdigalSoftware.Utils;
 
-namespace ProdigalSoftware.TiVE.Resources
+namespace ProdigalSoftware.TiVE.Renderer.World
 {
     internal sealed class WorldChunkManager : IDisposable
     {
@@ -199,7 +198,7 @@ namespace ProdigalSoftware.TiVE.Resources
         private void ChunkCreateLoop()
         {
             List<MeshBuilder> meshBuilders = new List<MeshBuilder>();
-            for (int i = 0; i < 10; i++)
+            for (int i = 0; i < 5; i++)
                 meshBuilders.Add(new MeshBuilder(500000, 1000000));
 
             int bottleneckCount = 0;
@@ -238,10 +237,9 @@ namespace ProdigalSoftware.TiVE.Resources
                             }
                         }
                     }
-                }
 
-                if (meshBuilder == null)
                     continue; // No free meshbuilders to use
+                }
 
                 bottleneckCount = 0;
 

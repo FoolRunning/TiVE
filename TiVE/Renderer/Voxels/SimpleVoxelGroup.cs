@@ -1,5 +1,4 @@
-﻿using System;
-using ProdigalSoftware.Utils;
+﻿using ProdigalSoftware.Utils;
 
 namespace ProdigalSoftware.TiVE.Renderer.Voxels
 {

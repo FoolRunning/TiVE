@@ -3,7 +3,6 @@ using OpenTK;
 using OpenTK.Input;
 using ProdigalSoftware.TiVE.Renderer;
 using ProdigalSoftware.TiVE.Renderer.Lighting;
-using ProdigalSoftware.TiVE.Resources;
 using ProdigalSoftware.TiVEPluginFramework;
 
 namespace ProdigalSoftware.TiVE
@@ -90,9 +89,7 @@ namespace ProdigalSoftware.TiVE
 
         public RenderStatistics Render(float timeSinceLastFrame)
         {
-            RenderStatistics stats;
-            renderer.Draw(camera, out stats);
-            return stats;
+            return renderer.Draw(camera);
         }
 
         private static long LongRandom()
@@ -101,28 +98,6 @@ namespace ProdigalSoftware.TiVE
             Random random = new Random();
             random.NextBytes(buf);
             return BitConverter.ToInt64(buf, 0);
-        }
-    }
-
-    internal struct RenderStatistics
-    {
-        public readonly int DrawCount;
-        public readonly int PolygonCount;
-        public readonly int VoxelCount;
-        public readonly int RenderedVoxelCount;
-
-        public RenderStatistics(int drawCount, int polygonCount, int voxelCount, int renderedVoxelCount)
-        {
-            DrawCount = drawCount;
-            PolygonCount = polygonCount;
-            VoxelCount = voxelCount;
-            RenderedVoxelCount = renderedVoxelCount;
-        }
-
-        public static RenderStatistics operator +(RenderStatistics r1, RenderStatistics r2)
-        {
-            return new RenderStatistics(r1.DrawCount + r2.DrawCount, r1.PolygonCount + r2.PolygonCount,
-                r1.VoxelCount + r2.VoxelCount, r1.RenderedVoxelCount + r2.RenderedVoxelCount);
         }
     }
 }

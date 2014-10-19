@@ -2,10 +2,11 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
+using System.Reflection;
 using NLua.Exceptions;
 using ProdigalSoftware.TiVE.Starter;
 
-namespace ProdigalSoftware.TiVE.Resources
+namespace ProdigalSoftware.TiVE.Scripts
 {
     public sealed class LuaScripts : IDisposable
     {
@@ -15,19 +16,26 @@ namespace ProdigalSoftware.TiVE.Resources
         {
             Messages.Print("Loading scripts...");
 
+            string dataDir = Path.Combine(Path.GetDirectoryName(Assembly.GetEntryAssembly().Location), "Data");
             List<string> errors = new List<string>();
-            foreach (string file in Directory.EnumerateFiles("Data", "*.lua", SearchOption.AllDirectories))
+            
+            if (!Directory.Exists(dataDir))
+                errors.Add("Could not find Data directory");
+            else
             {
-                try
+                foreach (string file in Directory.EnumerateFiles(dataDir, "*.lua", SearchOption.AllDirectories))
                 {
-                    dynamic lua = new DynamicLua.DynamicLua();
-                    AddGlobalLuaMethods(lua);
-                    lua.DoFile(file);
-                    scripts.Add(Path.GetFileNameWithoutExtension(file), lua);
-                }
-                catch (LuaScriptException e)
-                {
-                    errors.Add(e.Message);
+                    try
+                    {
+                        dynamic lua = new DynamicLua.DynamicLua();
+                        AddGlobalLuaMethods(lua);
+                        ((DynamicLua.DynamicLua)lua).DoFile(file);
+                        scripts.Add(Path.GetFileNameWithoutExtension(file), lua);
+                    }
+                    catch (LuaScriptException e)
+                    {
+                        errors.Add(e.Message);
+                    }
                 }
             }
 
@@ -45,7 +53,7 @@ namespace ProdigalSoftware.TiVE.Resources
 
         public void Dispose()
         {
-            foreach (dynamic script in scripts.Values)
+            foreach (DynamicLua.DynamicLua script in scripts.Values)
                 script.Dispose();
         }
 
