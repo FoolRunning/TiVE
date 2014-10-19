@@ -4,6 +4,6 @@
     {
         void Update(Camera camera, float timeSinceLastFrame);
 
-        void Draw(Camera camera, out RenderStatistics stats);
+        RenderStatistics Draw(Camera camera);
     }
 }

@@ -1,10 +1,9 @@
 ﻿using System;
 using System.Linq;
-using ProdigalSoftware.TiVE.Renderer.World;
 using ProdigalSoftware.TiVE.Starter;
 using ProdigalSoftware.TiVEPluginFramework;
 
-namespace ProdigalSoftware.TiVE.Resources
+namespace ProdigalSoftware.TiVE.Renderer.World
 {
     /// <summary>
     /// Creates a world based on a set of generators

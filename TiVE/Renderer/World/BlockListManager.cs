@@ -1,8 +1,7 @@
-﻿using ProdigalSoftware.TiVE.Renderer.World;
-using ProdigalSoftware.TiVE.Starter;
+﻿using ProdigalSoftware.TiVE.Starter;
 using ProdigalSoftware.TiVEPluginFramework;
 
-namespace ProdigalSoftware.TiVE.Resources
+namespace ProdigalSoftware.TiVE.Renderer.World
 {
     internal sealed class BlockListManager
     {

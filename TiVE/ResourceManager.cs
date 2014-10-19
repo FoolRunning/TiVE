@@ -1,7 +1,13 @@
 ﻿using System;
+using ProdigalSoftware.TiVE.Plugins;
+using ProdigalSoftware.TiVE.Renderer;
+using ProdigalSoftware.TiVE.Renderer.Particles;
+using ProdigalSoftware.TiVE.Renderer.World;
+using ProdigalSoftware.TiVE.Resources;
+using ProdigalSoftware.TiVE.Scripts;
 using ProdigalSoftware.TiVE.Starter;
 
-namespace ProdigalSoftware.TiVE.Resources
+namespace ProdigalSoftware.TiVE
 {
     internal static class ResourceManager
     {

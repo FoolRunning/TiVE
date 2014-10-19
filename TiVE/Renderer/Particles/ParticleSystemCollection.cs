@@ -4,7 +4,6 @@ using System.Diagnostics;
 using OpenTK;
 using ProdigalSoftware.TiVE.Renderer.Voxels;
 using ProdigalSoftware.TiVE.Renderer.World;
-using ProdigalSoftware.TiVE.Resources;
 using ProdigalSoftware.TiVEPluginFramework.Particles;
 using ProdigalSoftware.Utils;
 

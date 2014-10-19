@@ -2,10 +2,9 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
-using ProdigalSoftware.TiVE.Renderer;
 using ProdigalSoftware.TiVE.Starter;
 
-namespace ProdigalSoftware.TiVE.Resources
+namespace ProdigalSoftware.TiVE.Renderer
 {
     internal sealed class ShaderManager : IDisposable
     {

@@ -5,7 +5,7 @@ using System.Linq;
 using System.Reflection;
 using ProdigalSoftware.TiVE.Starter;
 
-namespace ProdigalSoftware.TiVE.Resources
+namespace ProdigalSoftware.TiVE.Plugins
 {
     internal sealed class PluginManager
     {

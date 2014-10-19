@@ -1,6 +1,6 @@
 ﻿using System;
-using System.Text;
 using System.Drawing;
+using System.Text;
 
 namespace ProdigalSoftware.TiVE.Starter
 {

@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
 using OpenTK;
+using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL4;
 using ProdigalSoftware.TiVE.Starter;
 using ProdigalSoftware.Utils;
@@ -143,9 +144,9 @@ namespace ProdigalSoftware.TiVE.Renderer.OpenGL
             /// Creates a window
             /// </summary>
             public OpenGLDisplay(int width, int height, bool fullscreen, bool vsync)
-                : base(width, height, new OpenTK.Graphics.GraphicsMode(new OpenTK.Graphics.ColorFormat(8, 8, 8, 8), 16, 0, 0), "TiVE",
+                : base(width, height, new GraphicsMode(new ColorFormat(8, 8, 8, 8), 16, 0, 0), "TiVE",
                     fullscreen ? GameWindowFlags.Fullscreen : GameWindowFlags.Default, 
-                    DisplayDevice.Default, 3, 1, OpenTK.Graphics.GraphicsContextFlags.ForwardCompatible)
+                    DisplayDevice.Default, 3, 1, GraphicsContextFlags.ForwardCompatible)
             {
                 this.vsync = vsync;
                 VSync = vsync ? VSyncMode.On : VSyncMode.Off;
@@ -175,11 +176,11 @@ namespace ProdigalSoftware.TiVE.Renderer.OpenGL
 
             void OpenGLDisplay_UpdateFrame(object sender, FrameEventArgs e)
             {
-                updateTime.StartTime();
+                updateTime.MarkStartTime();
 
                 if (!game.UpdateFrame((float)e.Time, Keyboard))
                     Exit();
-                updateTime.AddTime();
+                updateTime.PushTime();
 
                 lastPrintTime += e.Time;
                 if (lastPrintTime > 1)
@@ -223,23 +224,23 @@ namespace ProdigalSoftware.TiVE.Renderer.OpenGL
 
             void OpenGLDisplay_RenderFrame(object sender, FrameEventArgs e)
             {
-                frameTime.AddTime();
-                frameTime.StartTime();
+                frameTime.PushTime();
+                frameTime.MarkStartTime();
                 //frameTime.AddData((float)e.Time * 1000f);
 
-                renderTime.StartTime();
+                renderTime.MarkStartTime();
 
                 GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
                 RenderStatistics stats = game.Render((float)e.Time);
 
-                drawCount.AddCount(stats.DrawCount);
-                voxelCount.AddCount(stats.VoxelCount);
-                polygonCount.AddCount(stats.PolygonCount);
-                renderedVoxelCount.AddCount(stats.RenderedVoxelCount);
+                drawCount.PushCount(stats.DrawCount);
+                voxelCount.PushCount(stats.VoxelCount);
+                polygonCount.PushCount(stats.PolygonCount);
+                renderedVoxelCount.PushCount(stats.RenderedVoxelCount);
 
                 GlUtils.CheckGLErrors();
 
-                renderTime.AddTime();
+                renderTime.PushTime();
 
                 SwapBuffers();
             }
@@ -766,7 +767,6 @@ namespace ProdigalSoftware.TiVE.Renderer.OpenGL
 
         private sealed class TimeStatHelper
         {
-            private static readonly Stopwatch stopwatch = Stopwatch.StartNew();
             private readonly string formatString;
             private long startTicks;
             private float minTime = float.MaxValue;
@@ -796,14 +796,14 @@ namespace ProdigalSoftware.TiVE.Renderer.OpenGL
                 maxTime = 0;
             }
 
-            public void StartTime()
+            public void MarkStartTime()
             {
-                startTicks = stopwatch.ElapsedTicks;
+                startTicks = Stopwatch.GetTimestamp();
             }
 
-            public void AddTime()
+            public void PushTime()
             {
-                long endTime = stopwatch.ElapsedTicks;
+                long endTime = Stopwatch.GetTimestamp();
                 float newTime = (endTime - startTicks) * 1000.0f / Stopwatch.Frequency;
                 totalTime += newTime;
                 dataCount++;
@@ -849,7 +849,7 @@ namespace ProdigalSoftware.TiVE.Renderer.OpenGL
             /// <summary>
             /// Adds the specified value as a new data point
             /// </summary>
-            public void AddCount(int newCount)
+            public void PushCount(int newCount)
             {
                 totalCount += newCount;
                 dataCount++;

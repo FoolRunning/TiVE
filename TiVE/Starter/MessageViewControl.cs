@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Drawing;
+using System.Drawing.Text;
 using System.Text;
 using System.Windows.Forms;
-using System.Drawing.Text;
 
 namespace ProdigalSoftware.TiVE.Starter
 {

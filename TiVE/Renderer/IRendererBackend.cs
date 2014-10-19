@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace ProdigalSoftware.TiVE.Renderer
+﻿namespace ProdigalSoftware.TiVE.Renderer
 {
     internal enum PrimitiveType
     {

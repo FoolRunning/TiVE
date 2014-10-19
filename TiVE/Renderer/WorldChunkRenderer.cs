@@ -1,7 +1,6 @@
 ﻿using System;
 using OpenTK;
 using ProdigalSoftware.TiVE.Renderer.World;
-using ProdigalSoftware.TiVE.Resources;
 using ProdigalSoftware.TiVEPluginFramework;
 
 namespace ProdigalSoftware.TiVE.Renderer
@@ -30,10 +29,10 @@ namespace ProdigalSoftware.TiVE.Renderer
             ResourceManager.ParticleManager.UpdateCameraPos(worldMinX, worldMaxX, worldMinY, worldMaxY);
         }
 
-        public void Draw(Camera camera, out RenderStatistics stats)
+        public RenderStatistics Draw(Camera camera)
         {
-            stats = ResourceManager.ChunkManager.Render(ref viewProjectionMatrix);
-            stats += ResourceManager.ParticleManager.Render(ref viewProjectionMatrix);
+            RenderStatistics stats = ResourceManager.ChunkManager.Render(ref viewProjectionMatrix);
+            return stats + ResourceManager.ParticleManager.Render(ref viewProjectionMatrix);
         }
 
         private static void GetWorldView(Camera camera, float distance, out int minX, out int maxX, out int minY, out int maxY)
