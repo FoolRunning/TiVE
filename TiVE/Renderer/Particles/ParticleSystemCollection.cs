@@ -32,6 +32,8 @@ namespace ProdigalSoftware.TiVE.Renderer.Particles
         private readonly int voxelsPerParticle;
         private readonly int renderedVoxelsPerParticle;
 
+        private readonly object syncObj = new object();
+
         private Vector3s[] locations;
         private Color4b[] colors;
         
@@ -159,7 +161,10 @@ namespace ProdigalSoftware.TiVE.Renderer.Particles
             {
                 ParticleSystem system = updateList[i];
                 if (system != null)
-                    system.Update(timeSinceLastFrame, particles[i], locations, colors, gameWorld, ref dataIndex);
+                {
+                    lock (syncObj)
+                        system.Update(timeSinceLastFrame, particles[i], locations, colors, gameWorld, ref dataIndex);
+                }
             }
 
             totalAliveParticles = dataIndex;
@@ -194,8 +199,11 @@ namespace ProdigalSoftware.TiVE.Renderer.Particles
 
             // Put the data for the current particles into the graphics memory and draw them
             int totalParticles = totalAliveParticles;
-            locationData.UpdateData(locations, totalParticles);
-            colorData.UpdateData(colors, totalParticles);
+            lock (syncObj)
+            {
+                locationData.UpdateData(locations, totalParticles);
+                colorData.UpdateData(colors, totalParticles);
+            }
             instances.Bind();
             TiVEController.Backend.Draw(PrimitiveType.Triangles, instances);
 

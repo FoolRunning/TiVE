@@ -77,7 +77,7 @@
   <ItemGroup>
     <Compile Include="ArrayUtils.cs" />
     <Compile Include="Color4b.cs" />
-    <Compile Include="Color4f.cs" />
+    <Compile Include="Color3f.cs" />
     <Compile Include="MathUtils.cs" />
     <Compile Include="PerformanceLock.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

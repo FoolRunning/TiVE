@@ -39,9 +39,13 @@
             this.btnExit = new System.Windows.Forms.Button();
             this.btnCopyText = new System.Windows.Forms.Button();
             this.btnStart = new System.Windows.Forms.Button();
+            this.panel1 = new System.Windows.Forms.Panel();
+            this.pnlOptionsList = new System.Windows.Forms.TableLayoutPanel();
             this.tableLayoutPanel1.SuspendLayout();
             this.tabControl1.SuspendLayout();
+            this.tbOptions.SuspendLayout();
             this.tableLayoutPanel2.SuspendLayout();
+            this.panel1.SuspendLayout();
             this.SuspendLayout();
             // 
             // tableLayoutPanel1
@@ -56,7 +60,7 @@
             this.tableLayoutPanel1.RowCount = 2;
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle());
-            this.tableLayoutPanel1.Size = new System.Drawing.Size(640, 480);
+            this.tableLayoutPanel1.Size = new System.Drawing.Size(800, 500);
             this.tableLayoutPanel1.TabIndex = 0;
             this.tableLayoutPanel1.MouseDown += new System.Windows.Forms.MouseEventHandler(this.tableLayoutPanel1_MouseDown);
             this.tableLayoutPanel1.MouseMove += new System.Windows.Forms.MouseEventHandler(this.tableLayoutPanel1_MouseMove);
@@ -73,7 +77,7 @@
             this.tabControl1.Location = new System.Drawing.Point(3, 3);
             this.tabControl1.Name = "tabControl1";
             this.tabControl1.SelectedIndex = 0;
-            this.tabControl1.Size = new System.Drawing.Size(634, 427);
+            this.tabControl1.Size = new System.Drawing.Size(794, 447);
             this.tabControl1.TabIndex = 0;
             // 
             // tbMessages
@@ -81,16 +85,17 @@
             this.tbMessages.Location = new System.Drawing.Point(4, 22);
             this.tbMessages.Name = "tbMessages";
             this.tbMessages.Padding = new System.Windows.Forms.Padding(3);
-            this.tbMessages.Size = new System.Drawing.Size(626, 401);
+            this.tbMessages.Size = new System.Drawing.Size(786, 421);
             this.tbMessages.TabIndex = 0;
             this.tbMessages.Text = "Messages";
             // 
             // tbOptions
             // 
+            this.tbOptions.Controls.Add(this.panel1);
             this.tbOptions.Location = new System.Drawing.Point(4, 22);
             this.tbOptions.Name = "tbOptions";
             this.tbOptions.Padding = new System.Windows.Forms.Padding(3);
-            this.tbOptions.Size = new System.Drawing.Size(626, 401);
+            this.tbOptions.Size = new System.Drawing.Size(786, 421);
             this.tbOptions.TabIndex = 1;
             this.tbOptions.Text = "Options";
             this.tbOptions.UseVisualStyleBackColor = true;
@@ -99,7 +104,7 @@
             // 
             this.tbAdvancedOptions.Location = new System.Drawing.Point(4, 22);
             this.tbAdvancedOptions.Name = "tbAdvancedOptions";
-            this.tbAdvancedOptions.Size = new System.Drawing.Size(626, 401);
+            this.tbAdvancedOptions.Size = new System.Drawing.Size(786, 421);
             this.tbAdvancedOptions.TabIndex = 2;
             this.tbAdvancedOptions.Text = "Advanced Options";
             this.tbAdvancedOptions.UseVisualStyleBackColor = true;
@@ -121,11 +126,11 @@
             this.tableLayoutPanel2.Controls.Add(this.btnExit, 5, 0);
             this.tableLayoutPanel2.Controls.Add(this.btnCopyText, 4, 0);
             this.tableLayoutPanel2.Controls.Add(this.btnStart, 2, 0);
-            this.tableLayoutPanel2.Location = new System.Drawing.Point(3, 436);
+            this.tableLayoutPanel2.Location = new System.Drawing.Point(3, 456);
             this.tableLayoutPanel2.Name = "tableLayoutPanel2";
             this.tableLayoutPanel2.RowCount = 1;
             this.tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle());
-            this.tableLayoutPanel2.Size = new System.Drawing.Size(634, 41);
+            this.tableLayoutPanel2.Size = new System.Drawing.Size(794, 41);
             this.tableLayoutPanel2.TabIndex = 1;
             // 
             // label1
@@ -147,13 +152,13 @@
             this.comboBox1.FormattingEnabled = true;
             this.comboBox1.Location = new System.Drawing.Point(92, 10);
             this.comboBox1.Name = "comboBox1";
-            this.comboBox1.Size = new System.Drawing.Size(209, 21);
+            this.comboBox1.Size = new System.Drawing.Size(244, 21);
             this.comboBox1.TabIndex = 1;
             // 
             // btnExit
             // 
             this.btnExit.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnExit.Location = new System.Drawing.Point(556, 9);
+            this.btnExit.Location = new System.Drawing.Point(716, 9);
             this.btnExit.Name = "btnExit";
             this.btnExit.Size = new System.Drawing.Size(75, 23);
             this.btnExit.TabIndex = 2;
@@ -164,7 +169,7 @@
             // btnCopyText
             // 
             this.btnCopyText.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnCopyText.Location = new System.Drawing.Point(466, 9);
+            this.btnCopyText.Location = new System.Drawing.Point(626, 9);
             this.btnCopyText.Name = "btnCopyText";
             this.btnCopyText.Size = new System.Drawing.Size(84, 23);
             this.btnCopyText.TabIndex = 3;
@@ -178,13 +183,35 @@
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.btnStart.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Bold);
-            this.btnStart.Location = new System.Drawing.Point(307, 3);
+            this.btnStart.Location = new System.Drawing.Point(342, 3);
             this.btnStart.Name = "btnStart";
             this.btnStart.Size = new System.Drawing.Size(98, 35);
             this.btnStart.TabIndex = 4;
             this.btnStart.Text = "&Start";
             this.btnStart.UseVisualStyleBackColor = false;
             this.btnStart.Click += new System.EventHandler(this.btnStart_Click);
+            // 
+            // panel1
+            // 
+            this.panel1.Controls.Add(this.pnlOptionsList);
+            this.panel1.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.panel1.Location = new System.Drawing.Point(3, 3);
+            this.panel1.Name = "panel1";
+            this.panel1.Size = new System.Drawing.Size(780, 415);
+            this.panel1.TabIndex = 0;
+            // 
+            // pnlOptionsList
+            // 
+            this.pnlOptionsList.ColumnCount = 2;
+            this.pnlOptionsList.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50F));
+            this.pnlOptionsList.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50F));
+            this.pnlOptionsList.Location = new System.Drawing.Point(3, 3);
+            this.pnlOptionsList.Name = "pnlOptionsList";
+            this.pnlOptionsList.RowCount = 2;
+            this.pnlOptionsList.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 50F));
+            this.pnlOptionsList.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 50F));
+            this.pnlOptionsList.Size = new System.Drawing.Size(711, 100);
+            this.pnlOptionsList.TabIndex = 0;
             // 
             // StarterForm
             // 
@@ -201,8 +228,10 @@
             this.Text = "TiVE Launcher";
             this.tableLayoutPanel1.ResumeLayout(false);
             this.tabControl1.ResumeLayout(false);
+            this.tbOptions.ResumeLayout(false);
             this.tableLayoutPanel2.ResumeLayout(false);
             this.tableLayoutPanel2.PerformLayout();
+            this.panel1.ResumeLayout(false);
             this.ResumeLayout(false);
 
         }
@@ -220,5 +249,7 @@
         private System.Windows.Forms.Button btnExit;
         private System.Windows.Forms.Button btnCopyText;
         private System.Windows.Forms.Button btnStart;
+        private System.Windows.Forms.Panel panel1;
+        private System.Windows.Forms.TableLayoutPanel pnlOptionsList;
     }
 }

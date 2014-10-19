@@ -16,7 +16,7 @@ namespace ProdigalSoftware.TiVE.Resources
         public bool CreateWorld(int worldXsize, int worldYsize, int worldZsize, long seed)
         {
             Messages.Print("Creating new world...");
-            GameWorld createdWorld = new GameWorld(worldXsize, worldYsize, worldZsize, false);
+            GameWorld createdWorld = new GameWorld(worldXsize, worldYsize, worldZsize);
 
             try
             {

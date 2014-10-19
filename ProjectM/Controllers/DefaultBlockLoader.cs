@@ -16,7 +16,7 @@ namespace ProdigalSoftware.ProjectM.Controllers
         {
             for (int i = 0; i < 20; i++)
             {
-                bool sphere = false;
+                int sphereSize = 0;
                 Color4 color;
                 string name;
                 float voxelDensity;
@@ -25,7 +25,7 @@ namespace ProdigalSoftware.ProjectM.Controllers
                     color = new Color4(129, 53, 2, 255);
                     voxelDensity = 1.0f;
                     name = "dirt" + i;
-                    sphere = true;
+                    sphereSize = 4;
                 }
                 else if (i < 10)
                 {
@@ -46,32 +46,32 @@ namespace ProdigalSoftware.ProjectM.Controllers
                     voxelDensity = 0.1f;
                     name = "sand" + (i - 15);
                 }
-                yield return CreateBlockInfo(name, i >= 5 && i < 10, sphere, color, voxelDensity);
+                yield return CreateBlockInfo(name, i >= 5 && i < 10, sphereSize, color, voxelDensity);
             }
 
             uint[,,] particleVoxels = new uint[1, 1, 1];
             particleVoxels[0, 0, 0] = 0xFFFFFFFF;
             yield return new BlockInformation("fire", 
                 new ParticleSystemInformation(particleVoxels, new FireUpdater(), new Vector3b(5, 5, 1), 300, 310, true, false),
-                new PointLight(new Vector3b(5, 5, 1), new Color4f(1.0f, 0.9f, 0.8f, 1.0f), 0.005f));
+                new PointLight(new Vector3b(5, 5, 1), new Color3f(1.0f, 0.9f, 0.8f), 0.005f));
 
-            yield return CreateBlockInfo("light0", false, true, new Color4(255, 40, 40, 255), 1.0f, null,
-                new PointLight(new Vector3b(5, 5, 5), new Color4f(1.0f, 0.05f, 0.05f, 1.0f), 0.005f));
+            yield return CreateBlockInfo("light0", false, 2, new Color4(255, 40, 40, 255), 1.0f, null,
+                new PointLight(new Vector3b(5, 5, 5), new Color3f(1.0f, 0.05f, 0.05f), 0.005f));
 
-            yield return CreateBlockInfo("light1", false, true, new Color4(255, 255, 40, 255), 1.0f, null,
-                new PointLight(new Vector3b(5, 5, 5), new Color4f(1.0f, 1.0f, 0.05f, 1.0f), 0.005f));
+            yield return CreateBlockInfo("light1", false, 2, new Color4(255, 255, 40, 255), 1.0f, null,
+                new PointLight(new Vector3b(5, 5, 5), new Color3f(1.0f, 1.0f, 0.05f), 0.005f));
 
-            yield return CreateBlockInfo("light2", false, true, new Color4(40, 255, 40, 255), 1.0f, null,
-                new PointLight(new Vector3b(5, 5, 5), new Color4f(0.05f, 1.0f, 0.05f, 1.0f), 0.005f));
+            yield return CreateBlockInfo("light2", false, 2, new Color4(40, 255, 40, 255), 1.0f, null,
+                new PointLight(new Vector3b(5, 5, 5), new Color3f(0.05f, 1.0f, 0.05f), 0.005f));
 
-            yield return CreateBlockInfo("light3", false, true, new Color4(40, 255, 255, 255), 1.0f, null,
-                new PointLight(new Vector3b(5, 5, 5), new Color4f(0.05f, 1.0f, 1.0f, 1.0f), 0.005f));
+            yield return CreateBlockInfo("light3", false, 2, new Color4(40, 255, 255, 255), 1.0f, null,
+                new PointLight(new Vector3b(5, 5, 5), new Color3f(0.05f, 1.0f, 1.0f), 0.005f));
 
-            yield return CreateBlockInfo("light4", false, true, new Color4(40, 40, 255, 255), 1.0f, null,
-                new PointLight(new Vector3b(5, 5, 5), new Color4f(0.05f, 0.05f, 1.0f, 1.0f), 0.005f));
+            yield return CreateBlockInfo("light4", false, 2, new Color4(40, 40, 255, 255), 1.0f, null,
+                new PointLight(new Vector3b(5, 5, 5), new Color3f(0.05f, 0.05f, 1.0f), 0.005f));
 
-            yield return CreateBlockInfo("light5", false, true, new Color4(255, 40, 255, 255), 1.0f, null,
-                new PointLight(new Vector3b(5, 5, 5), new Color4f(1.0f, 0.05f, 1.0f, 1.0f), 0.005f));
+            yield return CreateBlockInfo("light5", false, 2, new Color4(255, 40, 255, 255), 1.0f, null,
+                new PointLight(new Vector3b(5, 5, 5), new Color3f(1.0f, 0.05f, 1.0f), 0.005f));
 
             yield return new BlockInformation("snow",
                 new ParticleSystemInformation(particleVoxels, new SnowUpdater(), new Vector3b(0, 0, 0), 100, 1, false, true));
@@ -84,21 +84,22 @@ namespace ProdigalSoftware.ProjectM.Controllers
             particleVoxels[1, 2, 1] = 0xFFFFFFFF;
             particleVoxels[1, 1, 0] = 0xFFFFFFFF;
             particleVoxels[1, 1, 2] = 0xFFFFFFFF;
-            yield return CreateBlockInfo("fountain", false, true, new Color4(20, 20, 150, 255), 1.0f,
+            yield return CreateBlockInfo("fountain", false, 4, new Color4(20, 20, 150, 255), 1.0f,
                 new ParticleSystemInformation(particleVoxels, new FountainUpdater(), new Vector3b(3, 3, 7), 1000, 2200, false, true));
         }
 
         public IEnumerable<BlockAnimationDefinition> CreateAnimations()
         {
-            yield return new BlockAnimationDefinition(1000, "sand0", "sand1", "sand2", "sand3", "sand0");
+            yield return new BlockAnimationDefinition(100, "sand0", "sand1", "sand2", "sand3", "sand0");
             //return null;
         }
 
-        private static BlockInformation CreateBlockInfo(string name, bool frontOnly, bool sphere, Color4 color, float voxelDensity,
+        private static BlockInformation CreateBlockInfo(string name, bool frontOnly, int sphereSize, Color4 color, float voxelDensity,
             ParticleSystemInformation particleSystem = null, ILight light = null)
         {
+            const int mid = BlockInformation.BlockSize / 2;
+
             BlockInformation block = new BlockInformation(name, particleSystem, light);
-            const int sphereSize = 4;
             for (int x = 0; x < BlockInformation.BlockSize; x++)
             {
                 for (int y = 0; y < BlockInformation.BlockSize; y++)
@@ -106,9 +107,9 @@ namespace ProdigalSoftware.ProjectM.Controllers
                     for (int z = frontOnly ? BlockInformation.BlockSize - 1 : 0; z < BlockInformation.BlockSize; z++)
                     //for (int z = 0; z < (frontOnly ? 1 : BlockInformation.BlockSize); z++)
                     {
-                        if (sphere)
+                        if (sphereSize > 0)
                         {
-                            int dist = (x - sphereSize) * (x - sphereSize) + (y - sphereSize) * (y - sphereSize) + (z - sphereSize) * (z - sphereSize);
+                            int dist = (x - mid) * (x - mid) + (y - mid) * (y - mid) + (z - mid) * (z - mid);
                             if (dist > sphereSize * sphereSize)
                                 continue;
                         }

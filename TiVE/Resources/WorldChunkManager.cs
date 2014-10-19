@@ -4,7 +4,6 @@ using System.Diagnostics;
 using System.Threading;
 using OpenTK;
 using ProdigalSoftware.TiVEPluginFramework;
-using ProdigalSoftware.TiVE.Renderer;
 using ProdigalSoftware.TiVE.Renderer.Voxels;
 using ProdigalSoftware.TiVE.Renderer.World;
 using ProdigalSoftware.TiVE.Starter;
@@ -22,8 +21,6 @@ namespace ProdigalSoftware.TiVE.Resources
         private readonly List<Thread> chunkCreationThreads = new List<Thread>();
         private readonly Queue<GameWorldVoxelChunk> chunkLoadQueue = new Queue<GameWorldVoxelChunk>();
         
-        private IRendererData voxelInstanceLocationData;
-
         private volatile bool endCreationThreads;
 
         private int chunkMinX;
@@ -35,11 +32,6 @@ namespace ProdigalSoftware.TiVE.Resources
         public bool Initialize()
         {
             Messages.Print("Starting chunk creations threads...");
-
-            MeshBuilder voxelInstanceBuilder = new MeshBuilder(30, 0);
-            SimpleVoxelGroup.CreateVoxel(voxelInstanceBuilder, VoxelSides.All, 0, 0, 0, 235, 235, 235, 255);
-            voxelInstanceLocationData = voxelInstanceBuilder.GetLocationData();
-            voxelInstanceLocationData.Lock();
 
             endCreationThreads = false;
             for (int i = 0; i < 3; i++)
@@ -65,12 +57,6 @@ namespace ProdigalSoftware.TiVE.Resources
                 chunk.Dispose();
             loadedChunksList.Clear();
             loadedChunks.Clear();
-
-            if (voxelInstanceLocationData != null)
-            {
-                voxelInstanceLocationData.Unlock();
-                voxelInstanceLocationData.Dispose();
-            }
         }
 
         public void UpdateCameraPos(int camMinX, int camMaxX, int camMinY, int camMaxY)
@@ -91,7 +77,7 @@ namespace ProdigalSoftware.TiVE.Resources
                     chunksToDelete.Add(chunk);
             }
 
-            BlockList blockList = ResourceManager.BlockListManager.BlockList;
+            //BlockList blockList = ResourceManager.BlockListManager.BlockList;
             for (int chunkZ = chunkMaxZ - 1; chunkZ >= 0; chunkZ--)
             {
                 for (int chunkX = chunkMinX; chunkX < chunkMaxX; chunkX++)
@@ -158,7 +144,7 @@ namespace ProdigalSoftware.TiVE.Resources
             chunksToDelete.Clear();
 
             int initializedChunkCount = 0;
-            int excessUninitializedChunkCount = 0;
+            //int excessUninitializedChunkCount = 0;
             RenderStatistics stats = new RenderStatistics();
             GameWorld gameWorld = ResourceManager.GameWorldManager.GameWorld;
             for (int chunkZ = chunkMaxZ - 1; chunkZ >= 0; chunkZ--)
@@ -172,19 +158,19 @@ namespace ProdigalSoftware.TiVE.Resources
                         {
                             if (initializedChunkCount < MaxChunkUpdatesPerFrame)
                             {
-                                if (chunk.Initialize(voxelInstanceLocationData))
+                                if (chunk.Initialize())
                                     initializedChunkCount++;
                             }
-                            else
-                                excessUninitializedChunkCount++;
+                            //else
+                            //    excessUninitializedChunkCount++;
                         }
                             
                         stats += chunk.Render(ref viewProjectionMatrix);
                     }
                 }
             }
-            if (excessUninitializedChunkCount > 0)
-                Console.WriteLine("Maxed chunk initializations for this frame by " + excessUninitializedChunkCount);
+            //if (excessUninitializedChunkCount > 0)
+            //    Console.WriteLine("Maxed chunk initializations for this frame by " + excessUninitializedChunkCount);
 
             return stats;
         }
