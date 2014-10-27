@@ -5,17 +5,14 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("TiVEPluginFramework")]
+[assembly: AssemblyTitle("BlockConverter")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("TiVEPluginFramework")]
-[assembly: AssemblyCopyright("Copyright ©  2013")]
+[assembly: AssemblyProduct("BlockConverter")]
+[assembly: AssemblyCopyright("Copyright ©  2014")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
-[assembly: InternalsVisibleTo("TiVEBlockEditor")]
-[assembly: InternalsVisibleTo("TiVE")]
-[assembly: InternalsVisibleTo("BlockConverter")]
 
 // Setting ComVisible to false makes the types in this assembly not visible 
 // to COM components.  If you need to access a type in this assembly from 
@@ -23,7 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("99ce0368-f7b4-42f8-9597-4029e69bc901")]
+[assembly: Guid("e1baeb26-3c8f-483c-84bd-d002d87e74ed")]
 
 // Version information for an assembly consists of the following four values:
 //

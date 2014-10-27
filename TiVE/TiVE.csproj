@@ -112,6 +112,7 @@
     <Compile Include="Renderer\Voxels\VoxelMeshUtils.cs" />
     <Compile Include="Renderer\Lighting\LightInfo.cs" />
     <Compile Include="Renderer\Lighting\StaticLightingHelper.cs" />
+    <Compile Include="Renderer\World\AnimationInfo.cs" />
     <Compile Include="Scripts\LuaScripts.cs" />
     <Compile Include="Renderer\Particles\ParticleSystemManager.cs" />
     <Compile Include="Plugins\PluginManager.cs" />
@@ -162,6 +163,7 @@
     <Compile Include="Starter\TextState.cs" />
     <Compile Include="TiVEController.cs" />
     <Compile Include="TiVEException.cs" />
+    <Compile Include="TiVEUtils.cs" />
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>

@@ -1,4 +1,6 @@
-﻿using ProdigalSoftware.Utils;
+﻿using System;
+using ProdigalSoftware.TiVEPluginFramework;
+using ProdigalSoftware.Utils;
 
 namespace ProdigalSoftware.TiVE.Renderer.Voxels
 {
@@ -8,8 +10,9 @@ namespace ProdigalSoftware.TiVE.Renderer.Voxels
         {
         }
 
-        public IndexedVoxelGroup(uint[, ,] voxels) : base(voxels)
+        public IndexedVoxelGroup(BlockInformation block) : base(BlockInformation.BlockSize, BlockInformation.BlockSize, BlockInformation.BlockSize)
         {
+            Array.Copy(block.VoxelsArray, voxels, voxels.Length);
         }
 
         protected override int AddVoxel(MeshBuilder meshBuilder, VoxelSides sides, int x, int y, int z, Color4b color)
