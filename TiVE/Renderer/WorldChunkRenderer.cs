@@ -7,43 +7,44 @@ namespace ProdigalSoftware.TiVE.Renderer
 {
     internal sealed class WorldChunkRenderer : IGameWorldRenderer
     {
-        private int worldMinX;
-        private int worldMaxX;
-        private int worldMinY;
-        private int worldMaxY;
+        private int blockMinX;
+        private int blockMaxX;
+        private int blockMinY;
+        private int blockMaxY;
         private Matrix4 viewProjectionMatrix;
 
         public void Update(Camera camera, float timeSinceLastFrame)
         {
-            GetWorldView(camera, camera.Location.Z, out worldMinX, out worldMaxX, out worldMinY, out worldMaxY);
+            GetWorldView(camera, camera.Location.Z, out blockMinX, out blockMaxX, out blockMinY, out blockMaxY);
 
             GameWorld gameWorld = ResourceManager.GameWorldManager.GameWorld;
-            worldMinX = Math.Max(worldMinX, 0);
-            worldMinY = Math.Max(worldMinY, 0);
-            worldMaxX = Math.Min(worldMaxX, gameWorld.BlockSize.X);
-            worldMaxY = Math.Min(worldMaxY, gameWorld.BlockSize.Y);
+            blockMinX = Math.Max(blockMinX, 0);
+            blockMinY = Math.Max(blockMinY, 0);
+            blockMaxX = Math.Min(blockMaxX, gameWorld.BlockSize.X);
+            blockMaxY = Math.Min(blockMaxY, gameWorld.BlockSize.Y);
             viewProjectionMatrix = Matrix4.Mult(camera.ViewMatrix, camera.ProjectionMatrix);
 
             ResourceManager.BlockListManager.UpdateAnimations(timeSinceLastFrame);
-            ResourceManager.ChunkManager.UpdateCameraPos(worldMinX, worldMaxX, worldMinY, worldMaxY);
-            ResourceManager.ParticleManager.UpdateCameraPos(worldMinX, worldMaxX, worldMinY, worldMaxY);
+            ResourceManager.ChunkManager.UpdateCameraPos(blockMinX, blockMaxX, blockMinY, blockMaxY);
+            ResourceManager.ParticleManager.UpdateCameraPos(blockMinX, blockMaxX, blockMinY, blockMaxY);
         }
 
         public RenderStatistics Draw(Camera camera)
         {
-            RenderStatistics stats = ResourceManager.ChunkManager.Render(ref viewProjectionMatrix);
+            RenderStatistics stats = ResourceManager.ChunkManager.Render(ref viewProjectionMatrix, blockMinX, blockMaxX, blockMinY, blockMaxY);
+            //stats = stats + ResourceManager.BlockListManager.RenderAnimatedBlocks(ref viewProjectionMatrix, blockMinX, blockMaxX, blockMinY, blockMaxY);
             return stats + ResourceManager.ParticleManager.Render(ref viewProjectionMatrix);
         }
 
-        private static void GetWorldView(Camera camera, float distance, out int minX, out int maxX, out int minY, out int maxY)
+        private static void GetWorldView(Camera camera, float distance, out int minBlockX, out int maxBlockX, out int minBlockY, out int maxBlockY)
         {
             Vector3 topLeft, bottomRight;
             camera.GetViewPlane(distance, out topLeft, out bottomRight);
 
-            minX = (int)Math.Floor(topLeft.X / BlockInformation.BlockSize);
-            maxX = (int)Math.Ceiling(bottomRight.X / BlockInformation.BlockSize);
-            minY = (int)Math.Floor(bottomRight.Y / BlockInformation.BlockSize);
-            maxY = (int)Math.Ceiling(topLeft.Y / BlockInformation.BlockSize);
+            minBlockX = (int)Math.Floor(topLeft.X / BlockInformation.BlockSize);
+            maxBlockX = (int)Math.Ceiling(bottomRight.X / BlockInformation.BlockSize);
+            minBlockY = (int)Math.Floor(bottomRight.Y / BlockInformation.BlockSize);
+            maxBlockY = (int)Math.Ceiling(topLeft.Y / BlockInformation.BlockSize);
         }
     }
 }

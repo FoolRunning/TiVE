@@ -488,11 +488,10 @@ namespace ProdigalSoftware.TiVE.Renderer.OpenGL
                 elementCount = elementsToUpdate;
                 int sizeInBytes = elementsToUpdate * Marshal.SizeOf(typeof(T2));
                 if (elementCount > allocatedDataElementCount)
-                {
                     allocatedDataElementCount = elementCount;
-                    GL.BufferData(target, new IntPtr(sizeInBytes), (T2[])null, BufferUsageHint.StreamDraw);
-                }
 
+                //int totalSizeInBytes = allocatedDataElementCount * Marshal.SizeOf(typeof(T2));
+                GL.BufferData(target, new IntPtr(sizeInBytes), (T2[])null, BufferUsageHint.StreamDraw);
                 GL.BufferSubData(target, new IntPtr(0), new IntPtr(sizeInBytes), newData);
                 GlUtils.CheckGLErrors();
             }

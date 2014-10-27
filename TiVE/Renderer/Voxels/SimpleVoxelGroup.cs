@@ -7,11 +7,7 @@ namespace ProdigalSoftware.TiVE.Renderer.Voxels
         public SimpleVoxelGroup(int sizeX, int sizeY, int sizeZ) : base(sizeX, sizeY, sizeZ)
         {
         }
-
-        public SimpleVoxelGroup(uint[, ,] voxels) : base(voxels)
-        {
-        }
-
+        
         protected override int AddVoxel(MeshBuilder meshBuilder, VoxelSides sides, int x, int y, int z, Color4b color)
         {
             return CreateVoxel(meshBuilder, sides, x, y, z, color);

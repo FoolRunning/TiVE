@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using ProdigalSoftware.TiVE.Renderer.Lighting;
-using ProdigalSoftware.TiVE.Renderer.Voxels;
 using ProdigalSoftware.TiVEPluginFramework;
 using ProdigalSoftware.Utils;
 
@@ -21,9 +20,12 @@ namespace ProdigalSoftware.TiVE.Renderer.World
         private readonly Block[] worldBlocks;
         private readonly GameWorldVoxelChunk[] worldChunks;
         private readonly Color3f ambientLight;
+        private readonly BlockList blockList;
 
-        internal GameWorld(int blockSizeX, int blockSizeY, int blockSizeZ)
+        internal GameWorld(int blockSizeX, int blockSizeY, int blockSizeZ, BlockList blockList)
         {
+            this.blockList = blockList;
+
             blockSize = new Vector3i(blockSizeX, blockSizeY, blockSizeZ);
             voxelSize = new Vector3i(blockSizeX * BlockInformation.BlockSize, blockSizeY * BlockInformation.BlockSize, blockSizeZ * BlockInformation.BlockSize);
             chunkSize = new Vector3i((int)Math.Ceiling(blockSizeX / (float)GameWorldVoxelChunk.TileSize),
@@ -44,11 +46,11 @@ namespace ProdigalSoftware.TiVE.Renderer.World
                 }
             }
             
-            ambientLight = new Color3f(0.05f, 0.05f, 0.05f);
+            ambientLight = new Color3f(0.01f, 0.01f, 0.01f);
         }
 
         /// <summary>
-        /// Gets the absolute voxel size of the game world
+        /// Gets the voxel size of the game world
         /// </summary>
         public Vector3i VoxelSize
         {
@@ -88,7 +90,7 @@ namespace ProdigalSoftware.TiVE.Renderer.World
         }
 
         /// <summary>
-        /// 
+        /// Gets the light value at the specified voxel
         /// </summary>
         /// <remarks>Very performance-critical method</remarks>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -158,7 +160,7 @@ namespace ProdigalSoftware.TiVE.Renderer.World
             int blockVoxelZ = voxelZ % BlockInformation.BlockSize;
 
             BlockInformation block = worldBlocks[GetBlockOffset(blockX, blockY, blockZ)].BlockInfo;
-            return block[blockVoxelX, blockVoxelY, blockVoxelZ];
+            return blockList.BelongsToAnimation(block) ? 0 : block[blockVoxelX, blockVoxelY, blockVoxelZ];
         }
 
         #region Private helper methods

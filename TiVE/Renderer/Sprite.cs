@@ -31,7 +31,7 @@ namespace ProdigalSoftware.TiVE.Renderer
                     if (c.A > 0)
                     {
                         for (int z = 0; z < 3; z++)
-                            newSprite.voxels.SetVoxel(x, y, z, (uint)c.ToArgb());
+                            newSprite.voxels[x, y, z] = (uint)c.ToArgb();
                     }
                 }
             }

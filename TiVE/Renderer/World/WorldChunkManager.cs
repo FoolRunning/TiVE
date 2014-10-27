@@ -22,12 +22,6 @@ namespace ProdigalSoftware.TiVE.Renderer.World
         
         private volatile bool endCreationThreads;
 
-        private int chunkMinX;
-        private int chunkMaxX;
-        private int chunkMinY;
-        private int chunkMaxY;
-        private int chunkMaxZ;
-
         public bool Initialize()
         {
             Messages.Print("Starting chunk creations threads...");
@@ -63,11 +57,11 @@ namespace ProdigalSoftware.TiVE.Renderer.World
             Debug.Assert(Thread.CurrentThread.Name == "Main UI");
 
             GameWorld gameWorld = ResourceManager.GameWorldManager.GameWorld;
-            chunkMinX = Math.Max(0, Math.Min(gameWorld.ChunkSize.X, camMinX / GameWorldVoxelChunk.TileSize - 1));
-            chunkMaxX = Math.Max(0, Math.Min(gameWorld.ChunkSize.X, (int)Math.Ceiling(camMaxX / (float)GameWorldVoxelChunk.TileSize) + 1));
-            chunkMinY = Math.Max(0, Math.Min(gameWorld.ChunkSize.Y, camMinY / GameWorldVoxelChunk.TileSize - 1));
-            chunkMaxY = Math.Max(0, Math.Min(gameWorld.ChunkSize.Y, (int)Math.Ceiling(camMaxY / (float)GameWorldVoxelChunk.TileSize) + 1));
-            chunkMaxZ = Math.Max((int)Math.Ceiling(gameWorld.BlockSize.Z / (float)GameWorldVoxelChunk.TileSize), 1);
+            int chunkMinX = Math.Max(0, Math.Min(gameWorld.ChunkSize.X, camMinX / GameWorldVoxelChunk.TileSize - 1));
+            int chunkMaxX = Math.Max(0, Math.Min(gameWorld.ChunkSize.X, (int)Math.Ceiling(camMaxX / (float)GameWorldVoxelChunk.TileSize) + 1));
+            int chunkMinY = Math.Max(0, Math.Min(gameWorld.ChunkSize.Y, camMinY / GameWorldVoxelChunk.TileSize - 1));
+            int chunkMaxY = Math.Max(0, Math.Min(gameWorld.ChunkSize.Y, (int)Math.Ceiling(camMaxY / (float)GameWorldVoxelChunk.TileSize) + 1));
+            int chunkMaxZ = Math.Max((int)Math.Ceiling(gameWorld.BlockSize.Z / (float)GameWorldVoxelChunk.TileSize), 1);
 
             for (int i = 0; i < loadedChunksList.Count; i++)
             {
@@ -76,7 +70,6 @@ namespace ProdigalSoftware.TiVE.Renderer.World
                     chunksToDelete.Add(chunk);
             }
 
-            //BlockList blockList = ResourceManager.BlockListManager.BlockList;
             for (int chunkZ = chunkMaxZ - 1; chunkZ >= 0; chunkZ--)
             {
                 for (int chunkX = chunkMinX; chunkX < chunkMaxX; chunkX++)
@@ -91,46 +84,21 @@ namespace ProdigalSoftware.TiVE.Renderer.World
                             loadedChunks.Add(chunk);
                             loadedChunksList.Add(chunk);
                         }
-                        //else if (UpdateBlockAnimationsInChunk(chunkX, chunkY, chunkZ, gameWorld, blockList))
-                        //    UpdateChunk(chunk);
                     }
                 }
             }
         }
 
-        private static bool UpdateBlockAnimationsInChunk(int chunkX, int chunkY, int chunkZ, GameWorld gameWorld, BlockList blockList)
-        {
-            int worldStartX = chunkX * GameWorldVoxelChunk.TileSize;
-            int worldStartY = chunkY * GameWorldVoxelChunk.TileSize;
-            int worldStartZ = chunkZ * GameWorldVoxelChunk.TileSize;
-
-            int worldEndX = Math.Min(gameWorld.BlockSize.X, worldStartX + GameWorldVoxelChunk.TileSize);
-            int worldEndY = Math.Min(gameWorld.BlockSize.Y, worldStartY + GameWorldVoxelChunk.TileSize);
-            int worldEndZ = Math.Min(gameWorld.BlockSize.Z, worldStartZ + GameWorldVoxelChunk.TileSize);
-
-            bool changedChunk = false;
-            for (int z = worldStartZ; z < worldEndZ; z++)
-            {
-                for (int x = worldStartX; x < worldEndX; x++)
-                {
-                    for (int y = worldStartY; y < worldEndY; y++)
-                    {
-                        BlockInformation newBlock = blockList.NextFrameFor(gameWorld[x, y, z]);
-                        if (newBlock != null)
-                        {
-                            gameWorld[x, y, z] = newBlock;
-                            changedChunk = true;
-                        }
-                    }
-                }
-            }
-
-            return changedChunk;
-        }
-
-        public RenderStatistics Render(ref Matrix4 viewProjectionMatrix)
+        public RenderStatistics Render(ref Matrix4 viewProjectionMatrix, int camMinX, int camMaxX, int camMinY, int camMaxY)
         {
             Debug.Assert(Thread.CurrentThread.Name == "Main UI");
+
+            GameWorld gameWorld = ResourceManager.GameWorldManager.GameWorld;
+            int chunkMinX = Math.Max(0, Math.Min(gameWorld.ChunkSize.X, camMinX / GameWorldVoxelChunk.TileSize - 1));
+            int chunkMaxX = Math.Max(0, Math.Min(gameWorld.ChunkSize.X, (int)Math.Ceiling(camMaxX / (float)GameWorldVoxelChunk.TileSize) + 1));
+            int chunkMinY = Math.Max(0, Math.Min(gameWorld.ChunkSize.Y, camMinY / GameWorldVoxelChunk.TileSize - 1));
+            int chunkMaxY = Math.Max(0, Math.Min(gameWorld.ChunkSize.Y, (int)Math.Ceiling(camMaxY / (float)GameWorldVoxelChunk.TileSize) + 1));
+            int chunkMaxZ = Math.Max((int)Math.Ceiling(gameWorld.BlockSize.Z / (float)GameWorldVoxelChunk.TileSize), 1);
 
             for (int i = 0; i < chunksToDelete.Count; i++)
             {
@@ -145,7 +113,6 @@ namespace ProdigalSoftware.TiVE.Renderer.World
             int initializedChunkCount = 0;
             //int excessUninitializedChunkCount = 0;
             RenderStatistics stats = new RenderStatistics();
-            GameWorld gameWorld = ResourceManager.GameWorldManager.GameWorld;
             for (int chunkZ = chunkMaxZ - 1; chunkZ >= 0; chunkZ--)
             {
                 for (int chunkX = chunkMinX; chunkX < chunkMaxX; chunkX++)

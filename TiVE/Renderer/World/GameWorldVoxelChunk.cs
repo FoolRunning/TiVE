@@ -278,12 +278,7 @@ namespace ProdigalSoftware.TiVE.Renderer.World
                                         byte r = (byte)Math.Min(255, (int)(((color >> 16) & 0xFF) * lightColor.R));
                                         byte g = (byte)Math.Min(255, (int)(((color >> 8) & 0xFF) * lightColor.G));
                                         byte b = (byte)Math.Min(255, (int)(((color >> 0) & 0xFF) * lightColor.B));
-
-                                        //byte a = (byte)((color >> 24) & 0xFF);
-                                        //byte r = (byte)((color >> 16) & 0xFF);
-                                        //byte g = (byte)((color >> 8) & 0xFF);
-                                        //byte b = (byte)((color >> 0) & 0xFF);
-
+                                        
                                         polygonCount += IndexedVoxelGroup.CreateVoxel(newMeshBuilder, sides, 
                                             chunkVoxelX, voxelY - voxelStartY, chunkVoxelZ, new Color4b(r, g, b, a));
                                         renderedVoxelCount++;

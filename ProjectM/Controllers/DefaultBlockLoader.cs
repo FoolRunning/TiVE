@@ -14,39 +14,12 @@ namespace ProdigalSoftware.ProjectM.Controllers
 
         public IEnumerable<BlockInformation> CreateBlocks()
         {
-            for (int i = 0; i < 20; i++)
+            for (int i = 0; i < 5; i++)
             {
-                int sphereSize = 0;
-                Color4 color;
-                string name;
-                float voxelDensity;
-                if (i < 5)
-                {
-                    color = new Color4(129, 53, 2, 255);
-                    voxelDensity = 1.0f;
-                    name = "dirt" + i;
-                    sphereSize = 4;
-                }
-                else if (i < 10)
-                {
-                    //color = new Color4(62, 25, 1, 255);
-                    color = new Color4(235, 235, 235, 255);
-                    voxelDensity = 1.0f;
-                    name = "back" + (i - 5);
-                }
-                else if (i < 15)
-                {
-                    color = new Color4(120, 120, 120, 255);
-                    voxelDensity = 1.0f;
-                    name = "stone" + (i - 10);
-                }
-                else
-                {
-                    color = new Color4(120, 100, 20, 255);
-                    voxelDensity = 0.1f;
-                    name = "sand" + (i - 15);
-                }
-                yield return CreateBlockInfo(name, i >= 5 && i < 10, sphereSize, color, voxelDensity);
+                yield return CreateBlockInfo("dirt" + i, false, 4.3f, new Color4(129, 53, 2, 255), 1.0f);
+                yield return CreateBlockInfo("back" + i, true, 0, new Color4(235, 235, 235, 255), 1.0f);
+                yield return CreateBlockInfo("stone" + i, false, 0, new Color4(120, 120, 120, 255), 1.0f);
+                yield return CreateBlockInfo("sand" + i, false, 0, new Color4(120, 100, 20, 255), 0.2f);
             }
 
             uint[,,] particleVoxels = new uint[1, 1, 1];
@@ -91,10 +64,9 @@ namespace ProdigalSoftware.ProjectM.Controllers
         public IEnumerable<BlockAnimationDefinition> CreateAnimations()
         {
             yield return new BlockAnimationDefinition(100, "sand0", "sand1", "sand2", "sand3", "sand0");
-            //return null;
         }
 
-        private static BlockInformation CreateBlockInfo(string name, bool frontOnly, int sphereSize, Color4 color, float voxelDensity,
+        private static BlockInformation CreateBlockInfo(string name, bool frontOnly, float sphereSize, Color4 color, float voxelDensity,
             ParticleSystemInformation particleSystem = null, ILight light = null)
         {
             const int mid = BlockInformation.BlockSize / 2;
@@ -105,7 +77,6 @@ namespace ProdigalSoftware.ProjectM.Controllers
                 for (int y = 0; y < BlockInformation.BlockSize; y++)
                 {
                     for (int z = frontOnly ? BlockInformation.BlockSize - 1 : 0; z < BlockInformation.BlockSize; z++)
-                    //for (int z = 0; z < (frontOnly ? 1 : BlockInformation.BlockSize); z++)
                     {
                         if (sphereSize > 0)
                         {
@@ -119,40 +90,6 @@ namespace ProdigalSoftware.ProjectM.Controllers
                     }
                 }
             }
-
-            //for (int x = 1; x < BlockSize - 1; x++)
-            //{
-            //    SetVoxel(x, 0, 0, 0xFF0000FF);
-            //    SetVoxel(x, 0, BlockSize - 1, 0xFF0000FF);
-            //    SetVoxel(x, BlockSize - 1, 0, 0xFF00FFFF);
-            //    SetVoxel(x, BlockSize - 1, BlockSize - 1, 0xFF00FFFF);
-            //}
-
-            //for (int y = 1; y < BlockSize - 1; y++)
-            //{
-            //    SetVoxel(0, y, 0, 0xFF00FF00);
-            //    SetVoxel(0, y, BlockSize - 1, 0xFF00FF00);
-            //    SetVoxel(BlockSize - 1, y, 0, 0xFFFF0000);
-            //    SetVoxel(BlockSize - 1, y, BlockSize - 1, 0xFFFF0000);
-            //}
-
-            //for (int z = 1; z < BlockSize - 1; z++)
-            //{
-            //    SetVoxel(0, 0, z, 0xFFFF00FF);
-            //    SetVoxel(BlockSize - 1, 0, z, 0xFFFFFFFF);
-            //    SetVoxel(0, BlockSize - 1, z, 0xFFFF00FF);
-            //    SetVoxel(BlockSize - 1, BlockSize - 1, z, 0xFFFFFFFF);
-            //}
-
-            //SetVoxel(0, 0, 0, 0xFFFFFFFF);
-            //SetVoxel(0, BlockSize - 1, 0, 0xFFFFFFFF);
-            //SetVoxel(0, 0, BlockSize - 1, 0xFFFFFFFF);
-            //SetVoxel(0, BlockSize - 1, BlockSize - 1, 0xFFFFFFFF);
-
-            //SetVoxel(BlockSize - 1, 0, 0, 0xFFFFFFFF);
-            //SetVoxel(BlockSize - 1, BlockSize - 1, 0, 0xFFFFFFFF);
-            //SetVoxel(BlockSize - 1, 0, BlockSize - 1, 0xFFFFFFFF);
-            //SetVoxel(BlockSize - 1, BlockSize - 1, BlockSize - 1, 0xFFFFFFFF);
 
             return block;
         }
@@ -176,7 +113,7 @@ namespace ProdigalSoftware.ProjectM.Controllers
 
             private static readonly Random random = new Random();
 
-            #region Implementation of IParticleUpdater
+            #region Implementation of ParticleController
             public override bool BeginUpdate(IParticleSystem particleSystem, float timeSinceLastFrame)
             {
                 return true;
@@ -245,7 +182,7 @@ namespace ProdigalSoftware.ProjectM.Controllers
                 }
             }
 
-            #region Implementation of IParticleUpdater
+            #region Implementation of ParticleController
             public override bool BeginUpdate(IParticleSystem particleSystem, float timeSinceLastFrame)
             {
                 return true;
@@ -310,7 +247,7 @@ namespace ProdigalSoftware.ProjectM.Controllers
                     colorList[i] = new Color4b((byte)(55 - (int)((255 - i) / 5.0f)), (byte)(150 - (int)((255 - i) / 2.0f)), 255, 255);
             }
 
-            #region Implementation of IParticleUpdater
+            #region Implementation of ParticleController
             public override bool BeginUpdate(IParticleSystem particleSystem, float timeSinceLastFrame)
             {
                 return true;

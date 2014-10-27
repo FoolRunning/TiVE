@@ -9,12 +9,16 @@ namespace ProdigalSoftware.TiVE.Renderer.World
     {
         private readonly Dictionary<string, BlockInformation> blockToIndexMap = new Dictionary<string, BlockInformation>();
         private readonly List<AnimationInfo> animationsList = new List<AnimationInfo>();
-        private readonly Dictionary<BlockInformation, BlockInformation> blockAnimationMap = new Dictionary<BlockInformation, BlockInformation>();
         private readonly HashSet<BlockInformation> blocksBelongingToAnimations = new HashSet<BlockInformation>();
 
         public int BlockCount
         {
             get { return blockToIndexMap.Count; }
+        }
+
+        public IEnumerable<AnimationInfo> Animations
+        {
+            get { return animationsList; }
         }
 
         public void AddBlocks(IEnumerable<BlockInformation> blocks)
@@ -46,47 +50,9 @@ namespace ProdigalSoftware.TiVE.Renderer.World
             return blocksBelongingToAnimations.Contains(block);
         }
 
-        public void UpdateAnimationMap(float timeSinceLastUpdate)
-        {
-            blockAnimationMap.Clear();
-
-            for (int i = 0; i < animationsList.Count; i++)
-            {
-                AnimationInfo animationInfo = animationsList[i];
-                animationInfo.TimeSinceLastFrame += timeSinceLastUpdate;
-                if (animationInfo.TimeSinceLastFrame >= animationInfo.AnimationFrameTime)
-                {
-                    animationInfo.TimeSinceLastFrame -= animationInfo.AnimationFrameTime;
-                    for (int blockIndex = 0; blockIndex < animationInfo.AnimationSequence.Length - 1; blockIndex++)
-                        blockAnimationMap.Add(animationInfo.AnimationSequence[blockIndex], animationInfo.AnimationSequence[blockIndex + 1]);
-                }
-            }
-        }
-
-        public BlockInformation NextFrameFor(BlockInformation block)
-        {
-            BlockInformation nextBlock;
-            blockAnimationMap.TryGetValue(block, out nextBlock);
-            return nextBlock;
-        }
-
         public BlockInformation this[string blockName]
         {
             get { return blockToIndexMap[blockName]; }
-        }
-
-        private sealed class AnimationInfo
-        {
-            public readonly BlockInformation[] AnimationSequence;
-            public readonly float AnimationFrameTime;
-
-            public float TimeSinceLastFrame;
-
-            public AnimationInfo(float animationFrameTime, IEnumerable<BlockInformation> animationSequence)
-            {
-                AnimationFrameTime = animationFrameTime;
-                AnimationSequence = animationSequence.ToArray();
-            }
         }
     }
 }

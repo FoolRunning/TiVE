@@ -9,9 +9,9 @@ namespace ProdigalSoftware.TiVE
 {
     internal sealed class GameLogic : IDisposable
     {
-        private const int WorldXSize = 300;
-        private const int WorldYSize = 300;
-        private const int WorldZSize = 20;
+        private const int WorldXSize = 71;
+        private const int WorldYSize = 41;
+        private const int WorldZSize = 5;
 
         private IGameWorldRenderer renderer;
 
@@ -39,8 +39,8 @@ namespace ProdigalSoftware.TiVE
 
             // Calculate static lighting
 
-            const float minLightValue = 0.01f; // 0.002f (0.2%) produces the best result as that is less then a single light value's worth
-            StaticLightingHelper lightingHelper = new StaticLightingHelper(ResourceManager.GameWorldManager.GameWorld, 10, minLightValue);
+            const float minLightValue = 0.002f; // 0.002f (0.2%) produces the best result as that is less then a single light value's worth
+            StaticLightingHelper lightingHelper = new StaticLightingHelper(ResourceManager.GameWorldManager.GameWorld, 50, minLightValue);
             lightingHelper.Calculate();
 
             renderer = new WorldChunkRenderer();

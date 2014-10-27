@@ -23,6 +23,7 @@ namespace ProdigalSoftware.ProjectM
 
             //TestStructClassAccess();
             //TestArrayMethods();
+            //TestSingleItemVersusMultipleArray();
 
             TiVEController.RunStarter();
         }
@@ -229,7 +230,7 @@ namespace ProdigalSoftware.ProjectM
                     for(var j = 0; j < dim; j++)
                     {
                         for(var k = 0; k < dim; k++)
-                            single[i * dim * dim + j * dim + k] = i * j * k;
+                            single[(i * dim + j) * dim + k] = i * j * k;
                     }
                 }
                 timer.Stop();
@@ -237,6 +238,104 @@ namespace ProdigalSoftware.ProjectM
             }
             Console.WriteLine(Format, "Single array", total / PassCount);
             Console.WriteLine();
+        }
+        #endregion
+
+        #region Test multiple arrays vs. array of struct
+        private static void TestSingleItemVersusMultipleArray()
+        {
+            TestAccessMultiple();
+            TestAccessStruct();
+        }
+
+        private static void TestAccessMultiple()
+        {
+            SingleObj[] values = new SingleObj[TestSize];
+            float[] otherFloats = new float[TestSize];
+            int[] otherInts = new int[TestSize];
+            bool[] otherBool = new bool[TestSize];
+            for (int i = 0; i < TestSize; i++)
+            {
+                values[i] = new SingleObj(i);
+                otherFloats[i] = 1.5f;
+                otherInts[i] = i;
+                otherBool[i] = true;
+            }
+
+            double total = 0.0;
+            Stopwatch timer = new Stopwatch();
+            for (int passes = 0; passes < PassCount; passes++)
+            {
+                timer.Restart();
+                for (int i = 0; i < TestSize; i++)
+                {
+                    values[i].Bla++;
+                    otherFloats[i] /= 2.0f;
+                    otherInts[i] += 2;
+                    otherBool[i] = !otherBool[i];
+                }
+
+                timer.Stop();
+                total += timer.ElapsedTicks * 1000.0 / Stopwatch.Frequency;
+                //Console.WriteLine("values: {0}, {1}, {2}, {3}, {4}, {5}, {6}", 
+                //    values[0].Item1, values[0].Item2, values[0].Item3, values[0].Item4, values[0].Item5, values[0].Item6, values[0].Item7);
+            }
+
+            Console.WriteLine(Format, "Multiple", total / PassCount);
+        }
+
+        private static void TestAccessStruct()
+        {
+            MultipleStruct[] values = new MultipleStruct[TestSize];
+            for (int i = 0; i < values.Length; i++)
+                values[i] = new MultipleStruct(i);
+
+            double total = 0.0;
+            Stopwatch timer = new Stopwatch();
+            for (int passes = 0; passes < PassCount; passes++)
+            {
+                timer.Restart();
+                for (int i = 0; i < TestSize; i++)
+                {
+                    values[i].Object.Bla++;
+                    values[i].OtherFloat /= 2.0f;
+                    values[i].OtherInt += 2;
+                    values[i].OtherBool = !values[i].OtherBool;
+                }
+
+                timer.Stop();
+                total += timer.ElapsedTicks * 1000.0 / Stopwatch.Frequency;
+                //Console.WriteLine("values: {0}, {1}, {2}, {3}, {4}, {5}, {6}", 
+                //    values[0].Item1, values[0].Item2, values[0].Item3, values[0].Item4, values[0].Item5, values[0].Item6, values[0].Item7);
+            }
+
+            Console.WriteLine(Format, "Struct", total / PassCount);
+        }
+
+        private struct MultipleStruct
+        {
+            public SingleObj Object;
+            public float OtherFloat;
+            public int OtherInt;
+            public bool OtherBool;
+
+            public MultipleStruct(int bla)
+            {
+                Object = new SingleObj(bla);
+                OtherFloat = 1.5f;
+                OtherInt = bla;
+                OtherBool = true;
+            }
+        }
+
+        private class SingleObj
+        {
+            public int Bla;
+
+            public SingleObj(int bla)
+            {
+                Bla = bla;
+            }
         }
         #endregion
     }
