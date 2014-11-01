@@ -2,7 +2,7 @@
 using System.Diagnostics;
 using ProdigalSoftware.Utils;
 
-namespace ProdigalSoftware.TiVE
+namespace ProdigalSoftware.TiVE.Utils
 {
     internal static class TiVEUtils
     {

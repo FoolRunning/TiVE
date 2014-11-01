@@ -14,11 +14,11 @@ namespace ProdigalSoftware.TiVE.Renderer.Voxels
             int xSize = voxels.GetLength(0);
             int ySize = voxels.GetLength(1);
             int zSize = voxels.GetLength(2);
-            for (int z = 0; z < zSize; z++)
+            for (byte z = 0; z < zSize; z++)
             {
-                for (int x = 0; x < xSize; x++)
+                for (byte x = 0; x < xSize; x++)
                 {
-                    for (int y = 0; y < ySize; y++)
+                    for (byte y = 0; y < ySize; y++)
                     {
                         uint color = voxels[x, y, z];
                         if (color == 0)

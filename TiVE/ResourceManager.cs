@@ -68,6 +68,9 @@ namespace ProdigalSoftware.TiVE
             if (ShaderManager != null)
                 ShaderManager.Dispose();
 
+            if (GameWorldManager != null)
+                GameWorldManager.Dispose();
+
             if (BlockListManager != null)
                 BlockListManager.Dispose();
 

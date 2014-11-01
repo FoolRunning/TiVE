@@ -24,16 +24,17 @@ namespace ProdigalSoftware.TiVE.Renderer
             blockMaxY = Math.Min(blockMaxY, gameWorld.BlockSize.Y);
             viewProjectionMatrix = Matrix4.Mult(camera.ViewMatrix, camera.ProjectionMatrix);
 
-            ResourceManager.BlockListManager.UpdateAnimations(timeSinceLastFrame);
-            ResourceManager.ChunkManager.UpdateCameraPos(blockMinX, blockMaxX, blockMinY, blockMaxY);
-            ResourceManager.ParticleManager.UpdateCameraPos(blockMinX, blockMaxX, blockMinY, blockMaxY);
+            //ResourceManager.BlockListManager.UpdateAnimations(timeSinceLastFrame);
+            //ResourceManager.ChunkManager.UpdateCameraPos(blockMinX, blockMaxX, blockMinY, blockMaxY);
+            //ResourceManager.ParticleManager.UpdateCameraPos(blockMinX, blockMaxX, blockMinY, blockMaxY);
         }
 
         public RenderStatistics Draw(Camera camera)
         {
-            RenderStatistics stats = ResourceManager.ChunkManager.Render(ref viewProjectionMatrix, blockMinX, blockMaxX, blockMinY, blockMaxY);
+            RenderStatistics stats = new RenderStatistics();// = ResourceManager.ChunkManager.Render(ref viewProjectionMatrix, blockMinX, blockMaxX, blockMinY, blockMaxY);
+            stats = stats + ResourceManager.GameWorldManager.GameWorld.RenderChunks(ref viewProjectionMatrix, camera);
             //stats = stats + ResourceManager.BlockListManager.RenderAnimatedBlocks(ref viewProjectionMatrix, blockMinX, blockMaxX, blockMinY, blockMaxY);
-            return stats + ResourceManager.ParticleManager.Render(ref viewProjectionMatrix);
+            return stats;// +ResourceManager.ParticleManager.Render(ref viewProjectionMatrix);
         }
 
         private static void GetWorldView(Camera camera, float distance, out int minBlockX, out int maxBlockX, out int minBlockY, out int maxBlockY)

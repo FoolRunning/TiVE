@@ -11,6 +11,7 @@ namespace ProdigalSoftware.TiVE.Renderer.World
     {
         #region Constants
         public const int TileSize = 5;
+        public const int ChunkVoxelSize = TileSize * BlockInformation.BlockSize;
         #endregion
 
         private MeshBuilder meshBuilder;
@@ -31,8 +32,7 @@ namespace ProdigalSoftware.TiVE.Renderer.World
             this.chunkY = chunkY;
             this.chunkZ = chunkZ;
 
-            translationMatrix = Matrix4.CreateTranslation(chunkX * TileSize * BlockInformation.BlockSize,
-                chunkY * TileSize * BlockInformation.BlockSize, chunkZ * TileSize * BlockInformation.BlockSize);
+            translationMatrix = Matrix4.CreateTranslation(chunkX * ChunkVoxelSize, chunkY * ChunkVoxelSize, chunkZ * ChunkVoxelSize);
         }
 
         public void Dispose()
@@ -182,11 +182,11 @@ namespace ProdigalSoftware.TiVE.Renderer.World
                         for (int bz = BlockInformation.BlockSize - 1; bz >= 0; bz--)
                         {
                             int voxelZ = z * BlockInformation.BlockSize + bz;
-                            int chunkVoxelZ = voxelZ - voxelStartZ;
+                            byte chunkVoxelZ = (byte)(voxelZ - voxelStartZ);
                             for (int bx = 0; bx < BlockInformation.BlockSize; bx++)
                             {
                                 int voxelX = x * BlockInformation.BlockSize + bx;
-                                int chunkVoxelX = voxelX - voxelStartX;
+                                byte chunkVoxelX = (byte)(voxelX - voxelStartX);
                                 for (int by = 0; by < BlockInformation.BlockSize; by++)
                                 {
                                     uint color = block[bx, by, bz];
@@ -279,8 +279,8 @@ namespace ProdigalSoftware.TiVE.Renderer.World
                                         byte g = (byte)Math.Min(255, (int)(((color >> 8) & 0xFF) * lightColor.G));
                                         byte b = (byte)Math.Min(255, (int)(((color >> 0) & 0xFF) * lightColor.B));
                                         
-                                        polygonCount += IndexedVoxelGroup.CreateVoxel(newMeshBuilder, sides, 
-                                            chunkVoxelX, voxelY - voxelStartY, chunkVoxelZ, new Color4b(r, g, b, a));
+                                        polygonCount += IndexedVoxelGroup.CreateVoxel(newMeshBuilder, sides,
+                                            chunkVoxelX, (byte)(voxelY - voxelStartY), chunkVoxelZ, new Color4b(r, g, b, a));
                                         renderedVoxelCount++;
                                     }
                                 }

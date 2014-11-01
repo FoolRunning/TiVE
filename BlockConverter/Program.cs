@@ -29,7 +29,8 @@ namespace BlockConverter
                     {
                         using (BinaryReader reader = new BinaryReader(new FileStream(file, FileMode.Open)))
                         {
-                            BlockInformation block = MagicaVoxelImporter.CreateBlock(reader, Path.GetFileNameWithoutExtension(file));
+                            string blockName = Path.GetFileNameWithoutExtension(file);
+                            BlockInformation block = MagicaVoxelImporter.CreateBlock(reader, blockName);
                             if (block != null)
                                 WriteBlock(block);
                         }

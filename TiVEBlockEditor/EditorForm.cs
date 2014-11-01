@@ -24,8 +24,8 @@ namespace ProdigalSoftware.TiVEBlockEditor
             InitializeComponent();
             UpdateState();
             
-            camera.SetLocation(8, 8, 31);
-            camera.SetLookAtLocation(8, 8, 0);
+            camera.Location = new Vector3(8, 8, 31);
+            camera.LookAtLocation = new Vector3(8, 8, 0);
         }
 
         public BlockInformation CurrentBlock
@@ -66,12 +66,12 @@ namespace ProdigalSoftware.TiVEBlockEditor
             GL.Enable(EnableCap.DepthTest);
             GL.DepthFunc(DepthFunction.Lequal);
 
-            camera.SetViewport(glCurBlock.Width, glCurBlock.Height);
+            camera.AspectRatio = glCurBlock.Width / (float)glCurBlock.Height;
         }
 
         private void glCurBlock_SizeChanged(object sender, System.EventArgs e)
         {
-            camera.SetViewport(glCurBlock.Width, glCurBlock.Height);
+            camera.AspectRatio = glCurBlock.Width / (float)glCurBlock.Height;
             glCurBlock.Invalidate();
         }
 

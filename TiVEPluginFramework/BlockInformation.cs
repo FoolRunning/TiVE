@@ -20,16 +20,12 @@ namespace ProdigalSoftware.TiVEPluginFramework
         public readonly ILight Light;
 
         private readonly uint[] voxels = new uint[BlockSize * BlockSize * BlockSize];
+        private BlockInformation[] rotated;
 
-        public BlockInformation(BlockInformation toCopy, string blockName, ParticleSystemInformation particleSystem = null, ILight light = null)
+        public BlockInformation(BlockInformation toCopy, string blockName, ParticleSystemInformation particleSystem = null, ILight light = null) :
+            this(blockName, particleSystem, light)
         {
-            if (blockName == null)
-                throw new ArgumentNullException("blockName");
-
             Array.Copy(toCopy.voxels, voxels, voxels.Length);
-            BlockName = blockName;
-            ParticleSystem = particleSystem;
-            Light = light;
         }
 
         public BlockInformation(string blockName, ParticleSystemInformation particleSystem = null, ILight light = null)
@@ -54,6 +50,59 @@ namespace ProdigalSoftware.TiVEPluginFramework
         {
             get { return voxels[GetOffset(x, y, z)]; }
             set { voxels[GetOffset(x, y, z)] = value; }
+        }
+
+        public BlockInformation Rotate(BlockRotation rotation)
+        {
+            if (rotation == BlockRotation.NotRotated)
+                return this;
+
+            if (rotated == null)
+                rotated = new BlockInformation[4];
+            int rotateIndex = (int)rotation;
+            BlockInformation rotatedBlock = rotated[rotateIndex];
+            if (rotatedBlock == null)
+                rotated[rotateIndex] = rotatedBlock = CreateRotated(rotation);
+            return rotatedBlock;
+        }
+
+        private BlockInformation CreateRotated(BlockRotation rotation)
+        {
+            BlockInformation rotatedBlock = new BlockInformation(this, BlockName + "R" + (int)rotation, ParticleSystem, Light);
+            switch (rotation)
+            {
+                case BlockRotation.NinetyCCW:
+                    for (int z = 0; z < BlockSize; z++)
+                    {
+                        for (int x = 0; x < BlockSize; x++)
+                        {
+                            for (int y = 0; y < BlockSize; y++)
+                                rotatedBlock[x, y, z] = this[y, BlockSize - x - 1, z];
+                        }
+                    }
+                    break;
+                case BlockRotation.OneEightyCCW:
+                    for (int z = 0; z < BlockSize; z++)
+                    {
+                        for (int x = 0; x < BlockSize; x++)
+                        {
+                            for (int y = 0; y < BlockSize; y++)
+                                rotatedBlock[x, y, z] = this[BlockSize - x - 1, BlockSize - y - 1, z];
+                        }
+                    }
+                    break;
+                case BlockRotation.TwoSeventyCCW:
+                    for (int z = 0; z < BlockSize; z++)
+                    {
+                        for (int x = 0; x < BlockSize; x++)
+                        {
+                            for (int y = 0; y < BlockSize; y++)
+                                rotatedBlock[x, y, z] = this[BlockSize - y - 1, x, z];
+                        }
+                    }
+                    break;
+            }
+            return rotatedBlock;
         }
 
         public static BlockInformation FromFile(string path)

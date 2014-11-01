@@ -15,21 +15,24 @@ namespace ProdigalSoftware.TiVE.Renderer.Voxels
             Array.Copy(block.VoxelsArray, voxels, voxels.Length);
         }
 
-        protected override int AddVoxel(MeshBuilder meshBuilder, VoxelSides sides, int x, int y, int z, Color4b color)
+        protected override int AddVoxel(MeshBuilder meshBuilder, VoxelSides sides, byte x, byte y, byte z, Color4b color)
         {
             return CreateVoxel(meshBuilder, sides, x, y, z, color);
         }
-        
-        public static int CreateVoxel(MeshBuilder meshBuilder, VoxelSides sides, int x, int y, int z, Color4b color)
+
+        public static int CreateVoxel(MeshBuilder meshBuilder, VoxelSides sides, byte x, byte y, byte z, Color4b color)
         {
-            int v1 = meshBuilder.Add(x, y + 1, z, color);
-            int v2 = meshBuilder.Add(x + 1, y + 1, z, color);
-            int v3 = meshBuilder.Add(x + 1, y + 1, z + 1, color);
-            int v4 = meshBuilder.Add(x, y + 1, z + 1, color);
+            byte x2 = (byte)(x + 1);
+            byte y2 = (byte)(y + 1);
+            byte z2 = (byte)(z + 1);
+            int v1 = meshBuilder.Add(x, y2, z, color);
+            int v2 = meshBuilder.Add(x2, y2, z, color);
+            int v3 = meshBuilder.Add(x2, y2, z2, color);
+            int v4 = meshBuilder.Add(x, y2, z2, color);
             int v5 = meshBuilder.Add(x, y, z, color);
-            int v6 = meshBuilder.Add(x + 1, y, z, color);
-            int v7 = meshBuilder.Add(x + 1, y, z + 1, color);
-            int v8 = meshBuilder.Add(x, y, z + 1, color);
+            int v6 = meshBuilder.Add(x2, y, z, color);
+            int v7 = meshBuilder.Add(x2, y, z2, color);
+            int v8 = meshBuilder.Add(x, y, z2, color);
 
             int polygonCount = 0;
             if ((sides & VoxelSides.Front) != 0)

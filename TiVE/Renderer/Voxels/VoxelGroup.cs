@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
 using OpenTK;
+using ProdigalSoftware.TiVE.Utils;
 using ProdigalSoftware.Utils;
 
 namespace ProdigalSoftware.TiVE.Renderer.Voxels
@@ -81,11 +82,11 @@ namespace ProdigalSoftware.TiVE.Renderer.Voxels
             polygonCount = 0;
 
             meshBuilder.StartNewMesh();
-            for (int z = size.Z - 1; z >= 0; z--)
+            for (byte z = (byte)(size.Z - 1); z >= 0; z--)
             {
-                for (int x = 0; x < size.X; x++)
+                for (byte x = 0; x < size.X; x++)
                 {
-                    for (int y = 0; y < size.Y; y++)
+                    for (byte y = 0; y < size.Y; y++)
                     {
                         uint color = this[x, y, z];
                         if (color == 0)
@@ -121,7 +122,7 @@ namespace ProdigalSoftware.TiVE.Renderer.Voxels
             return meshBuilder.GetMesh();
         }
 
-        protected abstract int AddVoxel(MeshBuilder meshBuilder, VoxelSides sides, int x, int y, int z, Color4b color);
+        protected abstract int AddVoxel(MeshBuilder meshBuilder, VoxelSides sides, byte x, byte y, byte z, Color4b color);
 
         /// <summary>
         /// Gets the offset into the voxel array for the voxel at the specified location

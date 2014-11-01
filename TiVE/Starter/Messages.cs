@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Drawing;
+using NLua.Exceptions;
 
 namespace ProdigalSoftware.TiVE.Starter
 {
@@ -163,6 +164,9 @@ namespace ProdigalSoftware.TiVE.Starter
             while (e != null)
             {
                 AddError(e.Message);
+                LuaScriptException scriptException = e as LuaScriptException;
+                if (scriptException != null)
+                    AddError(scriptException.Source);
 
                 foreach (string stackLine in e.StackTrace.Split(new[] {'\n', '\r'}, StringSplitOptions.RemoveEmptyEntries))
                 {

@@ -5,6 +5,7 @@ using System.IO;
 using System.Reflection;
 using NLua.Exceptions;
 using ProdigalSoftware.TiVE.Starter;
+using ProdigalSoftware.TiVEPluginFramework;
 
 namespace ProdigalSoftware.TiVE.Scripts
 {
@@ -66,7 +67,14 @@ namespace ProdigalSoftware.TiVE.Scripts
 
         private static void AddGlobalLuaMethods(dynamic lua)
         {
-            lua.Log = new Action<string>(str => Messages.Println(str, Color.CadetBlue));
+            lua.Log = new Action<object>(obj => Messages.Println(obj.ToString(), Color.CadetBlue));
+            lua.BlockSize = BlockInformation.BlockSize;
+            lua.PI = (float)Math.PI;
+            lua.Max = new Func<float, float, float>(Math.Max);
+            lua.Min = new Func<float, float, float>(Math.Min);
+            lua.Sin = new Func<float, float>(v => (float)Math.Sin(v));
+            lua.Cos = new Func<float, float>(v => (float)Math.Cos(v));
+            lua.Tan = new Func<float, float>(v => (float)Math.Tan(v));
         }
     }
 }
