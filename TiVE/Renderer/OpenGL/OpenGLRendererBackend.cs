@@ -601,7 +601,8 @@ namespace ProdigalSoftware.TiVE.Renderer.OpenGL
             {
                 // Shaders are deleted after attempting to compile
 
-                GL.DeleteProgram(programId);
+                if (programId != 0)
+                    GL.DeleteProgram(programId);
                 programId = 0;
 
                 GC.SuppressFinalize(this);

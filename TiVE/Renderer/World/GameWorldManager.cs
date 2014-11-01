@@ -8,7 +8,7 @@ namespace ProdigalSoftware.TiVE.Renderer.World
     /// <summary>
     /// Creates a world based on a set of generators
     /// </summary>
-    internal sealed class GameWorldManager
+    internal sealed class GameWorldManager : IDisposable
     {
         public GameWorld GameWorld { get; private set; }
 
@@ -37,6 +37,12 @@ namespace ProdigalSoftware.TiVE.Renderer.World
             Messages.AddDoneText();
             GameWorld = createdWorld;
             return true;
+        }
+
+        public void Dispose()
+        {
+            if (GameWorld != null)
+                GameWorld.Dispose();
         }
     }
 }

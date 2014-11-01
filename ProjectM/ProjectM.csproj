@@ -122,6 +122,9 @@
     <Content Include="Data\Particles\fountain.info">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="Data\Game.lua">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <None Include="packages.config" />
     <Content Include="Data\Scripts\test.lua">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

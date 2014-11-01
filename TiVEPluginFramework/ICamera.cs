@@ -21,5 +21,7 @@ namespace ProdigalSoftware.TiVEPluginFramework
         void SetLocation(float x, float y, float z);
 
         void SetLookAtLocation(float x, float y, float z);
+
+        void Update();
     }
 }

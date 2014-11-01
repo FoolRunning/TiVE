@@ -19,11 +19,11 @@ namespace ProdigalSoftware.ProjectS.Controllers
                 if (block != null)
                 {
                     if (block.BlockName == "LightRed")
-                        yield return new BlockInformation(block, "Light1", null, new PointLight(new Vector3b(5, 5, 7), new Color3f(1.0f, 0.0f, 0.0f), 0.0005f));
+                        yield return new BlockInformation(block, "Light0", null, new PointLight(new Vector3b(5, 5, 7), new Color3f(1.0f, 0.0f, 0.0f), 0.005f));
                     else if (block.BlockName == "LightGreen")
-                        yield return new BlockInformation(block, "Light2", null, new PointLight(new Vector3b(5, 5, 7), new Color3f(0.0f, 1.0f, 0.0f), 0.0005f));
+                        yield return new BlockInformation(block, "Light1", null, new PointLight(new Vector3b(5, 5, 7), new Color3f(0.0f, 1.0f, 0.0f), 0.005f));
                     else if (block.BlockName == "LightBlue")
-                        yield return new BlockInformation(block, "Light3", null, new PointLight(new Vector3b(5, 5, 7), new Color3f(0.0f, 0.0f, 1.0f), 0.0005f));
+                        yield return new BlockInformation(block, "Light2", null, new PointLight(new Vector3b(5, 5, 7), new Color3f(0.0f, 0.0f, 1.0f), 0.004f));
                     else
                         yield return block;
                 }

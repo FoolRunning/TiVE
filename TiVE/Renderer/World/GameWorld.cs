@@ -2,7 +2,9 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using OpenTK;
 using ProdigalSoftware.TiVE.Renderer.Lighting;
+using ProdigalSoftware.TiVE.Renderer.Voxels;
 using ProdigalSoftware.TiVEPluginFramework;
 using ProdigalSoftware.Utils;
 
@@ -11,7 +13,7 @@ namespace ProdigalSoftware.TiVE.Renderer.World
     /// <summary>
     /// Contains the information about the game world.
     /// </summary>
-    internal sealed class GameWorld : IGameWorld
+    internal sealed class GameWorld : IGameWorld, IDisposable
     {
         private readonly Vector3i voxelSize;
         private readonly Vector3i blockSize;
@@ -21,6 +23,7 @@ namespace ProdigalSoftware.TiVE.Renderer.World
         private readonly GameWorldVoxelChunk[] worldChunks;
         private readonly Color3f ambientLight;
         private readonly BlockList blockList;
+        private readonly GameWorldBox renderBox;
 
         internal GameWorld(int blockSizeX, int blockSizeY, int blockSizeZ, BlockList blockList)
         {
@@ -47,6 +50,13 @@ namespace ProdigalSoftware.TiVE.Renderer.World
             }
             
             ambientLight = new Color3f(0.01f, 0.01f, 0.01f);
+
+            renderBox = new GameWorldBox(this);
+        }
+
+        public void Dispose()
+        {
+            renderBox.Dispose();
         }
 
         /// <summary>
@@ -163,6 +173,11 @@ namespace ProdigalSoftware.TiVE.Renderer.World
             return blockList.BelongsToAnimation(block) ? 0 : block[blockVoxelX, blockVoxelY, blockVoxelZ];
         }
 
+        public RenderStatistics RenderChunks(ref Matrix4 viewProjectionMatrix, Camera camera)
+        {
+            return renderBox.Render(ref viewProjectionMatrix, camera, -1);
+        }
+
         #region Private helper methods
         /// <summary>
         /// Gets the offset into the game world blocks array for the block at the specified location
@@ -232,5 +247,203 @@ namespace ProdigalSoftware.TiVE.Renderer.World
             }
         }
         #endregion
+
+        private sealed class GameWorldBox : WorldBoundingBox, IDisposable
+        {
+            private const int ChunkVoxelSize = GameWorldVoxelChunk.ChunkVoxelSize;
+            private const int FarTopLeft = 0;
+            private const int FarTopRight = 1;
+            private const int FarBottomLeft = 2;
+            private const int FarBottomRight = 3;
+            private const int NearTopLeft = 4;
+            private const int NearTopRight = 5;
+            private const int NearBottomLeft = 6;
+            private const int NearBottomRight = 7;
+
+            private readonly GameWorldBox[] children = new GameWorldBox[8];
+            private readonly GameWorldVoxelChunk chunk;
+            private readonly int depth;
+
+            private IVertexDataCollection debugBoxOutLine;
+
+            public GameWorldBox(GameWorld gameWorld) :
+                this(gameWorld, Vector3.Zero, new Vector3(gameWorld.ChunkSize.X * GameWorldVoxelChunk.ChunkVoxelSize,
+                gameWorld.ChunkSize.Y * GameWorldVoxelChunk.ChunkVoxelSize, gameWorld.ChunkSize.Z * GameWorldVoxelChunk.ChunkVoxelSize), 0)
+            {
+            }
+
+            private GameWorldBox(GameWorld gameWorld, Vector3 minPoint, Vector3 maxPoint, int depth) : base(minPoint, maxPoint)
+            {
+                this.depth = depth;
+                Debug.Assert((int)(maxPoint.X - minPoint.X) % ChunkVoxelSize == 0, "Game world box should fit an even number of chunks inside on the x-axis");
+                Debug.Assert((int)(maxPoint.Y - minPoint.Y) % ChunkVoxelSize == 0, "Game world box should fit an even number of chunks inside on the y-axis");
+                Debug.Assert((int)(maxPoint.Z - minPoint.Z) % ChunkVoxelSize == 0, "Game world box should fit an even number of chunks inside on the z-axis");
+
+                Debug.Assert(maxPoint.X - minPoint.X > 0, "X-axis: min is greater than or equal to max");
+                Debug.Assert(maxPoint.Y - minPoint.Y > 0, "Y-axis: min is greater than or equal to max");
+                Debug.Assert(maxPoint.Z - minPoint.Z > 0, "Z-axis: min is greater than or equal to max");
+
+                int boxSizeX = (int)(maxPoint.X - minPoint.X);
+                int boxSizeY = (int)(maxPoint.Y - minPoint.Y);
+                int boxSizeZ = (int)(maxPoint.Z - minPoint.Z);
+                if (boxSizeX < ChunkVoxelSize * 2 && boxSizeY < ChunkVoxelSize * 2 && boxSizeZ < ChunkVoxelSize * 2)
+                {
+                    chunk = gameWorld.GetChunk((int)(minPoint.X / ChunkVoxelSize), (int)(minPoint.Y / ChunkVoxelSize), (int)(minPoint.Z / ChunkVoxelSize));
+                    return;
+                }
+
+                Vector3 boxCenter = new Vector3((int)(minPoint.X + maxPoint.X) / 2 / ChunkVoxelSize * ChunkVoxelSize,
+                    (int)(minPoint.Y + maxPoint.Y) / 2 / ChunkVoxelSize * ChunkVoxelSize,
+                    (int)(minPoint.Z + maxPoint.Z) / 2 / ChunkVoxelSize * ChunkVoxelSize);
+
+                bool hasAvailableX = true;
+                bool hasAvailableY = true;
+                bool hasAvailableZ = true;
+                if (boxCenter.X - minPoint.X < ChunkVoxelSize)
+                {
+                    boxCenter.X = maxPoint.X;
+                    hasAvailableX = false;
+                }
+
+                if (boxCenter.Y - minPoint.Y < ChunkVoxelSize)
+                {
+                    boxCenter.Y = maxPoint.Y;
+                    hasAvailableY = false;
+                }
+
+                if (boxCenter.Z - minPoint.Z < ChunkVoxelSize)
+                {
+                    boxCenter.Z = maxPoint.Z;
+                    hasAvailableZ = false;
+                }
+
+                int childDepth = depth + 1;
+                children[FarBottomLeft] = new GameWorldBox(gameWorld, minPoint, boxCenter, childDepth);
+                if (hasAvailableX)
+                    children[FarBottomRight] = new GameWorldBox(gameWorld, new Vector3(boxCenter.X, minPoint.Y, minPoint.Z), new Vector3(maxPoint.X, boxCenter.Y, boxCenter.Z), childDepth);
+                if (hasAvailableY)
+                    children[FarTopLeft] = new GameWorldBox(gameWorld, new Vector3(minPoint.X, boxCenter.Y, minPoint.Z), new Vector3(boxCenter.X, maxPoint.Y, boxCenter.Z), childDepth);
+                if (hasAvailableX && hasAvailableY)
+                    children[FarTopRight] = new GameWorldBox(gameWorld, new Vector3(boxCenter.X, boxCenter.Y, minPoint.Z), new Vector3(maxPoint.X, maxPoint.Y, boxCenter.Z), childDepth);
+
+                if (hasAvailableZ)
+                {
+                    children[NearBottomLeft] = new GameWorldBox(gameWorld, new Vector3(minPoint.X, minPoint.Y, boxCenter.Z), new Vector3(boxCenter.X, boxCenter.Y, maxPoint.Z), childDepth);
+                    if (hasAvailableX)
+                        children[NearBottomRight] = new GameWorldBox(gameWorld, new Vector3(boxCenter.X, minPoint.Y, boxCenter.Z), new Vector3(maxPoint.X, boxCenter.Y, maxPoint.Z), childDepth);
+                    if (hasAvailableY)
+                        children[NearTopLeft] = new GameWorldBox(gameWorld, new Vector3(minPoint.X, boxCenter.Y, boxCenter.Z), new Vector3(boxCenter.X, maxPoint.Y, maxPoint.Z), childDepth);
+                    if (hasAvailableX && hasAvailableY)
+                        children[NearTopRight] = new GameWorldBox(gameWorld, boxCenter, maxPoint, depth + 1);
+                }
+            }
+
+            public void Dispose()
+            {
+                if (debugBoxOutLine != null)
+                    debugBoxOutLine.Dispose();
+
+                if (chunk != null)
+                    chunk.Dispose();
+
+                GameWorldBox[] childrenLocal = children;
+                for (int i = 0; i < childrenLocal.Length; i++)
+                {
+                    GameWorldBox childBox = childrenLocal[i];
+                    if (childBox != null)
+                        childBox.Dispose();
+                }
+            }
+
+            public RenderStatistics Render(ref Matrix4 viewProjectionMatrix, Camera camera, int locationInParent)
+            {
+                if (debugBoxOutLine == null)
+                {
+                    Color4b color = GetColorForLocation(locationInParent);
+                    LargeMeshBuilder builder = new LargeMeshBuilder(8, 24);
+                    builder.StartNewMesh();
+                    int v1 = builder.Add((short)(minPoint.X + depth), (short)(minPoint.Y + depth), (short)(minPoint.Z + depth), color);
+                    int v2 = builder.Add((short)(maxPoint.X - depth), (short)(minPoint.Y + depth), (short)(minPoint.Z + depth), color);
+                    int v3 = builder.Add((short)(maxPoint.X - depth), (short)(maxPoint.Y - depth), (short)(minPoint.Z + depth), color);
+                    int v4 = builder.Add((short)(minPoint.X + depth), (short)(maxPoint.Y - depth), (short)(minPoint.Z + depth), color);
+                    int v5 = builder.Add((short)(minPoint.X + depth), (short)(minPoint.Y + depth), (short)(maxPoint.Z - depth), color);
+                    int v6 = builder.Add((short)(maxPoint.X - depth), (short)(minPoint.Y + depth), (short)(maxPoint.Z - depth), color);
+                    int v7 = builder.Add((short)(maxPoint.X - depth), (short)(maxPoint.Y - depth), (short)(maxPoint.Z - depth), color);
+                    int v8 = builder.Add((short)(minPoint.X + depth), (short)(maxPoint.Y - depth), (short)(maxPoint.Z - depth), color);
+
+                    // far plane outline
+                    builder.AddIndex(v1);
+                    builder.AddIndex(v2);
+                    builder.AddIndex(v2);
+                    builder.AddIndex(v3);
+                    builder.AddIndex(v3);
+                    builder.AddIndex(v4);
+                    builder.AddIndex(v4);
+                    builder.AddIndex(v1);
+
+                    // near plane outline
+                    builder.AddIndex(v5);
+                    builder.AddIndex(v6);
+                    builder.AddIndex(v6);
+                    builder.AddIndex(v7);
+                    builder.AddIndex(v7);
+                    builder.AddIndex(v8);
+                    builder.AddIndex(v8);
+                    builder.AddIndex(v5);
+
+                    // Other outline lines
+                    builder.AddIndex(v1);
+                    builder.AddIndex(v5);
+                    builder.AddIndex(v2);
+                    builder.AddIndex(v6);
+                    builder.AddIndex(v3);
+                    builder.AddIndex(v7);
+                    builder.AddIndex(v4);
+                    builder.AddIndex(v8);
+
+
+                    debugBoxOutLine = builder.GetMesh();
+                    builder.DropMesh();
+                    debugBoxOutLine.Initialize();
+                }
+
+                IShaderProgram shader = ResourceManager.ShaderManager.GetShaderProgram("MainWorld");
+                shader.Bind();
+
+                shader.SetUniform("matrix_ModelViewProjection", ref viewProjectionMatrix);
+
+                TiVEController.Backend.Draw(PrimitiveType.Lines, debugBoxOutLine);
+
+                RenderStatistics stats = new RenderStatistics(1, 12, 0, 0);
+                GameWorldBox[] childrenLocal = children;
+                for (int i = 0; i < childrenLocal.Length; i++)
+                {
+                    GameWorldBox childBox = childrenLocal[i];
+                    if (childBox != null)
+                    {
+                        if (camera.BoxInView(childBox, depth <= 10))
+                            stats = stats + childBox.Render(ref viewProjectionMatrix, camera, i);
+                    }
+                }
+
+                return stats;
+            }
+
+            private static Color4b GetColorForLocation(int location)
+            {
+                switch (location)
+                {
+                    case FarTopLeft: return new Color4b(255, 0, 0, 255);
+                    case FarTopRight: return new Color4b(0, 255, 0, 255);
+                    case FarBottomLeft: return new Color4b(0, 0, 255, 255);
+                    case FarBottomRight: return new Color4b(255, 255, 0, 255);
+                    case NearTopLeft: return new Color4b(0, 255, 255, 255);
+                    case NearTopRight: return new Color4b(255, 0, 255, 255);
+                    case NearBottomLeft: return new Color4b(100, 255, 50, 255);
+                    case NearBottomRight: return new Color4b(50, 100, 255, 255);
+                    default: return new Color4b(255, 255, 255, 255);
+                }
+            }
+        }
     }
 }

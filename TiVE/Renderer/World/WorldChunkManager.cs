@@ -5,7 +5,6 @@ using System.Threading;
 using OpenTK;
 using ProdigalSoftware.TiVE.Renderer.Voxels;
 using ProdigalSoftware.TiVE.Starter;
-using ProdigalSoftware.TiVEPluginFramework;
 using ProdigalSoftware.Utils;
 
 namespace ProdigalSoftware.TiVE.Renderer.World
@@ -76,14 +75,14 @@ namespace ProdigalSoftware.TiVE.Renderer.World
                 {
                     for (int chunkY = chunkMinY; chunkY < chunkMaxY; chunkY++)
                     {
-                        GameWorldVoxelChunk chunk = gameWorld.GetChunk(chunkX, chunkY, chunkZ);
-                        if (!loadedChunks.Contains(chunk))
-                        {
-                            chunk.PrepareForLoad();
-                            UpdateChunk(chunk);
-                            loadedChunks.Add(chunk);
-                            loadedChunksList.Add(chunk);
-                        }
+                        //GameWorldVoxelChunk chunk = gameWorld.GetChunk(chunkX, chunkY, chunkZ);
+                        //if (!loadedChunks.Contains(chunk))
+                        //{
+                        //    chunk.PrepareForLoad();
+                        //    UpdateChunk(chunk);
+                        //    loadedChunks.Add(chunk);
+                        //    loadedChunksList.Add(chunk);
+                        //}
                     }
                 }
             }
