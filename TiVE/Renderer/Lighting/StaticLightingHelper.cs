@@ -86,7 +86,7 @@ namespace ProdigalSoftware.TiVE.Renderer.Lighting
             int sizeY = gameWorld.BlockSize.Y;
             int sizeZ = gameWorld.BlockSize.Z;
             float maxVoxelDist = (float)Math.Sqrt(1.0 / (light.Attenuation * minLightValue));
-            int maxLightBlockDist = (int)Math.Ceiling(maxVoxelDist / BlockInformation.BlockSize);
+            int maxLightBlockDist = (int)Math.Ceiling(maxVoxelDist / BlockInformation.VoxelSize);
 
             int startX = Math.Max(0, blockX - maxLightBlockDist);
             int startY = Math.Max(0, blockY - maxLightBlockDist);
@@ -102,9 +102,9 @@ namespace ProdigalSoftware.TiVE.Renderer.Lighting
                 {
                     for (int ly = startY; ly < endY; ly++)
                     {
-                        int vx = lx * BlockInformation.BlockSize + 5;
-                        int vy = ly * BlockInformation.BlockSize + 5;
-                        int vz = lz * BlockInformation.BlockSize + 5;
+                        int vx = lx * BlockInformation.VoxelSize + 5;
+                        int vy = ly * BlockInformation.VoxelSize + 5;
+                        int vz = lz * BlockInformation.VoxelSize + 5;
                         float blockPercentage = LightUtils.GetLightPercentage(lightInfo, vx, vy, vz);
                         Color3f color = gameWorld.GetBlockLight(lx, ly, lz);
                         gameWorld.SetBlockLight(lx, ly, lz, color + (light.Color * blockPercentage));

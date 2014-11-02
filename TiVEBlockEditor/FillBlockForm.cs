@@ -70,11 +70,11 @@ namespace ProdigalSoftware.TiVEBlockEditor
         private void UpdateBlock()
         {
             BlockInformation block = editorForm.CurrentBlock;
-            for (int x = 0; x < BlockInformation.BlockSize; x++)
+            for (int x = 0; x < BlockInformation.VoxelSize; x++)
             {
-                for (int y = 0; y < BlockInformation.BlockSize; y++)
+                for (int y = 0; y < BlockInformation.VoxelSize; y++)
                 {
-                    for (int z = 0; z < BlockInformation.BlockSize; z++)
+                    for (int z = 0; z < BlockInformation.VoxelSize; z++)
                     {
                         if (random.NextDouble() > (sldrFillDensity.Value / 100.0))
                             block[x, y, z] = 0;

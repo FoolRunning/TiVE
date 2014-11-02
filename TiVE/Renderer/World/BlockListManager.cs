@@ -70,10 +70,10 @@ namespace ProdigalSoftware.TiVE.Renderer.World
             RenderStatistics stats = new RenderStatistics();
             for (int z = gameWorld.BlockSize.Z - 1; z >= 0; z--)
             {
-                translationMatrix.M43 = z * BlockInformation.BlockSize;
+                translationMatrix.M43 = z * BlockInformation.VoxelSize;
                 for (int x = camMinX; x < camMaxX; x++)
                 {
-                    translationMatrix.M41 = x * BlockInformation.BlockSize;
+                    translationMatrix.M41 = x * BlockInformation.VoxelSize;
                     for (int y = camMinY; y < camMaxY; y++)
                     {
                         BlockInformation block = gameWorld[x, y, z];
@@ -88,7 +88,7 @@ namespace ProdigalSoftware.TiVE.Renderer.World
                         if (!blockMeshes.TryGetValue(block, out voxelGroup))
                             blockMeshes[block] = voxelGroup = new IndexedVoxelGroup(block);
 
-                        translationMatrix.M42 = y * BlockInformation.BlockSize;
+                        translationMatrix.M42 = y * BlockInformation.VoxelSize;
                         Matrix4 result;
                         Matrix4.Mult(ref translationMatrix, ref matrixMVP, out result);
                         stats += voxelGroup.Render(ref result);

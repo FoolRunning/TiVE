@@ -7,7 +7,7 @@ using ProdigalSoftware.Utils;
 namespace ProdigalSoftware.TiVE.Renderer.Voxels
 {
     [Flags]
-    public enum VoxelSides
+    internal enum VoxelSides
     {
         None = 0,
         Top = 1 << 0,

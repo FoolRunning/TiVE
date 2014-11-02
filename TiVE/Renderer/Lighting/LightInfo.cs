@@ -12,9 +12,9 @@ namespace ProdigalSoftware.TiVE.Renderer.Lighting
 
         public LightInfo(int blockX, int blockY, int blockZ, ILight light)
         {
-            VoxelLocX = light.Location.X + blockX * BlockInformation.BlockSize;
-            VoxelLocY = light.Location.Y + blockY * BlockInformation.BlockSize;
-            VoxelLocZ = light.Location.Z + blockZ * BlockInformation.BlockSize;
+            VoxelLocX = light.Location.X + blockX * BlockInformation.VoxelSize;
+            VoxelLocY = light.Location.Y + blockY * BlockInformation.VoxelSize;
+            VoxelLocZ = light.Location.Z + blockZ * BlockInformation.VoxelSize;
             Light = light;
         }
     }

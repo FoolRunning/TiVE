@@ -15,7 +15,7 @@ namespace ProdigalSoftware.TiVE.Renderer.World
 
         private readonly List<GameWorldVoxelChunk> chunksToDelete = new List<GameWorldVoxelChunk>();
         private readonly HashSet<GameWorldVoxelChunk> loadedChunks = new HashSet<GameWorldVoxelChunk>();
-        private readonly List<GameWorldVoxelChunk> loadedChunksList = new List<GameWorldVoxelChunk>(1200);
+
         private readonly List<Thread> chunkCreationThreads = new List<Thread>();
         private readonly Queue<GameWorldVoxelChunk> chunkLoadQueue = new Queue<GameWorldVoxelChunk>();
         
@@ -45,102 +45,49 @@ namespace ProdigalSoftware.TiVE.Renderer.World
             using (new PerformanceLock(chunkLoadQueue))
                 chunkLoadQueue.Clear();
 
-            foreach (GameWorldVoxelChunk chunk in loadedChunksList)
+            foreach (GameWorldVoxelChunk chunk in loadedChunks)
                 chunk.Dispose();
-            loadedChunksList.Clear();
             loadedChunks.Clear();
         }
 
-        public void UpdateCameraPos(int camMinX, int camMaxX, int camMinY, int camMaxY)
+        public void Update(HashSet<GameWorldVoxelChunk> chunksToRender)
         {
             Debug.Assert(Thread.CurrentThread.Name == "Main UI");
 
-            GameWorld gameWorld = ResourceManager.GameWorldManager.GameWorld;
-            int chunkMinX = Math.Max(0, Math.Min(gameWorld.ChunkSize.X, camMinX / GameWorldVoxelChunk.TileSize - 1));
-            int chunkMaxX = Math.Max(0, Math.Min(gameWorld.ChunkSize.X, (int)Math.Ceiling(camMaxX / (float)GameWorldVoxelChunk.TileSize) + 1));
-            int chunkMinY = Math.Max(0, Math.Min(gameWorld.ChunkSize.Y, camMinY / GameWorldVoxelChunk.TileSize - 1));
-            int chunkMaxY = Math.Max(0, Math.Min(gameWorld.ChunkSize.Y, (int)Math.Ceiling(camMaxY / (float)GameWorldVoxelChunk.TileSize) + 1));
-            int chunkMaxZ = Math.Max((int)Math.Ceiling(gameWorld.BlockSize.Z / (float)GameWorldVoxelChunk.TileSize), 1);
-
-            for (int i = 0; i < loadedChunksList.Count; i++)
+            foreach (GameWorldVoxelChunk chunk in chunksToRender)
             {
-                GameWorldVoxelChunk chunk = loadedChunksList[i];
-                if (!chunk.IsInside(chunkMinX, chunkMinY, chunkMaxX, chunkMaxY))
-                    chunksToDelete.Add(chunk);
+                if (!loadedChunks.Contains(chunk))
+                    LoadChunk(chunk);
             }
 
-            for (int chunkZ = chunkMaxZ - 1; chunkZ >= 0; chunkZ--)
+            foreach (GameWorldVoxelChunk chunk in loadedChunks)
             {
-                for (int chunkX = chunkMinX; chunkX < chunkMaxX; chunkX++)
-                {
-                    for (int chunkY = chunkMinY; chunkY < chunkMaxY; chunkY++)
-                    {
-                        //GameWorldVoxelChunk chunk = gameWorld.GetChunk(chunkX, chunkY, chunkZ);
-                        //if (!loadedChunks.Contains(chunk))
-                        //{
-                        //    chunk.PrepareForLoad();
-                        //    UpdateChunk(chunk);
-                        //    loadedChunks.Add(chunk);
-                        //    loadedChunksList.Add(chunk);
-                        //}
-                    }
-                }
+                if (!chunksToRender.Contains(chunk))
+                    chunksToDelete.Add(chunk);
             }
         }
 
-        public RenderStatistics Render(ref Matrix4 viewProjectionMatrix, int camMinX, int camMaxX, int camMinY, int camMaxY)
+        public void CleanUpChunks()
         {
             Debug.Assert(Thread.CurrentThread.Name == "Main UI");
 
-            GameWorld gameWorld = ResourceManager.GameWorldManager.GameWorld;
-            int chunkMinX = Math.Max(0, Math.Min(gameWorld.ChunkSize.X, camMinX / GameWorldVoxelChunk.TileSize - 1));
-            int chunkMaxX = Math.Max(0, Math.Min(gameWorld.ChunkSize.X, (int)Math.Ceiling(camMaxX / (float)GameWorldVoxelChunk.TileSize) + 1));
-            int chunkMinY = Math.Max(0, Math.Min(gameWorld.ChunkSize.Y, camMinY / GameWorldVoxelChunk.TileSize - 1));
-            int chunkMaxY = Math.Max(0, Math.Min(gameWorld.ChunkSize.Y, (int)Math.Ceiling(camMaxY / (float)GameWorldVoxelChunk.TileSize) + 1));
-            int chunkMaxZ = Math.Max((int)Math.Ceiling(gameWorld.BlockSize.Z / (float)GameWorldVoxelChunk.TileSize), 1);
-
-            for (int i = 0; i < chunksToDelete.Count; i++)
+            foreach (GameWorldVoxelChunk chunk in chunksToDelete)
             {
-                GameWorldVoxelChunk chunk = chunksToDelete[i];
                 loadedChunks.Remove(chunk);
-                loadedChunksList.Remove(chunk);
                 chunk.Dispose();
             }
 
             chunksToDelete.Clear();
-
-            int initializedChunkCount = 0;
-            //int excessUninitializedChunkCount = 0;
-            RenderStatistics stats = new RenderStatistics();
-            for (int chunkZ = chunkMaxZ - 1; chunkZ >= 0; chunkZ--)
-            {
-                for (int chunkX = chunkMinX; chunkX < chunkMaxX; chunkX++)
-                {
-                    for (int chunkY = chunkMinY; chunkY < chunkMaxY; chunkY++)
-                    {
-                        GameWorldVoxelChunk chunk = gameWorld.GetChunk(chunkX, chunkY, chunkZ);
-                        if (chunk.NeedsInitialization)
-                        {
-                            if (initializedChunkCount < MaxChunkUpdatesPerFrame)
-                            {
-                                if (chunk.Initialize())
-                                    initializedChunkCount++;
-                            }
-                            //else
-                            //    excessUninitializedChunkCount++;
-                        }
-                            
-                        stats += chunk.Render(ref viewProjectionMatrix);
-                    }
-                }
-            }
-            //if (excessUninitializedChunkCount > 0)
-            //    Console.WriteLine("Maxed chunk initializations for this frame by " + excessUninitializedChunkCount);
-
-            return stats;
         }
 
-        private void UpdateChunk(GameWorldVoxelChunk chunk)
+        private void LoadChunk(GameWorldVoxelChunk chunk)
+        {
+            chunk.PrepareForLoad();
+            ReloadChunk(chunk);
+            loadedChunks.Add(chunk);
+        }
+
+        private void ReloadChunk(GameWorldVoxelChunk chunk)
         {
             if (chunk == null)
                 throw new ArgumentNullException("chunk");
@@ -183,25 +130,11 @@ namespace ProdigalSoftware.TiVE.Renderer.World
                 if (meshBuilder == null)
                 {
                     bottleneckCount++;
-                    if (bottleneckCount > 100) // 300ms give or take
+                    if (bottleneckCount > 50) // 150ms give or take
                     {
                         bottleneckCount = 0;
                         // Too many chunks are waiting to be intialized. Most likely there are chunks that were not properly disposed.
-                        Console.WriteLine("Mesh creation bottlenecked!");
-
-                        GameWorld gameWorld = ResourceManager.GameWorldManager.GameWorld;
-                        for (int z = 0; z < gameWorld.ChunkSize.Z; z++)
-                        {
-                            for (int x = 0; x < gameWorld.ChunkSize.X; x++)
-                            {
-                                for (int y = 0; y < gameWorld.ChunkSize.Y; y++)
-                                {
-                                    GameWorldVoxelChunk oldChunk = gameWorld.GetChunk(x, y, z);
-                                    if (oldChunk.MeshBuilder != null)
-                                        chunksToDelete.Add(oldChunk);
-                                }
-                            }
-                        }
+                        Messages.AddWarning("Mesh creation bottlenecked!");
                     }
 
                     continue; // No free meshbuilders to use

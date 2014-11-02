@@ -50,49 +50,46 @@ namespace ProdigalSoftware.TiVE.Renderer.Particles
             return true;
         }
 
-        public void UpdateCameraPos(int camMinX, int camMaxX, int camMinY, int camMaxY)
+        public void UpdateCameraPos(HashSet<GameWorldVoxelChunk> chunksToRender)
         {
             Debug.Assert(Thread.CurrentThread.Name == "Main UI");
 
-            camMinY = Math.Max(camMinY - GameWorldVoxelChunk.TileSize, 0);
+            //foreach (SystemInfo runningSystem in runningSystems)
+            //{
+            //    if (runningSystem.X < camMinX || runningSystem.X >= camMaxX ||
+            //        runningSystem.Y < camMinY || runningSystem.Y >= camMaxY)
+            //    {
+            //        systemsToDelete.Add(runningSystem);
+            //    }
+            //}
 
-            foreach (SystemInfo runningSystem in runningSystems)
-            {
-                if (runningSystem.X < camMinX || runningSystem.X >= camMaxX ||
-                    runningSystem.Y < camMinY || runningSystem.Y >= camMaxY)
-                {
-                    systemsToDelete.Add(runningSystem);
-                }
-            }
+            //for (int i = 0; i < systemsToDelete.Count; i++)
+            //{
+            //    SystemInfo runningSystem = systemsToDelete[i];
+            //    runningSystems.Remove(runningSystem);
+            //    RemoveParticleSystem(runningSystem.System);
+            //}
+            //systemsToDelete.Clear();
 
-            for (int i = 0; i < systemsToDelete.Count; i++)
-            {
-                SystemInfo runningSystem = systemsToDelete[i];
-                runningSystems.Remove(runningSystem);
-                RemoveParticleSystem(runningSystem.System);
-            }
-            systemsToDelete.Clear();
-
-            GameWorld gameWorld = ResourceManager.GameWorldManager.GameWorld;
-            for (int z = 0; z < gameWorld.BlockSize.Z; z++)
-            {
-                for (int x = camMinX; x < camMaxX; x++)
-                {
-                    for (int y = camMinY; y < camMaxY; y++)
-                    {
-                        BlockInformation block = gameWorld[x, y, z];
-                        ParticleSystemInformation particleInfo = block.ParticleSystem;
-                        if (particleInfo != null && !runningSystems.Contains(new SystemInfo(x, y, z)))
-                        {
-                            Vector3b loc = particleInfo.Location;
-                            ParticleSystem system = new ParticleSystem(particleInfo, (x * BlockInformation.BlockSize) + loc.X,
-                                (y * BlockInformation.BlockSize) + loc.Y, (z * BlockInformation.BlockSize) + loc.Z);
-                            runningSystems.Add(new SystemInfo(x, y, z, system));
-                            AddParticleSystem(system);
-                        }
-                    }
-                }
-            }
+            //GameWorld gameWorld = ResourceManager.GameWorldManager.GameWorld;
+            //for (int z = 0; z < gameWorld.BlockSize.Z; z++)
+            //{
+            //    for (int x = camMinX; x < camMaxX; x++)
+            //    {
+            //        for (int y = camMinY; y < camMaxY; y++)
+            //        {
+            //            ParticleSystemInformation particleInfo = gameWorld[x, y, z].ParticleSystem;
+            //            if (particleInfo != null && !runningSystems.Contains(new SystemInfo(x, y, z)))
+            //            {
+            //                Vector3b loc = particleInfo.Location;
+            //                ParticleSystem system = new ParticleSystem(particleInfo, (x * BlockInformation.VoxelSize) + loc.X,
+            //                    (y * BlockInformation.VoxelSize) + loc.Y, (z * BlockInformation.VoxelSize) + loc.Z);
+            //                runningSystems.Add(new SystemInfo(x, y, z, system));
+            //                AddParticleSystem(system);
+            //            }
+            //        }
+            //    }
+            //}
         }
 
         public RenderStatistics Render(ref Matrix4 matrixMVP)
@@ -103,19 +100,17 @@ namespace ProdigalSoftware.TiVE.Renderer.Particles
 
             RenderStatistics stats = new RenderStatistics();
             // Render opaque particles first
-            for (int i = 0; i < renderList.Count; i++)
+            foreach (ParticleSystemCollection system in renderList)
             {
-                if (renderList[i].HasTransparency)
-                    continue;
-                stats += renderList[i].Render(ref matrixMVP);
+                if (!system.HasTransparency)
+                    stats += system.Render(ref matrixMVP);
             }
 
             // Render transparent particles last
-            for (int i = 0; i < renderList.Count; i++)
+            foreach (ParticleSystemCollection system in renderList)
             {
-                if (!renderList[i].HasTransparency)
-                    continue;
-                stats += renderList[i].Render(ref matrixMVP);
+                if (system.HasTransparency)
+                    stats += system.Render(ref matrixMVP);
             }
 
             return stats;

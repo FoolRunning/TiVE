@@ -1,6 +1,6 @@
 ﻿WorldXSize = 71;
 WorldYSize = 41;
-WorldZSize = 20;
+WorldZSize = 5;
 
 
 function Initialize(camera)

@@ -49,7 +49,7 @@ namespace BlockConverter
             using (BinaryWriter writer = new BinaryWriter(new FileStream(filePath, FileMode.Create), Encoding.ASCII))
             {
                 writer.Write("TiVEb");
-                writer.Write((byte)BlockInformation.BlockSize);
+                writer.Write((byte)BlockInformation.VoxelSize);
                 for (int i = 0; i < block.VoxelsArray.Length; i++)
                     writer.Write(block.VoxelsArray[i]);
             }
