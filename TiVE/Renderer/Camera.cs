@@ -141,44 +141,25 @@ namespace ProdigalSoftware.TiVE.Renderer
                 Vector3 nearCenter = location - zAxis * NearDist;
                 Vector3 farCenter = location - zAxis * FarDist;
 
-                frustrumPlanes[Near].UpdatePlane(-zAxis, nearCenter);
-                frustrumPlanes[Far].UpdatePlane(zAxis, farCenter);
+                frustrumPlanes[Near] = new Plane(-zAxis, nearCenter);
+                frustrumPlanes[Far] = new Plane(zAxis, farCenter);
 
                 Vector3 normal = (nearCenter + yAxis * nearHeight) - location;
                 normal.Normalize();
-                frustrumPlanes[Top].UpdatePlane(Vector3.Cross(normal, xAxis), nearCenter + yAxis * nearHeight);
+                frustrumPlanes[Top] = new Plane(Vector3.Cross(normal, xAxis), nearCenter + yAxis * nearHeight);
 
                 normal = (nearCenter - yAxis * nearHeight) - location;
                 normal.Normalize();
-                frustrumPlanes[Bottom].UpdatePlane(Vector3.Cross(xAxis, normal), nearCenter - yAxis * nearHeight);
+                frustrumPlanes[Bottom] = new Plane(Vector3.Cross(xAxis, normal), nearCenter - yAxis * nearHeight);
 
                 normal = (nearCenter - xAxis * nearWidth) - location;
                 normal.Normalize();
-                frustrumPlanes[Left].UpdatePlane(Vector3.Cross(normal, yAxis), nearCenter - xAxis * nearWidth);
+                frustrumPlanes[Left] = new Plane(Vector3.Cross(normal, yAxis), nearCenter - xAxis * nearWidth);
 
                 normal = (nearCenter + xAxis * nearWidth) - location;
                 normal.Normalize();
-                frustrumPlanes[Right].UpdatePlane(Vector3.Cross(yAxis, normal), nearCenter + xAxis * nearWidth);
+                frustrumPlanes[Right] = new Plane(Vector3.Cross(yAxis, normal), nearCenter + xAxis * nearWidth);
             }
-        }
-        
-        public void GetViewPlane(float distance, out Vector3 topLeft, out Vector3 bottomRight)
-        {
-            Vector3 zAxis = (Location - LookAtLocation);
-            zAxis.Normalize();
-
-            Vector3 xAxis = Vector3.Cross(Vector3.UnitY, zAxis);
-            xAxis.Normalize();
-
-            Vector3 yAxis = Vector3.Cross(zAxis, xAxis);
-
-            Vector3 farPoint = Location - zAxis * distance;
-
-            float height = (float)Math.Tan(FoV * 0.5f) * distance;
-            float width = height * AspectRatio;
-
-            topLeft = farPoint + yAxis * height - xAxis * width;
-            bottomRight = farPoint - yAxis * height + xAxis * width;
         }
 
         public bool BoxInView(WorldBoundingBox box, bool allowIntersecting)

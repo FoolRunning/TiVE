@@ -10,15 +10,13 @@ namespace ProdigalSoftware.TiVE.Renderer.World
     internal sealed class GameWorldVoxelChunk : IDisposable
     {
         #region Constants
-        public const int TileSize = 5;
-        public const int ChunkVoxelSize = TileSize * BlockInformation.BlockSize;
+        public const int BlockSize = 5;
+        public const int VoxelSize = BlockSize * BlockInformation.VoxelSize;
         #endregion
 
-        private MeshBuilder meshBuilder;
         private readonly object syncLock = new object();
-        private readonly int chunkX;
-        private readonly int chunkY;
-        private readonly int chunkZ;
+        private readonly Vector3i chunkLoc;
+        private MeshBuilder meshBuilder;
         private bool deleted;
         private IVertexDataCollection mesh;
         private Matrix4 translationMatrix;
@@ -28,11 +26,8 @@ namespace ProdigalSoftware.TiVE.Renderer.World
 
         public GameWorldVoxelChunk(int chunkX, int chunkY, int chunkZ)
         {
-            this.chunkX = chunkX;
-            this.chunkY = chunkY;
-            this.chunkZ = chunkZ;
-
-            translationMatrix = Matrix4.CreateTranslation(chunkX * ChunkVoxelSize, chunkY * ChunkVoxelSize, chunkZ * ChunkVoxelSize);
+            chunkLoc = new Vector3i(chunkX, chunkY, chunkZ);
+            translationMatrix = Matrix4.CreateTranslation(chunkX * VoxelSize, chunkY * VoxelSize, chunkZ * VoxelSize);
         }
 
         public void Dispose()
@@ -51,24 +46,6 @@ namespace ProdigalSoftware.TiVE.Renderer.World
             }
         }
 
-        public MeshBuilder MeshBuilder 
-        {
-            get 
-            { 
-                using (new PerformanceLock(syncLock))
-                    return meshBuilder; 
-            }
-        }
-
-        public bool NeedsInitialization 
-        {
-            get
-            {
-                using (new PerformanceLock(syncLock))
-                    return meshBuilder != null;
-            }
-        }
-
         public bool IsDeleted
         {
             get
@@ -78,37 +55,10 @@ namespace ProdigalSoftware.TiVE.Renderer.World
             }
         }
 
-        public bool IsInside(int checkChunkStartX, int checkChunkStartY, int checkChunkEndX, int checkChunkEndY)
-        {
-            return checkChunkStartX <= chunkX && checkChunkEndX >= chunkX && checkChunkStartY <= chunkY && checkChunkEndY >= chunkY;
-        }
-
         public void PrepareForLoad()
         {
             using (new PerformanceLock(syncLock))
                 deleted = false;
-        }
-
-        public bool Initialize()
-        {
-            using (new PerformanceLock(syncLock))
-            {
-                if (meshBuilder == null)
-                    return false;
-                
-                if (mesh != null)
-                    mesh.Dispose();
-
-                if (chunkPolygonCount > 0)
-                {
-                    mesh = meshBuilder.GetMesh();
-                    mesh.Initialize();
-                }
-
-                meshBuilder.DropMesh(); // Release builder - Must be called after initializing the mesh
-                meshBuilder = null;
-            }
-            return chunkPolygonCount > 0;
         }
 
         public RenderStatistics Render(ref Matrix4 viewProjectionMatrix)
@@ -118,7 +68,11 @@ namespace ProdigalSoftware.TiVE.Renderer.World
 
             IVertexDataCollection meshData;
             using (new PerformanceLock(syncLock))
+            {
+                if (meshBuilder != null)
+                    InitializeNewMesh();
                 meshData = mesh;
+            }
 
             if (meshData == null)
                 return new RenderStatistics(); // Nothing to render for this chunk
@@ -138,7 +92,7 @@ namespace ProdigalSoftware.TiVE.Renderer.World
 
         public override string ToString()
         {
-            return string.Format("Chunk ({0}, {1}, {2}) {3}v", chunkX, chunkY, chunkZ, chunkVoxelCount);
+            return string.Format("Chunk ({0}, {1}, {2}) {3}v", chunkLoc.X, chunkLoc.Y, chunkLoc.Z, chunkVoxelCount);
         }
 
         public void Load(MeshBuilder newMeshBuilder)
@@ -150,16 +104,16 @@ namespace ProdigalSoftware.TiVE.Renderer.World
 
             //Debug.WriteLine("Started chunk ({0},{1},{2})", chunkStartX, chunkStartY, chunkStartZ);
 
-            int voxelStartX = chunkX * TileSize * BlockInformation.BlockSize;
-            int voxelStartY = chunkY * TileSize * BlockInformation.BlockSize;
-            int voxelStartZ = chunkZ * TileSize * BlockInformation.BlockSize;
+            int voxelStartX = chunkLoc.X * BlockSize * BlockInformation.VoxelSize;
+            int voxelStartY = chunkLoc.Y * BlockSize * BlockInformation.VoxelSize;
+            int voxelStartZ = chunkLoc.Z * BlockSize * BlockInformation.VoxelSize;
 
-            int blockStartX = chunkX * TileSize;
-            int blockEndX = Math.Min((chunkX + 1) * TileSize, gameWorld.BlockSize.X);
-            int blockStartY = chunkY * TileSize;
-            int blockEndY = Math.Min((chunkY + 1) * TileSize, gameWorld.BlockSize.Y);
-            int blockStartZ = chunkZ * TileSize;
-            int blockEndZ = Math.Min((chunkZ + 1) * TileSize, gameWorld.BlockSize.Z);
+            int blockStartX = chunkLoc.X * BlockSize;
+            int blockEndX = Math.Min((chunkLoc.X + 1) * BlockSize, gameWorld.BlockSize.X);
+            int blockStartY = chunkLoc.Y * BlockSize;
+            int blockEndY = Math.Min((chunkLoc.Y + 1) * BlockSize, gameWorld.BlockSize.Y);
+            int blockStartZ = chunkLoc.Z * BlockSize;
+            int blockEndZ = Math.Min((chunkLoc.Z + 1) * BlockSize, gameWorld.BlockSize.Z);
 
             int maxVoxelX = gameWorld.VoxelSize.X;
             int maxVoxelY = gameWorld.VoxelSize.Y;
@@ -179,49 +133,49 @@ namespace ProdigalSoftware.TiVE.Renderer.World
                         if (block == BlockInformation.Empty || blockList.BelongsToAnimation(block))
                             continue;
 
-                        for (int bz = BlockInformation.BlockSize - 1; bz >= 0; bz--)
+                        for (int bz = BlockInformation.VoxelSize - 1; bz >= 0; bz--)
                         {
-                            int voxelZ = z * BlockInformation.BlockSize + bz;
+                            int voxelZ = z * BlockInformation.VoxelSize + bz;
                             byte chunkVoxelZ = (byte)(voxelZ - voxelStartZ);
-                            for (int bx = 0; bx < BlockInformation.BlockSize; bx++)
+                            for (int bx = 0; bx < BlockInformation.VoxelSize; bx++)
                             {
-                                int voxelX = x * BlockInformation.BlockSize + bx;
+                                int voxelX = x * BlockInformation.VoxelSize + bx;
                                 byte chunkVoxelX = (byte)(voxelX - voxelStartX);
-                                for (int by = 0; by < BlockInformation.BlockSize; by++)
+                                for (int by = 0; by < BlockInformation.VoxelSize; by++)
                                 {
                                     uint color = block[bx, by, bz];
                                     if (color == 0)
                                         continue;
                                     
-                                    int voxelY = y * BlockInformation.BlockSize + by;
+                                    int voxelY = y * BlockInformation.VoxelSize + by;
 
                                     voxelCount++;
 
                                     VoxelSides sides = VoxelSides.None;
 
                                     // Check to see if the front side is visible
-                                    if (bz < BlockInformation.BlockSize - 1)
+                                    if (bz < BlockInformation.VoxelSize - 1)
                                     {
                                         if (block[bx, by, bz + 1] == 0)
                                             sides |= VoxelSides.Front;
                                     }
-                                    else if (bz == BlockInformation.BlockSize - 1)
+                                    else if (bz == BlockInformation.VoxelSize - 1)
                                     {
                                         if (voxelZ == maxVoxelZ - 1 || gameWorld.GetVoxel(voxelX, voxelY, voxelZ + 1) == 0)
                                             sides |= VoxelSides.Front;
                                     }
 
-                                    // The back face is never shown to the camera, so there is no need to create it
-                                    //if (bz > 0)
-                                    //{
-                                    //    if (block[bx, by, bz - 1] == 0)
-                                    //        sides |= VoxelSides.Back;
-                                    //}
-                                    //else if (bz == 0)
-                                    //{
-                                    //    if (voxelZ > 0 && gameWorld.GetVoxel(voxelX, voxelY, voxelZ - 1) == 0)
-                                    //        sides |= VoxelSides.Back;
-                                    //}
+                                    // Check to see if the back side is visible
+                                    if (bz > 0)
+                                    {
+                                        if (block[bx, by, bz - 1] == 0)
+                                            sides |= VoxelSides.Back;
+                                    }
+                                    else if (bz == 0)
+                                    {
+                                        if (voxelZ > 0 && gameWorld.GetVoxel(voxelX, voxelY, voxelZ - 1) == 0)
+                                            sides |= VoxelSides.Back;
+                                    }
 
                                     // Check to see if the left side is visible
                                     if (bx > 0)
@@ -236,12 +190,12 @@ namespace ProdigalSoftware.TiVE.Renderer.World
                                     }
 
                                     // Check to see if the right side is visible
-                                    if (bx < BlockInformation.BlockSize - 1)
+                                    if (bx < BlockInformation.VoxelSize - 1)
                                     {
                                         if (block[bx + 1, by, bz] == 0)
                                             sides |= VoxelSides.Right;
                                     }
-                                    else if (bx == BlockInformation.BlockSize - 1)
+                                    else if (bx == BlockInformation.VoxelSize - 1)
                                     {
                                         if (voxelX == maxVoxelX - 1 || gameWorld.GetVoxel(voxelX + 1, voxelY, voxelZ) == 0)
                                             sides |= VoxelSides.Right;
@@ -260,12 +214,12 @@ namespace ProdigalSoftware.TiVE.Renderer.World
                                     }
 
                                     // Check to see if the top side is visible
-                                    if (by < BlockInformation.BlockSize - 1)
+                                    if (by < BlockInformation.VoxelSize - 1)
                                     {
                                         if (block[bx, by + 1, bz] == 0)
                                             sides |= VoxelSides.Top;
                                     }
-                                    else if (by == BlockInformation.BlockSize - 1)
+                                    else if (by == BlockInformation.VoxelSize - 1)
                                     {
                                         if (voxelY == maxVoxelY - 1 || gameWorld.GetVoxel(voxelX, voxelY + 1, voxelZ) == 0)
                                             sides |= VoxelSides.Top;
@@ -312,6 +266,22 @@ namespace ProdigalSoftware.TiVE.Renderer.World
                     chunkRenderedVoxelCount = renderedVoxelCount;
                 }
             }
+        }
+
+        private void InitializeNewMesh()
+        {
+            if (mesh != null)
+                mesh.Dispose();
+            mesh = null;
+
+            if (chunkPolygonCount > 0)
+            {
+                mesh = meshBuilder.GetMesh();
+                mesh.Initialize();
+            }
+
+            meshBuilder.DropMesh(); // Release builder - Must be called after initializing the mesh
+            meshBuilder = null;
         }
     }
 }

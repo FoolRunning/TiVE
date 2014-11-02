@@ -4,10 +4,10 @@ namespace ProdigalSoftware.TiVE.Utils
 {
     internal struct Plane
     {
-        public Vector3 PlaneNormal;
-        public float PlaneD;
+        public readonly Vector3 PlaneNormal;
+        public readonly float PlaneD;
 
-        public void UpdatePlane(Vector3 newPlaneNormal, Vector3 newPlanePoint)
+        public Plane(Vector3 newPlaneNormal, Vector3 newPlanePoint)
         {
             PlaneNormal = newPlaneNormal;
             PlaneD = -Vector3.Dot(newPlaneNormal, newPlanePoint);

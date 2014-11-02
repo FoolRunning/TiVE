@@ -11,7 +11,7 @@ namespace ProdigalSoftware.TiVEPluginFramework
     public sealed class BlockInformation
     {
         /// <summary>Number of voxels that make up a block on each axis</summary>
-        public const int BlockSize = 9;
+        public const int VoxelSize = 9;
 
         public static readonly BlockInformation Empty = new BlockInformation("Empty");
 
@@ -19,7 +19,7 @@ namespace ProdigalSoftware.TiVEPluginFramework
         public readonly ParticleSystemInformation ParticleSystem;
         public readonly ILight Light;
 
-        private readonly uint[] voxels = new uint[BlockSize * BlockSize * BlockSize];
+        private readonly uint[] voxels = new uint[VoxelSize * VoxelSize * VoxelSize];
         private BlockInformation[] rotated;
 
         public BlockInformation(BlockInformation toCopy, string blockName, ParticleSystemInformation particleSystem = null, ILight light = null) :
@@ -72,32 +72,32 @@ namespace ProdigalSoftware.TiVEPluginFramework
             switch (rotation)
             {
                 case BlockRotation.NinetyCCW:
-                    for (int z = 0; z < BlockSize; z++)
+                    for (int z = 0; z < VoxelSize; z++)
                     {
-                        for (int x = 0; x < BlockSize; x++)
+                        for (int x = 0; x < VoxelSize; x++)
                         {
-                            for (int y = 0; y < BlockSize; y++)
-                                rotatedBlock[x, y, z] = this[y, BlockSize - x - 1, z];
+                            for (int y = 0; y < VoxelSize; y++)
+                                rotatedBlock[x, y, z] = this[y, VoxelSize - x - 1, z];
                         }
                     }
                     break;
                 case BlockRotation.OneEightyCCW:
-                    for (int z = 0; z < BlockSize; z++)
+                    for (int z = 0; z < VoxelSize; z++)
                     {
-                        for (int x = 0; x < BlockSize; x++)
+                        for (int x = 0; x < VoxelSize; x++)
                         {
-                            for (int y = 0; y < BlockSize; y++)
-                                rotatedBlock[x, y, z] = this[BlockSize - x - 1, BlockSize - y - 1, z];
+                            for (int y = 0; y < VoxelSize; y++)
+                                rotatedBlock[x, y, z] = this[VoxelSize - x - 1, VoxelSize - y - 1, z];
                         }
                     }
                     break;
                 case BlockRotation.TwoSeventyCCW:
-                    for (int z = 0; z < BlockSize; z++)
+                    for (int z = 0; z < VoxelSize; z++)
                     {
-                        for (int x = 0; x < BlockSize; x++)
+                        for (int x = 0; x < VoxelSize; x++)
                         {
-                            for (int y = 0; y < BlockSize; y++)
-                                rotatedBlock[x, y, z] = this[BlockSize - y - 1, x, z];
+                            for (int y = 0; y < VoxelSize; y++)
+                                rotatedBlock[x, y, z] = this[VoxelSize - y - 1, x, z];
                         }
                     }
                     break;
@@ -114,7 +114,7 @@ namespace ProdigalSoftware.TiVEPluginFramework
                     return null; // Not really a TiVE block file
 
                 int blockSize = reader.ReadByte();
-                if (blockSize != BlockSize)
+                if (blockSize != VoxelSize)
                     return null; // Wrong block size
 
                 BlockInformation block = new BlockInformation(Path.GetFileNameWithoutExtension(path));
@@ -127,11 +127,11 @@ namespace ProdigalSoftware.TiVEPluginFramework
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static int GetOffset(int x, int y, int z)
         {
-            Debug.Assert(x >= 0 && x < BlockSize);
-            Debug.Assert(y >= 0 && y < BlockSize);
-            Debug.Assert(z >= 0 && z < BlockSize);
+            Debug.Assert(x >= 0 && x < VoxelSize);
+            Debug.Assert(y >= 0 && y < VoxelSize);
+            Debug.Assert(z >= 0 && z < VoxelSize);
 
-            return (z * BlockSize + x) * BlockSize + y; // y-axis major for speed
+            return (z * VoxelSize + x) * VoxelSize + y; // y-axis major for speed
         }
     }
 }

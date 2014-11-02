@@ -31,18 +31,17 @@ namespace ProdigalSoftware.TiVE.Renderer.Voxels
                 polygonCount += 2;
             }
 
-            // The back face is never shown to the camera, so there is no need to create it
-            //if ((sides & VoxelSides.Back) != 0)
-            //{
-            //    GL.Vertex3(x * World_Block_Size + World_Block_Size, y * World_Block_Size + World_Block_Size, z * World_Block_Size + World_Block_Size);
-            //    GL.Vertex3(x * World_Block_Size + World_Block_Size, y * World_Block_Size, z * World_Block_Size + World_Block_Size);
-            //    GL.Vertex3(x * World_Block_Size, y * World_Block_Size, z * World_Block_Size + World_Block_Size);
+            if ((sides & VoxelSides.Back) != 0)
+            {
+                meshBuilder.Add(x, y, z, color);
+                meshBuilder.Add(x2, y, z, color);
+                meshBuilder.Add(x2, y2, z, color);
 
-            //    GL.Vertex3(x * World_Block_Size, y * World_Block_Size, z * World_Block_Size + World_Block_Size);
-            //    GL.Vertex3(x * World_Block_Size, y * World_Block_Size + World_Block_Size, z * World_Block_Size + World_Block_Size);
-            //    GL.Vertex3(x * World_Block_Size + World_Block_Size, y * World_Block_Size + World_Block_Size, z * World_Block_Size + World_Block_Size);
-            //    polygonCount += 2;
-            //}
+                meshBuilder.Add(x2, y2, z, color);
+                meshBuilder.Add(x, y2, z, color);
+                meshBuilder.Add(x, y, z, color);
+                polygonCount += 2;
+            }
 
             if ((sides & VoxelSides.Left) != 0)
             {

@@ -68,12 +68,12 @@ namespace ProdigalSoftware.TiVE.Renderer.Voxels
 
         public abstract IRendererData GetLocationData();
 
-        public IRendererData GetColorData()
+        private IRendererData GetColorData()
         {
             return TiVEController.Backend.CreateData(colorData, vertexCount, 4, DataType.Vertex, ValueType.Byte, true, false);
         }
 
-        public IRendererData GetIndexData()
+        private IRendererData GetIndexData()
         {
             return TiVEController.Backend.CreateData(indexData, indexCount, 1, DataType.Index, ValueType.UInt, false, false);
         }

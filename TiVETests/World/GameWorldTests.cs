@@ -53,21 +53,6 @@ namespace TiVETests.World
             VerifyBlock(gameWorld[2, 2, 2], "2,2,2");
         }
 
-        [Test]
-        public void GetChunk()
-        {
-            GameWorld gameWorld = new GameWorld(3, 7, 13, null);
-            Assert.That(gameWorld.ChunkSize.X, Is.EqualTo(1));
-            Assert.That(gameWorld.ChunkSize.Y, Is.EqualTo(2));
-            Assert.That(gameWorld.ChunkSize.Z, Is.EqualTo(3));
-            Assert.That(gameWorld.GetChunk(0, 0, 0), Is.Not.Null);
-            Assert.That(gameWorld.GetChunk(0, 1, 0), Is.Not.Null);
-            Assert.That(gameWorld.GetChunk(0, 0, 1), Is.Not.Null);
-            Assert.That(gameWorld.GetChunk(0, 1, 1), Is.Not.Null);
-            Assert.That(gameWorld.GetChunk(0, 0, 2), Is.Not.Null);
-            Assert.That(gameWorld.GetChunk(0, 1, 2), Is.Not.Null);
-        }
-
         private static void VerifyBlock(BlockInformation block, string expectedBlockName)
         {
             Assert.That(block.BlockName, Is.EqualTo(expectedBlockName));

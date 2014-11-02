@@ -69,14 +69,14 @@ namespace ProdigalSoftware.ProjectM.Controllers
         private static BlockInformation CreateBlockInfo(string name, bool frontOnly, float sphereSize, Color4 color, float voxelDensity,
             ParticleSystemInformation particleSystem = null, ILight light = null)
         {
-            const int mid = BlockInformation.BlockSize / 2;
+            const int mid = BlockInformation.VoxelSize / 2;
 
             BlockInformation block = new BlockInformation(name, particleSystem, light);
-            for (int x = 0; x < BlockInformation.BlockSize; x++)
+            for (int x = 0; x < BlockInformation.VoxelSize; x++)
             {
-                for (int y = 0; y < BlockInformation.BlockSize; y++)
+                for (int y = 0; y < BlockInformation.VoxelSize; y++)
                 {
-                    for (int z = frontOnly ? BlockInformation.BlockSize - 1 : 0; z < BlockInformation.BlockSize; z++)
+                    for (int z = frontOnly ? BlockInformation.VoxelSize - 1 : 0; z < BlockInformation.VoxelSize; z++)
                     {
                         if (sphereSize > 0)
                         {
@@ -123,11 +123,11 @@ namespace ProdigalSoftware.ProjectM.Controllers
             {
                 ApplyVelocity(particle, timeSinceLastFrame);
 
-                if (particle.X > systemX + BlockInformation.BlockSize)
+                if (particle.X > systemX + BlockInformation.VoxelSize)
                     particle.VelX -= SnowDeacceleration * timeSinceLastFrame;
                 if (particle.X < systemX)
                     particle.VelX += SnowDeacceleration * timeSinceLastFrame;
-                if (particle.Y > systemY + BlockInformation.BlockSize)
+                if (particle.Y > systemY + BlockInformation.VoxelSize)
                     particle.VelY -= SnowDeacceleration * timeSinceLastFrame;
                 if (particle.Y < systemY)
                     particle.VelY += SnowDeacceleration * timeSinceLastFrame;
@@ -150,12 +150,12 @@ namespace ProdigalSoftware.ProjectM.Controllers
                 particle.VelZ = (float)random.NextDouble() * -30.0f - 20.0f;
                 particle.VelY = (float)random.NextDouble() * 48.0f - 24.0f;
 
-                particle.X = startX + random.Next(BlockInformation.BlockSize);
-                particle.Y = startY + random.Next(BlockInformation.BlockSize);
+                particle.X = startX + random.Next(BlockInformation.VoxelSize);
+                particle.Y = startY + random.Next(BlockInformation.VoxelSize);
                 if (startAtTop)
-                    particle.Z = 59 * BlockInformation.BlockSize;
+                    particle.Z = 59 * BlockInformation.VoxelSize;
                 else
-                    particle.Z = random.Next(56 * BlockInformation.BlockSize) + 3 * BlockInformation.BlockSize;
+                    particle.Z = random.Next(56 * BlockInformation.VoxelSize) + 3 * BlockInformation.VoxelSize;
 
                 particle.Color = new Color4b(255, 255, 255, 100);
                 particle.Time = (float)random.NextDouble() * AliveTime / 2.0f + AliveTime / 2.0f;

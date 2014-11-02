@@ -10,7 +10,7 @@ namespace ProdigalSoftware.TiVE.Renderer.Voxels
         {
         }
 
-        public IndexedVoxelGroup(BlockInformation block) : base(BlockInformation.BlockSize, BlockInformation.BlockSize, BlockInformation.BlockSize)
+        public IndexedVoxelGroup(BlockInformation block) : base(BlockInformation.VoxelSize, BlockInformation.VoxelSize, BlockInformation.VoxelSize)
         {
             Array.Copy(block.VoxelsArray, voxels, voxels.Length);
         }
@@ -47,18 +47,17 @@ namespace ProdigalSoftware.TiVE.Renderer.Voxels
                 polygonCount += 2;
             }
 
-            // The back face is never shown to the camera, so there is no need to create it
-            //if ((sides & VoxelSides.Back) != 0)
-            //{
-            //    GL.Vertex3(x * World_Block_Size + World_Block_Size, y * World_Block_Size + World_Block_Size, z * World_Block_Size + World_Block_Size);
-            //    GL.Vertex3(x * World_Block_Size + World_Block_Size, y * World_Block_Size, z * World_Block_Size + World_Block_Size);
-            //    GL.Vertex3(x * World_Block_Size, y * World_Block_Size, z * World_Block_Size + World_Block_Size);
+            if ((sides & VoxelSides.Back) != 0)
+            {
+                meshBuilder.AddIndex(v5);
+                meshBuilder.AddIndex(v6);
+                meshBuilder.AddIndex(v2);
 
-            //    GL.Vertex3(x * World_Block_Size, y * World_Block_Size, z * World_Block_Size + World_Block_Size);
-            //    GL.Vertex3(x * World_Block_Size, y * World_Block_Size + World_Block_Size, z * World_Block_Size + World_Block_Size);
-            //    GL.Vertex3(x * World_Block_Size + World_Block_Size, y * World_Block_Size + World_Block_Size, z * World_Block_Size + World_Block_Size);
-            //    PolygonCount += 2;
-            //}
+                meshBuilder.AddIndex(v2);
+                meshBuilder.AddIndex(v1);
+                meshBuilder.AddIndex(v5);
+                polygonCount += 2;
+            }
 
             if ((sides & VoxelSides.Left) != 0)
             {
