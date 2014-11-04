@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Dynamic;
 using System.IO;
 using System.Reflection;
 using NLua.Exceptions;
@@ -65,6 +66,19 @@ namespace ProdigalSoftware.TiVE.Scripts
             return script;
         }
 
+        public static void AddLuaTableForEnum<T>(dynamic luaScript)
+        {
+            Type enumType = typeof(T);
+            if (!enumType.IsEnum)
+                throw new ArgumentException("Type parameter must be for an Enum type");
+
+            string tableName = enumType.Name;
+            dynamic keyTable = luaScript.NewTable(tableName);
+
+            foreach (string enumProperty in Enum.GetNames(enumType))
+                ((DynamicObject)keyTable).TrySetMember(new SetPropertyBinder(enumProperty), Enum.Parse(enumType, enumProperty));
+        }
+
         private static void AddGlobalLuaMethods(dynamic lua)
         {
             lua.Log = new Action<object>(obj => Messages.Println(obj.ToString(), Color.CadetBlue));
@@ -72,9 +86,22 @@ namespace ProdigalSoftware.TiVE.Scripts
             lua.PI = (float)Math.PI;
             lua.Max = new Func<float, float, float>(Math.Max);
             lua.Min = new Func<float, float, float>(Math.Min);
-            lua.Sin = new Func<float, float>(v => (float)Math.Sin(v));
-            lua.Cos = new Func<float, float>(v => (float)Math.Cos(v));
-            lua.Tan = new Func<float, float>(v => (float)Math.Tan(v));
+            lua.ToRad = new Func<float, float>(a => a * (float)Math.PI / 180.0f);
+            lua.Sin = new Func<float, float>(a => (float)Math.Sin(a));
+            lua.Cos = new Func<float, float>(a => (float)Math.Cos(a));
+            lua.Tan = new Func<float, float>(a => (float)Math.Tan(a));
+        }
+
+        private sealed class SetPropertyBinder : SetMemberBinder
+        {
+            public SetPropertyBinder(string name) : base(name, false)
+            {
+            }
+
+            public override DynamicMetaObject FallbackSetMember(DynamicMetaObject target, DynamicMetaObject value, DynamicMetaObject errorSuggestion)
+            {
+                throw new NotImplementedException();
+            }
         }
     }
 }

@@ -15,6 +15,8 @@ namespace ProdigalSoftware.TiVE.Resources
     /// </summary>
     internal enum EntryValueType
     {
+        /// <summary>Entry has a value of an boolean (bool) type</summary>
+        Boolean,
         /// <summary>Entry has a value of an integer (int) type</summary>
         Integer,
         /// <summary>Entry has a value of a floating point (float) type</summary>
@@ -189,7 +191,9 @@ namespace ProdigalSoftware.TiVE.Resources
         private static EntryValueType ParseType(string typeStr, string currentTableName, int lineNum)
         {
             typeStr = typeStr.Trim().ToLowerInvariant();
-            if (typeStr == "i" || typeStr == "int")
+            if (typeStr == "b" || typeStr == "bool")
+                typeStr = "boolean";
+            else if (typeStr == "i" || typeStr == "int")
                 typeStr = "integer";
             else if (typeStr == "f")
                 typeStr = "float";
@@ -204,7 +208,8 @@ namespace ProdigalSoftware.TiVE.Resources
             }
             catch (ArgumentException)
             {
-                throw new InvalidResourceDefinitionException(currentTableName, lineNum, "Type must be one of: [i,int,integer], [f,float], [s,str,string], [c,color]");
+                throw new InvalidResourceDefinitionException(currentTableName, lineNum, 
+                    "Type must be one of: [b,bool,boolean], [i,int,integer], [f,float], [s,str,string], [c,color]");
             }
         }
 
@@ -233,6 +238,12 @@ namespace ProdigalSoftware.TiVE.Resources
             defaultValueStr = defaultValueStr.Trim();
             switch (valueType)
             {
+                case EntryValueType.Boolean:
+                    bool boolValue;
+                    if (!bool.TryParse(defaultValueStr, out boolValue))
+                        throw new InvalidResourceDefinitionException(currentTableName, lineNum, "Invalid boolean: " + defaultValueStr);
+                    return boolValue;
+
                 case EntryValueType.Integer:
                     return ParseInt(defaultValueStr, currentTableName, lineNum);
 
@@ -406,6 +417,7 @@ namespace ProdigalSoftware.TiVE.Resources
             bool validDefault;
             switch (valueType)
             {
+                case EntryValueType.Boolean: validDefault = defaultValue is bool; break;
                 case EntryValueType.Integer: validDefault = defaultValue is int; break;
                 case EntryValueType.Float: validDefault = defaultValue is float; break;
                 case EntryValueType.Color: validDefault = defaultValue is Color4b; break;

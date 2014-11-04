@@ -1,3 +1,8 @@
 ﻿[particle]
 timeToLive:     float,  required, 1.0
 startColor:     color,          , (FFFFFF)
+
+[userSettings]
+useSimpleLighting:  bool,   required,   true
+useVsync:           bool,   required,   true
+

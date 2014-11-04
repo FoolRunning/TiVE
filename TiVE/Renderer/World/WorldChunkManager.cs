@@ -80,6 +80,12 @@ namespace ProdigalSoftware.TiVE.Renderer.World
             chunksToDelete.Clear();
         }
 
+        public void ReloadAllChunks()
+        {
+            foreach (GameWorldVoxelChunk chunk in loadedChunks)
+                ReloadChunk(chunk);
+        }
+
         private void LoadChunk(GameWorldVoxelChunk chunk)
         {
             chunk.PrepareForLoad();
