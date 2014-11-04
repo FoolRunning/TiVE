@@ -112,28 +112,24 @@ namespace ProdigalSoftware.TiVE.Renderer.Lighting
                         List<LightInfo> blockLights = gameWorld.GetLights(lx, ly, lz);
                         using (new PerformanceLock(blockLights))
                         {
-                            if (blockLights.Count < maxLightsPerBlock)
+                            if (blockLights.Count == 0)
                                 blockLights.Add(lightInfo);
                             else
                             {
-                                // Too many lights on this block. Remove the light that affects the block the least.
-                                int leastLightIndex = 0;
-                                float leastPercentage = LightUtils.GetLightPercentage(blockLights[0], vx, vy, vz);
-                                for (int i = 1; i < blockLights.Count; i++)
+                                // Sort lights by highest percentage to lowest
+                                float newLightPercentage = LightUtils.GetLightPercentage(lightInfo, vx, vy, vz);
+                                int leastLightIndex = blockLights.Count;
+                                for (int i = 0; i < blockLights.Count; i++)
                                 {
                                     float lightPercentage = LightUtils.GetLightPercentage(blockLights[i], vx, vy, vz);
-                                    if (lightPercentage < leastPercentage)
+                                    if (lightPercentage < newLightPercentage)
                                     {
                                         leastLightIndex = i;
-                                        leastPercentage = lightPercentage;
+                                        break;
                                     }
                                 }
 
-                                if (leastPercentage < blockPercentage)
-                                {
-                                    // Found an existing light that is less intense then the new light
-                                    blockLights[leastLightIndex] = lightInfo;
-                                }
+                                blockLights.Insert(leastLightIndex, lightInfo);
                             }
                         }
                     }

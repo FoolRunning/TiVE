@@ -3,7 +3,6 @@ using ProdigalSoftware.TiVE.Plugins;
 using ProdigalSoftware.TiVE.Renderer;
 using ProdigalSoftware.TiVE.Renderer.Particles;
 using ProdigalSoftware.TiVE.Renderer.World;
-using ProdigalSoftware.TiVE.Resources;
 using ProdigalSoftware.TiVE.Scripts;
 using ProdigalSoftware.TiVE.Starter;
 
@@ -18,7 +17,6 @@ namespace ProdigalSoftware.TiVE
         public static ShaderManager ShaderManager { get; private set; }
         public static ParticleSystemManager ParticleManager { get; private set; }
         public static LuaScripts LuaScripts { get; private set; }
-        public static ResourceTableDefinitionManager TableDefinitionManager { get; private set; }
 
         public static bool Initialize()
         {
@@ -26,10 +24,6 @@ namespace ProdigalSoftware.TiVE
 
             PluginManager = new PluginManager();
             if (!PluginManager.LoadPlugins())
-                return false;
-
-            TableDefinitionManager = new ResourceTableDefinitionManager();
-            if (!TableDefinitionManager.Initialize())
                 return false;
 
             LuaScripts = new LuaScripts();
@@ -74,9 +68,6 @@ namespace ProdigalSoftware.TiVE
             if (BlockListManager != null)
                 BlockListManager.Dispose();
 
-            if (TableDefinitionManager != null)
-                TableDefinitionManager.Dispose();
-
             if (LuaScripts != null)
                 LuaScripts.Dispose();
 
@@ -88,7 +79,6 @@ namespace ProdigalSoftware.TiVE
             GameWorldManager = null;
             ChunkManager = null;
             ParticleManager = null;
-            TableDefinitionManager = null;
             LuaScripts = null;
 
             GC.Collect();

@@ -52,6 +52,14 @@ namespace TiVETests.Resources
         }
 
         [Test]
+        public void ParseResourceDefinition_InvalidBoolean()
+        {
+            ResourceTableDefinitionManager manager = new ResourceTableDefinitionManager();
+            Assert.That(() => manager.ParseResourceDefinition("[table]\nvalue: b, , monkey"), Throws.TypeOf<InvalidResourceDefinitionException>());
+            Assert.That(() => manager.ParseResourceDefinition("[table]\nvalue: b, , 1.0"), Throws.TypeOf<InvalidResourceDefinitionException>());
+        }
+
+        [Test]
         public void ParseResourceDefinition_InvalidInteger()
         {
             ResourceTableDefinitionManager manager = new ResourceTableDefinitionManager();
@@ -101,18 +109,41 @@ namespace TiVETests.Resources
         }
 
         [Test]
+        public void ParseResourceDefinition_ParseBoolean()
+        {
+            ResourceTableDefinitionManager manager = new ResourceTableDefinitionManager();
+            manager.ParseResourceDefinition(@"
+[myBoolTable]
+useIt       : Boolean   ,           , true 
+doIt        : bool      , R         , TrUE
+other       : b         , required  , false
+quitIt      : b         ,           , FaLse");
+
+            List<TableDefinition> tables = manager.Definitions.ToList();
+            Assert.That(tables.Count, Is.EqualTo(1));
+            Assert.That(tables[0].Name, Is.EqualTo("myBoolTable"));
+
+            List<EntryDefinition> values = tables[0].Entries.ToList();
+            Assert.That(values.Count, Is.EqualTo(4));
+            VerifyValueDef(values[0], "useIt", EntryValueType.Boolean, false, true);
+            VerifyValueDef(values[1], "doIt", EntryValueType.Boolean, true, true);
+            VerifyValueDef(values[2], "other", EntryValueType.Boolean, true, false);
+            VerifyValueDef(values[3], "quitIt", EntryValueType.Boolean, false, false);
+        }
+
+        [Test]
         public void ParseResourceDefinition_ParseInteger()
         {
             ResourceTableDefinitionManager manager = new ResourceTableDefinitionManager();
             manager.ParseResourceDefinition(@"
-[myTest]
+[myIntTable]
 time        : Integer   ,           , 32 
 distance    : int       , R         , 10703
 other       : i         , required  , 0x1FA");
 
             List<TableDefinition> tables = manager.Definitions.ToList();
             Assert.That(tables.Count, Is.EqualTo(1));
-            Assert.That(tables[0].Name, Is.EqualTo("myTest"));
+            Assert.That(tables[0].Name, Is.EqualTo("myIntTable"));
 
             List<EntryDefinition> values = tables[0].Entries.ToList();
             Assert.That(values.Count, Is.EqualTo(3));
@@ -126,14 +157,14 @@ other       : i         , required  , 0x1FA");
         {
             ResourceTableDefinitionManager manager = new ResourceTableDefinitionManager();
             manager.ParseResourceDefinition(@"
-[myTest]
+[myFloatTable]
 time:       FloAt   ,           , 3.2 
 distance:   float   ,R          , 100
 other:      f       ,Required   , 1.059E5");
 
             List<TableDefinition> tables = manager.Definitions.ToList();
             Assert.That(tables.Count, Is.EqualTo(1));
-            Assert.That(tables[0].Name, Is.EqualTo("myTest"));
+            Assert.That(tables[0].Name, Is.EqualTo("myFloatTable"));
 
             List<EntryDefinition> values = tables[0].Entries.ToList();
             Assert.That(values.Count, Is.EqualTo(3));
@@ -147,14 +178,14 @@ other:      f       ,Required   , 1.059E5");
         {
             ResourceTableDefinitionManager manager = new ResourceTableDefinitionManager();
             manager.ParseResourceDefinition(@"
-[myTest]
+[myStringTable]
 caption:    String  ,           , My caption!
 dialog:     Str     ,R          , This, is some, text with, commas?
 other:      s       ,Required   , ");
 
             List<TableDefinition> tables = manager.Definitions.ToList();
             Assert.That(tables.Count, Is.EqualTo(1));
-            Assert.That(tables[0].Name, Is.EqualTo("myTest"));
+            Assert.That(tables[0].Name, Is.EqualTo("myStringTable"));
 
             List<EntryDefinition> values = tables[0].Entries.ToList();
             Assert.That(values.Count, Is.EqualTo(3));
@@ -168,7 +199,7 @@ other:      s       ,Required   , ");
         {
             ResourceTableDefinitionManager manager = new ResourceTableDefinitionManager();
             manager.ParseResourceDefinition(@"
-[myTest]
+[myColorTable]
 startColor: Color   ,           , (152, 27, 78)
 endColor:   c       ,R          , (192, 0, 210, 85)
 backColor:  c       ,           , (FAF0FF)
@@ -176,7 +207,7 @@ textColor:  c       ,           , (FAF0FF0F)");
 
             List<TableDefinition> tables = manager.Definitions.ToList();
             Assert.That(tables.Count, Is.EqualTo(1));
-            Assert.That(tables[0].Name, Is.EqualTo("myTest"));
+            Assert.That(tables[0].Name, Is.EqualTo("myColorTable"));
 
             List<EntryDefinition> values = tables[0].Entries.ToList();
             Assert.That(values.Count, Is.EqualTo(4));

@@ -108,6 +108,8 @@
     <Compile Include="Renderer\Voxels\LargeMeshBuilder.cs" />
     <Compile Include="Renderer\Voxels\MeshBuilderBase.cs" />
     <Compile Include="Renderer\World\ChunkRenderTree.cs" />
+    <Compile Include="Resources\ResourceTableManager.cs" />
+    <Compile Include="UserSettingsManager.cs" />
     <Compile Include="Utils\Plane.cs" />
     <Compile Include="Renderer\Lighting\LightUtils.cs" />
     <Compile Include="Renderer\Particles\ParticleSystemCollection.cs" />

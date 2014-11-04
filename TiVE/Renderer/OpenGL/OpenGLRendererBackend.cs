@@ -203,7 +203,7 @@ namespace ProdigalSoftware.TiVE.Renderer.OpenGL
 
             void OpenGLDisplay_Load(object sender, EventArgs e)
             {
-                GL.ClearColor(0.1f, 0.1f, 0.1f, 0.0f);
+                GL.ClearColor(0, 0, 0, 1);
 
                 GL.Enable(EnableCap.DepthTest);
                 GL.DepthFunc(DepthFunction.Less);

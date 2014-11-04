@@ -18,9 +18,9 @@ namespace ProdigalSoftware.TiVE.Renderer.World
         private readonly Vector3i blockSize;
 
         private readonly Block[] worldBlocks;
-        private readonly Color3f ambientLight;
         private readonly BlockList blockList;
         private readonly ChunkRenderTree renderTree;
+        private Color3f ambientLight;
 
         internal GameWorld(int blockSizeX, int blockSizeY, int blockSizeZ, BlockList blockList)
         {
@@ -33,7 +33,7 @@ namespace ProdigalSoftware.TiVE.Renderer.World
             for (int i = 0; i < worldBlocks.Length; i++)
                 worldBlocks[i] = new Block(BlockInformation.Empty);
             
-            ambientLight = new Color3f(0.01f, 0.01f, 0.01f);
+            ambientLight = new Color3f(0, 0, 0);
 
             renderTree = new ChunkRenderTree(this);
         }
@@ -78,6 +78,7 @@ namespace ProdigalSoftware.TiVE.Renderer.World
         public Color3f AmbientLight
         {
             get { return ambientLight; }
+            set { ambientLight = value; }
         }
 
         /// <summary>
@@ -87,15 +88,16 @@ namespace ProdigalSoftware.TiVE.Renderer.World
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Color3f GetLightAt(int voxelX, int voxelY, int voxelZ)
         {
-            Color3f color = ambientLight;
-
             int blockX = voxelX / BlockInformation.VoxelSize;
             int blockY = voxelY / BlockInformation.VoxelSize;
             int blockZ = voxelZ / BlockInformation.VoxelSize;
 
             //return ambientLight + worldBlocks[GetBlockOffset(blockX, blockY, blockZ)].BlockLight;
+
+            Color3f color = ambientLight;
+
             List<LightInfo> blockLights = worldBlocks[GetBlockOffset(blockX, blockY, blockZ)].Lights;
-            for (int i = 0; i < blockLights.Count; i++)
+            for (int i = 0; i < blockLights.Count && i < 10; i++)
             {
                 LightInfo lightInfo = blockLights[i];
                 color += lightInfo.Light.Color * LightUtils.GetLightPercentage(lightInfo, voxelX, voxelY, voxelZ);
