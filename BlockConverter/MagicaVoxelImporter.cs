@@ -116,8 +116,8 @@ namespace BlockConverter
             // now push the voxel data into our voxel chunk structure
             for (int i = 0; i < voxelData.Length; i++)
             {
-                if (voxelData[i].x > BlockInformation.VoxelSize || voxelData[i].y > BlockInformation.VoxelSize ||
-                    voxelData[i].z > BlockInformation.VoxelSize)
+                if (voxelData[i].x >= BlockInformation.VoxelSize || voxelData[i].y >= BlockInformation.VoxelSize ||
+                    voxelData[i].z >= BlockInformation.VoxelSize)
                 {
                     // do not store this voxel if it lies out of range of the block voxels
                     continue;

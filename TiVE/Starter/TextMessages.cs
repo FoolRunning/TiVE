@@ -37,12 +37,12 @@ namespace ProdigalSoftware.TiVE.Starter
     /// </summary>
     internal class TextMessage : Message
     {
-        private static readonly SolidBrush s_stringBrush = new SolidBrush(Color.Transparent);
+        private static readonly SolidBrush stringBrush = new SolidBrush(Color.Transparent);
 
         /// <summary>The text to display</summary>
-        private readonly string m_text;
+        private readonly string text;
         /// <summary>Color of the text</summary>
-        private readonly Color m_color;
+        private readonly Color color;
 
         /// <summary>
         /// Creates a new SimpleTextInfo with the specified text and color
@@ -51,30 +51,35 @@ namespace ProdigalSoftware.TiVE.Starter
         /// <param name="color">The color of the text</param>
         internal TextMessage(string text, Color color)
         {
-            m_text = text ?? "(null)";
-            m_color = color;
+            this.text = text ?? "(null)";
+            this.color = color;
         }
 
         /// <summary>
         /// Gets the size of this message (in pixels) when drawn with the specified graphics in the specified state
         /// </summary>
-        public virtual Size GetSize(TextState state, Graphics g)
+        public Size GetSize(TextState state, Graphics g)
         {
-            return g.MeasureString(!string.IsNullOrEmpty(m_text) ? m_text : " ", state.Font).ToSize();
+            return g.MeasureString(!string.IsNullOrEmpty(text) ? text : " ", state.Font).ToSize();
         }
 
         public override void DrawText(TextState state, Graphics g)
         {
-            s_stringBrush.Color = m_color;
-            g.DrawString(m_text, state.Font, s_stringBrush, state.X, state.Y);
+            stringBrush.Color = color;
+            g.DrawString(text, state.Font, stringBrush, state.X, state.Y);
         }
 
         /// <summary>
         /// Gets the text of this message
         /// </summary>
-        public virtual string Text
+        public string Text
         { 
-            get { return m_text; }
+            get { return text; }
+        }
+
+        public override string ToString()
+        {
+            return text;
         }
     }
     #endregion
@@ -128,7 +133,7 @@ namespace ProdigalSoftware.TiVE.Starter
     internal sealed class TabbedTextMessage : TextMessage
     {
         /// <summary>Number of pixels to tab over</summary>
-        public const int TAB_PIXEL_SIZE = 35;
+        private const int TabPixelSize = 35;
 
         /// <summary>
         /// Creates a new TabbedTextInfo with the specified text and color
@@ -142,7 +147,7 @@ namespace ProdigalSoftware.TiVE.Starter
         /// </summary>
         public override void DrawText(TextState state, Graphics g)
         {
-            state.X = ((state.X / TAB_PIXEL_SIZE + 1) * TAB_PIXEL_SIZE);
+            state.X = ((state.X / TabPixelSize + 1) * TabPixelSize);
             base.DrawText(state, g);
         }
     }
@@ -154,7 +159,7 @@ namespace ProdigalSoftware.TiVE.Starter
     /// </summary>
     internal sealed class FontSizeChangeMessage : Message
     {
-        private readonly int m_size;
+        private readonly int size;
         private Font cachedFont;
 
         /// <summary>
@@ -162,13 +167,13 @@ namespace ProdigalSoftware.TiVE.Starter
         /// </summary>
         internal FontSizeChangeMessage(int size)
         {
-            m_size = size;
+            this.size = size;
         }
 
         public override void UpdateState(TextState state)
         {
             if (cachedFont == null)
-                cachedFont = new Font(state.Font.FontFamily, m_size);
+                cachedFont = new Font(state.Font.FontFamily, size);
             state.Font = cachedFont;
         }
     }
@@ -180,7 +185,7 @@ namespace ProdigalSoftware.TiVE.Starter
     /// </summary>
     internal sealed class FontStyleChangeMessage : Message
     {
-        private readonly FontStyle m_style;
+        private readonly FontStyle style;
         private Font cachedFont;
 
         /// <summary>
@@ -188,13 +193,13 @@ namespace ProdigalSoftware.TiVE.Starter
         /// </summary>
         internal FontStyleChangeMessage(FontStyle style)
         {
-            m_style = style;
+            this.style = style;
         }
 
         public override void UpdateState(TextState state)
         {
             if (cachedFont == null)
-                cachedFont = new Font(state.Font, m_style);
+                cachedFont = new Font(state.Font, style);
             state.Font = cachedFont;
         }
     }

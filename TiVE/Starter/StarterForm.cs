@@ -8,7 +8,7 @@ namespace ProdigalSoftware.TiVE.Starter
     internal partial class StarterForm : Form
     {
         /// <summary>string containing the copyright information</summary>
-        private const string CopyrightString = "© 2014 Prodigal Software";
+        private const string CopyrightString = "© 2013-2014 Prodigal Software";
 
         private Point startOfDrag;
         private Point startingLocation;
@@ -25,6 +25,18 @@ namespace ProdigalSoftware.TiVE.Starter
 
             MessageViewControl messageView = Messages.MessageView;
             tbMessages.Controls.Add(messageView);
+
+            btnStart.Enabled = false;
+            tbMessages.Enabled = false;
+        }
+
+        public void EnableControls()
+        {
+            Invoke(new Action(() =>
+                {
+                    tbMessages.Enabled = true;
+                    btnStart.Enabled = true;
+                }));
         }
 
         /// <summary>

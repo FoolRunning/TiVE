@@ -9,7 +9,7 @@ namespace ProdigalSoftware.ProjectS.Controllers
 {
     public class DefaultBlockLoader : IBlockGenerator
     {
-        public IEnumerable<BlockInformation> CreateBlocks()
+        public IEnumerable<BlockInformation> CreateBlocks(string blockListName)
         {
             string dir = Path.Combine(Path.GetDirectoryName(Assembly.GetEntryAssembly().Location), "Data", "Blocks");
             foreach (string filePath in Directory.GetFiles(dir, "*.TiVEb"))
@@ -29,7 +29,7 @@ namespace ProdigalSoftware.ProjectS.Controllers
             }
         }
 
-        public IEnumerable<BlockAnimationDefinition> CreateAnimations()
+        public IEnumerable<BlockAnimationDefinition> CreateAnimations(string blockListName)
         {
             return null;
         }

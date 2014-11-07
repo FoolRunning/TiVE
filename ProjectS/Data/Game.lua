@@ -28,14 +28,16 @@ function Update(camera, keyboard)
     if (ambientLightUpdateTime > 120) then
         ambientLightUpdateTime = 0
 
-        currentAmbientLight = currentAmbientLight - 0.01
-        if (currentAmbientLight < 0) then
-            currentAmbientLight = 0;
-        end
+        if (currentAmbientLight > 0) then
+            currentAmbientLight = currentAmbientLight - 0.01
+            if (currentAmbientLight < 0) then
+                currentAmbientLight = 0;
+            end
 
-        gameWorld = GameWorld()
-        gameWorld.AmbientLight = Color(currentAmbientLight, currentAmbientLight, currentAmbientLight)
-        ReloadLevel()
+            gameWorld = GameWorld()
+            gameWorld.AmbientLight = Color(currentAmbientLight, currentAmbientLight, currentAmbientLight)
+            ReloadLevel()
+        end
     end
 end
 

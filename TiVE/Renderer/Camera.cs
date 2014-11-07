@@ -8,7 +8,7 @@ namespace ProdigalSoftware.TiVE.Renderer
     internal sealed class Camera
     {
         private const float NearDist = 1.0f;
-        private const float FarDist = 800.0f;
+        private const float FarDist = 1000.0f;
 
         private const int Top = 0;
         private const int Bottom = 1;

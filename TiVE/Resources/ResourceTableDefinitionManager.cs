@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using ProdigalSoftware.TiVE.Starter;
 using ProdigalSoftware.TiVEPluginFramework;
@@ -64,7 +65,7 @@ namespace ProdigalSoftware.TiVE.Resources
             ITableDefinitionProvider lastProvider = null;
             try
             {
-                foreach (ITableDefinitionProvider provider in ResourceManager.PluginManager.GetPluginsOfType<ITableDefinitionProvider>())
+                foreach (ITableDefinitionProvider provider in TiVEController.PluginManager.GetPluginsOfType<ITableDefinitionProvider>())
                 {
                     lastProvider = provider;
                     ParseResourceDefinition(provider.GetTableDefinitionContents());
@@ -123,10 +124,7 @@ namespace ProdigalSoftware.TiVE.Resources
                     {
                         // Start of a new table definition
                         if (!string.IsNullOrEmpty(currentTableName))
-                        {
-                            TableDefinition table = new TableDefinition(currentTableName, currentValues.ToArray());
-                            AddTable(table);
-                        }
+                            AddTable(new TableDefinition(currentTableName, currentValues.ToArray()));
 
                         if (line.Length < 3)
                             throw new InvalidResourceDefinitionException("", lineNum, "Table name must not be empty");
@@ -148,10 +146,7 @@ namespace ProdigalSoftware.TiVE.Resources
 
                 // Make sure we add the last table definition in the file contents
                 if (!string.IsNullOrEmpty(currentTableName))
-                {
-                    TableDefinition table = new TableDefinition(currentTableName, currentValues.ToArray());
-                    AddTable(table);
-                }
+                    AddTable(new TableDefinition(currentTableName, currentValues.ToArray()));
             }
         }
 
@@ -363,17 +358,17 @@ namespace ProdigalSoftware.TiVE.Resources
         /// </summary>
         public readonly string Name;
 
-        private readonly EntryDefinition[] entries;
+        private readonly Dictionary<string, EntryDefinition> entries;
 
         /// <summary>
         /// Creates a new TableDefinition with the specified information
         /// </summary>
         /// <param name="name">The name of the table for which this definition describes</param>
         /// <param name="entries">List of valid entries in the table for which this definition describes</param>
-        public TableDefinition(string name, EntryDefinition[] entries)
+        public TableDefinition(string name, IEnumerable<EntryDefinition> entries)
         {
             Name = name;
-            this.entries = entries;
+            this.entries = entries.ToDictionary(e => e.Name);
         }
 
         /// <summary>
@@ -381,7 +376,7 @@ namespace ProdigalSoftware.TiVE.Resources
         /// </summary>
         public IEnumerable<EntryDefinition> Entries
         {
-            get { return entries; }
+            get { return entries.Values; }
         }
     }
     #endregion

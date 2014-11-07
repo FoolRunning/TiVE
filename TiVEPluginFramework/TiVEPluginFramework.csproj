@@ -66,10 +66,6 @@
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="OpenTK, Version=1.1.0.0, Culture=neutral, PublicKeyToken=bad199fe84eb3df4, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\Libraries\OpenTK\1.1\Binaries\OpenTK\Release\OpenTK.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -84,7 +80,6 @@
     <Compile Include="BlockState.cs" />
     <Compile Include="IBlockGenerator.cs" />
     <Compile Include="IBlockList.cs" />
-    <Compile Include="ICamera.cs" />
     <Compile Include="IGameWorld.cs" />
     <Compile Include="ITableDefinitionProvider.cs" />
     <Compile Include="IWorldGeneratorStage.cs" />
