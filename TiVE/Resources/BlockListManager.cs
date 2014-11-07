@@ -1,29 +1,38 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Reflection;
+using System.Text;
+using Ionic.Zip;
 using OpenTK;
+using ProdigalSoftware.TiVE.Renderer;
 using ProdigalSoftware.TiVE.Renderer.Voxels;
+using ProdigalSoftware.TiVE.Renderer.World;
 using ProdigalSoftware.TiVE.Starter;
 using ProdigalSoftware.TiVEPluginFramework;
 
-namespace ProdigalSoftware.TiVE.Renderer.World
+namespace ProdigalSoftware.TiVE.Resources
 {
     internal sealed class BlockListManager : IDisposable
     {
+        private const string BlockDirName = "Blocks";
+
         private readonly Dictionary<BlockInformation, BlockInformation> blockAnimationMap = new Dictionary<BlockInformation, BlockInformation>();
         private readonly Dictionary<BlockInformation, VoxelGroup> blockMeshes = new Dictionary<BlockInformation, VoxelGroup>();
 
         public BlockList BlockList { get; private set; }
 
-        public bool Initialize()
+        public bool LoadBlockList(string blockListName)
         {
-            Messages.Print("Loading blocks...");
+            Messages.Print(string.Format("Loading block list {0}...", blockListName));
 
-            BlockList blockList = new BlockList();
+            string blockFilePath = Path.Combine(Path.GetDirectoryName(Assembly.GetEntryAssembly().Location), "Data", BlockDirName);
+            BlockList blockList = BlockList.FromBlockListFile(blockFilePath) ?? new BlockList();
 
-            foreach (IBlockGenerator generator in ResourceManager.PluginManager.GetPluginsOfType<IBlockGenerator>())
+            foreach (IBlockGenerator generator in TiVEController.PluginManager.GetPluginsOfType<IBlockGenerator>())
             {
-                blockList.AddBlocks(generator.CreateBlocks());
-                blockList.AddAnimations(generator.CreateAnimations());
+                blockList.AddBlocks(generator.CreateBlocks(blockListName));
+                blockList.AddAnimations(generator.CreateAnimations(blockListName));
             }
 
             if (blockList.BlockCount == 0)

@@ -20,7 +20,7 @@ namespace ProdigalSoftware.TiVE.Renderer.World
 
             try
             {
-                foreach (IWorldGeneratorStage generator in ResourceManager.PluginManager.GetPluginsOfType<IWorldGeneratorStage>().OrderBy(wg => wg.Priority))
+                foreach (IWorldGeneratorStage generator in TiVEController.PluginManager.GetPluginsOfType<IWorldGeneratorStage>().OrderBy(wg => wg.Priority))
                 {
                     Console.WriteLine(generator.StageDescription);
                     generator.UpdateWorld(createdWorld, seed, blockList);

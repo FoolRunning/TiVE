@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
-using OpenTK;
 using ProdigalSoftware.TiVE.Renderer.World;
 using ProdigalSoftware.TiVEPluginFramework.Particles;
 using ProdigalSoftware.Utils;
@@ -18,7 +17,7 @@ namespace ProdigalSoftware.TiVE.Renderer.Particles
         public ParticleSystem(ParticleSystemInformation systemInfo, int worldX, int worldY, int worldZ)
         {
             this.systemInfo = systemInfo;
-            Location = new Vector3(worldX, worldY, worldZ);
+            Location = new Vector3i(worldX, worldY, worldZ);
             ParticlesPerSecond = systemInfo.ParticlesPerSecond;
         }
 
@@ -29,7 +28,7 @@ namespace ProdigalSoftware.TiVE.Renderer.Particles
 
         public int AliveParticles { get; private set; }
 
-        public Vector3 Location { get; set; }
+        public Vector3i Location { get; set; }
 
         public int ParticlesPerSecond { get; set; }
 

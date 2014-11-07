@@ -12,7 +12,7 @@ namespace ProdigalSoftware.TiVE.Starter
         /// <summary>
         /// Linked list of messages that make up this line of text
         /// </summary>
-        private Message m_firstMessage;
+        private Message firstMessage;
 
         /// <summary>
         /// Gets the height (in pixels) of this message line. 
@@ -45,11 +45,11 @@ namespace ProdigalSoftware.TiVE.Starter
         /// <param name="messageToAdd"></param>
         public void AddMessage(Message messageToAdd)
         {
-            if (m_firstMessage == null)
-                m_firstMessage = messageToAdd;
+            if (firstMessage == null)
+                firstMessage = messageToAdd;
             else
             {
-                Message message = m_firstMessage;
+                Message message = firstMessage;
                 while (message.NextMessage != null)
                     message = message.NextMessage;
                 
@@ -90,12 +90,17 @@ namespace ProdigalSoftware.TiVE.Starter
                 });
         }
 
+        public override string ToString()
+        {
+            return Text;
+        }
+
         /// <summary>
         /// Runs the specified action on each message in this message line
         /// </summary>
         private void ForeachMessage(Action<Message> action)
         {
-            Message message = m_firstMessage;
+            Message message = firstMessage;
             while (message != null)
             {
                 action(message);

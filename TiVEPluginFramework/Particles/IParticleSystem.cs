@@ -1,4 +1,4 @@
-﻿using OpenTK;
+﻿using ProdigalSoftware.Utils;
 
 namespace ProdigalSoftware.TiVEPluginFramework.Particles
 {
@@ -15,7 +15,7 @@ namespace ProdigalSoftware.TiVEPluginFramework.Particles
         /// <summary>
         /// Gets/sets the current location in the game world of this particle system
         /// </summary>
-        Vector3 Location { get; set; }
+        Vector3i Location { get; set; }
 
         /// <summary>
         /// Gets/sets the current number of particles that should be created each second

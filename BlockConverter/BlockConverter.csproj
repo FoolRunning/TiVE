@@ -114,6 +114,10 @@
       <Project>{42f81808-5a13-4501-b184-18b4197512c3}</Project>
       <Name>TiVEPluginFramework</Name>
     </ProjectReference>
+    <ProjectReference Include="..\TiVE\TiVE.csproj">
+      <Project>{36a8e85b-b645-4bd0-a1ab-fb00448d5742}</Project>
+      <Name>TiVE</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

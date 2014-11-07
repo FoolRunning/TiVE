@@ -1,48 +1,28 @@
 ﻿using System;
-using ProdigalSoftware.TiVE.Plugins;
 using ProdigalSoftware.TiVE.Renderer;
 using ProdigalSoftware.TiVE.Renderer.Particles;
 using ProdigalSoftware.TiVE.Renderer.World;
-using ProdigalSoftware.TiVE.Scripts;
+using ProdigalSoftware.TiVE.Resources;
 using ProdigalSoftware.TiVE.Starter;
 
 namespace ProdigalSoftware.TiVE
 {
     internal static class ResourceManager
     {
-        public static PluginManager PluginManager { get; private set; }
-        public static BlockListManager BlockListManager { get; private set; }
-        public static WorldChunkManager ChunkManager { get; private set; }
-        public static GameWorldManager GameWorldManager { get; private set; }
-        public static ShaderManager ShaderManager { get; private set; }
-        public static ParticleSystemManager ParticleManager { get; private set; }
-        public static LuaScripts LuaScripts { get; private set; }
+        public static readonly BlockListManager BlockListManager = new BlockListManager();
+        public static readonly WorldChunkManager ChunkManager = new WorldChunkManager();
+        public static readonly GameWorldManager GameWorldManager = new GameWorldManager();
+        public static readonly ShaderManager ShaderManager = new ShaderManager();
+        public static readonly ParticleSystemManager ParticleManager = new ParticleSystemManager();
 
         public static bool Initialize()
         {
-            GameWorldManager = new GameWorldManager();
-
-            PluginManager = new PluginManager();
-            if (!PluginManager.LoadPlugins())
-                return false;
-
-            LuaScripts = new LuaScripts();
-            if (!LuaScripts.Initialize())
-                return false;
-
-            BlockListManager = new BlockListManager();
-            if (!BlockListManager.Initialize())
-                return false;
-
-            ShaderManager = new ShaderManager();
             if (!ShaderManager.Initialize())
                 return false;
 
-            ChunkManager = new WorldChunkManager();
             if (!ChunkManager.Initialize())
                 return false;
 
-            ParticleManager = new ParticleSystemManager();
             if (!ParticleManager.Initialize())
                 return false;
 
@@ -59,27 +39,14 @@ namespace ProdigalSoftware.TiVE
             if (ParticleManager != null)
                 ParticleManager.Dispose();
 
-            if (ShaderManager != null)
-                ShaderManager.Dispose();
-
             if (GameWorldManager != null)
                 GameWorldManager.Dispose();
 
             if (BlockListManager != null)
                 BlockListManager.Dispose();
 
-            if (LuaScripts != null)
-                LuaScripts.Dispose();
-
-            if (PluginManager != null)
-                PluginManager.Dispose();
-
-            PluginManager = null;
-            BlockListManager = null;
-            GameWorldManager = null;
-            ChunkManager = null;
-            ParticleManager = null;
-            LuaScripts = null;
+            if (ShaderManager != null)
+                ShaderManager.Dispose();
 
             GC.Collect();
 

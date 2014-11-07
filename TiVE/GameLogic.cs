@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Dynamic;
 using Microsoft.CSharp.RuntimeBinder;
 using NLua.Exceptions;
 using OpenTK;
@@ -16,7 +15,7 @@ namespace ProdigalSoftware.TiVE
 {
     internal sealed class GameLogic : IDisposable
     {
-        private IGameWorldRenderer renderer;
+        private readonly IGameWorldRenderer renderer = new WorldChunkRenderer();
         private dynamic gameScript;
 
         private readonly Camera camera = new Camera();
@@ -34,7 +33,7 @@ namespace ProdigalSoftware.TiVE
                 return false;
             }
 
-            gameScript = ResourceManager.LuaScripts.GetScript("Game");
+            gameScript = TiVEController.LuaScripts.GetScript("Game");
             if (gameScript == null)
             {
                 ResourceManager.Cleanup();
@@ -80,7 +79,6 @@ namespace ProdigalSoftware.TiVE
             StaticLightingHelper lightingHelper = new StaticLightingHelper(ResourceManager.GameWorldManager.GameWorld, 50, minLightValue);
             lightingHelper.Calculate();
 
-            renderer = new WorldChunkRenderer();
             return true;
         }
 
@@ -98,11 +96,11 @@ namespace ProdigalSoftware.TiVE
 
             try
             {
-                gameScript.Update(camera, keyboard);
+                gameScript.Update(camera);
             }
             catch (RuntimeBinderException)
             {
-                Messages.AddError("Can not find Update(camera, keyboard) function in Game script");
+                Messages.AddError("Can not find Update(camera) function in Game script");
                 return false;
             }
             catch (LuaScriptException e)

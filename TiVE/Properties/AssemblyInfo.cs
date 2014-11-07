@@ -13,6 +13,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyCopyright("Copyright © 2013-2014 Prodigal Software")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
+[assembly: InternalsVisibleTo("BlockConverter")]
 [assembly: InternalsVisibleTo("TiVEBlockEditor")]
 [assembly: InternalsVisibleTo("TiVE.Tests")]
 

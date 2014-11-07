@@ -4,8 +4,8 @@ namespace ProdigalSoftware.TiVEPluginFramework
 {
     public interface IBlockGenerator
     {
-        IEnumerable<BlockInformation> CreateBlocks();
+        IEnumerable<BlockInformation> CreateBlocks(string blockListName);
 
-        IEnumerable<BlockAnimationDefinition> CreateAnimations();
+        IEnumerable<BlockAnimationDefinition> CreateAnimations(string blockListName);
     }
 }
