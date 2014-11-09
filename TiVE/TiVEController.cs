@@ -1,9 +1,7 @@
 ﻿using System;
-using System.Drawing;
 using System.Threading;
 using System.Windows.Forms;
 using ProdigalSoftware.TiVE.Plugins;
-using ProdigalSoftware.TiVE.Renderer;
 using ProdigalSoftware.TiVE.Renderer.OpenGL;
 using ProdigalSoftware.TiVE.Resources;
 using ProdigalSoftware.TiVE.Scripts;
@@ -58,9 +56,7 @@ namespace ProdigalSoftware.TiVE
 
                 starterForm.BeginInvoke(new Action(() =>
                 {
-                    Size size = new Size(1280, 720); // Screen.PrimaryScreen.Bounds.Size;
-                    using (IDisplay display = Backend.CreateDisplay(size.Width, size.Height, false, false))
-                        display.RunMainLoop(gameLogic);
+                    gameLogic.RunMainLoop();
                 }));
             });
             loadingThread.IsBackground = false;

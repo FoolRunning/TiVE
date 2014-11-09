@@ -1,0 +1,196 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{C0172F47-72F2-4F28-985D-6C92909A3CB1}</ProjectGuid>
+    <OutputType>WinExe</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>ProdigalSoftware.TiVEEditor</RootNamespace>
+    <AssemblyName>TiVEEditor</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\x86\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x86</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <Prefer32Bit>true</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'">
+    <OutputPath>bin\x86\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x86</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <Prefer32Bit>true</Prefer32Bit>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="OpenTK">
+      <HintPath>..\packages\OpenTK.1.1.1589.5942\lib\NET40\OpenTK.dll</HintPath>
+    </Reference>
+    <Reference Include="OpenTK.GLControl">
+      <HintPath>..\packages\OpenTK.GLControl.1.1.1589.5942\lib\NET40\OpenTK.GLControl.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Deployment" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="BlockLists\BlockListEditForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="BlockLists\BlockListEditForm.Designer.cs">
+      <DependentUpon>BlockListEditForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="BlockLists\MagicaVoxelImporter.cs" />
+    <Compile Include="Common\TiVEGameControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="MapListEditForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="MapListEditForm.Designer.cs">
+      <DependentUpon>MapListEditForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+    <Compile Include="TiVEEditorForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="TiVEEditorForm.Designer.cs">
+      <DependentUpon>TiVEEditorForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Program.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <EmbeddedResource Include="BlockLists\BlockListEditForm.resx">
+      <DependentUpon>BlockListEditForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="MapListEditForm.resx">
+      <DependentUpon>MapListEditForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Include="TiVEEditorForm.resx">
+      <DependentUpon>TiVEEditorForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <None Include="packages.config" />
+    <None Include="Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
+    <Compile Include="Properties\Settings.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Settings.settings</DependentUpon>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\TiVEPluginFramework\TiVEPluginFramework.csproj">
+      <Project>{42f81808-5a13-4501-b184-18b4197512c3}</Project>
+      <Name>TiVEPluginFramework</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\TiVE\TiVE.csproj">
+      <Project>{36a8e85b-b645-4bd0-a1ab-fb00448d5742}</Project>
+      <Name>TiVE</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Utils\Utils.csproj">
+      <Project>{dc99c507-28dd-4dbf-b6b4-1f9c99e849f1}</Project>
+      <Name>Utils</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\map--minus.png" />
+    <None Include="Resources\map.png" />
+    <None Include="Resources\light-bulb--plus.png" />
+    <None Include="Resources\light-bulb--pencil.png" />
+    <None Include="Resources\light-bulb--minus.png" />
+    <None Include="Resources\light-bulb.png" />
+    <None Include="Resources\disk-return-black.png" />
+    <None Include="Resources\clipboard-block.png" />
+    <None Include="Resources\block--plus.png" />
+    <None Include="Resources\block--pencil.png" />
+    <None Include="Resources\block--minus.png" />
+    <None Include="Resources\block.png" />
+    <None Include="Resources\arrow-circle-135-left.png" />
+    <None Include="Resources\arrow-circle.png" />
+    <None Include="Resources\scripts.png" />
+    <None Include="Resources\script--plus.png" />
+    <None Include="Resources\script--pencil.png" />
+    <None Include="Resources\script--minus.png" />
+    <None Include="Resources\script--exclamation.png" />
+    <None Include="Resources\script.png" />
+    <None Include="Resources\P button.png" />
+    <None Include="Resources\maps.png" />
+    <None Include="Resources\map-resize.png" />
+    <None Include="Resources\map--plus.png" />
+    <None Include="Resources\map--pencil.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\P button.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\block--pencil.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\map--pencil.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\block.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\map.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\script.ico" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

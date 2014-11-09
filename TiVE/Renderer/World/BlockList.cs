@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using Ionic.Zip;
+using JetBrains.Annotations;
 using ProdigalSoftware.TiVEPluginFramework;
 
 namespace ProdigalSoftware.TiVE.Renderer.World
@@ -29,6 +30,7 @@ namespace ProdigalSoftware.TiVE.Renderer.World
             get { return animationsList; }
         }
 
+        [CanBeNull]
         public static BlockList FromBlockListFile(string filePath)
         {
             using (ZipFile blockFile = new ZipFile(filePath))

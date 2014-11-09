@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Drawing;
 using System.Linq;
 using System.Runtime.InteropServices;
 using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL4;
+using OpenTK.Input;
 using ProdigalSoftware.TiVE.Starter;
 using ProdigalSoftware.Utils;
 
@@ -14,9 +16,30 @@ namespace ProdigalSoftware.TiVE.Renderer.OpenGL
     internal sealed class OpenGLRendererBackend : IRendererBackend
     {
         #region IRendererBackend implementation
-        public IDisplay CreateDisplay(int width, int height, bool fullscreen, bool vsync)
+        public INativeWindow CreateNatveWindow(int width, int height, bool fullscreen, bool vsync)
         {
             return new OpenGLDisplay(width, height, fullscreen, vsync);
+        }
+        
+        public void Initialize()
+        {
+            GL.ClearColor(0, 0, 0, 1);
+
+            GL.Enable(EnableCap.DepthTest);
+            GL.DepthFunc(DepthFunction.Less);
+
+            GL.Enable(EnableCap.CullFace);
+            GL.CullFace(CullFaceMode.Back);
+            GL.FrontFace(FrontFaceDirection.Cw);
+
+            GL.Disable(EnableCap.Blend);
+
+            GlUtils.CheckGLErrors();
+        }
+
+        public void WindowResized(Rectangle newBounds)
+        {
+            GL.Viewport(newBounds.X, newBounds.Y, newBounds.Width, newBounds.Height);
         }
 
         public void Draw(PrimitiveType primitiveType, IVertexDataCollection data)
@@ -40,6 +63,11 @@ namespace ProdigalSoftware.TiVE.Renderer.OpenGL
                 GL.DrawArrays(GlPrimitiveType(primitiveType), 0, meshData.VertexCount);
 
             GlUtils.CheckGLErrors();
+        }
+
+        public void BeforeRenderFrame()
+        {
+            GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
         }
 
         public IVertexDataCollection CreateVertexDataCollection()
@@ -125,124 +153,78 @@ namespace ProdigalSoftware.TiVE.Renderer.OpenGL
         #endregion
 
         #region OpenGLDisplay class
-        private sealed class OpenGLDisplay : GameWindow, IDisplay
+        private sealed class OpenGLDisplay : GameWindow, INativeWindow
         {
-            private readonly TimeStatHelper renderTime = new TimeStatHelper(2, true);
-            private readonly TimeStatHelper updateTime = new TimeStatHelper(2, true);
-            private readonly TimeStatHelper frameTime = new TimeStatHelper(2, true);
-
-            private readonly CountStatHelper drawCount = new CountStatHelper(4, false);
-            private readonly CountStatHelper voxelCount = new CountStatHelper(8, false);
-            private readonly CountStatHelper polygonCount = new CountStatHelper(8, false);
-            private readonly CountStatHelper renderedVoxelCount = new CountStatHelper(8, false);
-
-            private readonly bool vsync;
-            private double lastPrintTime;
-            private GameLogic game;
-
             /// <summary>
             /// Creates a window
             /// </summary>
             public OpenGLDisplay(int width, int height, bool fullscreen, bool vsync)
-                : base(width, height, new GraphicsMode(new ColorFormat(8, 8, 8, 8), 16, 0, 0), "TiVE",
+                : base(width, height, new GraphicsMode(32, 16, 0, 0), "TiVE",
                     fullscreen ? GameWindowFlags.Fullscreen : GameWindowFlags.Default, 
                     DisplayDevice.Default, 3, 1, GraphicsContextFlags.ForwardCompatible)
             {
-                this.vsync = vsync;
                 VSync = vsync ? VSyncMode.On : VSyncMode.Off;
-                UpdateFrame += OpenGLDisplay_UpdateFrame;
-                RenderFrame += OpenGLDisplay_RenderFrame;
-                Load += OpenGLDisplay_Load;
                 Unload += OpenGLDisplay_Unload;
+                Resize += OpenGLDisplay_Resize;
             }
 
-            public void RunMainLoop(GameLogic newGame)
+            public event Action<Rectangle> WindowResized;
+            public event EventHandler WindowClosing;
+
+            public string WindowTitle
             {
-                game = newGame;
-                Run(60, vsync ? 0 : 60);
+                set { Title = value; }
             }
 
-            /// <summary>
-            /// Called when your window is resized. Set your viewport here. It is also
-            /// a good place to set up your projection matrix (which probably changes
-            /// along when the aspect ratio of your window).
-            /// </summary>
-            protected override void OnResize(EventArgs e)
+            public IKeyboard KeyboardImplementation
             {
-                base.OnResize(e);
-                GL.Viewport(ClientRectangle.X, ClientRectangle.Y, ClientRectangle.Width, ClientRectangle.Height);
-                game.Resize(Width, Height);
+                get { return new KeyboardImpl(Keyboard); }
             }
 
-            void OpenGLDisplay_UpdateFrame(object sender, FrameEventArgs e)
+            public void CloseWindow()
             {
-                updateTime.MarkStartTime();
-
-                if (!game.UpdateFrame((float)e.Time, Keyboard))
-                    Exit();
-                updateTime.PushTime();
-
-                lastPrintTime += e.Time;
-                if (lastPrintTime > 1)
-                {
-                    lastPrintTime -= 1;
-                    updateTime.UpdateDisplayedTime();
-                    renderTime.UpdateDisplayedTime();
-                    frameTime.UpdateDisplayedTime();
-
-                    drawCount.UpdateDisplayedTime();
-                    voxelCount.UpdateDisplayedTime();
-                    renderedVoxelCount.UpdateDisplayedTime();
-                    polygonCount.UpdateDisplayedTime();
-
-                    Title = string.Format("TiVE   Frame={6}   Update={5}   Render={4}   Voxels={0}  Rendered={1}  Polys={2}  Draws={3}",
-                        voxelCount.DisplayedValue, renderedVoxelCount.DisplayedValue, polygonCount.DisplayedValue, drawCount.DisplayedValue,
-                        renderTime.DisplayedValue, updateTime.DisplayedValue, frameTime.DisplayedValue);
-                }
+                Exit();
             }
 
-            void OpenGLDisplay_Load(object sender, EventArgs e)
+            public void ProcessNativeEvents()
             {
-                GL.ClearColor(0, 0, 0, 1);
+                ProcessEvents();
+            }
 
-                GL.Enable(EnableCap.DepthTest);
-                GL.DepthFunc(DepthFunction.Less);
-
-                GL.Enable(EnableCap.CullFace);
-                GL.CullFace(CullFaceMode.Back);
-                GL.FrontFace(FrontFaceDirection.Cw);
-
-                GL.Disable(EnableCap.Blend);
-
+            public void UpdateDisplayContents()
+            {
                 GlUtils.CheckGLErrors();
+                
+                SwapBuffers();
+            }
+
+            void OpenGLDisplay_Resize(object sender, EventArgs e)
+            {
+                if (WindowResized != null)
+                    WindowResized(ClientRectangle);
             }
 
             void OpenGLDisplay_Unload(object sender, EventArgs e)
             {
-                game.Dispose();
+                if (WindowClosing != null)
+                    WindowClosing(this, EventArgs.Empty);
             }
 
-            void OpenGLDisplay_RenderFrame(object sender, FrameEventArgs e)
+            private class KeyboardImpl : IKeyboard
             {
-                frameTime.PushTime();
-                frameTime.MarkStartTime();
-                //frameTime.AddData((float)e.Time * 1000f);
+                private readonly KeyboardDevice device;
 
-                renderTime.MarkStartTime();
+                public KeyboardImpl(KeyboardDevice device)
+                {
+                    this.device = device;
+                }
 
-                GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
-                RenderStatistics stats = game.Render((float)e.Time);
-
-                drawCount.PushCount(stats.DrawCount);
-                voxelCount.PushCount(stats.VoxelCount);
-                polygonCount.PushCount(stats.PolygonCount);
-                renderedVoxelCount.PushCount(stats.RenderedVoxelCount);
-
-                GlUtils.CheckGLErrors();
-
-                renderTime.PushTime();
-
-                SwapBuffers();
+                #region Implementation of IKeyboard
+                public bool IsKeyPressed(Keys key)
+                {
+                    return device[(uint)key];
+                }
+                #endregion
             }
         }
         #endregion
@@ -764,102 +746,5 @@ namespace ProdigalSoftware.TiVE.Renderer.OpenGL
             }
         }
         #endregion
-
-        private sealed class TimeStatHelper
-        {
-            private readonly string formatString;
-            private long startTicks;
-            private float minTime = float.MaxValue;
-            private float maxTime;
-            private float totalTime;
-            private int dataCount;
-
-            public TimeStatHelper(int digitsAfterDecimal, bool showMinMax)
-            {
-                if (showMinMax)
-                    formatString = "{0:F" + digitsAfterDecimal + "}({1:F" + digitsAfterDecimal + "}-{2:F" + digitsAfterDecimal + "})";
-                else
-                    formatString = "{0:F" + digitsAfterDecimal + "}";
-            }
-
-            public string DisplayedValue { get; private set; }
-
-            /// <summary>
-            /// Updates the display time with the average of the data points
-            /// </summary>
-            public void UpdateDisplayedTime()
-            {
-                DisplayedValue = string.Format(formatString, totalTime / Math.Max(dataCount, 1), minTime, maxTime);
-                totalTime = 0;
-                dataCount = 0;
-                minTime = float.MaxValue;
-                maxTime = 0;
-            }
-
-            public void MarkStartTime()
-            {
-                startTicks = Stopwatch.GetTimestamp();
-            }
-
-            public void PushTime()
-            {
-                long endTime = Stopwatch.GetTimestamp();
-                float newTime = (endTime - startTicks) * 1000.0f / Stopwatch.Frequency;
-                totalTime += newTime;
-                dataCount++;
-                
-                if (newTime < minTime)
-                    minTime = newTime;
-
-                if (newTime > maxTime)
-                    maxTime = newTime;
-            }
-        }
-
-        private sealed class CountStatHelper
-        {
-            private readonly string formatString;
-            private int totalCount;
-            private int minCount = int.MaxValue;
-            private int maxCount;
-            private int dataCount;
-
-            public CountStatHelper(int maxDigits, bool showMinMax)
-            {
-                if (showMinMax)
-                    formatString = "{0:D" + maxDigits + "}({1:D" + maxDigits + "}-{2:D" + maxDigits + "})";
-                else
-                    formatString = "{0:D" + maxDigits + "}";
-            }
-
-            public string DisplayedValue { get; private set; }
-
-            /// <summary>
-            /// Updates the display time with the average of the data points
-            /// </summary>
-            public void UpdateDisplayedTime()
-            {
-                DisplayedValue = string.Format(formatString, totalCount / Math.Max(dataCount, 1), minCount, maxCount);
-                totalCount = 0;
-                dataCount = 0;
-                minCount = int.MaxValue;
-                maxCount = 0;
-            }
-
-            /// <summary>
-            /// Adds the specified value as a new data point
-            /// </summary>
-            public void PushCount(int newCount)
-            {
-                totalCount += newCount;
-                dataCount++;
-
-                if (newCount < minCount)
-                    minCount = newCount;
-
-                if (newCount > maxCount)
-                    maxCount = newCount;
-            }
-        }
     }
 }
