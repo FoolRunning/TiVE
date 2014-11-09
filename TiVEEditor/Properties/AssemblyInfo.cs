@@ -5,17 +5,14 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("TiVE")]
+[assembly: AssemblyTitle("TiVEEditor")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Prodigal Software")]
-[assembly: AssemblyProduct("TiVE")]
-[assembly: AssemblyCopyright("Copyright © 2013-2014 Prodigal Software")]
+[assembly: AssemblyCompany("")]
+[assembly: AssemblyProduct("TiVEEditor")]
+[assembly: AssemblyCopyright("Copyright ©  2014")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
-[assembly: InternalsVisibleTo("BlockConverter")]
-[assembly: InternalsVisibleTo("TiVEEditor")]
-[assembly: InternalsVisibleTo("TiVE.Tests")]
 
 // Setting ComVisible to false makes the types in this assembly not visible 
 // to COM components.  If you need to access a type in this assembly from 
@@ -23,7 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("8519ca78-8177-4e98-80f4-06607ad54998")]
+[assembly: Guid("7c23e90b-3ee9-456c-8343-ea67c642286f")]
 
 // Version information for an assembly consists of the following four values:
 //
@@ -35,5 +32,5 @@ using System.Runtime.InteropServices;
 // You can specify all the values or you can default the Build and Revision Numbers 
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("0.1.3.*")]
-//[assembly: AssemblyFileVersion("0.1.0.0")]
+[assembly: AssemblyVersion("1.0.0.0")]
+[assembly: AssemblyFileVersion("1.0.0.0")]

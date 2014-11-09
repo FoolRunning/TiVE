@@ -14,31 +14,31 @@ function Update(camera, keyboard)
     camLoc = camera.Location
 
     speed = 2
-    if (KeyPressed(Key.ShiftLeft)) then --Speed up
+    if (KeyPressed(Keys.ShiftLeft)) then --Speed up
         speed = 10
     elseif (KeyPressed(Key.ControlLeft)) then --Slow down
         speed = 0.2
     end
 
-    if (KeyPressed(Key.A)) then --Move left
+    if (KeyPressed(Keys.A)) then --Move left
         camLoc.X = camLoc.X - speed
     end
 
-    if (KeyPressed(Key.D)) then --Move right
+    if (KeyPressed(Keys.D)) then --Move right
         camLoc.X = camLoc.X + speed
     end
 
-    if (KeyPressed(Key.W)) then --Move up
+    if (KeyPressed(Keys.W)) then --Move up
         camLoc.Y = camLoc.Y + speed
     end
 
-    if (KeyPressed(Key.S)) then --Move down
+    if (KeyPressed(Keys.S)) then --Move down
         camLoc.Y = camLoc.Y - speed
     end
 
-    if (KeyPressed(Key.KeypadPlus)) then --Zoom in
+    if (KeyPressed(Keys.KeypadPlus)) then --Zoom in
         camLoc.Z = Max(camLoc.Z - 2.0, 2 * BlockSize)
-    elseif (KeyPressed(Key.KeypadMinus)) then --Zoom out
+    elseif (KeyPressed(Keys.KeypadMinus)) then --Zoom out
         camLoc.Z = Min(camLoc.Z + 2.0, 60.0 * BlockSize)
     end
 

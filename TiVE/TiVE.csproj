@@ -107,6 +107,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="IKeyboard.cs" />
+    <Compile Include="Keys.cs" />
     <Compile Include="Renderer\Voxels\LargeMeshBuilder.cs" />
     <Compile Include="Renderer\Voxels\MeshBuilderBase.cs" />
     <Compile Include="Renderer\World\ChunkRenderTree.cs" />
@@ -133,12 +135,12 @@
     <Compile Include="Renderer\ShaderManager.cs" />
     <Compile Include="Renderer\World\WorldChunkManager.cs" />
     <Compile Include="GameLogic.cs" />
-    <Compile Include="Renderer\IDisplay.cs" />
+    <Compile Include="INativeWindow.cs" />
     <Compile Include="Renderer\IShaderProgram.cs" />
     <Compile Include="Renderer\IVertexData.cs" />
     <Compile Include="Renderer\IVertexDataCollection.cs" />
-    <Compile Include="Renderer\IGameWorldRenderer.cs" />
-    <Compile Include="Renderer\IRendererBackend.cs" />
+    <Compile Include="IGameWorldRenderer.cs" />
+    <Compile Include="IRendererBackend.cs" />
     <Compile Include="Renderer\OpenGL\OpenGLRendererBackend.cs" />
     <Compile Include="Renderer\Voxels\SimpleVoxelGroup.cs" />
     <Compile Include="Renderer\WorldChunkRenderer.cs" />
