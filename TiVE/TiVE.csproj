@@ -151,7 +151,6 @@
     <Compile Include="Renderer\World\BlockList.cs" />
     <Compile Include="Renderer\World\GameWorld.cs" />
     <Compile Include="Renderer\World\GameWorldManager.cs" />
-    <Compile Include="ResourceManager.cs" />
     <Compile Include="Sound\irrKlang\IrrKlangSoundEngine.cs" />
     <Compile Include="Sound\ISoundEngine.cs" />
     <Compile Include="Sound\SoundManager.cs" />
