@@ -100,10 +100,6 @@
   <ItemGroup>
     <Compile Include="Controllers\DefaultBlockLoader.cs" />
     <Compile Include="Controllers\TableDefinitionProvider.cs" />
-    <Compile Include="Controllers\WorldGen1.cs" />
-    <Compile Include="Controllers\WorldGenAddResources.cs" />
-    <Compile Include="Controllers\WorldGenCreateBiomes.cs" />
-    <Compile Include="Controllers\WorldGenCreateCaves.cs" />
     <Compile Include="Controllers\WorldGenFillWorld.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

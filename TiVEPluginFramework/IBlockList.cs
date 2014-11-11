@@ -1,6 +1,8 @@
-﻿namespace ProdigalSoftware.TiVEPluginFramework
+﻿using System;
+
+namespace ProdigalSoftware.TiVEPluginFramework
 {
-    public interface IBlockList
+    public interface IBlockList : IDisposable
     {
         BlockInformation this[string blockName] { get; }
     }

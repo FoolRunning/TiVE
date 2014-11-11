@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 using ProdigalSoftware.TiVE.Starter;
 using ProdigalSoftware.TiVEPluginFramework;
 
@@ -8,41 +7,49 @@ namespace ProdigalSoftware.TiVE.Renderer.World
     /// <summary>
     /// Creates a world based on a set of generators
     /// </summary>
-    internal sealed class GameWorldManager : IDisposable
+    internal static class GameWorldManager
     {
-        public GameWorld GameWorld { get; private set; }
-
-        public bool CreateWorld(int worldXsize, int worldYsize, int worldZsize, long seed)
+        public static GameWorld LoadGameWorld(string gameWorldName)
         {
+            // TODO: Implement this method when saving/loading of game worlds is implemented
             Messages.Print("Creating new world...");
-            BlockList blockList = ResourceManager.BlockListManager.BlockList;
-            GameWorld createdWorld = new GameWorld(worldXsize, worldYsize, worldZsize, blockList);
+            GameWorld createdWorld = new GameWorld(10, 10, 10, null);
 
             try
             {
-                foreach (IWorldGeneratorStage generator in TiVEController.PluginManager.GetPluginsOfType<IWorldGeneratorStage>().OrderBy(wg => wg.Priority))
-                {
-                    Console.WriteLine(generator.StageDescription);
-                    generator.UpdateWorld(createdWorld, seed, blockList);
-                }
+                foreach (IWorldGenerator generator in TiVEController.PluginManager.GetPluginsOfType<IWorldGenerator>())
+                    generator.UpdateGameWorld(createdWorld, gameWorldName);
             }
             catch (Exception e)
             {
                 Messages.AddFailText();
                 Messages.AddStackTrace(e);
-                GameWorld = null;
-                return false;
+                return null;
             }
             
             Messages.AddDoneText();
-            GameWorld = createdWorld;
-            return true;
+            return createdWorld;
         }
 
-        public void Dispose()
+        public static GameWorld GenerateGameWorld(BlockList blockList, string worldName, int worldXsize, int worldYsize, int worldZsize)
         {
-            if (GameWorld != null)
-                GameWorld.Dispose();
+            Messages.Print("Creating new world...");
+            GameWorld createdWorld = new GameWorld(worldXsize, worldYsize, worldZsize, blockList);
+
+            try
+            {
+                foreach (IWorldGenerator generator in TiVEController.PluginManager.GetPluginsOfType<IWorldGenerator>())
+                    generator.UpdateGameWorld(createdWorld, worldName);
+            }
+            catch (Exception e)
+            {
+                Messages.AddFailText();
+                Messages.AddStackTrace(e);
+                return null;
+            }
+
+            Messages.AddDoneText();
+            return createdWorld;
         }
     }
 }

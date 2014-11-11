@@ -151,9 +151,9 @@ namespace ProdigalSoftware.TiVE.Renderer.World
             return blockList.BelongsToAnimation(block) ? 0 : block[blockVoxelX, blockVoxelY, blockVoxelZ];
         }
 
-        public RenderStatistics RenderChunks(ref Matrix4 viewProjectionMatrix, Camera camera)
+        public RenderStatistics RenderChunkOutlines(ShaderManager shaderManager, ref Matrix4 viewProjectionMatrix, Camera camera)
         {
-            return renderTree.Render(ref viewProjectionMatrix, camera);
+            return renderTree.Render(shaderManager, ref viewProjectionMatrix, camera);
         }
 
         #region Private helper methods

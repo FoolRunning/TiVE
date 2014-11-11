@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
-using OpenTK;
 using ProdigalSoftware.TiVE.Renderer.Voxels;
 using ProdigalSoftware.TiVE.Starter;
 using ProdigalSoftware.Utils;
@@ -12,25 +11,24 @@ namespace ProdigalSoftware.TiVE.Renderer.World
     internal sealed class WorldChunkManager : IDisposable
     {
         private const int MaxChunkUpdatesPerFrame = 7;
+        private const int MeshBuildersPerThread = 5;
 
         private readonly List<GameWorldVoxelChunk> chunksToDelete = new List<GameWorldVoxelChunk>();
         private readonly HashSet<GameWorldVoxelChunk> loadedChunks = new HashSet<GameWorldVoxelChunk>();
 
         private readonly List<Thread> chunkCreationThreads = new List<Thread>();
         private readonly Queue<GameWorldVoxelChunk> chunkLoadQueue = new Queue<GameWorldVoxelChunk>();
+
+        private readonly GameWorld gameWorld;
         
         private volatile bool endCreationThreads;
 
-        public bool Initialize()
+        public WorldChunkManager(GameWorld gameWorld, int maxThreads)
         {
-            Messages.Print("Starting chunk creations threads...");
+            this.gameWorld = gameWorld;
 
-            endCreationThreads = false;
-            for (int i = 0; i < 3; i++)
+            for (int i = 0; i < maxThreads; i++)
                 chunkCreationThreads.Add(StartChunkCreateThread(i + 1));
-
-            Messages.AddDoneText();
-            return true;
         }
 
         public void Dispose()
@@ -117,7 +115,7 @@ namespace ProdigalSoftware.TiVE.Renderer.World
         private void ChunkCreateLoop()
         {
             List<MeshBuilder> meshBuilders = new List<MeshBuilder>();
-            for (int i = 0; i < 5; i++)
+            for (int i = 0; i < MeshBuildersPerThread; i++)
                 meshBuilders.Add(new MeshBuilder(500000, 1000000));
 
             int bottleneckCount = 0;
@@ -160,7 +158,7 @@ namespace ProdigalSoftware.TiVE.Renderer.World
                 }
 
                 meshBuilder.StartNewMesh();
-                chunk.Load(meshBuilder);
+                chunk.Load(meshBuilder, gameWorld);
             }
         }
 

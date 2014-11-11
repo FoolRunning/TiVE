@@ -1,50 +1,98 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using OpenTK;
 using OpenTK.Graphics;
+using ProdigalSoftware.TiVE;
+using ProdigalSoftware.TiVE.Renderer;
+using ProdigalSoftware.TiVE.Renderer.World;
 
 namespace ProdigalSoftware.TiVEEditor.Common
 {
-    public class TiVEGameControl : GLControl
+    internal class TiVEGameControl : GLControl
     {
+        private readonly Timer timer = new Timer();
+        private readonly Camera camera = new Camera();
+        private readonly WorldChunkRenderer renderer = new WorldChunkRenderer(1);
+
         public TiVEGameControl() : base(new GraphicsMode(32, 16, 0, 4), 3, 1, GraphicsContextFlags.ForwardCompatible)
         {
+            timer.Interval = 100;
+            timer.Tick += timer_Tick;
+            timer.Start();
+        }
+
+        public GameWorld GameWorld
+        {
+            get { return renderer.GameWorld; }
+        }
+
+        public BlockList BlockList
+        {
+            get { return renderer.BlockList; }
+        }
+
+        public Camera Camera
+        {
+            get { return camera; }
+        }
+
+        public void SetGameWorld(BlockList blockList, GameWorld gameWorld)
+        {
+            renderer.SetGameWorld(blockList, gameWorld);
+        }
+
+        public void RefreshLevel()
+        {
+            renderer.RefreshLevel();
         }
 
         #region Overrides of GLControl
+        protected override void Dispose(bool disposing)
+        {
+            timer.Dispose();
+            base.Dispose(disposing);
+        }
 
-        /// <summary>
-        /// Raises the <see cref="E:System.Windows.Forms.UserControl.Load"/> event.
-        /// </summary>
-        /// <param name="e">An <see cref="T:System.EventArgs"/> that contains the event data. </param>
         protected override void OnLoad(EventArgs e)
         {
             base.OnLoad(e);
+            MakeCurrent();
+            TiVEController.Backend.Initialize();
         }
 
-        /// <summary>
-        /// Raises the System.Windows.Forms.Control.Paint event.
-        /// </summary>
-        /// <param name="e">A System.Windows.Forms.PaintEventArgs that contains the event data.</param>
+        protected override void OnHandleDestroyed(EventArgs e)
+        {
+            MakeCurrent();
+            renderer.Dispose();
+            base.OnHandleDestroyed(e);
+        }
+
         protected override void OnPaint(PaintEventArgs e)
         {
+            MakeCurrent();
+            TiVEController.Backend.BeforeRenderFrame();
             base.OnPaint(e);
+
+            camera.Update();
+
+            renderer.Update(camera, 0.0f);
+            renderer.Draw(camera);
+            SwapBuffers();
         }
 
-        /// <summary>
-        /// Raises the Resize event.
-        ///             Note: this method may be called before the OpenGL context is ready.
-        ///             Check that IsHandleCreated is true before using any OpenGL methods.
-        /// </summary>
-        /// <param name="e">A System.EventArgs that contains the event data.</param>
         protected override void OnResize(EventArgs e)
         {
             base.OnResize(e);
+            camera.AspectRatio = ClientRectangle.Width / (float)ClientRectangle.Height;
+
+            MakeCurrent();
+            TiVEController.Backend.WindowResized(ClientRectangle);
         }
         #endregion
+
+        void timer_Tick(object sender, EventArgs e)
+        {
+            Invalidate();
+        }
     }
 }
