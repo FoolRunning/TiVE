@@ -13,7 +13,7 @@ using ProdigalSoftware.Utils;
 
 namespace ProdigalSoftware.TiVE
 {
-    internal sealed class GameLogic : IDisposable
+    internal sealed class GameLogic
     {
         private const int GameUpdatesPerSecond = 60;
         private const int DisplayUpdatesPerSecond = 60;
@@ -35,23 +35,11 @@ namespace ProdigalSoftware.TiVE
         private double lastPrintTime; 
         private dynamic gameScript;
 
-        public void Dispose()
-        {
-            ResourceManager.Cleanup();
-        }
-
         public bool Initialize()
         {
-            if (!ResourceManager.Initialize())
-            {
-                ResourceManager.Cleanup();
-                return false;
-            }
-
             gameScript = TiVEController.LuaScripts.GetScript("Game");
             if (gameScript == null)
             {
-                ResourceManager.Cleanup();
                 Messages.AddError("Failed to find Game script");
                 return false;
             }
@@ -81,13 +69,11 @@ namespace ProdigalSoftware.TiVE
             }
             catch (RuntimeBinderException)
             {
-                ResourceManager.Cleanup();
                 Messages.AddError("Can not find Initialize(camera) function in Game script");
                 return false;
             }
             catch (LuaScriptException e)
             {
-                ResourceManager.Cleanup();
                 Messages.AddStackTrace(e);
                 return false;
             }
@@ -158,7 +144,7 @@ namespace ProdigalSoftware.TiVE
             }
 
             keyboard = null;
-            ResourceManager.Cleanup();
+            renderer.Dispose();
             nativeWindow.CloseWindow();
             nativeWindow.Dispose();
         }
