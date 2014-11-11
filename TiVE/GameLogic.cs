@@ -5,6 +5,7 @@ using NLua.Exceptions;
 using ProdigalSoftware.TiVE.Renderer;
 using ProdigalSoftware.TiVE.Renderer.Lighting;
 using ProdigalSoftware.TiVE.Renderer.World;
+using ProdigalSoftware.TiVE.Resources;
 using ProdigalSoftware.TiVE.Scripts;
 using ProdigalSoftware.TiVE.Starter;
 using ProdigalSoftware.TiVEPluginFramework;
@@ -17,7 +18,7 @@ namespace ProdigalSoftware.TiVE
         private const int GameUpdatesPerSecond = 60;
         private const int DisplayUpdatesPerSecond = 60;
 
-        private readonly IGameWorldRenderer renderer = new WorldChunkRenderer();
+        private readonly IGameWorldRenderer renderer = new WorldChunkRenderer(3);
         private readonly Camera camera = new Camera();
 
         private readonly TimeStatHelper renderTime = new TimeStatHelper(2, true);
@@ -56,18 +57,22 @@ namespace ProdigalSoftware.TiVE
             }
 
             LuaScripts.AddLuaTableForEnum<Keys>(gameScript);
+            
+            BlockList blockList = BlockListManager.LoadBlockList("bla"); // TODO: figure out how to get this for real
 
             gameScript.KeyPressed = new Func<Keys, bool>(k => keyboard.IsKeyPressed(k));
             gameScript.Vector = new Func<float, float, float, OpenTK.Vector3>((x, y, z) => new OpenTK.Vector3(x, y, z));
             gameScript.Color = new Func<float, float, float, Color3f>((r, g, b) => new Color3f(r, g, b));
-            gameScript.GameWorld = new Func<GameWorld>(() => ResourceManager.GameWorldManager.GameWorld);
-            gameScript.ReloadLevel = new Action(() => ResourceManager.ChunkManager.ReloadAllChunks());
+            gameScript.GameWorld = new Func<GameWorld>(() => renderer.GameWorld);
+            gameScript.ReloadLevel = new Action(() => renderer.RefreshLevel());
 
-            gameScript.CreateWorld = new Func<int, int, int, IGameWorld>((xSize, ySize, zSize) =>
+            gameScript.CreateWorld = new Func<string, int, int, int, IGameWorld>((worldName, xSize, ySize, zSize) =>
             {
-                if (!ResourceManager.GameWorldManager.CreateWorld(xSize, ySize, zSize, LongRandom() /*123456789123456789*/))
-                    throw new TiVEException("Failed to load resources");
-                return ResourceManager.GameWorldManager.GameWorld;
+                GameWorld newWorld = GameWorldManager.GenerateGameWorld(blockList, worldName, xSize, ySize, zSize);
+                if (newWorld == null)
+                    throw new TiVEException("Failed to create game world");
+                renderer.SetGameWorld(blockList, newWorld);
+                return newWorld;
             });
 
             try
@@ -89,7 +94,7 @@ namespace ProdigalSoftware.TiVE
 
             // Calculate static lighting
             const float minLightValue = 0.002f; // 0.002f (0.2%) produces the best result as that is less then a single light value's worth
-            StaticLightingHelper lightingHelper = new StaticLightingHelper(ResourceManager.GameWorldManager.GameWorld, 50, minLightValue);
+            StaticLightingHelper lightingHelper = new StaticLightingHelper(renderer.GameWorld, 50, minLightValue);
             lightingHelper.Calculate();
 
             return true;
@@ -204,14 +209,6 @@ namespace ProdigalSoftware.TiVE
             renderedVoxelCount.PushCount(stats.RenderedVoxelCount);
 
             renderTime.PushTime();
-        }
-
-        private static long LongRandom()
-        {
-            byte[] buf = new byte[8];
-            Random random = new Random();
-            random.NextBytes(buf);
-            return BitConverter.ToInt64(buf, 0);
         }
 
         #region TimeStatHelper class

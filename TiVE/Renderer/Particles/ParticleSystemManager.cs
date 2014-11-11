@@ -4,7 +4,6 @@ using System.Diagnostics;
 using System.Threading;
 using OpenTK;
 using ProdigalSoftware.TiVE.Renderer.World;
-using ProdigalSoftware.TiVE.Starter;
 using ProdigalSoftware.TiVEPluginFramework;
 using ProdigalSoftware.TiVEPluginFramework.Particles;
 using ProdigalSoftware.Utils;
@@ -22,8 +21,19 @@ namespace ProdigalSoftware.TiVE.Renderer.Particles
 
         private readonly HashSet<SystemInfo> runningSystems = new HashSet<SystemInfo>();
         private readonly List<SystemInfo> systemsToDelete = new List<SystemInfo>();
-        private Thread particleUpdateThread;
+        private readonly GameWorld gameWorld;
+        private readonly Thread particleUpdateThread;
         private volatile bool stopThread;
+
+        public ParticleSystemManager(GameWorld gameWorld)
+        {
+            this.gameWorld = gameWorld;
+            particleUpdateThread = new Thread(ParticleUpdateLoop);
+            particleUpdateThread.Priority = ThreadPriority.BelowNormal;
+            particleUpdateThread.IsBackground = true;
+            particleUpdateThread.Name = "ParticleUpdate";
+            particleUpdateThread.Start();
+        }
 
         public void Dispose()
         {
@@ -36,23 +46,11 @@ namespace ProdigalSoftware.TiVE.Renderer.Particles
             particleSystemCollections.Clear();
         }
 
-        public bool Initialize()
-        {
-            Messages.Print("Starting particle update thread...");
-
-            particleUpdateThread = new Thread(ParticleUpdateLoop);
-            particleUpdateThread.Priority = ThreadPriority.BelowNormal;
-            particleUpdateThread.IsBackground = true;
-            particleUpdateThread.Name = "ParticleUpdate";
-            particleUpdateThread.Start();
-
-            Messages.AddDoneText();
-            return true;
-        }
-
         public void UpdateCameraPos(HashSet<GameWorldVoxelChunk> chunksToRender)
         {
             Debug.Assert(Thread.CurrentThread.Name == "Main UI");
+
+            // TODO: Implement this again based on the new chunk renderer
 
             //foreach (SystemInfo runningSystem in runningSystems)
             //{
@@ -63,15 +61,14 @@ namespace ProdigalSoftware.TiVE.Renderer.Particles
             //    }
             //}
 
-            //for (int i = 0; i < systemsToDelete.Count; i++)
-            //{
-            //    SystemInfo runningSystem = systemsToDelete[i];
-            //    runningSystems.Remove(runningSystem);
-            //    RemoveParticleSystem(runningSystem.System);
-            //}
-            //systemsToDelete.Clear();
+            for (int i = 0; i < systemsToDelete.Count; i++)
+            {
+                SystemInfo runningSystem = systemsToDelete[i];
+                runningSystems.Remove(runningSystem);
+                RemoveParticleSystem(runningSystem.System);
+            }
+            systemsToDelete.Clear();
 
-            //GameWorld gameWorld = ResourceManager.GameWorldManager.GameWorld;
             //for (int z = 0; z < gameWorld.BlockSize.Z; z++)
             //{
             //    for (int x = camMinX; x < camMaxX; x++)
@@ -92,7 +89,7 @@ namespace ProdigalSoftware.TiVE.Renderer.Particles
             //}
         }
 
-        public RenderStatistics Render(ref Matrix4 matrixMVP)
+        public RenderStatistics Render(ShaderManager shaderManager, ref Matrix4 matrixMVP)
         {
             renderList.Clear();
             using (new PerformanceLock(particleSystemCollections))
@@ -103,14 +100,14 @@ namespace ProdigalSoftware.TiVE.Renderer.Particles
             foreach (ParticleSystemCollection system in renderList)
             {
                 if (!system.HasTransparency)
-                    stats += system.Render(ref matrixMVP);
+                    stats += system.Render(shaderManager, ref matrixMVP);
             }
 
             // Render transparent particles last
             foreach (ParticleSystemCollection system in renderList)
             {
                 if (system.HasTransparency)
-                    stats += system.Render(ref matrixMVP);
+                    stats += system.Render(shaderManager, ref matrixMVP);
             }
 
             return stats;
@@ -160,7 +157,7 @@ namespace ProdigalSoftware.TiVE.Renderer.Particles
                         updateList.AddRange(particleSystemCollections.Values);
 
                     for (int i = 0; i < updateList.Count; i++)
-                        updateList[i].UpdateAll(timeSinceLastUpdate);
+                        updateList[i].UpdateAll(gameWorld, timeSinceLastUpdate);
                 }
             }
             sw.Stop();

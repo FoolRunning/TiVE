@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
-using System.IO;
 using System.Runtime.CompilerServices;
-using System.Text;
 using ProdigalSoftware.TiVEPluginFramework.Lighting;
 using ProdigalSoftware.TiVEPluginFramework.Particles;
 
@@ -15,6 +13,7 @@ namespace ProdigalSoftware.TiVEPluginFramework
 
         public static readonly BlockInformation Empty = new BlockInformation("Empty");
 
+        public readonly BlockInformation NextBlock;
         public readonly string BlockName;
         public readonly ParticleSystemInformation ParticleSystem;
         public readonly ILight Light;
@@ -22,13 +21,13 @@ namespace ProdigalSoftware.TiVEPluginFramework
         private readonly uint[] voxels = new uint[VoxelSize * VoxelSize * VoxelSize];
         private BlockInformation[] rotated;
 
-        public BlockInformation(BlockInformation toCopy, string blockName, ParticleSystemInformation particleSystem = null, ILight light = null) :
-            this(blockName, particleSystem, light)
+        public BlockInformation(BlockInformation toCopy, string blockName, ParticleSystemInformation particleSystem = null, ILight light = null,
+            BlockInformation nextBlock = null) : this(blockName, particleSystem, light, nextBlock)
         {
             Array.Copy(toCopy.voxels, voxels, voxels.Length);
         }
 
-        public BlockInformation(string blockName, ParticleSystemInformation particleSystem = null, ILight light = null)
+        public BlockInformation(string blockName, ParticleSystemInformation particleSystem = null, ILight light = null, BlockInformation nextBlock = null)
         {
             if (blockName == null)
                 throw new ArgumentNullException("blockName");
@@ -36,6 +35,7 @@ namespace ProdigalSoftware.TiVEPluginFramework
             BlockName = blockName;
             ParticleSystem = particleSystem;
             Light = light;
+            NextBlock = nextBlock;
         }
 
         internal uint[] VoxelsArray
@@ -104,26 +104,7 @@ namespace ProdigalSoftware.TiVEPluginFramework
             }
             return rotatedBlock;
         }
-
-        public static BlockInformation FromFile(string path)
-        {
-            using (BinaryReader reader = new BinaryReader(new FileStream(path, FileMode.Open), Encoding.ASCII))
-            {
-                string id = reader.ReadString();
-                if (id != "TiVEb")
-                    return null; // Not really a TiVE block file
-
-                int blockSize = reader.ReadByte();
-                if (blockSize != VoxelSize)
-                    return null; // Wrong block size
-
-                BlockInformation block = new BlockInformation(Path.GetFileNameWithoutExtension(path));
-                for (int i = 0; i < block.voxels.Length; i++)
-                    block.voxels[i] = reader.ReadUInt32();
-                return block;
-            }
-        }
-
+        
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static int GetOffset(int x, int y, int z)
         {

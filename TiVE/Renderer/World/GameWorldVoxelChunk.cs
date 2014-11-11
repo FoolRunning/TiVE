@@ -61,7 +61,7 @@ namespace ProdigalSoftware.TiVE.Renderer.World
                 deleted = false;
         }
 
-        public RenderStatistics Render(ref Matrix4 viewProjectionMatrix)
+        public RenderStatistics Render(ShaderManager shaderManager, ref Matrix4 viewProjectionMatrix)
         {
             if (chunkPolygonCount == 0)
                 return new RenderStatistics(); // Nothing to render for this chunk
@@ -79,7 +79,7 @@ namespace ProdigalSoftware.TiVE.Renderer.World
 
             Debug.Assert(meshData.IsInitialized);
 
-            IShaderProgram shader = ResourceManager.ShaderManager.GetShaderProgram("MainWorld");
+            IShaderProgram shader = shaderManager.GetShaderProgram("MainWorld");
             shader.Bind();
 
             Matrix4 viewProjectionModelMatrix;
@@ -95,13 +95,9 @@ namespace ProdigalSoftware.TiVE.Renderer.World
             return string.Format("Chunk ({0}, {1}, {2}) {3}v", chunkLoc.X, chunkLoc.Y, chunkLoc.Z, chunkVoxelCount);
         }
 
-        public void Load(MeshBuilder newMeshBuilder)
+        public void Load(MeshBuilder newMeshBuilder, GameWorld gameWorld)
         {
             Debug.Assert(newMeshBuilder.IsLocked);
-
-            GameWorld gameWorld = ResourceManager.GameWorldManager.GameWorld;
-            BlockList blockList = ResourceManager.BlockListManager.BlockList;
-
             //Debug.WriteLine("Started chunk ({0},{1},{2})", chunkStartX, chunkStartY, chunkStartZ);
 
             int voxelStartX = chunkLoc.X * BlockSize * BlockInformation.VoxelSize;
@@ -130,7 +126,7 @@ namespace ProdigalSoftware.TiVE.Renderer.World
                     for (int y = blockStartY; y < blockEndY; y++)
                     {
                         BlockInformation block = gameWorld[x, y, z];
-                        if (block == BlockInformation.Empty || blockList.BelongsToAnimation(block))
+                        if (block == BlockInformation.Empty || block.NextBlock != null)
                             continue;
 
                         for (int bz = BlockInformation.VoxelSize - 1; bz >= 0; bz--)

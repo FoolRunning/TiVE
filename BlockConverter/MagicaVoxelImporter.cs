@@ -74,7 +74,6 @@ namespace BlockConverter
                 int childChunks = stream.ReadInt32();
                 string chunkName = new string(chunkId);
 
-                // there are only 2 chunks we only care about, and they are SIZE and XYZI
                 if (chunkName == "SIZE")
                 {
                     sizex = stream.ReadInt32();

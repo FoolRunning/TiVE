@@ -1,18 +1,16 @@
-﻿using System;
-using ProdigalSoftware.TiVEPluginFramework;
+﻿using ProdigalSoftware.TiVEPluginFramework;
 
 namespace ProdigalSoftware.ProjectS.Controllers
 {
     /// <summary>
     /// World generation stage to fill the game world with blocks.
     /// </summary>
-    public class LevelCreator : IWorldGeneratorStage
+    public class LevelCreator : IWorldGenerator
     {
-        /// <summary>
-        /// Updates the specified gameworld with blocks
-        /// </summary>
-        public void UpdateWorld(IGameWorld gameWorld, long seed, IBlockList blockList)
+        #region Implementation of IWorldGenerator
+        public void UpdateGameWorld(IGameWorld gameWorld, string gameWorldName)
         {
+            IBlockList blockList = null;
             BlockIncrementer lights = new BlockIncrementer(blockList, "Light", 3);
             BlockInformation wallBottom = blockList["WallBottom"];
             BlockInformation wallTop = blockList["WallTop"];
@@ -89,16 +87,7 @@ namespace ProdigalSoftware.ProjectS.Controllers
             gameWorld[51, 20, 1] = wallEndBottom;
             //gameWorld[51, 20, 2] = wallEndTop;
         }
-
-        public ushort Priority
-        {
-            get { return 100; }
-        }
-
-        public string StageDescription
-        {
-            get { return "Loading Level"; }
-        }
+        #endregion
 
         private sealed class BlockIncrementer
         {

@@ -56,7 +56,7 @@ namespace ProdigalSoftware.TiVE.Renderer.Voxels
             set { voxels[GetBlockOffset(x, y, z)] = value; }
         }
 
-        public RenderStatistics Render(ref Matrix4 matrixMVP)
+        public RenderStatistics Render(ShaderManager shaderManager, ref Matrix4 matrixMVP)
         {
             if (mesh == null)
             {
@@ -65,7 +65,7 @@ namespace ProdigalSoftware.TiVE.Renderer.Voxels
                 meshBuilder.DropMesh();
             }
 
-            IShaderProgram shader = ResourceManager.ShaderManager.GetShaderProgram("MainWorld");
+            IShaderProgram shader = shaderManager.GetShaderProgram("MainWorld");
             shader.Bind();
 
             shader.SetUniform("matrix_ModelViewProjection", ref matrixMVP);
@@ -82,7 +82,7 @@ namespace ProdigalSoftware.TiVE.Renderer.Voxels
             polygonCount = 0;
 
             meshBuilder.StartNewMesh();
-            for (byte z = (byte)(size.Z - 1); z >= 0; z--)
+            for (byte z = 0; z < size.Z; z++)
             {
                 for (byte x = 0; x < size.X; x++)
                 {

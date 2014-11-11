@@ -146,14 +146,13 @@ namespace ProdigalSoftware.TiVE.Renderer.Particles
         /// <summary>
         /// Updates all particle systems in this collection
         /// </summary>
+        /// <param name="gameWorld"></param>
         /// <param name="timeSinceLastFrame">The time (in seconds) since the last call to update</param>
-        public void UpdateAll(float timeSinceLastFrame)
+        public void UpdateAll(GameWorld gameWorld, float timeSinceLastFrame)
         {
             updateList.Clear();
             using (new PerformanceLock(particleSystems))
                 updateList.AddRange(particleSystems); // Make copy to not lock during the updating
-
-            GameWorld gameWorld = ResourceManager.GameWorldManager.GameWorld;
 
             int dataIndex = 0;
             for (int i = 0; i < updateList.Count; i++)
@@ -172,7 +171,7 @@ namespace ProdigalSoftware.TiVE.Renderer.Particles
         /// <summary>
         /// Renders all particles in all systems in this collection
         /// </summary>
-        public RenderStatistics Render(ref Matrix4 matrixMVP)
+        public RenderStatistics Render(ShaderManager shaderManager, ref Matrix4 matrixMVP)
         {
             if (instances == null)
             {
@@ -186,7 +185,7 @@ namespace ProdigalSoftware.TiVE.Renderer.Particles
                 instances.Initialize();
             }
 
-            IShaderProgram shader = ResourceManager.ShaderManager.GetShaderProgram(HasTransparency ? "TransparentParticles" : "SolidParticles");
+            IShaderProgram shader = shaderManager.GetShaderProgram(HasTransparency ? "TransparentParticles" : "SolidParticles");
             shader.Bind();
             shader.SetUniform("matrix_ModelViewProjection", ref matrixMVP);
 

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using System.Windows.Forms;
 
 namespace ProdigalSoftware.TiVEEditor
@@ -13,6 +14,7 @@ namespace ProdigalSoftware.TiVEEditor
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
+            Thread.CurrentThread.Name = "Main UI";
             Application.Run(new TiVEEditorForm());
         }
     }

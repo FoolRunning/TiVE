@@ -138,14 +138,14 @@ namespace ProdigalSoftware.TiVE.Renderer.World
             }
         }
 
-        public RenderStatistics Render(ref Matrix4 viewProjectionMatrix, Camera camera)
+        public RenderStatistics Render(ShaderManager shaderManager, ref Matrix4 viewProjectionMatrix, Camera camera)
         {
-            return Render(ref viewProjectionMatrix, camera, -1);
+            return Render(shaderManager, ref viewProjectionMatrix, camera, -1);
         }
 
-        private RenderStatistics Render(ref Matrix4 viewProjectionMatrix, Camera camera, int locationInParent)
+        private RenderStatistics Render(ShaderManager shaderManager, ref Matrix4 viewProjectionMatrix, Camera camera, int locationInParent)
         {
-            RenderDebugOutline(ref viewProjectionMatrix, locationInParent);
+            RenderDebugOutline(shaderManager, ref viewProjectionMatrix, locationInParent);
 
             RenderStatistics stats = new RenderStatistics(1, 12, 0, 0);
             ChunkRenderTree[] childrenLocal = children;
@@ -153,13 +153,13 @@ namespace ProdigalSoftware.TiVE.Renderer.World
             {
                 ChunkRenderTree childBox = childrenLocal[i];
                 if (childBox != null && camera.BoxInView(childBox, depth <= 10))
-                    stats += childBox.Render(ref viewProjectionMatrix, camera, i);
+                    stats += childBox.Render(shaderManager, ref viewProjectionMatrix, camera, i);
             }
 
             return stats;
         }
 
-        private void RenderDebugOutline(ref Matrix4 viewProjectionMatrix, int locationInParent)
+        private void RenderDebugOutline(ShaderManager shaderManager, ref Matrix4 viewProjectionMatrix, int locationInParent)
         {
             if (debugBoxOutLine == null)
             {
@@ -209,7 +209,7 @@ namespace ProdigalSoftware.TiVE.Renderer.World
                 debugBoxOutLine.Initialize();
             }
 
-            IShaderProgram shader = ResourceManager.ShaderManager.GetShaderProgram("MainWorld");
+            IShaderProgram shader = shaderManager.GetShaderProgram("MainWorld");
             shader.Bind();
 
             shader.SetUniform("matrix_ModelViewProjection", ref viewProjectionMatrix);
