@@ -1,6 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Drawing;
+using System.Drawing.Drawing2D;
+using System.Drawing.Imaging;
+using System.IO;
 using System.Windows.Forms;
 using OpenTK;
 using ProdigalSoftware.TiVE.Renderer.World;
@@ -11,12 +15,16 @@ namespace ProdigalSoftware.TiVEEditor.BlockLists
 {
     public partial class BlockListEditForm : Form
     {
+        #region Member variables
         private readonly List<BlockInList> blocksInList = new List<BlockInList>();
         private readonly GameWorld gameWorld;
         private readonly BlockList blockList;
+        private readonly string titleFormatString;
         private string filePath;
         private bool hasUnsavedChanges;
+        #endregion
 
+        #region Constructors
         private BlockListEditForm()
         {
             InitializeComponent();
@@ -25,16 +33,16 @@ namespace ProdigalSoftware.TiVEEditor.BlockLists
         public BlockListEditForm(string filePath) : this()
         {
             this.filePath = filePath;
-            blockList = filePath != null ? BlockList.FromBlockListFile(filePath) : new BlockList();
-            UpdateBlocksInList();
-            
-            hasUnsavedChanges = (filePath == null); // Block lists from a file are considered saved at the start
+            titleFormatString = Text;
 
+            blockList = filePath != null ? BlockList.FromBlockListFile(filePath) : new BlockList();
             gameWorld = new GameWorld(11, 11, 5, blockList);
             gameWorld.AmbientLight = new Color3f(200, 200, 200);
             UpdateState();
         }
+        #endregion
 
+        #region Properties
         private BlockInformation SelectedBlock
         {
             get
@@ -43,6 +51,7 @@ namespace ProdigalSoftware.TiVEEditor.BlockLists
                 return index >= 0 ? blocksInList[index].Block : BlockInformation.Empty;
             }
         }
+        #endregion
 
         #region Overrides of Form
         protected override void OnLoad(EventArgs e)
@@ -53,23 +62,29 @@ namespace ProdigalSoftware.TiVEEditor.BlockLists
             cntrlCurrentBlock.Camera.UpVector = Vector3.UnitZ;
             cntrlCurrentBlock.Camera.Location = new Vector3(59, 40, 30);
             cntrlCurrentBlock.Camera.LookAtLocation = new Vector3(59, 59, 14);
+            UpdateBlocksInList();
+        }
+
+        protected override void OnClosing(CancelEventArgs e)
+        {
+            if (hasUnsavedChanges)
+            {
+                DialogResult result = MessageBox.Show(this, "Do you want to save your changes before closing?",
+                    "Block List Editor", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Warning);
+
+                if (result == DialogResult.Yes)
+                    e.Cancel = !SaveBlockList();
+                else if (result == DialogResult.Cancel)
+                    e.Cancel = true;
+            }
+            base.OnClosing(e);
         }
         #endregion
 
         #region Event Handlers
         private void btnSaveBlockList_Click(object sender, EventArgs e)
         {
-            if (filePath == null)
-            {
-                // TODO: Prompt user for save location
-                filePath = null;
-            }
-
-            if (filePath == null)
-                return;
-
-            blockList.SaveToBlockListFile(filePath);
-            hasUnsavedChanges = false;
+            SaveBlockList();
             UpdateState();
         }
 
@@ -93,23 +108,24 @@ namespace ProdigalSoftware.TiVEEditor.BlockLists
             UpdateState();
         }
 
-        private void UpdateState()
-        {
-            btnSaveBlockList.Enabled = hasUnsavedChanges;
-            btnDeleteBlock.Enabled = (lstBxBlocks.SelectedIndex != -1);
-        }
-
         private void lstBxBlocks_DrawItem(object sender, DrawItemEventArgs e)
         {
             e.DrawBackground();
             if (e.Index == -1 || e.Index >= blocksInList.Count)
                 return;
 
+            BlockInList bil = blocksInList[e.Index];
+
+            e.Graphics.DrawImageUnscaled(bil.Preview, e.Bounds.X + 3, e.Bounds.Y + 3);
+
             using (Font font = new Font("Arial", 14, FontStyle.Regular))
             {
                 int height = font.Height;
-                e.Graphics.DrawString(blocksInList[e.Index].Block.BlockName, font, new SolidBrush(Color.Black), e.Bounds.X + 50, e.Bounds.Y + (e.Bounds.Height - height) / 2);
+                e.Graphics.DrawString(bil.Block.BlockName, font, new SolidBrush(e.ForeColor), e.Bounds.X + 50, e.Bounds.Y + (e.Bounds.Height - height) / 2);
             }
+            
+            if (lstBxBlocks.ContainsFocus)
+                e.DrawFocusRectangle();
         }
 
         private void lstBxBlocks_SelectedIndexChanged(object sender, EventArgs e)
@@ -121,6 +137,30 @@ namespace ProdigalSoftware.TiVEEditor.BlockLists
             UpdateState();
         }
         #endregion
+
+        #region Private helper methods
+        private void UpdateState()
+        {
+            btnSaveBlockList.Enabled = hasUnsavedChanges;
+            btnDeleteBlock.Enabled = (lstBxBlocks.SelectedIndex != -1);
+            Text = string.Format(titleFormatString, string.IsNullOrEmpty(filePath) ? "Unknown" : Path.GetFileNameWithoutExtension(filePath));
+        }
+
+        private bool SaveBlockList()
+        {
+            if (filePath == null)
+            {
+                // TODO: Prompt user for save location
+
+            }
+
+            if (filePath == null)
+                return false;
+
+            blockList.SaveToBlockListFile(filePath);
+            hasUnsavedChanges = false;
+            return true;
+        }
 
         private void UpdateBlocksInList()
         {
@@ -145,15 +185,43 @@ namespace ProdigalSoftware.TiVEEditor.BlockLists
                     lstBxBlocks.SelectedIndex = (prevSelectedIndex < blocksInList.Count) ? prevSelectedIndex : blocksInList.Count - 1;
             }
         }
+        #endregion
 
+        #region BlockInList class
         private sealed class BlockInList
         {
             public readonly BlockInformation Block;
+            public readonly Image Preview;
 
             public BlockInList(BlockInformation block)
             {
                 Block = block;
+
+                Bitmap bitmap = new Bitmap(44, 44, PixelFormat.Format24bppRgb);
+                using (Graphics g = Graphics.FromImage(bitmap))
+                {
+                    using (Brush brush = new SolidBrush(Color.Black))
+                        g.FillRectangle(brush, 0, 0, 44, 44);
+
+                    for (int y = BlockInformation.VoxelSize - 1; y >= 0; y--)
+                    {
+                        for (int x = 0; x < BlockInformation.VoxelSize; x++)
+                        {
+                            for (int z = 0; z < BlockInformation.VoxelSize; z++)
+                            {
+                                int color = (int)block[x, y, z];
+                                if (color == 0)
+                                    continue;
+
+                                using (Brush brush = new SolidBrush(Color.FromArgb(color)))
+                                    g.FillRectangle(brush, x * 2 + 18 - BlockInformation.VoxelSize + y, 28 - y - z * 2 + x, 3, 3);
+                            }
+                        }
+                    }
+                }
+                Preview = bitmap;
             }
         }
+        #endregion
     }
 }
