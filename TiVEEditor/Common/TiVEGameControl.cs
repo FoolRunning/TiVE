@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel;
 using System.Windows.Forms;
 using OpenTK;
 using OpenTK.Graphics;
@@ -13,12 +14,18 @@ namespace ProdigalSoftware.TiVEEditor.Common
         private readonly Timer timer = new Timer();
         private readonly Camera camera = new Camera();
         private readonly WorldChunkRenderer renderer = new WorldChunkRenderer(1);
+        private readonly bool reallyDesignMode;
 
         public TiVEGameControl() : base(new GraphicsMode(32, 16, 0, 4), 3, 1, GraphicsContextFlags.ForwardCompatible)
         {
-            timer.Interval = 100;
-            timer.Tick += timer_Tick;
-            timer.Start();
+            reallyDesignMode = DesignMode || LicenseManager.UsageMode == LicenseUsageMode.Designtime;
+
+            if (!reallyDesignMode)
+            {
+                timer.Interval = 100;
+                timer.Tick += timer_Tick;
+                timer.Start();
+            }
         }
 
         public GameWorld GameWorld
@@ -56,37 +63,49 @@ namespace ProdigalSoftware.TiVEEditor.Common
         protected override void OnLoad(EventArgs e)
         {
             base.OnLoad(e);
-            MakeCurrent();
-            TiVEController.Backend.Initialize();
+            if (!reallyDesignMode)
+            {
+                MakeCurrent();
+                TiVEController.Backend.Initialize();
+            }
         }
 
         protected override void OnHandleDestroyed(EventArgs e)
         {
-            MakeCurrent();
-            renderer.Dispose();
+            if (!reallyDesignMode)
+            {
+                MakeCurrent();
+                renderer.Dispose();
+            }
             base.OnHandleDestroyed(e);
         }
 
         protected override void OnPaint(PaintEventArgs e)
         {
-            MakeCurrent();
-            TiVEController.Backend.BeforeRenderFrame();
             base.OnPaint(e);
+            if (!reallyDesignMode)
+            {
+                MakeCurrent();
+                TiVEController.Backend.BeforeRenderFrame();
 
-            camera.Update();
+                camera.Update();
 
-            renderer.Update(camera, 0.0f);
-            renderer.Draw(camera);
-            SwapBuffers();
+                renderer.Update(camera, 0.0f);
+                renderer.Draw(camera);
+                SwapBuffers();
+            }
         }
 
         protected override void OnResize(EventArgs e)
         {
             base.OnResize(e);
-            camera.AspectRatio = ClientRectangle.Width / (float)ClientRectangle.Height;
+            if (!reallyDesignMode)
+            {
+                camera.AspectRatio = ClientRectangle.Width / (float)ClientRectangle.Height;
 
-            MakeCurrent();
-            TiVEController.Backend.WindowResized(ClientRectangle);
+                MakeCurrent();
+                TiVEController.Backend.WindowResized(ClientRectangle);
+            }
         }
         #endregion
 
