@@ -13,9 +13,11 @@
         /// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
         protected override void Dispose(bool disposing)
         {
-            if (disposing && (components != null))
+            if (disposing)
             {
-                components.Dispose();
+                blockPreviewCache.Dispose();
+                if (components != null)
+                    components.Dispose();
             }
             base.Dispose(disposing);
         }
@@ -33,15 +35,26 @@
             this.btnSaveBlockList = new System.Windows.Forms.ToolStripButton();
             this.btnImportBlock = new System.Windows.Forms.ToolStripButton();
             this.btnDeleteBlock = new System.Windows.Forms.ToolStripButton();
-            this.btnBlockProperties = new System.Windows.Forms.ToolStripButton();
             this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
-            this.cntrlCurrentBlock = new ProdigalSoftware.TiVEEditor.Common.TiVEGameControl();
-            this.sldrAmbientLightIntensity = new System.Windows.Forms.TrackBar();
-            this.label1 = new System.Windows.Forms.Label();
             this.lstBxBlocks = new System.Windows.Forms.ListBox();
+            this.cntrlCurrentBlock = new ProdigalSoftware.TiVEEditor.Common.TiVEGameControl();
+            this.picName = new System.Windows.Forms.PictureBox();
+            this.txtBlockName = new System.Windows.Forms.TextBox();
+            this.picEffect = new System.Windows.Forms.PictureBox();
+            this.cmbEffect = new System.Windows.Forms.ComboBox();
+            this.btnLightColor = new System.Windows.Forms.Button();
+            this.spnLightLocX = new System.Windows.Forms.NumericUpDown();
+            this.spnLightLocY = new System.Windows.Forms.NumericUpDown();
+            this.spnLightLocZ = new System.Windows.Forms.NumericUpDown();
+            this.picLight = new System.Windows.Forms.PictureBox();
             this.toolStrip1.SuspendLayout();
             this.tableLayoutPanel1.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.sldrAmbientLightIntensity)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.picName)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.picEffect)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.spnLightLocX)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.spnLightLocY)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.spnLightLocZ)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.picLight)).BeginInit();
             this.SuspendLayout();
             // 
             // toolStrip1
@@ -49,11 +62,10 @@
             this.toolStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.btnSaveBlockList,
             this.btnImportBlock,
-            this.btnDeleteBlock,
-            this.btnBlockProperties});
+            this.btnDeleteBlock});
             this.toolStrip1.Location = new System.Drawing.Point(0, 0);
             this.toolStrip1.Name = "toolStrip1";
-            this.toolStrip1.Size = new System.Drawing.Size(638, 35);
+            this.toolStrip1.Size = new System.Drawing.Size(604, 35);
             this.toolStrip1.TabIndex = 0;
             this.toolStrip1.Text = "toolStrip1";
             // 
@@ -93,41 +105,57 @@
             this.btnDeleteBlock.Text = "Delete selected block";
             this.btnDeleteBlock.Click += new System.EventHandler(this.btnDeleteBlock_Click);
             // 
-            // btnBlockProperties
-            // 
-            this.btnBlockProperties.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-            this.btnBlockProperties.Image = global::ProdigalSoftware.TiVEEditor.Properties.Resources.block__pencil;
-            this.btnBlockProperties.ImageScaling = System.Windows.Forms.ToolStripItemImageScaling.None;
-            this.btnBlockProperties.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.btnBlockProperties.Name = "btnBlockProperties";
-            this.btnBlockProperties.Padding = new System.Windows.Forms.Padding(2);
-            this.btnBlockProperties.Size = new System.Drawing.Size(32, 32);
-            this.btnBlockProperties.Text = "Edit properties of current block";
-            this.btnBlockProperties.Click += new System.EventHandler(this.btnBlockProperties_Click);
-            // 
             // tableLayoutPanel1
             // 
-            this.tableLayoutPanel1.ColumnCount = 3;
+            this.tableLayoutPanel1.ColumnCount = 7;
+            this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle());
+            this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle());
+            this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle());
+            this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle());
+            this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle());
             this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
             this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle());
-            this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle());
+            this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 20F));
+            this.tableLayoutPanel1.Controls.Add(this.lstBxBlocks, 6, 0);
             this.tableLayoutPanel1.Controls.Add(this.cntrlCurrentBlock, 0, 0);
-            this.tableLayoutPanel1.Controls.Add(this.sldrAmbientLightIntensity, 2, 0);
-            this.tableLayoutPanel1.Controls.Add(this.label1, 1, 0);
-            this.tableLayoutPanel1.Controls.Add(this.lstBxBlocks, 1, 1);
+            this.tableLayoutPanel1.Controls.Add(this.picName, 0, 1);
+            this.tableLayoutPanel1.Controls.Add(this.txtBlockName, 1, 1);
+            this.tableLayoutPanel1.Controls.Add(this.picEffect, 0, 3);
+            this.tableLayoutPanel1.Controls.Add(this.cmbEffect, 1, 3);
+            this.tableLayoutPanel1.Controls.Add(this.btnLightColor, 1, 2);
+            this.tableLayoutPanel1.Controls.Add(this.spnLightLocX, 2, 2);
+            this.tableLayoutPanel1.Controls.Add(this.spnLightLocY, 3, 2);
+            this.tableLayoutPanel1.Controls.Add(this.spnLightLocZ, 4, 2);
+            this.tableLayoutPanel1.Controls.Add(this.picLight, 0, 2);
             this.tableLayoutPanel1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.tableLayoutPanel1.Location = new System.Drawing.Point(0, 35);
             this.tableLayoutPanel1.Name = "tableLayoutPanel1";
-            this.tableLayoutPanel1.RowCount = 2;
-            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle());
+            this.tableLayoutPanel1.RowCount = 5;
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
-            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20F));
-            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20F));
-            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20F));
-            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20F));
-            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20F));
-            this.tableLayoutPanel1.Size = new System.Drawing.Size(638, 469);
+            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle());
+            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle());
+            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle());
+            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 100F));
+            this.tableLayoutPanel1.Size = new System.Drawing.Size(604, 467);
             this.tableLayoutPanel1.TabIndex = 2;
+            // 
+            // lstBxBlocks
+            // 
+            this.lstBxBlocks.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.lstBxBlocks.DrawMode = System.Windows.Forms.DrawMode.OwnerDrawFixed;
+            this.lstBxBlocks.Font = new System.Drawing.Font("Microsoft Sans Serif", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lstBxBlocks.FormattingEnabled = true;
+            this.lstBxBlocks.IntegralHeight = false;
+            this.lstBxBlocks.ItemHeight = 50;
+            this.lstBxBlocks.Location = new System.Drawing.Point(298, 3);
+            this.lstBxBlocks.Name = "lstBxBlocks";
+            this.tableLayoutPanel1.SetRowSpan(this.lstBxBlocks, 5);
+            this.lstBxBlocks.Size = new System.Drawing.Size(303, 461);
+            this.lstBxBlocks.TabIndex = 7;
+            this.lstBxBlocks.DrawItem += new System.Windows.Forms.DrawItemEventHandler(this.lstBxBlocks_DrawItem);
+            this.lstBxBlocks.SelectedIndexChanged += new System.EventHandler(this.lstBxBlocks_SelectedIndexChanged);
             // 
             // cntrlCurrentBlock
             // 
@@ -135,67 +163,169 @@
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.cntrlCurrentBlock.BackColor = System.Drawing.Color.Black;
+            this.tableLayoutPanel1.SetColumnSpan(this.cntrlCurrentBlock, 6);
             this.cntrlCurrentBlock.Location = new System.Drawing.Point(3, 3);
             this.cntrlCurrentBlock.Name = "cntrlCurrentBlock";
-            this.tableLayoutPanel1.SetRowSpan(this.cntrlCurrentBlock, 2);
-            this.cntrlCurrentBlock.Size = new System.Drawing.Size(383, 463);
+            this.cntrlCurrentBlock.Size = new System.Drawing.Size(289, 254);
             this.cntrlCurrentBlock.TabIndex = 1;
             this.cntrlCurrentBlock.VSync = false;
+            this.cntrlCurrentBlock.MouseDown += new System.Windows.Forms.MouseEventHandler(this.cntrlCurrentBlock_MouseDown);
+            this.cntrlCurrentBlock.MouseLeave += new System.EventHandler(this.cntrlCurrentBlock_MouseLeave);
+            this.cntrlCurrentBlock.MouseMove += new System.Windows.Forms.MouseEventHandler(this.cntrlCurrentBlock_MouseMove);
+            this.cntrlCurrentBlock.MouseUp += new System.Windows.Forms.MouseEventHandler(this.cntrlCurrentBlock_MouseUp);
             // 
-            // sldrAmbientLightIntensity
+            // picName
             // 
-            this.sldrAmbientLightIntensity.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right)));
-            this.sldrAmbientLightIntensity.Location = new System.Drawing.Point(469, 3);
-            this.sldrAmbientLightIntensity.Maximum = 255;
-            this.sldrAmbientLightIntensity.Name = "sldrAmbientLightIntensity";
-            this.sldrAmbientLightIntensity.Size = new System.Drawing.Size(166, 45);
-            this.sldrAmbientLightIntensity.TabIndex = 5;
-            this.sldrAmbientLightIntensity.TickFrequency = 10;
-            this.sldrAmbientLightIntensity.TickStyle = System.Windows.Forms.TickStyle.Both;
+            this.picName.Anchor = System.Windows.Forms.AnchorStyles.Right;
+            this.picName.Image = global::ProdigalSoftware.TiVEEditor.Properties.Resources.ui_text_field_medium;
+            this.picName.Location = new System.Drawing.Point(3, 268);
+            this.picName.Margin = new System.Windows.Forms.Padding(3, 8, 3, 3);
+            this.picName.Name = "picName";
+            this.picName.Padding = new System.Windows.Forms.Padding(2);
+            this.picName.Size = new System.Drawing.Size(28, 28);
+            this.picName.SizeMode = System.Windows.Forms.PictureBoxSizeMode.AutoSize;
+            this.picName.TabIndex = 14;
+            this.picName.TabStop = false;
             // 
-            // label1
+            // txtBlockName
             // 
-            this.label1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right)));
-            this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(392, 19);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(71, 13);
-            this.label1.TabIndex = 6;
-            this.label1.Text = "Ambient Light";
+            this.txtBlockName.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right)));
+            this.tableLayoutPanel1.SetColumnSpan(this.txtBlockName, 4);
+            this.txtBlockName.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.txtBlockName.Location = new System.Drawing.Point(37, 269);
+            this.txtBlockName.Margin = new System.Windows.Forms.Padding(3, 8, 3, 3);
+            this.txtBlockName.MaxLength = 100;
+            this.txtBlockName.Name = "txtBlockName";
+            this.txtBlockName.Size = new System.Drawing.Size(223, 26);
+            this.txtBlockName.TabIndex = 15;
+            this.txtBlockName.TextChanged += new System.EventHandler(this.txtBlockName_TextChanged);
             // 
-            // lstBxBlocks
+            // picEffect
             // 
-            this.lstBxBlocks.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.tableLayoutPanel1.SetColumnSpan(this.lstBxBlocks, 2);
-            this.lstBxBlocks.DrawMode = System.Windows.Forms.DrawMode.OwnerDrawFixed;
-            this.lstBxBlocks.FormattingEnabled = true;
-            this.lstBxBlocks.IntegralHeight = false;
-            this.lstBxBlocks.ItemHeight = 50;
-            this.lstBxBlocks.Location = new System.Drawing.Point(392, 54);
-            this.lstBxBlocks.Name = "lstBxBlocks";
-            this.lstBxBlocks.Size = new System.Drawing.Size(243, 412);
-            this.lstBxBlocks.TabIndex = 7;
-            this.lstBxBlocks.DrawItem += new System.Windows.Forms.DrawItemEventHandler(this.lstBxBlocks_DrawItem);
-            this.lstBxBlocks.SelectedIndexChanged += new System.EventHandler(this.lstBxBlocks_SelectedIndexChanged);
+            this.picEffect.Anchor = System.Windows.Forms.AnchorStyles.Right;
+            this.picEffect.Image = global::ProdigalSoftware.TiVEEditor.Properties.Resources.fire_big;
+            this.picEffect.Location = new System.Drawing.Point(3, 336);
+            this.picEffect.Name = "picEffect";
+            this.picEffect.Padding = new System.Windows.Forms.Padding(2);
+            this.picEffect.Size = new System.Drawing.Size(28, 28);
+            this.picEffect.SizeMode = System.Windows.Forms.PictureBoxSizeMode.AutoSize;
+            this.picEffect.TabIndex = 16;
+            this.picEffect.TabStop = false;
+            // 
+            // cmbEffect
+            // 
+            this.cmbEffect.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right)));
+            this.tableLayoutPanel1.SetColumnSpan(this.cmbEffect, 4);
+            this.cmbEffect.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cmbEffect.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.cmbEffect.FormattingEnabled = true;
+            this.cmbEffect.Location = new System.Drawing.Point(37, 338);
+            this.cmbEffect.Name = "cmbEffect";
+            this.cmbEffect.Size = new System.Drawing.Size(223, 24);
+            this.cmbEffect.TabIndex = 17;
+            this.cmbEffect.SelectedIndexChanged += new System.EventHandler(this.cmbEffect_SelectedIndexChanged);
+            // 
+            // btnLightColor
+            // 
+            this.btnLightColor.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnLightColor.BackColor = System.Drawing.Color.White;
+            this.btnLightColor.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnLightColor.Location = new System.Drawing.Point(37, 304);
+            this.btnLightColor.Name = "btnLightColor";
+            this.btnLightColor.Size = new System.Drawing.Size(55, 23);
+            this.btnLightColor.TabIndex = 9;
+            this.btnLightColor.UseVisualStyleBackColor = false;
+            this.btnLightColor.Click += new System.EventHandler(this.btnLightColor_Click);
+            // 
+            // spnLightLocX
+            // 
+            this.spnLightLocX.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right)));
+            this.spnLightLocX.Location = new System.Drawing.Point(98, 306);
+            this.spnLightLocX.Maximum = new decimal(new int[] {
+            9,
+            0,
+            0,
+            0});
+            this.spnLightLocX.Name = "spnLightLocX";
+            this.spnLightLocX.Size = new System.Drawing.Size(50, 20);
+            this.spnLightLocX.TabIndex = 10;
+            this.spnLightLocX.Value = new decimal(new int[] {
+            4,
+            0,
+            0,
+            0});
+            this.spnLightLocX.ValueChanged += new System.EventHandler(this.lightLoc_ValueChanged);
+            // 
+            // spnLightLocY
+            // 
+            this.spnLightLocY.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right)));
+            this.spnLightLocY.Location = new System.Drawing.Point(154, 306);
+            this.spnLightLocY.Maximum = new decimal(new int[] {
+            9,
+            0,
+            0,
+            0});
+            this.spnLightLocY.Name = "spnLightLocY";
+            this.spnLightLocY.Size = new System.Drawing.Size(50, 20);
+            this.spnLightLocY.TabIndex = 11;
+            this.spnLightLocY.Value = new decimal(new int[] {
+            4,
+            0,
+            0,
+            0});
+            this.spnLightLocY.ValueChanged += new System.EventHandler(this.lightLoc_ValueChanged);
+            // 
+            // spnLightLocZ
+            // 
+            this.spnLightLocZ.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right)));
+            this.spnLightLocZ.Location = new System.Drawing.Point(210, 306);
+            this.spnLightLocZ.Maximum = new decimal(new int[] {
+            9,
+            0,
+            0,
+            0});
+            this.spnLightLocZ.Name = "spnLightLocZ";
+            this.spnLightLocZ.Size = new System.Drawing.Size(50, 20);
+            this.spnLightLocZ.TabIndex = 12;
+            this.spnLightLocZ.Value = new decimal(new int[] {
+            4,
+            0,
+            0,
+            0});
+            this.spnLightLocZ.ValueChanged += new System.EventHandler(this.lightLoc_ValueChanged);
+            // 
+            // picLight
+            // 
+            this.picLight.Image = global::ProdigalSoftware.TiVEEditor.Properties.Resources.light_bulb;
+            this.picLight.Location = new System.Drawing.Point(3, 302);
+            this.picLight.Name = "picLight";
+            this.picLight.Padding = new System.Windows.Forms.Padding(2);
+            this.picLight.Size = new System.Drawing.Size(28, 28);
+            this.picLight.SizeMode = System.Windows.Forms.PictureBoxSizeMode.AutoSize;
+            this.picLight.TabIndex = 18;
+            this.picLight.TabStop = false;
             // 
             // BlockListEditForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(638, 504);
+            this.ClientSize = new System.Drawing.Size(604, 502);
             this.Controls.Add(this.tableLayoutPanel1);
             this.Controls.Add(this.toolStrip1);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
-            this.MinimumSize = new System.Drawing.Size(250, 180);
+            this.MinimumSize = new System.Drawing.Size(600, 400);
             this.Name = "BlockListEditForm";
             this.Text = "Block List Editor - {0}";
             this.toolStrip1.ResumeLayout(false);
             this.toolStrip1.PerformLayout();
             this.tableLayoutPanel1.ResumeLayout(false);
             this.tableLayoutPanel1.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.sldrAmbientLightIntensity)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.picName)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.picEffect)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.spnLightLocX)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.spnLightLocY)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.spnLightLocZ)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.picLight)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -206,12 +336,18 @@
         private System.Windows.Forms.ToolStrip toolStrip1;
         private System.Windows.Forms.ToolStripButton btnImportBlock;
         private System.Windows.Forms.ToolStripButton btnDeleteBlock;
-        private System.Windows.Forms.ToolStripButton btnBlockProperties;
         private System.Windows.Forms.ToolStripButton btnSaveBlockList;
         private Common.TiVEGameControl cntrlCurrentBlock;
         private System.Windows.Forms.TableLayoutPanel tableLayoutPanel1;
-        private System.Windows.Forms.TrackBar sldrAmbientLightIntensity;
-        private System.Windows.Forms.Label label1;
         private System.Windows.Forms.ListBox lstBxBlocks;
+        private System.Windows.Forms.Button btnLightColor;
+        private System.Windows.Forms.NumericUpDown spnLightLocX;
+        private System.Windows.Forms.NumericUpDown spnLightLocY;
+        private System.Windows.Forms.NumericUpDown spnLightLocZ;
+        private System.Windows.Forms.PictureBox picName;
+        private System.Windows.Forms.TextBox txtBlockName;
+        private System.Windows.Forms.PictureBox picEffect;
+        private System.Windows.Forms.ComboBox cmbEffect;
+        private System.Windows.Forms.PictureBox picLight;
     }
 }

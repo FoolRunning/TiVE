@@ -76,6 +76,7 @@
     <Compile Include="BlockLists\BlockListEditForm.Designer.cs">
       <DependentUpon>BlockListEditForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="BlockLists\BlockPreviewCache.cs" />
     <Compile Include="BlockLists\MagicaVoxelImporter.cs" />
     <Compile Include="Common\TiVEGameControl.cs">
       <SubType>UserControl</SubType>
@@ -184,6 +185,12 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\script.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\fire-big.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\ui-text-field-medium.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

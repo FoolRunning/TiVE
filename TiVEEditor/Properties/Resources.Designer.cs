@@ -153,6 +153,16 @@ namespace ProdigalSoftware.TiVEEditor.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap fire_big {
+            get {
+                object obj = ResourceManager.GetObject("fire_big", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap light_bulb {
             get {
                 object obj = ResourceManager.GetObject("light_bulb", resourceCulture);
@@ -346,6 +356,16 @@ namespace ProdigalSoftware.TiVEEditor.Properties {
         internal static System.Drawing.Bitmap scripts {
             get {
                 object obj = ResourceManager.GetObject("scripts", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap ui_text_field_medium {
+            get {
+                object obj = ResourceManager.GetObject("ui_text_field_medium", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }

@@ -17,8 +17,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Utils.Tests", "UtilsTests\U
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TiVEPluginFramework.Tests", "TiVEPluginFrameworkTests\TiVEPluginFramework.Tests.csproj", "{B89922BE-9E58-4282-8E4A-6D4B382DA9E2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlockConverter", "BlockConverter\BlockConverter.csproj", "{BA9ACC3F-320B-4668-B0C2-04F5BE811AE3}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TiVEEditor", "TiVEEditor\TiVEEditor.csproj", "{C0172F47-72F2-4F28-985D-6C92909A3CB1}"
 EndProject
 Global
@@ -161,22 +159,6 @@ Global
 		{B89922BE-9E58-4282-8E4A-6D4B382DA9E2}.Release|x64.Build.0 = Release|x64
 		{B89922BE-9E58-4282-8E4A-6D4B382DA9E2}.Release|x86.ActiveCfg = Release|x86
 		{B89922BE-9E58-4282-8E4A-6D4B382DA9E2}.Release|x86.Build.0 = Release|x86
-		{BA9ACC3F-320B-4668-B0C2-04F5BE811AE3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{BA9ACC3F-320B-4668-B0C2-04F5BE811AE3}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{BA9ACC3F-320B-4668-B0C2-04F5BE811AE3}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
-		{BA9ACC3F-320B-4668-B0C2-04F5BE811AE3}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
-		{BA9ACC3F-320B-4668-B0C2-04F5BE811AE3}.Debug|x64.ActiveCfg = Debug|x64
-		{BA9ACC3F-320B-4668-B0C2-04F5BE811AE3}.Debug|x64.Build.0 = Debug|x64
-		{BA9ACC3F-320B-4668-B0C2-04F5BE811AE3}.Debug|x86.ActiveCfg = Debug|x86
-		{BA9ACC3F-320B-4668-B0C2-04F5BE811AE3}.Debug|x86.Build.0 = Debug|x86
-		{BA9ACC3F-320B-4668-B0C2-04F5BE811AE3}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{BA9ACC3F-320B-4668-B0C2-04F5BE811AE3}.Release|Any CPU.Build.0 = Release|Any CPU
-		{BA9ACC3F-320B-4668-B0C2-04F5BE811AE3}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
-		{BA9ACC3F-320B-4668-B0C2-04F5BE811AE3}.Release|Mixed Platforms.Build.0 = Release|Any CPU
-		{BA9ACC3F-320B-4668-B0C2-04F5BE811AE3}.Release|x64.ActiveCfg = Release|x64
-		{BA9ACC3F-320B-4668-B0C2-04F5BE811AE3}.Release|x64.Build.0 = Release|x64
-		{BA9ACC3F-320B-4668-B0C2-04F5BE811AE3}.Release|x86.ActiveCfg = Release|x86
-		{BA9ACC3F-320B-4668-B0C2-04F5BE811AE3}.Release|x86.Build.0 = Release|x86
 		{C0172F47-72F2-4F28-985D-6C92909A3CB1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{C0172F47-72F2-4F28-985D-6C92909A3CB1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C0172F47-72F2-4F28-985D-6C92909A3CB1}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU

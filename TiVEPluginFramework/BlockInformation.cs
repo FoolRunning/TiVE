@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using JetBrains.Annotations;
 using ProdigalSoftware.TiVEPluginFramework.Lighting;
 using ProdigalSoftware.TiVEPluginFramework.Particles;
 
@@ -13,16 +14,12 @@ namespace ProdigalSoftware.TiVEPluginFramework
 
         public static readonly BlockInformation Empty = new BlockInformation("Empty");
 
-        public readonly BlockInformation NextBlock;
-        public readonly string BlockName;
-        public readonly ParticleSystemInformation ParticleSystem;
-        public readonly ILight Light;
-
         private readonly uint[] voxels = new uint[VoxelSize * VoxelSize * VoxelSize];
         private BlockInformation[] rotated;
 
-        public BlockInformation(BlockInformation toCopy, string blockName, ParticleSystemInformation particleSystem = null, ILight light = null,
-            BlockInformation nextBlock = null) : this(blockName, particleSystem, light, nextBlock)
+        private BlockInformation(BlockInformation toCopy, string newBlockName, ParticleSystemInformation particleSystem = null, 
+            ILight light = null, BlockInformation nextBlock = null) : 
+            this(newBlockName, particleSystem ?? toCopy.ParticleSystem, light ?? toCopy.Light, nextBlock ?? toCopy.NextBlock)
         {
             Array.Copy(toCopy.voxels, voxels, voxels.Length);
         }
@@ -43,6 +40,11 @@ namespace ProdigalSoftware.TiVEPluginFramework
             get { return voxels; }
         }
 
+        public BlockInformation NextBlock { get; internal set; }
+        public string BlockName  { get; internal set; }
+        public ParticleSystemInformation ParticleSystem { get; internal set; }
+        public ILight Light { get; internal set; }
+
         /// <summary>
         /// Gets/sets the voxel at the specified location
         /// </summary>
@@ -59,13 +61,13 @@ namespace ProdigalSoftware.TiVEPluginFramework
 
             if (rotated == null)
                 rotated = new BlockInformation[4];
-            int rotateIndex = (int)rotation;
-            BlockInformation rotatedBlock = rotated[rotateIndex];
+            BlockInformation rotatedBlock = rotated[(int)rotation];
             if (rotatedBlock == null)
-                rotated[rotateIndex] = rotatedBlock = CreateRotated(rotation);
+                rotated[(int)rotation] = rotatedBlock = CreateRotated(rotation);
             return rotatedBlock;
         }
 
+        [NotNull]
         private BlockInformation CreateRotated(BlockRotation rotation)
         {
             BlockInformation rotatedBlock = new BlockInformation(this, BlockName + "R" + (int)rotation, ParticleSystem, Light);

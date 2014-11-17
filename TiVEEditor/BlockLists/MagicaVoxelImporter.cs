@@ -69,10 +69,9 @@ namespace ProdigalSoftware.TiVEEditor.BlockLists
             while (stream.BaseStream.Position < stream.BaseStream.Length)
             {
                 // each chunk has an ID, size and child chunks
-                char[] chunkId = stream.ReadChars(4);
+                string chunkName = new string(stream.ReadChars(4));
                 int chunkSize = stream.ReadInt32();
                 int childChunks = stream.ReadInt32();
-                string chunkName = new string(chunkId);
 
                 // there are only 2 chunks we only care about, and they are SIZE and XYZI
                 if (chunkName == "SIZE")
@@ -97,7 +96,7 @@ namespace ProdigalSoftware.TiVEEditor.BlockLists
                 {
                     colors = new uint[256];
 
-                    for (int i = 0; i < 256; i++)
+                    for (int i = 1; i < 256; i++)
                     {
                         byte r = stream.ReadByte();
                         byte g = stream.ReadByte();
@@ -105,6 +104,8 @@ namespace ProdigalSoftware.TiVEEditor.BlockLists
                         byte a = stream.ReadByte();
                         colors[i] = (uint)((a << 24) | (r << 16) | (g << 8) | (b << 0));
                     }
+
+                    stream.ReadInt32(); // Skip reserved last color
                 }
                 else 
                     stream.ReadBytes(chunkSize);   // read any other chunks
