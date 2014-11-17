@@ -90,6 +90,11 @@ namespace ProdigalSoftware.TiVE.Renderer.World
                 AddBlock(block);
         }
 
+        public void RemoveBlock(string blockName)
+        {
+            blockToIndexMap.Remove(blockName);
+        }
+
         public void AddAnimations(IEnumerable<BlockAnimationDefinition> animations)
         {
             if (animations == null)
@@ -211,9 +216,17 @@ namespace ProdigalSoftware.TiVE.Renderer.World
             blockFile.Save(filePath);
         }
 
+        internal void UpdateNameIndex()
+        {
+            List<BlockInformation> blocks = blockToIndexMap.Values.ToList();
+            blockToIndexMap.Clear();
+            foreach (BlockInformation block in blocks)
+                blockToIndexMap[block.BlockName] = block;
+        }
+
         private void AddBlock(BlockInformation block)
         {
-            blockToIndexMap.Add(block.BlockName, block);
+            blockToIndexMap[block.BlockName] = block;
         }
     }
 }
