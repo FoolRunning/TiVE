@@ -10,7 +10,7 @@ namespace ProdigalSoftware.TiVEPluginFramework
     public sealed class BlockInformation
     {
         /// <summary>Number of voxels that make up a block on each axis</summary>
-        public const int VoxelSize = 9;
+        public const int VoxelSize = 16;
 
         public static readonly BlockInformation Empty = new BlockInformation("Empty");
 
@@ -54,7 +54,7 @@ namespace ProdigalSoftware.TiVEPluginFramework
             set { voxels[GetOffset(x, y, z)] = value; }
         }
 
-        public BlockInformation Rotate(BlockRotation rotation)
+        internal BlockInformation Rotate(BlockRotation rotation)
         {
             if (rotation == BlockRotation.NotRotated)
                 return this;

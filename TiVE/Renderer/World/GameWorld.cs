@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using JetBrains.Annotations;
 using OpenTK;
 using ProdigalSoftware.TiVE.Renderer.Lighting;
 using ProdigalSoftware.TiVEPluginFramework;
@@ -151,6 +152,7 @@ namespace ProdigalSoftware.TiVE.Renderer.World
             return blockList.BelongsToAnimation(block) ? 0 : block[blockVoxelX, blockVoxelY, blockVoxelZ];
         }
 
+        [PublicAPI]
         public RenderStatistics RenderChunkOutlines(ShaderManager shaderManager, ref Matrix4 viewProjectionMatrix, Camera camera)
         {
             return renderTree.Render(shaderManager, ref viewProjectionMatrix, camera);

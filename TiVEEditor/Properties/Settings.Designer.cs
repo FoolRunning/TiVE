@@ -25,13 +25,13 @@ namespace ProdigalSoftware.TiVEEditor.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("1000, 700")]
-        public global::System.Drawing.Size MainEditorSize {
+        [global::System.Configuration.DefaultSettingValueAttribute("0, 0, 0, 0")]
+        public global::System.Drawing.Rectangle MainEditorBounds {
             get {
-                return ((global::System.Drawing.Size)(this["MainEditorSize"]));
+                return ((global::System.Drawing.Rectangle)(this["MainEditorBounds"]));
             }
             set {
-                this["MainEditorSize"] = value;
+                this["MainEditorBounds"] = value;
             }
         }
         
@@ -49,13 +49,25 @@ namespace ProdigalSoftware.TiVEEditor.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("0, 0")]
-        public global::System.Drawing.Point MainEditorLocation {
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string BlockEditorImportLastDir {
             get {
-                return ((global::System.Drawing.Point)(this["MainEditorLocation"]));
+                return ((string)(this["BlockEditorImportLastDir"]));
             }
             set {
-                this["MainEditorLocation"] = value;
+                this["BlockEditorImportLastDir"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string BlockEditorBlockListLastDir {
+            get {
+                return ((string)(this["BlockEditorBlockListLastDir"]));
+            }
+            set {
+                this["BlockEditorBlockListLastDir"] = value;
             }
         }
     }

@@ -5,10 +5,12 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Windows.Forms;
+using Cyotek.Windows.Forms;
 using JetBrains.Annotations;
 using OpenTK;
 using ProdigalSoftware.TiVE.Renderer.World;
 using ProdigalSoftware.TiVEPluginFramework;
+using ProdigalSoftware.TiVEPluginFramework.Lighting;
 using ProdigalSoftware.Utils;
 
 namespace ProdigalSoftware.TiVEEditor.BlockLists
@@ -16,27 +18,31 @@ namespace ProdigalSoftware.TiVEEditor.BlockLists
     public partial class BlockListEditForm : Form
     {
         #region Constants
+        private const int WorldSize = 21;
+        private const int WorldCenter = WorldSize / 2;
         private const float CameraMovementSpeed = (3.141592f / 200.0f);
         private const float CameraZoomSpeed = 0.004f;
         private const float CenterZ = BlockInformation.VoxelSize + (BlockInformation.VoxelSize + 1) / 2;
         #endregion
 
         #region Member variables
+        private static readonly Properties.Settings settings = Properties.Settings.Default;
         private readonly string messageBoxCaption = "Block List Editor";
         private readonly BlockPreviewCache blockPreviewCache = new BlockPreviewCache();
         private readonly List<BlockInformation> blocksInList = new List<BlockInformation>();
         private readonly GameWorld gameWorld;
         private readonly BlockList blockList;
         private readonly string titleFormatString;
+        private readonly BlockInformation[] floorBlocks = new BlockInformation[10];
 
         private Point prevMouseLocation;
         private bool draggingMouse;
-        private float camAngleAxisY;
+        private float camAngleAxisY = (float)Math.PI * 5.0f / 6.0f;
         private float camDist = 25; 
 
         private string filePath;
         private bool hasUnsavedChanges;
-        private bool ignoreNameChange;
+        private bool ignoreValueChange;
         #endregion
 
         #region Constructors
@@ -51,9 +57,40 @@ namespace ProdigalSoftware.TiVEEditor.BlockLists
             this.filePath = filePath;
             titleFormatString = Text;
 
-            blockList = filePath != null ? BlockList.FromBlockListFile(filePath) : new BlockList();
-            gameWorld = new GameWorld(11, 11, 5, blockList);
-            gameWorld.AmbientLight = new Color3f(200, 200, 200);
+            lstBxBlocks.ItemHeight = BlockPreviewCache.PreviewImageSize + 6;
+            spnLightLocX.Maximum = BlockInformation.VoxelSize - 1;
+            spnLightLocY.Maximum = BlockInformation.VoxelSize - 1;
+            spnLightLocZ.Maximum = BlockInformation.VoxelSize - 1;
+
+            blockList = BlockList.FromBlockListFile(filePath) ?? new BlockList();
+            gameWorld = new GameWorld(WorldSize, WorldSize, 5, blockList);
+            gameWorld.AmbientLight = new Color3f(230, 230, 230);
+
+            Random random = new Random();
+            for (int i = 0; i < floorBlocks.Length; i++)
+            {
+                floorBlocks[i] = new BlockInformation("Floor" + i);
+                for (int x = 0; x < BlockInformation.VoxelSize; x++)
+                {
+                    for (int y = 0; y < BlockInformation.VoxelSize; y++)
+                        floorBlocks[i][x, y, BlockInformation.VoxelSize - 1] = (uint)(random.Next(0xFFFFFF) | 0xFF000000);
+                }
+
+                for (int s = 0; s < BlockInformation.VoxelSize; s++)
+                {
+                    floorBlocks[i][s, 0, BlockInformation.VoxelSize - 1] = 0xFFFFFFFF;
+                    floorBlocks[i][s, BlockInformation.VoxelSize - 1, BlockInformation.VoxelSize - 1] = 0xFFFFFFFF;
+                    floorBlocks[i][0, s, BlockInformation.VoxelSize - 1] = 0xFFFFFFFF;
+                    floorBlocks[i][BlockInformation.VoxelSize - 1, s, BlockInformation.VoxelSize - 1] = 0xFFFFFFFF;
+                }
+            }
+            
+            for (int x = 0; x < gameWorld.BlockSize.X; x++)
+            {
+                for (int y = 0; y < gameWorld.BlockSize.Y; y++)
+                    gameWorld[x, y, 0] = floorBlocks[random.Next(floorBlocks.Length)];
+            }
+
             UpdateState();
         }
         #endregion
@@ -66,6 +103,45 @@ namespace ProdigalSoftware.TiVEEditor.BlockLists
         private BlockInformation SelectedBlock
         {
             get { return (BlockInformation)lstBxBlocks.SelectedItem ?? BlockInformation.Empty; }
+        }
+        #endregion
+
+        #region Public methods
+        /// <summary>
+        /// Lets the user choose a file for a block list (either for saving or loading). 
+        /// <para>Returns the full path to the chosen file or null if the user cancels.</para>
+        /// </summary>
+        [CanBeNull]
+        public static string ChooseBlockListFile(Form dialogOwner, bool forSave)
+        {
+            using (FileDialog dialog = forSave ? (FileDialog)new SaveFileDialog() : new OpenFileDialog())
+            {
+                if (forSave)
+                {
+                    SaveFileDialog saveDialog = (SaveFileDialog)dialog;
+                    saveDialog.OverwritePrompt = true;
+                    saveDialog.FileName = "NewBlockList";
+                    saveDialog.ValidateNames = true;
+                    saveDialog.Title = "Save Block List File";
+                }
+                else
+                {
+                    OpenFileDialog openDialog = (OpenFileDialog)dialog;
+                    openDialog.Multiselect = false;
+                    openDialog.CheckFileExists = true;
+                    openDialog.Title = "Open Block List File";
+                }
+                dialog.InitialDirectory = !string.IsNullOrEmpty(settings.BlockEditorBlockListLastDir) ? 
+                    settings.BlockEditorBlockListLastDir : Environment.CurrentDirectory;
+                dialog.Filter = string.Format("Block List Files ({0})|{0}", "*." + BlockList.FileExtension);
+                if (dialog.ShowDialog(dialogOwner) == DialogResult.OK)
+                {
+                    settings.BlockEditorBlockListLastDir = Path.GetDirectoryName(dialog.FileName);
+                    settings.Save();
+                    return dialog.FileName;
+                }
+            }
+            return null;
         }
         #endregion
 
@@ -111,8 +187,8 @@ namespace ProdigalSoftware.TiVEEditor.BlockLists
         {
             using (OpenFileDialog dialog = new OpenFileDialog())
             {
-                dialog.InitialDirectory = @"C:\Programming\Utilities\MagicaVoxel\vox";
-                dialog.Filter = "Voxel filess (*.vox)|*.vox|All files (*.*)|*.*";
+                dialog.InitialDirectory = !string.IsNullOrEmpty(settings.BlockEditorImportLastDir) ? settings.BlockEditorImportLastDir : Environment.CurrentDirectory;
+                dialog.Filter = "Voxel files (*.vox)|*.vox|All files (*.*)|*.*";
                 dialog.CheckPathExists = true;
                 dialog.Multiselect = true;
                 if (dialog.ShowDialog() == DialogResult.OK)
@@ -141,6 +217,8 @@ namespace ProdigalSoftware.TiVEEditor.BlockLists
                             blocks.Add(block);
                         }
                     }
+                    settings.BlockEditorImportLastDir = Path.GetDirectoryName(dialog.FileName);
+                    settings.Save();
 
                     blockList.AddBlocks(blocks);
                     hasUnsavedChanges = true;
@@ -162,16 +240,6 @@ namespace ProdigalSoftware.TiVEEditor.BlockLists
                 UpdateBlocksInList();
                 UpdateState();
             }
-        }
-
-        private void UpdateCameraPos()
-        {
-            float centerX = cntrlCurrentBlock.GameWorld.VoxelSize.X / 2.0f;
-            float centerY = cntrlCurrentBlock.GameWorld.VoxelSize.Y / 2.0f;
-            float circleX = (float)(Math.Sin(camAngleAxisY) * camDist);
-            float circleY = (float)(Math.Cos(camAngleAxisY) * camDist);
-            cntrlCurrentBlock.Camera.Location = new Vector3(centerX + circleX, centerY + circleY, CenterZ);
-            cntrlCurrentBlock.Invalidate();
         }
 
         private void cntrlCurrentBlock_MouseDown(object sender, MouseEventArgs e)
@@ -209,9 +277,15 @@ namespace ProdigalSoftware.TiVEEditor.BlockLists
 
         private void lstBxBlocks_SelectedIndexChanged(object sender, EventArgs e)
         {
+            BlockInformation previouseBlock = BlockInformation.Empty;
+            BlockInformation newBlock = SelectedBlock;
             if (gameWorld != null)
-                gameWorld[5, 5, 1] = SelectedBlock; // Put the block in the middle of the game world
-            cntrlCurrentBlock.RefreshLevel();
+            {
+                previouseBlock = gameWorld[WorldCenter, WorldCenter, 1];
+                gameWorld[WorldCenter, WorldCenter, 1] = newBlock; // Put the block in the middle of the game world
+            }
+
+            cntrlCurrentBlock.RefreshLevel(previouseBlock.Light != null || newBlock.Light != null);
 
             UpdateState();
         }
@@ -226,19 +300,15 @@ namespace ProdigalSoftware.TiVEEditor.BlockLists
 
             e.Graphics.DrawImageUnscaled(blockPreviewCache.GetPreview(block), e.Bounds.X + 3, e.Bounds.Y + 3);
 
-            Font font = Font;
+            Font font = lstBxBlocks.Font;
             int height = font.Height;
-            e.Graphics.DrawString(block.BlockName, font, new SolidBrush(e.ForeColor), e.Bounds.X + 50, e.Bounds.Y + (e.Bounds.Height - height) / 2);
-        }
-
-        private void cmbEffect_SelectedIndexChanged(object sender, EventArgs e)
-        {
-
+            e.Graphics.DrawString(block.BlockName, font, new SolidBrush(e.ForeColor), 
+                e.Bounds.X + BlockPreviewCache.PreviewImageSize + 4, e.Bounds.Y + (e.Bounds.Height - height) / 2);
         }
 
         private void txtBlockName_TextChanged(object sender, EventArgs e)
         {
-            if (ignoreNameChange)
+            if (ignoreValueChange)
                 return;
 
             int prevBlockIndex = lstBxBlocks.SelectedIndex;
@@ -260,12 +330,49 @@ namespace ProdigalSoftware.TiVEEditor.BlockLists
 
         private void btnLightColor_Click(object sender, EventArgs e)
         {
+            using (ColorPickerDialog dialog = new ColorPickerDialog())
+            {
+                BlockInformation block = SelectedBlock;
+                dialog.Color = block.Light != null ? (Color)block.Light.Color : Color.Black;
+                dialog.ShowAlphaChannel = false;
 
+                if (dialog.ShowDialog(this) == DialogResult.OK)
+                {
+                    if (dialog.Color.ToArgb() == Color.Black.ToArgb())
+                        block.Light = null;
+                    else
+                    {
+                        block.Light = new PointLight(new Vector3b((byte)spnLightLocX.Value, (byte)spnLightLocY.Value, (byte)spnLightLocZ.Value),
+                            (Color3f)dialog.Color, 0.01f);
+                    }
+
+                    hasUnsavedChanges = true;
+                    UpdateState();
+                    cntrlCurrentBlock.RefreshLevel(true);
+                }
+            }
         }
 
         private void lightLoc_ValueChanged(object sender, EventArgs e)
         {
+            if (ignoreValueChange)
+                return;
 
+            BlockInformation block = SelectedBlock;
+            block.Light = new PointLight(new Vector3b((byte)spnLightLocX.Value, (byte)spnLightLocY.Value, (byte)spnLightLocZ.Value),
+                (Color3f)btnLightColor.BackColor, 0.01f);
+
+            hasUnsavedChanges = true;
+            UpdateState();
+            cntrlCurrentBlock.RefreshLevel(true);
+        }
+
+        private void cmbEffect_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (ignoreValueChange)
+                return;
+
+            // TODO: Implement effects
         }
         #endregion
 
@@ -287,32 +394,33 @@ namespace ProdigalSoftware.TiVEEditor.BlockLists
             picEffect.Enabled = hasSelectedItem;
             cmbEffect.Enabled = hasSelectedItem;
 
-            ignoreNameChange = true;
+            ignoreValueChange = true;
             txtBlockName.Text = hasSelectedItem ? block.BlockName : "";
-            ignoreNameChange = false;
             btnLightColor.BackColor = hasLight ? Color.FromArgb((int)((Color4b)block.Light.Color).ToArgb()) : Color.Black;
             spnLightLocX.Value = hasLight ? block.Light.Location.X : 4;
             spnLightLocY.Value = hasLight ? block.Light.Location.Y : 4;
             spnLightLocZ.Value = hasLight ? block.Light.Location.Z : 4;
+            ignoreValueChange = false;
 
             btnDeleteBlock.Enabled = hasSelectedItem;
             string title = string.Format(titleFormatString, string.IsNullOrEmpty(filePath) ? "Unknown" : Path.GetFileNameWithoutExtension(filePath));
             Text = hasUnsavedChanges ? "* " + title : title;
         }
 
+        private void UpdateCameraPos()
+        {
+            float centerX = cntrlCurrentBlock.GameWorld.VoxelSize.X / 2.0f;
+            float centerY = cntrlCurrentBlock.GameWorld.VoxelSize.Y / 2.0f;
+            float circleX = (float)(Math.Sin(camAngleAxisY) * camDist);
+            float circleY = (float)(Math.Cos(camAngleAxisY) * camDist);
+            cntrlCurrentBlock.Camera.Location = new Vector3(centerX + circleX, centerY + circleY, CenterZ + 10);
+            cntrlCurrentBlock.Invalidate();
+        }
+
         private bool SaveBlockList()
         {
             if (filePath == null)
-            {
-                using (SaveFileDialog dialog = new SaveFileDialog())
-                {
-                    // TODO: Set save dialog properties
-                    if (dialog.ShowDialog(this) == DialogResult.OK)
-                    {
-                        filePath = dialog.FileName;
-                    }
-                }
-            }
+                filePath = ChooseBlockListFile(this, true);
 
             if (filePath == null)
                 return false;
