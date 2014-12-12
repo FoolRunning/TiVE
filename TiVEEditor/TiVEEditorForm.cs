@@ -1,16 +1,39 @@
 ﻿using System;
+using System.ComponentModel;
+using System.Drawing;
 using System.Windows.Forms;
-using ProdigalSoftware.TiVE.Renderer.World;
 using ProdigalSoftware.TiVEEditor.BlockLists;
 
 namespace ProdigalSoftware.TiVEEditor
 {
     public partial class TiVEEditorForm : Form
     {
+        private readonly Properties.Settings settings = Properties.Settings.Default;
+
         public TiVEEditorForm()
         {
             InitializeComponent();
         }
+
+        #region Overrides of Form
+        protected override void OnLoad(EventArgs e)
+        {
+            Rectangle newBounds = settings.MainEditorBounds;
+            if (newBounds != Rectangle.Empty)
+                Bounds = settings.MainEditorBounds; // Must be set before state to get the proper restore bounds
+            WindowState = settings.MainEditorState;
+            base.OnLoad(e);
+        }
+
+        protected override void OnClosing(CancelEventArgs e)
+        {
+            settings.MainEditorBounds = WindowState == FormWindowState.Normal ? Bounds : RestoreBounds;
+            settings.MainEditorState = WindowState != FormWindowState.Minimized ? WindowState : FormWindowState.Normal;
+            
+            settings.Save();
+            base.OnClosing(e);
+        }
+        #endregion
 
         #region Event Handlers
         private void exitToolStripMenuItem_Click(object sender, EventArgs e)
@@ -45,20 +68,9 @@ namespace ProdigalSoftware.TiVEEditor
 
         private void openBlockListMenuItem_Click(object sender, EventArgs e)
         {
-            string blockFilePath;
-            using (OpenFileDialog dialog = new OpenFileDialog())
-            {
-                dialog.CheckFileExists = true;
-                dialog.Multiselect = false;
-                dialog.InitialDirectory = Environment.CurrentDirectory;
-                dialog.Title = "Open Block List File";
-                dialog.Filter = string.Format("Block List Files ({0})|{0}", "*." + BlockList.FileExtension);
-                if (dialog.ShowDialog(this) != DialogResult.OK)
-                    return;
-
-                blockFilePath = dialog.FileName;
-            }
-            ShowBlockListEditDialog(blockFilePath);
+            string blockFilePath = BlockListEditForm.ChooseBlockListFile(this, false);
+            if (blockFilePath != null)
+                ShowBlockListEditDialog(blockFilePath);
         }
         #endregion
 

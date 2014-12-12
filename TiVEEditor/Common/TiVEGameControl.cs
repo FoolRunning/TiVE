@@ -5,7 +5,9 @@ using OpenTK;
 using OpenTK.Graphics;
 using ProdigalSoftware.TiVE;
 using ProdigalSoftware.TiVE.Renderer;
+using ProdigalSoftware.TiVE.Renderer.Lighting;
 using ProdigalSoftware.TiVE.Renderer.World;
+using ProdigalSoftware.Utils;
 
 namespace ProdigalSoftware.TiVEEditor.Common
 {
@@ -48,8 +50,26 @@ namespace ProdigalSoftware.TiVEEditor.Common
             renderer.SetGameWorld(blockList, gameWorld);
         }
 
-        public void RefreshLevel()
+        public void RefreshLevel(bool refreshStaticLighting)
         {
+            if (refreshStaticLighting)
+            {
+                GameWorld gameWorld = GameWorld;
+                for (int z = 0; z < gameWorld.BlockSize.Z; z++)
+                {
+                    for (int x = 0; x < gameWorld.BlockSize.X; x++)
+                    {
+                        for (int y = 0; y < gameWorld.BlockSize.Y; y++)
+                        {
+                            gameWorld.GetLights(x, y, z).Clear();
+                            gameWorld.SetBlockLight(x, y, z, new Color3f());
+                        }
+                    }
+                }
+
+                StaticLightingHelper lightingHelper = new StaticLightingHelper(renderer.GameWorld, 50, 0.002f);
+                lightingHelper.Calculate();
+            }
             renderer.RefreshLevel();
         }
 

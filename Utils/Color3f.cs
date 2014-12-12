@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Drawing;
 
 namespace ProdigalSoftware.Utils
 {
@@ -30,6 +31,17 @@ namespace ProdigalSoftware.Utils
         public override string ToString()
         {
             return string.Format("Color3f({0},{1},{2})", R, G, B);
+        }
+
+        public static explicit operator Color3f(Color color)
+        {
+            return new Color3f(color.R, color.G, color.B);
+        }
+
+        public static explicit operator Color(Color3f color)
+        {
+            Color4b colorB = (Color4b)color;
+            return Color.FromArgb(colorB.A, colorB.R, colorB.G, colorB.B);
         }
 
         public static Color3f operator +(Color3f c1, Color3f c2)

@@ -11,7 +11,8 @@ namespace ProdigalSoftware.TiVEEditor.BlockLists
     /// </summary>
     internal class BlockPreviewCache : IDisposable
     {
-        private const int PreviewImageSize = 44;
+        //private const int PreviewImageSize = 44;
+        public const int PreviewImageSize = 60;
 
         private readonly Dictionary<BlockInformation, Image> previewCache = new Dictionary<BlockInformation, Image>();
 
@@ -20,19 +21,22 @@ namespace ProdigalSoftware.TiVEEditor.BlockLists
             Clear();
         }
 
-        public void Clear()
-        {
-            foreach (Image image in previewCache.Values)
-                image.Dispose();
-            previewCache.Clear();
-        }
-
+        /// <summary>
+        /// Gets the 2D preview for the specified block
+        /// </summary>
         public Image GetPreview(BlockInformation block)
         {
             Image preview;
             if (!previewCache.TryGetValue(block, out preview))
                 previewCache[block] = preview = CreatePreviewForBlock(block);
             return preview;
+        }
+
+        private void Clear()
+        {
+            foreach (Image image in previewCache.Values)
+                image.Dispose();
+            previewCache.Clear();
         }
 
         private static Image CreatePreviewForBlock(BlockInformation block)
@@ -54,7 +58,8 @@ namespace ProdigalSoftware.TiVEEditor.BlockLists
                                 continue;
 
                             brush.Color = Color.FromArgb(color);
-                            g.FillRectangle(brush, x * 2 + 18 - BlockInformation.VoxelSize + y, 28 - y - z * 2 + x, 3, 3);
+                            //g.FillRectangle(brush, x * 2 + 18 - BlockInformation.VoxelSize + y, 28 - y - z * 2 + x, 3, 3);
+                            g.FillRectangle(brush, x * 2 + 24 - BlockInformation.VoxelSize + y, 42 - y - z * 2 + x, 3, 3);
                         }
                     }
                 }

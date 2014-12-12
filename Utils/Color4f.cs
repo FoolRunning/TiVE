@@ -1,4 +1,6 @@
-﻿namespace ProdigalSoftware.Utils
+﻿using System.Drawing;
+
+namespace ProdigalSoftware.Utils
 {
     public struct Color4f
     {
@@ -6,6 +8,10 @@
         public readonly float G;
         public readonly float B;
         public readonly float A;
+
+        public Color4f(Color color) : this(color.R, color.G, color.B, color.A)
+        {
+        }
 
         public Color4f(byte r, byte g, byte b, byte a)
         {
@@ -26,6 +32,17 @@
         public static explicit operator Color4f(Color4b color)
         {
             return new Color4f(color.R, color.G, color.B, color.A);
+        }
+
+        public static explicit operator Color4f(Color color)
+        {
+            return new Color4f(color.R, color.G, color.B, color.A);
+        }
+
+        public static explicit operator Color(Color4f color)
+        {
+            Color4b colorB = (Color4b)color;
+            return Color.FromArgb(colorB.A, colorB.R, colorB.G, colorB.B);
         }
 
         public static Color4f operator +(Color4f c1, Color4f c2)

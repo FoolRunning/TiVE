@@ -119,11 +119,13 @@ namespace ProdigalSoftware.TiVE.Renderer
         {
             if (needUpdateProjectionMatrix)
             {
+                needUpdateProjectionMatrix = false;
                 projectionMatrix = Matrix4.CreatePerspectiveFieldOfView(fieldOfView, aspectRatio, NearDist, FarDist);
 
                 // Cache projection-related values used in the frustrum calculation
                 nearHeight = NearDist * (float)Math.Tan(FoV * 0.5f);
                 nearWidth = nearHeight * aspectRatio;
+                needUpdateViewMatrix = true;
             }
 
             if (needUpdateViewMatrix)

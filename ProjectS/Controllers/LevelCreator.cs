@@ -50,11 +50,11 @@ namespace ProdigalSoftware.ProjectS.Controllers
 
             for (int y = 0; y < gameWorld.BlockSize.Y; y++)
             {
-                gameWorld[0, y, 1] = wallBottom.Rotate(BlockRotation.NinetyCCW);
-                gameWorld[0, y, 2] = wallTop.Rotate(BlockRotation.NinetyCCW);
+                gameWorld[0, y, 1] = wallBottom;//.Rotate(BlockRotation.NinetyCCW);
+                gameWorld[0, y, 2] = wallTop;//.Rotate(BlockRotation.NinetyCCW);
 
-                gameWorld[gameWorld.BlockSize.X - 1, y, 1] = wallBottom.Rotate(BlockRotation.NinetyCCW);
-                gameWorld[gameWorld.BlockSize.X - 1, y, 2] = wallTop.Rotate(BlockRotation.NinetyCCW);
+                gameWorld[gameWorld.BlockSize.X - 1, y, 1] = wallBottom;//.Rotate(BlockRotation.NinetyCCW);
+                gameWorld[gameWorld.BlockSize.X - 1, y, 2] = wallTop;//.Rotate(BlockRotation.NinetyCCW);
 
                 if (y % 5 == 0)
                 {
@@ -63,14 +63,14 @@ namespace ProdigalSoftware.ProjectS.Controllers
                 }
             }
 
-            gameWorld[0, 0, 1] = wallCornerBottom.Rotate(BlockRotation.OneEightyCCW);
-            gameWorld[0, 0, 2] = wallCornerTop.Rotate(BlockRotation.OneEightyCCW);
+            gameWorld[0, 0, 1] = wallCornerBottom;//.Rotate(BlockRotation.OneEightyCCW);
+            gameWorld[0, 0, 2] = wallCornerTop;//.Rotate(BlockRotation.OneEightyCCW);
 
-            gameWorld[0, gameWorld.BlockSize.Y - 1, 1] = wallCornerBottom.Rotate(BlockRotation.NinetyCCW);
-            gameWorld[0, gameWorld.BlockSize.Y - 1, 2] = wallCornerTop.Rotate(BlockRotation.NinetyCCW);
+            gameWorld[0, gameWorld.BlockSize.Y - 1, 1] = wallCornerBottom;//.Rotate(BlockRotation.NinetyCCW);
+            gameWorld[0, gameWorld.BlockSize.Y - 1, 2] = wallCornerTop;//.Rotate(BlockRotation.NinetyCCW);
 
-            gameWorld[gameWorld.BlockSize.X - 1, 0, 1] = wallCornerBottom.Rotate(BlockRotation.TwoSeventyCCW);
-            gameWorld[gameWorld.BlockSize.X - 1, 0, 2] = wallCornerTop.Rotate(BlockRotation.TwoSeventyCCW);
+            gameWorld[gameWorld.BlockSize.X - 1, 0, 1] = wallCornerBottom;//.Rotate(BlockRotation.TwoSeventyCCW);
+            gameWorld[gameWorld.BlockSize.X - 1, 0, 2] = wallCornerTop;//.Rotate(BlockRotation.TwoSeventyCCW);
 
             gameWorld[gameWorld.BlockSize.X - 1, gameWorld.BlockSize.Y - 1, 1] = wallCornerBottom;
             gameWorld[gameWorld.BlockSize.X - 1, gameWorld.BlockSize.Y - 1, 2] = wallCornerTop;
@@ -82,7 +82,7 @@ namespace ProdigalSoftware.ProjectS.Controllers
                 if (x % 5 == 0)
                     gameWorld[x, 20, 2] = lights.NextBlock();
             }
-            gameWorld[19, 20, 1] = wallEndBottom.Rotate(BlockRotation.OneEightyCCW);
+            gameWorld[19, 20, 1] = wallEndBottom;//.Rotate(BlockRotation.OneEightyCCW);
             //gameWorld[19, 20, 2] = wallEndTop.Rotate(BlockRotation.OneEightyCCW);
             gameWorld[51, 20, 1] = wallEndBottom;
             //gameWorld[51, 20, 2] = wallEndTop;
