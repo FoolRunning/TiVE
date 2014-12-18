@@ -40,10 +40,22 @@ namespace ProdigalSoftware.Utils
             return new Color4b(color.R, color.G, color.B, 1.0f);
         }
 
-        public static Color4b operator +(Color4b c1, Color4b c2)
+        public static Color4b operator +(Color4b c, Color4b c2)
         {
-            return new Color4b((byte)Math.Min(255, c1.R + c2.R), (byte)Math.Min(255, c1.G + c2.G), 
-                (byte)Math.Min(255, c1.B + c2.B), (byte)Math.Min(255, c1.A + c2.A));
+            return new Color4b((byte)Math.Min(255, c.R + c2.R), (byte)Math.Min(255, c.G + c2.G), 
+                (byte)Math.Min(255, c.B + c2.B), (byte)Math.Min(255, c.A + c2.A));
+        }
+
+        public static Color4b operator +(Color4b c, int value)
+        {
+            return new Color4b((byte)Math.Min(255, c.R + value), (byte)Math.Min(255, c.G + value),
+                (byte)Math.Min(255, c.B + value), c.A);
+        }
+
+        public static Color4b operator -(Color4b c, int value)
+        {
+            return new Color4b((byte)Math.Max(0, c.R - value), (byte)Math.Max(0, c.G - value),
+                (byte)Math.Max(0, c.B - value), c.A);
         }
 
         public static Color4b operator *(Color4b c, float value)

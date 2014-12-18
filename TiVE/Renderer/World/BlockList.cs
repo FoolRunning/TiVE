@@ -233,7 +233,7 @@ namespace ProdigalSoftware.TiVE.Renderer.World
 
                         VoxelGroup voxelGroup;
                         if (!blockMeshes.TryGetValue(block, out voxelGroup))
-                            blockMeshes[block] = voxelGroup = new IndexedVoxelGroup(block);
+                            blockMeshes[block] = voxelGroup = new VoxelGroup(block);
 
                         translationMatrix.M42 = y * BlockInformation.VoxelSize;
                         Matrix4 result;

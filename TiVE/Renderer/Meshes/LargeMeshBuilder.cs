@@ -1,7 +1,7 @@
 ﻿using System.Runtime.CompilerServices;
 using ProdigalSoftware.Utils;
 
-namespace ProdigalSoftware.TiVE.Renderer.Voxels
+namespace ProdigalSoftware.TiVE.Renderer.Meshes
 {
     internal sealed class LargeMeshBuilder : MeshBuilderBase
     {

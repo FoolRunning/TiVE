@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
 using OpenTK;
+using ProdigalSoftware.TiVE.Renderer.Meshes;
 using ProdigalSoftware.TiVE.Utils;
+using ProdigalSoftware.TiVEPluginFramework;
 using ProdigalSoftware.Utils;
 
 namespace ProdigalSoftware.TiVE.Renderer.Voxels
@@ -19,7 +21,7 @@ namespace ProdigalSoftware.TiVE.Renderer.Voxels
         All = Top | Left | Right | Bottom | Front | Back,
     }
 
-    internal abstract class VoxelGroup
+    internal class VoxelGroup
     {
         private static readonly MeshBuilder meshBuilder = new MeshBuilder(10000, 50000);
 
@@ -31,10 +33,15 @@ namespace ProdigalSoftware.TiVE.Renderer.Voxels
         private int renderedVoxelCount;
         private IVertexDataCollection mesh;
 
-        protected VoxelGroup(int sizeX, int sizeY, int sizeZ)
+        public VoxelGroup(int sizeX, int sizeY, int sizeZ)
         {
             size = new Vector3i(sizeX, sizeY, sizeZ);
             voxels = new uint[sizeX * sizeY * sizeZ];
+        }
+
+        public VoxelGroup(BlockInformation block) : this(BlockInformation.VoxelSize, BlockInformation.VoxelSize, BlockInformation.VoxelSize)
+        {
+            Array.Copy(block.VoxelsArray, voxels, voxels.Length);
         }
 
         public void Dispose()
@@ -81,6 +88,7 @@ namespace ProdigalSoftware.TiVE.Renderer.Voxels
             renderedVoxelCount = 0;
             polygonCount = 0;
 
+            VoxelMeshHelper meshHelper = VoxelMeshHelper.Get(false, false);
             meshBuilder.StartNewMesh();
             for (byte z = 0; z < size.Z; z++)
             {
@@ -110,7 +118,7 @@ namespace ProdigalSoftware.TiVE.Renderer.Voxels
 
                         if (sides != VoxelSides.None)
                         {
-                            polygonCount += AddVoxel(meshBuilder, sides, x, y, z, 
+                            polygonCount += meshHelper.AddVoxel(meshBuilder, sides, x, y, z, 
                                 new Color4b((byte)((color >> 16) & 0xFF), (byte)((color >> 8) & 0xFF), (byte)((color >> 0) & 0xFF), 
                                     (byte)((color >> 24) & 0xFF)));
                             renderedVoxelCount++;
@@ -121,9 +129,7 @@ namespace ProdigalSoftware.TiVE.Renderer.Voxels
 
             return meshBuilder.GetMesh();
         }
-
-        protected abstract int AddVoxel(MeshBuilder meshBuilder, VoxelSides sides, byte x, byte y, byte z, Color4b color);
-
+        
         /// <summary>
         /// Gets the offset into the voxel array for the voxel at the specified location
         /// </summary>
