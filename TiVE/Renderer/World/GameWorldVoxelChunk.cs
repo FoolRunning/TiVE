@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using OpenTK;
+using ProdigalSoftware.TiVE.Renderer.Meshes;
 using ProdigalSoftware.TiVE.Renderer.Voxels;
 using ProdigalSoftware.TiVEPluginFramework;
 using ProdigalSoftware.Utils;
@@ -16,13 +17,14 @@ namespace ProdigalSoftware.TiVE.Renderer.World
 
         private readonly object syncLock = new object();
         private readonly Vector3i chunkLoc;
-        private MeshBuilder meshBuilder;
-        private bool deleted;
-        private IVertexDataCollection mesh;
         private Matrix4 translationMatrix;
+        private bool deleted;
+
         private int chunkPolygonCount;
         private int chunkVoxelCount;
         private int chunkRenderedVoxelCount;
+        private MeshBuilder meshBuilder;
+        private IVertexDataCollection mesh;
 
         public GameWorldVoxelChunk(int chunkX, int chunkY, int chunkZ)
         {
@@ -79,7 +81,7 @@ namespace ProdigalSoftware.TiVE.Renderer.World
 
             Debug.Assert(meshData.IsInitialized);
 
-            IShaderProgram shader = shaderManager.GetShaderProgram("MainWorld");
+            IShaderProgram shader = shaderManager.GetShaderProgram(VoxelMeshHelper.Get(true, false).ShaderName);
             shader.Bind();
 
             Matrix4 viewProjectionModelMatrix;
@@ -99,6 +101,8 @@ namespace ProdigalSoftware.TiVE.Renderer.World
         {
             Debug.Assert(newMeshBuilder.IsLocked);
             //Debug.WriteLine("Started chunk ({0},{1},{2})", chunkStartX, chunkStartY, chunkStartZ);
+
+            VoxelMeshHelper meshHelper = VoxelMeshHelper.Get(true, false);
 
             int voxelStartX = chunkLoc.X * BlockSize * BlockInformation.VoxelSize;
             int voxelStartY = chunkLoc.Y * BlockSize * BlockInformation.VoxelSize;
@@ -228,8 +232,8 @@ namespace ProdigalSoftware.TiVE.Renderer.World
                                         byte r = (byte)Math.Min(255, (int)(((color >> 16) & 0xFF) * lightColor.R));
                                         byte g = (byte)Math.Min(255, (int)(((color >> 8) & 0xFF) * lightColor.G));
                                         byte b = (byte)Math.Min(255, (int)(((color >> 0) & 0xFF) * lightColor.B));
-                                        
-                                        polygonCount += IndexedVoxelGroup.CreateVoxel(newMeshBuilder, sides,
+
+                                        polygonCount += meshHelper.AddVoxel(newMeshBuilder, sides,
                                             chunkVoxelX, (byte)(voxelY - voxelStartY), chunkVoxelZ, new Color4b(r, g, b, a));
                                         renderedVoxelCount++;
                                     }

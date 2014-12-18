@@ -1,17 +1,17 @@
 ﻿# Shder definitions for OpenGL
 
-# Shader for the tiles in the main game world - non-instanced
-[MainWorld]
-vert: ProdigalSoftware.TiVE.Renderer.OpenGL.Shaders.Simple.vert
+# Shader for unshaded voxels - non-instanced
+[NonShadedNonInstanced]
+vert: ProdigalSoftware.TiVE.Renderer.OpenGL.Shaders.Unshaded.vert
 frag: ProdigalSoftware.TiVE.Renderer.OpenGL.Shaders.Simple.frag
 attrib: in_Position
 attrib: in_Color
 uniform: matrix_ModelViewProjection
 
 
-# Shader for the tiles in the main game world - instanced
-[MainWorldInstanced]
-vert: ProdigalSoftware.TiVE.Renderer.OpenGL.Shaders.Instances.vert
+# Shader for unshaded voxels - instanced
+[NonShadedInstanced]
+vert: ProdigalSoftware.TiVE.Renderer.OpenGL.Shaders.UnshadedInstances.vert
 frag: ProdigalSoftware.TiVE.Renderer.OpenGL.Shaders.Simple.frag
 attrib: in_Position
 attrib: in_InstancePos
@@ -19,21 +19,21 @@ attrib: in_InstanceColor
 uniform: matrix_ModelViewProjection
 
 
-# Shader for the solid-particle effects
-[SolidParticles]
-vert: ProdigalSoftware.TiVE.Renderer.OpenGL.Shaders.Instances.vert
+# Shader for shaded voxels - non-instanced
+[ShadedNonInstanced]
+vert: ProdigalSoftware.TiVE.Renderer.OpenGL.Shaders.Shaded.vert
 frag: ProdigalSoftware.TiVE.Renderer.OpenGL.Shaders.Simple.frag
 attrib: in_Position
-attrib: in_InstancePos
-attrib: in_InstanceColor
+attrib: in_Color
 uniform: matrix_ModelViewProjection
 
 
-# Shader for the transparent-particle effects
-[TransparentParticles]
-vert: ProdigalSoftware.TiVE.Renderer.OpenGL.Shaders.Instances.vert
+# Shader for shaded voxels - instanced
+[ShadedInstanced]
+vert: ProdigalSoftware.TiVE.Renderer.OpenGL.Shaders.ShadedInstances.vert
 frag: ProdigalSoftware.TiVE.Renderer.OpenGL.Shaders.Simple.frag
 attrib: in_Position
+attrib: in_Color
 attrib: in_InstancePos
 attrib: in_InstanceColor
 uniform: matrix_ModelViewProjection

@@ -67,7 +67,7 @@ namespace ProdigalSoftware.TiVEEditor.Common
                     }
                 }
 
-                StaticLightingHelper lightingHelper = new StaticLightingHelper(renderer.GameWorld, 50, 0.002f);
+                StaticLightingHelper lightingHelper = new StaticLightingHelper(renderer.GameWorld, 10, 0.002f);
                 lightingHelper.Calculate();
             }
             renderer.RefreshLevel();

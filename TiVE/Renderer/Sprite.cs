@@ -10,11 +10,11 @@ namespace ProdigalSoftware.TiVE.Renderer
         public float Y;
         public float Z;
 
-        private readonly IndexedVoxelGroup voxels;
+        private readonly VoxelGroup voxels;
 
         public Sprite(int spriteXSize, int spriteYSize, int spriteZSize)
         {
-            voxels = new IndexedVoxelGroup(spriteXSize, spriteYSize, spriteZSize);
+            voxels = new VoxelGroup(spriteXSize, spriteYSize, spriteZSize);
         }
 
         public static Sprite FromImage(Bitmap image)

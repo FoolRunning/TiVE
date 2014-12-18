@@ -15,8 +15,6 @@ namespace ProdigalSoftware.TiVE.Renderer
         private WorldChunkManager chunkManager;
         private ParticleSystemManager particleManager;
         private ShaderManager shaderManager;
-        private GameWorld gameWorld;
-        private BlockList blockList;
         private Matrix4 viewProjectionMatrix;
 
         public WorldChunkRenderer(int maxChunkCreationThreads)
@@ -32,23 +30,17 @@ namespace ProdigalSoftware.TiVE.Renderer
                 particleManager.Dispose();
             if (chunkManager != null)
                 chunkManager.Dispose();
-            if (gameWorld != null)
-                gameWorld.Dispose();
-            if (blockList != null)
-                blockList.Dispose();
+            if (GameWorld != null)
+                GameWorld.Dispose();
+            if (BlockList != null)
+                BlockList.Dispose();
             if (shaderManager != null)
                 shaderManager.Dispose();
         }
 
-        public GameWorld GameWorld
-        {
-            get { return gameWorld; }
-        }
+        public GameWorld GameWorld { get; private set; }
 
-        public BlockList BlockList
-        {
-            get { return blockList; }
-        }
+        public BlockList BlockList { get; private set; }
 
         public void SetGameWorld(BlockList newBlockList, GameWorld newGameWorld)
         {
@@ -59,8 +51,8 @@ namespace ProdigalSoftware.TiVE.Renderer
 
             Dispose();
 
-            blockList = newBlockList;
-            gameWorld = newGameWorld;
+            BlockList = newBlockList;
+            GameWorld = newGameWorld;
             chunkManager = new WorldChunkManager(newGameWorld, maxChunkCreationThreads);
             particleManager = new ParticleSystemManager(newGameWorld);
             shaderManager = new ShaderManager();
@@ -78,10 +70,10 @@ namespace ProdigalSoftware.TiVE.Renderer
             viewProjectionMatrix = Matrix4.Mult(camera.ViewMatrix, camera.ProjectionMatrix);
 
             chunksToRender.Clear();
-            gameWorld.RenderTree.FillChunksToRender(chunksToRender, camera);
+            GameWorld.RenderTree.FillChunksToRender(chunksToRender, camera);
 
             particleManager.UpdateCameraPos(chunksToRender);
-            blockList.UpdateAnimations(timeSinceLastFrame);
+            BlockList.UpdateAnimations(timeSinceLastFrame);
             chunkManager.Update(chunksToRender);
         }
 

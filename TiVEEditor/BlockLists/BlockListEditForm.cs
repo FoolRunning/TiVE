@@ -21,7 +21,9 @@ namespace ProdigalSoftware.TiVEEditor.BlockLists
         private const int WorldSize = 21;
         private const int WorldCenter = WorldSize / 2;
         private const float CameraMovementSpeed = (3.141592f / 200.0f);
-        private const float CameraZoomSpeed = 0.004f;
+        private const float CameraMaxDist = 50;
+        private const float CameraMinDist = 10;
+        private const float CameraZoomSpeed = 0.04f;
         private const float CenterZ = BlockInformation.VoxelSize + (BlockInformation.VoxelSize + 1) / 2;
         #endregion
 
@@ -261,7 +263,7 @@ namespace ProdigalSoftware.TiVEEditor.BlockLists
 
         void cntrlCurrentBlock_MouseWheel(object sender, MouseEventArgs e)
         {
-            camDist = Math.Max(Math.Min(camDist - e.Delta * CameraZoomSpeed, 30), 10);
+            camDist = Math.Max(Math.Min(camDist - e.Delta * CameraZoomSpeed, CameraMaxDist), CameraMinDist);
             UpdateCameraPos();
         }
 
@@ -285,6 +287,7 @@ namespace ProdigalSoftware.TiVEEditor.BlockLists
                 gameWorld[WorldCenter, WorldCenter, 1] = newBlock; // Put the block in the middle of the game world
             }
 
+            cntrlCurrentBlock.GameWorld.AmbientLight = newBlock.Light != null ? new Color3f(20, 20, 20) : new Color3f(230, 230, 230);
             cntrlCurrentBlock.RefreshLevel(previouseBlock.Light != null || newBlock.Light != null);
 
             UpdateState();
@@ -343,7 +346,7 @@ namespace ProdigalSoftware.TiVEEditor.BlockLists
                     else
                     {
                         block.Light = new PointLight(new Vector3b((byte)spnLightLocX.Value, (byte)spnLightLocY.Value, (byte)spnLightLocZ.Value),
-                            (Color3f)dialog.Color, 0.01f);
+                            (Color3f)dialog.Color, 0.001f);
                     }
 
                     hasUnsavedChanges = true;
@@ -360,7 +363,7 @@ namespace ProdigalSoftware.TiVEEditor.BlockLists
 
             BlockInformation block = SelectedBlock;
             block.Light = new PointLight(new Vector3b((byte)spnLightLocX.Value, (byte)spnLightLocY.Value, (byte)spnLightLocZ.Value),
-                (Color3f)btnLightColor.BackColor, 0.01f);
+                (Color3f)btnLightColor.BackColor, 0.001f);
 
             hasUnsavedChanges = true;
             UpdateState();
@@ -369,8 +372,8 @@ namespace ProdigalSoftware.TiVEEditor.BlockLists
 
         private void cmbEffect_SelectedIndexChanged(object sender, EventArgs e)
         {
-            if (ignoreValueChange)
-                return;
+            //if (ignoreValueChange)
+            //    return;
 
             // TODO: Implement effects
         }
@@ -397,9 +400,9 @@ namespace ProdigalSoftware.TiVEEditor.BlockLists
             ignoreValueChange = true;
             txtBlockName.Text = hasSelectedItem ? block.BlockName : "";
             btnLightColor.BackColor = hasLight ? Color.FromArgb((int)((Color4b)block.Light.Color).ToArgb()) : Color.Black;
-            spnLightLocX.Value = hasLight ? block.Light.Location.X : 4;
-            spnLightLocY.Value = hasLight ? block.Light.Location.Y : 4;
-            spnLightLocZ.Value = hasLight ? block.Light.Location.Z : 4;
+            spnLightLocX.Value = hasLight ? block.Light.Location.X : BlockInformation.VoxelSize / 2;
+            spnLightLocY.Value = hasLight ? block.Light.Location.Y : BlockInformation.VoxelSize / 2;
+            spnLightLocZ.Value = hasLight ? block.Light.Location.Z : BlockInformation.VoxelSize / 2;
             ignoreValueChange = false;
 
             btnDeleteBlock.Enabled = hasSelectedItem;
@@ -413,7 +416,7 @@ namespace ProdigalSoftware.TiVEEditor.BlockLists
             float centerY = cntrlCurrentBlock.GameWorld.VoxelSize.Y / 2.0f;
             float circleX = (float)(Math.Sin(camAngleAxisY) * camDist);
             float circleY = (float)(Math.Cos(camAngleAxisY) * camDist);
-            cntrlCurrentBlock.Camera.Location = new Vector3(centerX + circleX, centerY + circleY, CenterZ + 10);
+            cntrlCurrentBlock.Camera.Location = new Vector3(centerX + circleX, centerY + circleY, CenterZ + 30);
             cntrlCurrentBlock.Invalidate();
         }
 

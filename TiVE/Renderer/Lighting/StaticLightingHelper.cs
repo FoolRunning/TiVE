@@ -58,7 +58,7 @@ namespace ProdigalSoftware.TiVE.Renderer.Lighting
                     int percentComplete = totalComplete * 100 / (sizeX - 1);
                     if (percentComplete != lastPercentComplete)
                     {
-                        Console.WriteLine("Calculating lighting: {0}%", percentComplete);
+                        //Console.WriteLine("Calculating lighting: {0}%", percentComplete);
                         lastPercentComplete = percentComplete;
                     }
 

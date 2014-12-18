@@ -109,15 +109,16 @@
   <ItemGroup>
     <Compile Include="IKeyboard.cs" />
     <Compile Include="Keys.cs" />
-    <Compile Include="Renderer\Voxels\LargeMeshBuilder.cs" />
-    <Compile Include="Renderer\Voxels\MeshBuilderBase.cs" />
+    <Compile Include="Renderer\Meshes\LargeMeshBuilder.cs" />
+    <Compile Include="Renderer\Meshes\MeshBuilderBase.cs" />
+    <Compile Include="Renderer\Voxels\VoxelMeshHelper.cs" />
     <Compile Include="Renderer\World\ChunkRenderTree.cs" />
     <Compile Include="UserSettingsManager.cs" />
     <Compile Include="Utils\Plane.cs" />
     <Compile Include="Renderer\Lighting\LightUtils.cs" />
     <Compile Include="Renderer\Particles\ParticleSystemCollection.cs" />
     <Compile Include="Renderer\RenderStatistics.cs" />
-    <Compile Include="Renderer\Voxels\MeshBuilder.cs" />
+    <Compile Include="Renderer\Meshes\MeshBuilder.cs" />
     <Compile Include="Renderer\Voxels\VoxelMeshUtils.cs" />
     <Compile Include="Renderer\Lighting\LightInfo.cs" />
     <Compile Include="Renderer\Lighting\StaticLightingHelper.cs" />
@@ -142,12 +143,10 @@
     <Compile Include="IGameWorldRenderer.cs" />
     <Compile Include="IRendererBackend.cs" />
     <Compile Include="Renderer\OpenGL\OpenGLRendererBackend.cs" />
-    <Compile Include="Renderer\Voxels\SimpleVoxelGroup.cs" />
     <Compile Include="Renderer\WorldChunkRenderer.cs" />
     <Compile Include="Renderer\Camera.cs" />
     <Compile Include="Renderer\OpenGL\GlUtils.cs" />
     <Compile Include="Renderer\Sprite.cs" />
-    <Compile Include="Renderer\Voxels\IndexedVoxelGroup.cs" />
     <Compile Include="Renderer\World\BlockList.cs" />
     <Compile Include="Renderer\World\GameWorld.cs" />
     <Compile Include="Renderer\World\GameWorldManager.cs" />
@@ -200,9 +199,11 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
     <EmbeddedResource Include="Renderer\OpenGL\Shaders\Simple.frag" />
-    <EmbeddedResource Include="Renderer\OpenGL\Shaders\Simple.vert" />
-    <EmbeddedResource Include="Renderer\OpenGL\Shaders\Instances.vert" />
+    <EmbeddedResource Include="Renderer\OpenGL\Shaders\Unshaded.vert" />
+    <EmbeddedResource Include="Renderer\OpenGL\Shaders\UnshadedInstances.vert" />
     <EmbeddedResource Include="Renderer\OpenGL\Shaders\Shaders.shad" />
+    <EmbeddedResource Include="Renderer\OpenGL\Shaders\Shaded.vert" />
+    <EmbeddedResource Include="Renderer\OpenGL\Shaders\ShadedInstances.vert" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\TiVEPluginFramework\TiVEPluginFramework.csproj">
