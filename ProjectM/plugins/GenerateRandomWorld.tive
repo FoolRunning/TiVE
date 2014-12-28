@@ -1,24 +1,31 @@
 ﻿using System;
 using ProdigalSoftware.TiVEPluginFramework;
 
-namespace ProdigalSoftware.ProjectM.Controllers
+namespace ProdigalSoftware.ProjectM.Plugins
 {
     /// <summary>
     /// World generation to create a random world
     /// </summary>
     public class GenerateRandomWorld : IWorldGenerator
     {
-
-        #region Implementation of IWorldGenerator
-        public void UpdateGameWorld(IGameWorld gameWorld, string gameWorldName)
+        public string BlockListForWorld(string gameWorldName)
         {
+            return "bla";
+        }
+
+        public GameWorld CreateGameWorld(string gameWorldName, IBlockList blockList)
+        {
+            GameWorld gameWorld = new GameWorld(200, 200, 20);
+
             long seed = LongRandom();
             //AddBiomes(gameWorld, seed);
-            FillWorld(gameWorld, seed, null);
+            FillWorld(gameWorld, seed, blockList);
             CreateCaves(gameWorld, seed);
-        }
-        #endregion
 
+            return gameWorld;
+        }
+
+        #region Private helper methods
         //private static void AddBiomes(IGameWorld gameWorld, long seed)
         //{
         //    Random random = new Random((int)((seed >> 20) & 0xFFFFFFFF));
@@ -45,7 +52,7 @@ namespace ProdigalSoftware.ProjectM.Controllers
         //    }
         //}
 
-        private static void FillWorld(IGameWorld gameWorld, long seed, IBlockList blockList)
+        private static void FillWorld(GameWorld gameWorld, long seed, IBlockList blockList)
         {
             BlockRandomizer backWalls = new BlockRandomizer(blockList, "back", 5);
             BlockRandomizer dirts = new BlockRandomizer(blockList, "dirt", 5);
@@ -133,7 +140,7 @@ namespace ProdigalSoftware.ProjectM.Controllers
         /// Updates the world with random cave formations. Caves are generated using Perlin Simplex noise using the specified seed value to
         /// generate a little randomness.
         /// </summary>
-        private static void CreateCaves(IGameWorld gameWorld, long seed)
+        private static void CreateCaves(GameWorld gameWorld, long seed)
         {
             Random random1 = new Random((int)(seed & 0xFFFFFFFF));
             Random random2 = new Random((int)((seed >> 32) & 0xFFFFFFFF));
@@ -195,7 +202,7 @@ namespace ProdigalSoftware.ProjectM.Controllers
             }
         }
 
-        private static void Fill(IGameWorld gameWorld, int x, int y, ref int depth, BlockRandomizer block)
+        private static void Fill(GameWorld gameWorld, int x, int y, ref int depth, BlockRandomizer block)
         {
             for (int i = 0; i < 3; i++)
                 gameWorld[x, y, depth++] = block.NextBlock();
@@ -208,7 +215,9 @@ namespace ProdigalSoftware.ProjectM.Controllers
             random.NextBytes(buf);
             return BitConverter.ToInt64(buf, 0);
         }
+        #endregion
 
+        #region BlockRandomizer class
         private sealed class BlockRandomizer
         {
             private readonly BlockInformation[] blocks;
@@ -231,5 +240,6 @@ namespace ProdigalSoftware.ProjectM.Controllers
                 return blocks[blockNum];
             }
         }
+        #endregion
     }
 }

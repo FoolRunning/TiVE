@@ -80,6 +80,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BlockInformationTests.cs" />
+    <Compile Include="GameWorldTests.cs" />
     <Compile Include="Particles\ParticleControllerTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
@@ -87,6 +88,10 @@
     <ProjectReference Include="..\TiVEPluginFramework\TiVEPluginFramework.csproj">
       <Project>{42f81808-5a13-4501-b184-18b4197512c3}</Project>
       <Name>TiVEPluginFramework</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Utils\Utils.csproj">
+      <Project>{dc99c507-28dd-4dbf-b6b4-1f9c99e849f1}</Project>
+      <Name>Utils</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

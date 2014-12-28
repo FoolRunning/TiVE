@@ -21,13 +21,13 @@ namespace ProdigalSoftware.TiVE.Renderer.Particles
 
         private readonly HashSet<SystemInfo> runningSystems = new HashSet<SystemInfo>();
         private readonly List<SystemInfo> systemsToDelete = new List<SystemInfo>();
-        private readonly GameWorld gameWorld;
+        private readonly IGameWorldRenderer renderer;
         private readonly Thread particleUpdateThread;
         private volatile bool stopThread;
 
-        public ParticleSystemManager(GameWorld gameWorld)
+        public ParticleSystemManager(IGameWorldRenderer renderer)
         {
-            this.gameWorld = gameWorld;
+            this.renderer = renderer;
             particleUpdateThread = new Thread(ParticleUpdateLoop);
             particleUpdateThread.Priority = ThreadPriority.BelowNormal;
             particleUpdateThread.IsBackground = true;
@@ -157,7 +157,7 @@ namespace ProdigalSoftware.TiVE.Renderer.Particles
                         updateList.AddRange(particleSystemCollections.Values);
 
                     for (int i = 0; i < updateList.Count; i++)
-                        updateList[i].UpdateAll(gameWorld, timeSinceLastUpdate);
+                        updateList[i].UpdateAll(renderer, timeSinceLastUpdate);
                 }
             }
             sw.Stop();

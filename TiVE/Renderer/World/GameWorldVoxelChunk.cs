@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using OpenTK;
+using ProdigalSoftware.TiVE.Renderer.Lighting;
 using ProdigalSoftware.TiVE.Renderer.Meshes;
 using ProdigalSoftware.TiVE.Renderer.Voxels;
 using ProdigalSoftware.TiVEPluginFramework;
@@ -97,11 +98,13 @@ namespace ProdigalSoftware.TiVE.Renderer.World
             return string.Format("Chunk ({0}, {1}, {2}) {3}v", chunkLoc.X, chunkLoc.Y, chunkLoc.Z, chunkVoxelCount);
         }
 
-        public void Load(MeshBuilder newMeshBuilder, GameWorld gameWorld)
+        public void Load(MeshBuilder newMeshBuilder, IGameWorldRenderer renderer)
         {
             Debug.Assert(newMeshBuilder.IsLocked);
             //Debug.WriteLine("Started chunk ({0},{1},{2})", chunkStartX, chunkStartY, chunkStartZ);
 
+            GameWorld gameWorld = renderer.GameWorld;
+            LightProvider lightProvider = renderer.LightProvider;
             VoxelMeshHelper meshHelper = VoxelMeshHelper.Get(true, false);
 
             int voxelStartX = chunkLoc.X * BlockSize * BlockInformation.VoxelSize;
@@ -227,7 +230,7 @@ namespace ProdigalSoftware.TiVE.Renderer.World
 
                                     if (sides != VoxelSides.None)
                                     {
-                                        Color3f lightColor = gameWorld.GetLightAt(voxelX, voxelY, voxelZ);
+                                        Color3f lightColor = lightProvider.GetLightAt(voxelX, voxelY, voxelZ);
                                         byte a = (byte)((color >> 24) & 0xFF);
                                         byte r = (byte)Math.Min(255, (int)(((color >> 16) & 0xFF) * lightColor.R));
                                         byte g = (byte)Math.Min(255, (int)(((color >> 8) & 0xFF) * lightColor.G));

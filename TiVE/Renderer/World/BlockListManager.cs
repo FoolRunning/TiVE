@@ -1,10 +1,9 @@
 ﻿using System.IO;
 using System.Reflection;
-using ProdigalSoftware.TiVE.Renderer.World;
 using ProdigalSoftware.TiVE.Starter;
 using ProdigalSoftware.TiVEPluginFramework;
 
-namespace ProdigalSoftware.TiVE.Resources
+namespace ProdigalSoftware.TiVE.Renderer.World
 {
     internal static class BlockListManager
     {
@@ -14,8 +13,10 @@ namespace ProdigalSoftware.TiVE.Resources
         {
             Messages.Print(string.Format("Loading block list {0}...", blockListName));
 
-            string blockFilePath = Path.Combine(Path.GetDirectoryName(Assembly.GetEntryAssembly().Location), "Data", BlockDirName);
-            BlockList blockList = BlockList.FromBlockListFile(blockFilePath) ?? new BlockList();
+            string blockFilePath = Path.Combine(Path.GetDirectoryName(Assembly.GetEntryAssembly().Location), 
+                "Data", BlockDirName, blockListName + "." + BlockList.FileExtension);
+
+            BlockList blockList = BlockList.FromFile(blockFilePath) ?? new BlockList();
 
             foreach (IBlockGenerator generator in TiVEController.PluginManager.GetPluginsOfType<IBlockGenerator>())
             {

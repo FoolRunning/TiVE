@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
-using ProdigalSoftware.TiVE.Renderer.World;
+using ProdigalSoftware.TiVE.Renderer.Lighting;
 using ProdigalSoftware.TiVEPluginFramework.Particles;
 using ProdigalSoftware.Utils;
 
@@ -32,7 +32,8 @@ namespace ProdigalSoftware.TiVE.Renderer.Particles
 
         public int ParticlesPerSecond { get; set; }
 
-        public void Update(float timeSinceLastFrame, Particle[] particleList, Vector3s[] locationArray, Color4b[] colorArray, GameWorld gameWorld, ref int dataIndex)
+        public void Update(float timeSinceLastFrame, Particle[] particleList, Vector3s[] locationArray, Color4b[] colorArray, 
+            IGameWorldRenderer renderer, ref int dataIndex)
         {
             ParticleSystemInformation sysInfo = systemInfo;
             ParticleController upd = sysInfo.Controller;
@@ -42,7 +43,8 @@ namespace ProdigalSoftware.TiVE.Renderer.Particles
             numOfParticlesNeeded += ParticlesPerSecond * timeSinceLastFrame;
             int newParticleCount = Math.Min((int)numOfParticlesNeeded, systemInfo.MaxParticles - aliveParticles);
             numOfParticlesNeeded -= newParticleCount;
-            Vector3i worldSize = gameWorld.VoxelSize;
+            Vector3i worldSize = renderer.GameWorld.VoxelSize;
+            LightProvider lightProvider = renderer.LightProvider;
             bool isLit = systemInfo.IsLit;
 
             float locX = Location.X;
@@ -80,7 +82,7 @@ namespace ProdigalSoftware.TiVE.Renderer.Particles
                 short partZ = (short)part.Z;
                 locationArray[dataIndex] = new Vector3s(partX, partY, partZ);
 
-                colorArray[dataIndex] = isLit ? CalculateParticleColor(partX, partY, partZ, part.Color, worldSize, gameWorld) : part.Color;
+                colorArray[dataIndex] = isLit ? CalculateParticleColor(partX, partY, partZ, part.Color, worldSize, lightProvider) : part.Color;
                 dataIndex++;
             }
 
@@ -94,7 +96,7 @@ namespace ProdigalSoftware.TiVE.Renderer.Particles
                 short partY = (short)part.Y;
                 short partZ = (short)part.Z;
                 locationArray[dataIndex] = new Vector3s(partX, partY, partZ);
-                colorArray[dataIndex] = isLit ? CalculateParticleColor(partX, partY, partZ, part.Color, worldSize, gameWorld) : part.Color;
+                colorArray[dataIndex] = isLit ? CalculateParticleColor(partX, partY, partZ, part.Color, worldSize, lightProvider) : part.Color;
 
                 dataIndex++;
                 aliveParticles++;
@@ -104,13 +106,13 @@ namespace ProdigalSoftware.TiVE.Renderer.Particles
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static Color4b CalculateParticleColor(int partX, int partY, int partZ, Color4b color, Vector3i worldSize, GameWorld gameWorld)
+        private static Color4b CalculateParticleColor(int partX, int partY, int partZ, Color4b color, Vector3i worldSize, LightProvider lightProvider)
         {
             Color3f lightColor;
             if (partX < 0 || partX >= worldSize.X || partY < 0 || partY >= worldSize.Y || partZ < 0 || partZ >= worldSize.Z)
-                lightColor = gameWorld.AmbientLight;
+                lightColor = lightProvider.AmbientLight;
             else
-                lightColor = gameWorld.GetLightAt(partX, partY, partZ);
+                lightColor = lightProvider.GetLightAt(partX, partY, partZ);
 
             return new Color4b((byte)Math.Min(255, color.R * lightColor.R), (byte)Math.Min(255, color.G * lightColor.G),
                 (byte)Math.Min(255, color.B * lightColor.B), 255);

@@ -2,13 +2,13 @@
 using System.Reflection;
 using ProdigalSoftware.TiVEPluginFramework;
 
-namespace ProdigalSoftware.ProjectM.Controllers
+namespace ProdigalSoftware.ProjectM.Plugins
 {
     public class TableDefinitionProvider : ITableDefinitionProvider
     {
         public string GetTableDefinitionContents()
         {
-            string path = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "Data", "additionalTables.def");
+            string path = Path.Combine(Path.GetDirectoryName(Assembly.GetEntryAssembly().Location), "Data", "additionalTables.def");
             return File.Exists(path) ? File.ReadAllText(path) : "";
         }
     }

@@ -4,7 +4,6 @@ using System.Diagnostics;
 using OpenTK;
 using ProdigalSoftware.TiVE.Renderer.Meshes;
 using ProdigalSoftware.TiVE.Renderer.Voxels;
-using ProdigalSoftware.TiVE.Renderer.World;
 using ProdigalSoftware.TiVEPluginFramework.Particles;
 using ProdigalSoftware.Utils;
 
@@ -147,9 +146,9 @@ namespace ProdigalSoftware.TiVE.Renderer.Particles
         /// <summary>
         /// Updates all particle systems in this collection
         /// </summary>
-        /// <param name="gameWorld"></param>
+        /// <param name="renderer"></param>
         /// <param name="timeSinceLastFrame">The time (in seconds) since the last call to update</param>
-        public void UpdateAll(GameWorld gameWorld, float timeSinceLastFrame)
+        public void UpdateAll(IGameWorldRenderer renderer, float timeSinceLastFrame)
         {
             updateList.Clear();
             using (new PerformanceLock(particleSystems))
@@ -162,7 +161,7 @@ namespace ProdigalSoftware.TiVE.Renderer.Particles
                 if (system != null)
                 {
                     //lock (syncObj)
-                        system.Update(timeSinceLastFrame, particles[i], locations, colors, gameWorld, ref dataIndex);
+                        system.Update(timeSinceLastFrame, particles[i], locations, colors, renderer, ref dataIndex);
                 }
             }
 

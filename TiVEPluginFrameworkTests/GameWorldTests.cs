@@ -1,8 +1,7 @@
 ﻿using NUnit.Framework;
-using ProdigalSoftware.TiVE.Renderer.World;
 using ProdigalSoftware.TiVEPluginFramework;
 
-namespace TiVETests.World
+namespace TiVEPluginFrameworkTests
 {
     [TestFixture]
     public class GameWorldTests
@@ -10,7 +9,7 @@ namespace TiVETests.World
         [Test]
         public void Indexer()
         {
-            GameWorld gameWorld = new GameWorld(3, 3, 3, null);
+            GameWorld gameWorld = new GameWorld(3, 3, 3);
             Assert.That(gameWorld.BlockSize.X, Is.EqualTo(3));
             Assert.That(gameWorld.BlockSize.Y, Is.EqualTo(3));
             Assert.That(gameWorld.BlockSize.Z, Is.EqualTo(3));

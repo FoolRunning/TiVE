@@ -7,7 +7,7 @@ using ProdigalSoftware.TiVE;
 using ProdigalSoftware.TiVE.Renderer;
 using ProdigalSoftware.TiVE.Renderer.Lighting;
 using ProdigalSoftware.TiVE.Renderer.World;
-using ProdigalSoftware.Utils;
+using ProdigalSoftware.TiVEPluginFramework;
 
 namespace ProdigalSoftware.TiVEEditor.Common
 {
@@ -35,6 +35,11 @@ namespace ProdigalSoftware.TiVEEditor.Common
             get { return renderer.GameWorld; }
         }
 
+        public LightProvider LightProvider
+        {
+            get { return renderer.LightProvider; }
+        }
+
         public BlockList BlockList
         {
             get { return renderer.BlockList; }
@@ -54,21 +59,8 @@ namespace ProdigalSoftware.TiVEEditor.Common
         {
             if (refreshStaticLighting)
             {
-                GameWorld gameWorld = GameWorld;
-                for (int z = 0; z < gameWorld.BlockSize.Z; z++)
-                {
-                    for (int x = 0; x < gameWorld.BlockSize.X; x++)
-                    {
-                        for (int y = 0; y < gameWorld.BlockSize.Y; y++)
-                        {
-                            gameWorld.GetLights(x, y, z).Clear();
-                            gameWorld.SetBlockLight(x, y, z, new Color3f());
-                        }
-                    }
-                }
-
-                StaticLightingHelper lightingHelper = new StaticLightingHelper(renderer.GameWorld, 10, 0.002f);
-                lightingHelper.Calculate();
+                renderer.LightProvider.Calculate(CalcOptions.ClearRealisticLights | CalcOptions.CalculateRealisticLights);
+                //lightingHelper.Calculate(CalcOptions.ClearSimpleLights | CalcOptions.CalculateSimpleLights);
             }
             renderer.RefreshLevel();
         }

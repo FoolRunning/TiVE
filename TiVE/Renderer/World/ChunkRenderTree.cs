@@ -3,13 +3,14 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using OpenTK;
 using ProdigalSoftware.TiVE.Renderer.Meshes;
-using ProdigalSoftware.TiVE.Renderer.Voxels;
+using ProdigalSoftware.TiVEPluginFramework;
 using ProdigalSoftware.Utils;
 
 namespace ProdigalSoftware.TiVE.Renderer.World
 {
     internal sealed class ChunkRenderTree : WorldBoundingBox, IDisposable
     {
+        #region Constants
         private const int ChunkVoxelSize = GameWorldVoxelChunk.VoxelSize;
         private const int FarTopLeft = 0;
         private const int FarTopRight = 1;
@@ -19,7 +20,9 @@ namespace ProdigalSoftware.TiVE.Renderer.World
         private const int NearTopRight = 5;
         private const int NearBottomLeft = 6;
         private const int NearBottomRight = 7;
+        #endregion
 
+        #region Member variables
         private static readonly LargeMeshBuilder debugBoxOutlineBuilder = new LargeMeshBuilder(8, 24);
 
         private readonly ChunkRenderTree[] children = new ChunkRenderTree[8];
@@ -27,7 +30,9 @@ namespace ProdigalSoftware.TiVE.Renderer.World
         private readonly int depth;
 
         private IVertexDataCollection debugBoxOutLine;
+        #endregion
 
+        #region Constructors
         public ChunkRenderTree(GameWorld gameWorld) :
             this(Vector3.Zero, new Vector3(
                 (int)Math.Ceiling(gameWorld.BlockSize.X / (float)GameWorldVoxelChunk.BlockSize) * ChunkVoxelSize,
@@ -104,7 +109,9 @@ namespace ProdigalSoftware.TiVE.Renderer.World
                     children[NearTopRight] = new ChunkRenderTree(boxCenter, maxPoint, depth + 1);
             }
         }
+        #endregion
 
+        #region Implementation of IDisposable
         public void Dispose()
         {
             if (debugBoxOutLine != null)
@@ -121,7 +128,12 @@ namespace ProdigalSoftware.TiVE.Renderer.World
                     childBox.Dispose();
             }
         }
+        #endregion
 
+        #region Public methods
+        /// <summary>
+        /// Fills the specified HashSet with chunks that should be rendered based on the current location and orientation of the specified camera
+        /// </summary>
         public void FillChunksToRender(HashSet<GameWorldVoxelChunk> chunksToRender, Camera camera)
         {
             if (chunk != null)
@@ -138,7 +150,9 @@ namespace ProdigalSoftware.TiVE.Renderer.World
                 }
             }
         }
+        #endregion
 
+        #region Debug code
         public RenderStatistics Render(ShaderManager shaderManager, ref Matrix4 viewProjectionMatrix, Camera camera)
         {
             return Render(shaderManager, ref viewProjectionMatrix, camera, -1);
@@ -233,6 +247,6 @@ namespace ProdigalSoftware.TiVE.Renderer.World
                 default: return new Color4b(255, 255, 255, 255);
             }
         }
+        #endregion
     }
-
 }
