@@ -44,7 +44,7 @@ namespace ProdigalSoftware.TiVE.Renderer.World
         }
 
         [CanBeNull]
-        public static BlockList FromBlockListFile(string filePath)
+        public static BlockList FromFile(string filePath)
         {
             if (string.IsNullOrEmpty(filePath) || !File.Exists(filePath))
                 return null;

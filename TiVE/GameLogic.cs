@@ -5,7 +5,6 @@ using NLua.Exceptions;
 using ProdigalSoftware.TiVE.Renderer;
 using ProdigalSoftware.TiVE.Renderer.Lighting;
 using ProdigalSoftware.TiVE.Renderer.World;
-using ProdigalSoftware.TiVE.Resources;
 using ProdigalSoftware.TiVE.Scripts;
 using ProdigalSoftware.TiVE.Starter;
 using ProdigalSoftware.TiVEPluginFramework;
@@ -46,17 +45,17 @@ namespace ProdigalSoftware.TiVE
 
             LuaScripts.AddLuaTableForEnum<Keys>(gameScript);
             
-            BlockList blockList = BlockListManager.LoadBlockList("bla"); // TODO: figure out how to get this for real
-
             gameScript.KeyPressed = new Func<Keys, bool>(k => keyboard.IsKeyPressed(k));
             gameScript.Vector = new Func<float, float, float, OpenTK.Vector3>((x, y, z) => new OpenTK.Vector3(x, y, z));
             gameScript.Color = new Func<float, float, float, Color3f>((r, g, b) => new Color3f(r, g, b));
             gameScript.GameWorld = new Func<GameWorld>(() => renderer.GameWorld);
             gameScript.ReloadLevel = new Action(() => renderer.RefreshLevel());
+            gameScript.Renderer = new Func<IGameWorldRenderer>(() => renderer);
 
-            gameScript.CreateWorld = new Func<string, int, int, int, IGameWorld>((worldName, xSize, ySize, zSize) =>
+            gameScript.LoadWorld = new Func<string, GameWorld>(worldName =>
             {
-                GameWorld newWorld = GameWorldManager.GenerateGameWorld(blockList, worldName, xSize, ySize, zSize);
+                BlockList blockList;
+                GameWorld newWorld = GameWorldManager.LoadGameWorld(worldName, out blockList);
                 if (newWorld == null)
                     throw new TiVEException("Failed to create game world");
                 renderer.SetGameWorld(blockList, newWorld);
@@ -79,10 +78,7 @@ namespace ProdigalSoftware.TiVE
             }
 
             // Calculate static lighting
-            const float minLightValue = 0.002f; // 0.002f (0.2%) produces the best result as that is less then a single light value's worth
-            StaticLightingHelper lightingHelper = new StaticLightingHelper(renderer.GameWorld, 50, minLightValue);
-            lightingHelper.Calculate();
-
+            renderer.LightProvider.Calculate(CalcOptions.CalculateAllLights); 
             return true;
         }
 
@@ -103,8 +99,8 @@ namespace ProdigalSoftware.TiVE
             long ticksPerDisplayUpdate = Stopwatch.Frequency / DisplayUpdatesPerSecond;
 
             continueMainLoop = true;
-            long previousGameUpdateTime = 0;
-            long previousDisplayUpdateTime = 0;
+            long previousGameUpdateTime = Stopwatch.GetTimestamp();
+            long previousDisplayUpdateTime = Stopwatch.GetTimestamp();
             while (continueMainLoop)
             {
                 nativeWindow.ProcessNativeEvents();
@@ -112,8 +108,8 @@ namespace ProdigalSoftware.TiVE
                 long currentTime = Stopwatch.GetTimestamp();
                 if (previousGameUpdateTime + ticksPerGameUpdate <= currentTime)
                 {
-                    float timeSinceLastFrame = (currentTime - previousGameUpdateTime) / (float)ticksPerDisplayUpdate;
-                    previousGameUpdateTime += ticksPerGameUpdate;
+                    float timeSinceLastFrame = (currentTime - previousGameUpdateTime) / (float)Stopwatch.Frequency;
+                    previousGameUpdateTime = currentTime;
                     if (!UpdateFrame(timeSinceLastFrame))
                         break;
 
@@ -135,18 +131,22 @@ namespace ProdigalSoftware.TiVE
                             renderTime.DisplayedValue, updateTime.DisplayedValue, frameTime.DisplayedValue);
                     }
                 }
-                if (previousDisplayUpdateTime + ticksPerGameUpdate <= currentTime)
+                if (previousDisplayUpdateTime + ticksPerDisplayUpdate <= currentTime)
                 {
-                    previousDisplayUpdateTime += ticksPerGameUpdate;
+                    previousDisplayUpdateTime = currentTime;
                     RenderFrame();
                     nativeWindow.UpdateDisplayContents();
                 }
             }
 
+            Messages.Print("Cleaning up...");
+            
             keyboard = null;
             renderer.Dispose();
             nativeWindow.CloseWindow();
             nativeWindow.Dispose();
+
+            Messages.AddDoneText();
         }
 
         private bool UpdateFrame(float timeSinceLastFrame)

@@ -3,20 +3,19 @@ WorldYSize = 200;
 WorldZSize = 20;
 
 function Initialize(camera)
-    gameWorld = CreateWorld(WorldXSize, WorldYSize, WorldZSize)
+    gameWorld = LoadWorld("bla")
 
     camera.FoV = PI / 4 --45 degrees
     camera.Location = Vector(WorldXSize * BlockSize / 2, WorldYSize * BlockSize / 2, 345)
 end
 
-
 function Update(camera, keyboard)
     camLoc = camera.Location
 
     speed = 2
-    if (KeyPressed(Keys.ShiftLeft)) then --Speed up
+    if (KeyPressed(Keys.LShift)) then --Speed up
         speed = 10
-    elseif (KeyPressed(Key.ControlLeft)) then --Slow down
+    elseif (KeyPressed(Keys.LControl)) then --Slow down
         speed = 0.2
     end
 

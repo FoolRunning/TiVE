@@ -64,9 +64,8 @@ namespace ProdigalSoftware.TiVEEditor.BlockLists
             spnLightLocY.Maximum = BlockInformation.VoxelSize - 1;
             spnLightLocZ.Maximum = BlockInformation.VoxelSize - 1;
 
-            blockList = BlockList.FromBlockListFile(filePath) ?? new BlockList();
-            gameWorld = new GameWorld(WorldSize, WorldSize, 5, blockList);
-            gameWorld.AmbientLight = new Color3f(230, 230, 230);
+            blockList = BlockList.FromFile(filePath) ?? new BlockList();
+            gameWorld = new GameWorld(WorldSize, WorldSize, 5);
 
             Random random = new Random();
             for (int i = 0; i < floorBlocks.Length; i++)
@@ -153,6 +152,7 @@ namespace ProdigalSoftware.TiVEEditor.BlockLists
             base.OnLoad(e);
             
             cntrlCurrentBlock.SetGameWorld(blockList, gameWorld);
+            cntrlCurrentBlock.LightProvider.AmbientLight = new Color3f(230, 230, 230);
             cntrlCurrentBlock.Camera.UpVector = Vector3.UnitZ;
             float centerX = cntrlCurrentBlock.GameWorld.VoxelSize.X / 2.0f;
             float centerY = cntrlCurrentBlock.GameWorld.VoxelSize.Y / 2.0f;
@@ -287,7 +287,7 @@ namespace ProdigalSoftware.TiVEEditor.BlockLists
                 gameWorld[WorldCenter, WorldCenter, 1] = newBlock; // Put the block in the middle of the game world
             }
 
-            cntrlCurrentBlock.GameWorld.AmbientLight = newBlock.Light != null ? new Color3f(20, 20, 20) : new Color3f(230, 230, 230);
+            cntrlCurrentBlock.LightProvider.AmbientLight = newBlock.Light != null ? new Color3f(20, 20, 20) : new Color3f(230, 230, 230);
             cntrlCurrentBlock.RefreshLevel(previouseBlock.Light != null || newBlock.Light != null);
 
             UpdateState();

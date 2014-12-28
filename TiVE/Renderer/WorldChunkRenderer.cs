@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
 using OpenTK;
+using ProdigalSoftware.TiVE.Renderer.Lighting;
 using ProdigalSoftware.TiVE.Renderer.Particles;
 using ProdigalSoftware.TiVE.Renderer.World;
+using ProdigalSoftware.TiVEPluginFramework;
 
 namespace ProdigalSoftware.TiVE.Renderer
 {
@@ -16,6 +18,7 @@ namespace ProdigalSoftware.TiVE.Renderer
         private ParticleSystemManager particleManager;
         private ShaderManager shaderManager;
         private Matrix4 viewProjectionMatrix;
+        private ChunkRenderTree renderTree;
 
         public WorldChunkRenderer(int maxChunkCreationThreads)
         {
@@ -26,21 +29,35 @@ namespace ProdigalSoftware.TiVE.Renderer
         {
             Debug.Assert(Thread.CurrentThread.Name == "Main UI");
 
+            chunksToRender.Clear();
+
             if (particleManager != null)
                 particleManager.Dispose();
             if (chunkManager != null)
                 chunkManager.Dispose();
-            if (GameWorld != null)
-                GameWorld.Dispose();
+            if (renderTree != null)
+                renderTree.Dispose();
             if (BlockList != null)
                 BlockList.Dispose();
             if (shaderManager != null)
                 shaderManager.Dispose();
+
+            BlockList = null;
+            GameWorld = null;
+            LightProvider = null;
+            particleManager = null;
+            chunkManager = null;
+            renderTree = null;
+            shaderManager = null;
+
+            GC.Collect();
         }
 
         public GameWorld GameWorld { get; private set; }
 
         public BlockList BlockList { get; private set; }
+
+        public LightProvider LightProvider { get; private set; }
 
         public void SetGameWorld(BlockList newBlockList, GameWorld newGameWorld)
         {
@@ -53,8 +70,11 @@ namespace ProdigalSoftware.TiVE.Renderer
 
             BlockList = newBlockList;
             GameWorld = newGameWorld;
-            chunkManager = new WorldChunkManager(newGameWorld, maxChunkCreationThreads);
-            particleManager = new ParticleSystemManager(newGameWorld);
+            LightProvider = new LightProvider(newGameWorld);
+
+            renderTree = new ChunkRenderTree(newGameWorld);
+            chunkManager = new WorldChunkManager(this, maxChunkCreationThreads);
+            particleManager = new ParticleSystemManager(this);
             shaderManager = new ShaderManager();
             shaderManager.Initialize();
         }
@@ -70,7 +90,7 @@ namespace ProdigalSoftware.TiVE.Renderer
             viewProjectionMatrix = Matrix4.Mult(camera.ViewMatrix, camera.ProjectionMatrix);
 
             chunksToRender.Clear();
-            GameWorld.RenderTree.FillChunksToRender(chunksToRender, camera);
+            renderTree.FillChunksToRender(chunksToRender, camera);
 
             particleManager.UpdateCameraPos(chunksToRender);
             BlockList.UpdateAnimations(timeSinceLastFrame);
@@ -85,7 +105,7 @@ namespace ProdigalSoftware.TiVE.Renderer
             foreach (GameWorldVoxelChunk chunk in chunksToRender)
                 stats += chunk.Render(shaderManager, ref viewProjectionMatrix);
 
-            //stats += gameWorld.RenderChunkOutlines(shaderManager, ref viewProjectionMatrix, camera);
+            //stats += renderTree.Render(shaderManager, ref viewProjectionMatrix, camera);
             //stats += blockList.RenderAnimatedBlocks(gameWorld, shaderManager, ref viewProjectionMatrix, blockMinX, blockMaxX, blockMinY, blockMaxY);
             return stats + particleManager.Render(shaderManager, ref viewProjectionMatrix);
         }

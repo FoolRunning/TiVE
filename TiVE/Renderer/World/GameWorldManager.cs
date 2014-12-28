@@ -9,37 +9,58 @@ namespace ProdigalSoftware.TiVE.Renderer.World
     /// </summary>
     internal static class GameWorldManager
     {
-        public static GameWorld LoadGameWorld(string gameWorldName)
+        public static GameWorld LoadGameWorld(string gameWorldName, out BlockList blockList)
         {
-            // TODO: Implement this method when saving/loading of game worlds is implemented
-            Messages.Print("Creating new world...");
-            GameWorld createdWorld = new GameWorld(10, 10, 10, null);
-
+            string blockListName = null;
             try
             {
                 foreach (IWorldGenerator generator in TiVEController.PluginManager.GetPluginsOfType<IWorldGenerator>())
-                    generator.UpdateGameWorld(createdWorld, gameWorldName);
+                {
+                    blockListName = generator.BlockListForWorld(gameWorldName);
+                    if (blockListName != null)
+                        break;
+                }
             }
             catch (Exception e)
             {
-                Messages.AddFailText();
                 Messages.AddStackTrace(e);
-                return null;
             }
-            
-            Messages.AddDoneText();
-            return createdWorld;
+
+            blockList = null;
+            if (blockListName != null)
+            {
+                // Plugin gave name of blocklist to load (which should mean it will generate a world for us as well)
+                return CreateWorldFromPlugin(blockListName, gameWorldName, out blockList);
+            }
+
+            // TODO: Implement saving/loading of game worlds
+
+            Messages.AddFailText();
+            Messages.AddError("Could not find world " + gameWorldName);
+            return null;
         }
 
-        public static GameWorld GenerateGameWorld(BlockList blockList, string worldName, int worldXsize, int worldYsize, int worldZsize)
+        private static GameWorld CreateWorldFromPlugin(string blockListName, string gameWorldName, out BlockList blockList)
         {
-            Messages.Print("Creating new world...");
-            GameWorld createdWorld = new GameWorld(worldXsize, worldYsize, worldZsize, blockList);
+            blockList = BlockListManager.LoadBlockList(blockListName);
+            if (blockList == null)
+            {
+                Messages.AddError("Could not get block list for world " + gameWorldName);
+                return null;
+            }
 
+            Messages.Print("Loading world " + gameWorldName + "...");
             try
             {
                 foreach (IWorldGenerator generator in TiVEController.PluginManager.GetPluginsOfType<IWorldGenerator>())
-                    generator.UpdateGameWorld(createdWorld, worldName);
+                {
+                    GameWorld createdWorld = generator.CreateGameWorld(gameWorldName, blockList);
+                    if (createdWorld != null)
+                    {
+                        Messages.AddDoneText();
+                        return createdWorld;
+                    }
+                }
             }
             catch (Exception e)
             {
@@ -48,8 +69,9 @@ namespace ProdigalSoftware.TiVE.Renderer.World
                 return null;
             }
 
-            Messages.AddDoneText();
-            return createdWorld;
+            Messages.AddFailText();
+            Messages.AddError("Could not find world " + gameWorldName);
+            return null;
         }
     }
 }

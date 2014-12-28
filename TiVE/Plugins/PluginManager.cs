@@ -1,8 +1,12 @@
 ﻿using System;
+using System.CodeDom.Compiler;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text;
+using Microsoft.CSharp;
 using ProdigalSoftware.TiVE.Starter;
 
 namespace ProdigalSoftware.TiVE.Plugins
@@ -16,7 +20,7 @@ namespace ProdigalSoftware.TiVE.Plugins
         public bool LoadPlugins()
         {
             Messages.Print("Loading plugins...");
-            string path = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+            string path = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
             if (path == null)
             {
                 Messages.AddFailText();
@@ -27,8 +31,17 @@ namespace ProdigalSoftware.TiVE.Plugins
             string[] pluginFiles = Directory.Exists(pluginPath) ? Directory.GetFiles(pluginPath, "*.tive", SearchOption.AllDirectories) : new string[0];
 
             List<string> warnings = new List<string>();
-            foreach (Assembly asm in pluginFiles.Select(Assembly.LoadFile).Concat(new[] { Assembly.GetEntryAssembly() }))
+            foreach (string pluginFilePath in pluginFiles)
             {
+                List<string> errorMessages;
+                Assembly asm = LoadPlugin(pluginFilePath, out errorMessages);
+                if (asm == null)
+                {
+                    // Could not compile plugin
+                    warnings.AddRange(errorMessages);
+                    continue;
+                }
+
                 try
                 {
                     foreach (Type pluginType in asm.GetExportedTypes().Where(t => !t.IsAbstract && t.IsClass))
@@ -49,7 +62,7 @@ namespace ProdigalSoftware.TiVE.Plugins
                 }
                 catch (Exception e)
                 {
-                    warnings.Add("Failed to load plugins in " + asm.FullName);
+                    warnings.Add("Failed to load plugins in " + Path.GetFileName(pluginFilePath));
                     warnings.Add(e.ToString());
                 }
             }
@@ -57,7 +70,10 @@ namespace ProdigalSoftware.TiVE.Plugins
             if (pluginInterfaceMap.Count > 0)
                 Messages.AddDoneText();
             else
+            {
                 Messages.AddFailText();
+                Messages.AddError("Could not find plugins");
+            }
 
             foreach (string warning in warnings)
                 Messages.AddWarning(warning);
@@ -89,6 +105,50 @@ namespace ProdigalSoftware.TiVE.Plugins
 
                 yield return newObject;
             }
+        }
+
+        private static Assembly LoadPlugin(string filePath, out List<string> errorMessages)
+        {
+            Debug.Assert(File.Exists(filePath));
+
+            errorMessages = null;
+
+            string fileName = Path.GetFileName(filePath);
+            
+            string pluginCode;
+            try
+            {
+                pluginCode = File.ReadAllText(filePath);
+            }
+            catch (IOException)
+            {
+                errorMessages = new List<string> { "Error reading plugin: " + fileName };
+                return null;
+            }
+
+            CSharpCodeProvider provider = new CSharpCodeProvider();
+            CompilerParameters parameters = new CompilerParameters();
+            parameters.ReferencedAssemblies.Add("System.dll");
+            parameters.ReferencedAssemblies.Add("TiVEPluginFramework.dll");
+            parameters.ReferencedAssemblies.Add("Utils.dll");
+            parameters.CompilerOptions = "/optimize";
+            parameters.GenerateInMemory = true;
+            parameters.GenerateExecutable = false;
+
+            CompilerResults results = provider.CompileAssemblyFromSource(parameters, pluginCode);
+            if (results.Errors.HasErrors)
+            {
+                errorMessages = new List<string>();
+                errorMessages.Add(string.Format("File {0}:", fileName));
+                foreach (CompilerError error in results.Errors)
+                {
+                    if (!error.IsWarning)
+                        errorMessages.Add(string.Format("   {0},{1}: {2}", error.Line, error.Column, error.ErrorText));
+                }
+                return null;
+            }
+
+            return results.CompiledAssembly;
         }
     }
 }

@@ -98,9 +98,15 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Controllers\DefaultBlockLoader.cs" />
-    <Compile Include="Controllers\TableDefinitionProvider.cs" />
-    <Compile Include="Controllers\WorldGenFillWorld.cs" />
+    <None Include="Plugins\DefaultBlockLoader.tive">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Plugins\TableDefinitionProvider.tive">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Plugins\GenerateRandomWorld.tive">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

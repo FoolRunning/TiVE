@@ -18,7 +18,9 @@ namespace ProdigalSoftware.TiVE.Renderer.OpenGL
         #region IRendererBackend implementation
         public INativeWindow CreateNatveWindow(int width, int height, bool fullscreen, bool vsync)
         {
-            return new OpenGLDisplay(width, height, fullscreen, vsync);
+            OpenGLDisplay nativeWindow = new OpenGLDisplay(width, height, fullscreen, vsync);
+            nativeWindow.Visible = true;
+            return nativeWindow;
         }
         
         public void Initialize()
@@ -164,7 +166,7 @@ namespace ProdigalSoftware.TiVE.Renderer.OpenGL
                     DisplayDevice.Default, 3, 1, GraphicsContextFlags.ForwardCompatible)
             {
                 VSync = vsync ? VSyncMode.On : VSyncMode.Off;
-                Unload += OpenGLDisplay_Unload;
+                Closing += OpenGLDisplay_Closing;
                 Resize += OpenGLDisplay_Resize;
             }
 
@@ -198,16 +200,19 @@ namespace ProdigalSoftware.TiVE.Renderer.OpenGL
                 SwapBuffers();
             }
 
+            void OpenGLDisplay_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+            {
+                // Although this looks weird, we need to cancel the disposing of the OpenGL context, but we will still exit with the following call
+                e.Cancel = true;
+
+                if (WindowClosing != null)
+                    WindowClosing(this, EventArgs.Empty);
+            }
+
             void OpenGLDisplay_Resize(object sender, EventArgs e)
             {
                 if (WindowResized != null)
                     WindowResized(ClientRectangle);
-            }
-
-            void OpenGLDisplay_Unload(object sender, EventArgs e)
-            {
-                if (WindowClosing != null)
-                    WindowClosing(this, EventArgs.Empty);
             }
 
             private class KeyboardImpl : IKeyboard
@@ -222,7 +227,7 @@ namespace ProdigalSoftware.TiVE.Renderer.OpenGL
                 #region Implementation of IKeyboard
                 public bool IsKeyPressed(Keys key)
                 {
-                    return device[(uint)key];
+                    return device[(Key)(uint)key];
                 }
                 #endregion
             }

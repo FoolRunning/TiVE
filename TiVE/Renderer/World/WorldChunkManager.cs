@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
 using ProdigalSoftware.TiVE.Renderer.Meshes;
-using ProdigalSoftware.TiVE.Renderer.Voxels;
 using ProdigalSoftware.TiVE.Starter;
 using ProdigalSoftware.Utils;
 
@@ -20,13 +19,13 @@ namespace ProdigalSoftware.TiVE.Renderer.World
         private readonly List<Thread> chunkCreationThreads = new List<Thread>();
         private readonly Queue<GameWorldVoxelChunk> chunkLoadQueue = new Queue<GameWorldVoxelChunk>();
 
-        private readonly GameWorld gameWorld;
+        private readonly IGameWorldRenderer renderer;
         
         private volatile bool endCreationThreads;
 
-        public WorldChunkManager(GameWorld gameWorld, int maxThreads)
+        public WorldChunkManager(IGameWorldRenderer renderer, int maxThreads)
         {
-            this.gameWorld = gameWorld;
+            this.renderer = renderer;
 
             for (int i = 0; i < maxThreads; i++)
                 chunkCreationThreads.Add(StartChunkCreateThread(i + 1));
@@ -117,7 +116,7 @@ namespace ProdigalSoftware.TiVE.Renderer.World
         {
             List<MeshBuilder> meshBuilders = new List<MeshBuilder>();
             for (int i = 0; i < MeshBuildersPerThread; i++)
-                meshBuilders.Add(new MeshBuilder(500000, 1000000));
+                meshBuilders.Add(new MeshBuilder(4000000, 4000000));
 
             int bottleneckCount = 0;
             while (!endCreationThreads)
@@ -159,7 +158,7 @@ namespace ProdigalSoftware.TiVE.Renderer.World
                 }
 
                 meshBuilder.StartNewMesh();
-                chunk.Load(meshBuilder, gameWorld);
+                chunk.Load(meshBuilder, renderer);
             }
         }
 
