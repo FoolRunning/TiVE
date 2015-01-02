@@ -50,7 +50,7 @@ namespace ProdigalSoftware.TiVE.Renderer.World
 
         public void Update(HashSet<GameWorldVoxelChunk> chunksToRender)
         {
-            Debug.Assert(Thread.CurrentThread.Name == "Main UI");
+            Debug.Assert(Thread.CurrentThread.Name == "FrameUpdate");
 
             foreach (GameWorldVoxelChunk chunk in chunksToRender)
             {
@@ -137,7 +137,7 @@ namespace ProdigalSoftware.TiVE.Renderer.World
                     if (bottleneckCount > 50) // 150ms give or take
                     {
                         bottleneckCount = 0;
-                        // Too many chunks are waiting to be intialized. Most likely there are chunks that were not properly disposed.
+                        // Too many chunks are waiting to be intialized. Still not sure how this can happen.
                         Messages.AddWarning("Mesh creation bottlenecked!");
                     }
 

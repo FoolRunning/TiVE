@@ -82,7 +82,7 @@ namespace ProdigalSoftware.TiVE.Renderer.World
 
             Debug.Assert(meshData.IsInitialized);
 
-            IShaderProgram shader = shaderManager.GetShaderProgram(VoxelMeshHelper.Get(true, false).ShaderName);
+            IShaderProgram shader = shaderManager.GetShaderProgram(VoxelMeshHelper.Get(false, false).ShaderName);
             shader.Bind();
 
             Matrix4 viewProjectionModelMatrix;
@@ -105,7 +105,7 @@ namespace ProdigalSoftware.TiVE.Renderer.World
 
             GameWorld gameWorld = renderer.GameWorld;
             LightProvider lightProvider = renderer.LightProvider;
-            VoxelMeshHelper meshHelper = VoxelMeshHelper.Get(true, false);
+            VoxelMeshHelper meshHelper = VoxelMeshHelper.Get(false, false);
 
             int voxelStartX = chunkLoc.X * BlockSize * BlockInformation.VoxelSize;
             int voxelStartY = chunkLoc.Y * BlockSize * BlockInformation.VoxelSize;
@@ -275,9 +275,10 @@ namespace ProdigalSoftware.TiVE.Renderer.World
         {
             if (mesh != null)
                 mesh.Dispose();
-            mesh = null;
 
-            if (chunkPolygonCount > 0)
+            if (chunkPolygonCount == 0)
+                mesh = null;
+            else
             {
                 mesh = meshBuilder.GetMesh();
                 mesh.Initialize();

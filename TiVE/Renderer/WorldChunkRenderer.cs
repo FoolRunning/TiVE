@@ -27,7 +27,7 @@ namespace ProdigalSoftware.TiVE.Renderer
 
         public void Dispose()
         {
-            Debug.Assert(Thread.CurrentThread.Name == "Main UI");
+            Debug.Assert(renderTree == null || Thread.CurrentThread.Name == "Main UI");
 
             chunksToRender.Clear();
 
@@ -87,14 +87,16 @@ namespace ProdigalSoftware.TiVE.Renderer
 
         public void Update(Camera camera, float timeSinceLastFrame)
         {
+            camera.Update();
+
             viewProjectionMatrix = Matrix4.Mult(camera.ViewMatrix, camera.ProjectionMatrix);
 
             chunksToRender.Clear();
             renderTree.FillChunksToRender(chunksToRender, camera);
 
             particleManager.UpdateCameraPos(chunksToRender);
-            BlockList.UpdateAnimations(timeSinceLastFrame);
             chunkManager.Update(chunksToRender);
+            BlockList.UpdateAnimations(timeSinceLastFrame);
         }
 
         public RenderStatistics Draw(Camera camera)

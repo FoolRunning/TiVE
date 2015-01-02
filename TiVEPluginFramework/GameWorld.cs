@@ -11,12 +11,9 @@ namespace ProdigalSoftware.TiVEPluginFramework
         private readonly Vector3i voxelSize;
         private readonly Vector3i blockSize;
         private readonly Block[] worldBlocks;
-        //private readonly BlockList blockList; // TODO: This was only for animated blocks and is not accessible here. Fix this!
 
-        public GameWorld(int blockSizeX, int blockSizeY, int blockSizeZ/*, BlockList blockList*/)
+        public GameWorld(int blockSizeX, int blockSizeY, int blockSizeZ)
         {
-            //this.blockList = blockList;
-
             blockSize = new Vector3i(blockSizeX, blockSizeY, blockSizeZ);
             voxelSize = new Vector3i(blockSizeX * BlockInformation.VoxelSize, blockSizeY * BlockInformation.VoxelSize, blockSizeZ * BlockInformation.VoxelSize);
 
@@ -78,7 +75,7 @@ namespace ProdigalSoftware.TiVEPluginFramework
             int blockVoxelZ = voxelZ % BlockInformation.VoxelSize;
 
             BlockInformation block = worldBlocks[GetBlockOffset(blockX, blockY, blockZ)].BlockInfo;
-            return /*blockList.BelongsToAnimation(block) ? 0 :*/ block[blockVoxelX, blockVoxelY, blockVoxelZ];
+            return block[blockVoxelX, blockVoxelY, blockVoxelZ];
         }
 
         #region Private helper methods

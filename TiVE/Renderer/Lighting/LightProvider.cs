@@ -24,6 +24,7 @@ namespace ProdigalSoftware.TiVE.Renderer.Lighting
 
     internal sealed class LightProvider
     {
+        private const int NumLightCalculationThreads = 3;
         private const int MaxLightsPerBlock = 10;
         private const float MinLightValue = 0.002f; // 0.002f (0.2%) produces the best result as that is less then a single light value's worth
 
@@ -40,9 +41,12 @@ namespace ProdigalSoftware.TiVE.Renderer.Lighting
             this.gameWorld = gameWorld;
             blockSize = new Vector3i(gameWorld.BlockSize.X, gameWorld.BlockSize.Y, gameWorld.BlockSize.Z);
 
+            Stopwatch sw = Stopwatch.StartNew();
             blockLightInfo = new BlockLightInfo[gameWorld.BlockSize.X * gameWorld.BlockSize.Y * gameWorld.BlockSize.Z];
             for (int i = 0; i < blockLightInfo.Length; i++)
                 blockLightInfo[i] = new BlockLightInfo(MaxLightsPerBlock);
+            sw.Stop();
+            Console.WriteLine("Allocating light blocks took " + sw.ElapsedMilliseconds + "ms");
 
             ambientLight = new Color3f(0, 0, 0);
         }
@@ -85,18 +89,18 @@ namespace ProdigalSoftware.TiVE.Renderer.Lighting
                         int vy = by * BlockInformation.VoxelSize + 5;
                         int vz = bz * BlockInformation.VoxelSize + 5;
                         float newLightPercentage = LightUtils.GetLightPercentage(lightInfo, vx, vy, vz);
-                        if (calcSimpleLights)
-                        {
-                            Color3f currentBlockLight = GetBlockLight(bx, by, bz);
-                            SetBlockLight(bx, by, bz, currentBlockLight + (light.Color * newLightPercentage));
-                        }
-
-                        if (!calcRealisticLights)
-                            continue;
-
                         List<LightInfo> blockLights = GetLights(bx, by, bz);
                         using (new PerformanceLock(blockLights))
                         {
+                            if (calcSimpleLights)
+                            {
+                                Color3f currentBlockLight = GetBlockLight(bx, by, bz);
+                                SetBlockLight(bx, by, bz, currentBlockLight + (light.Color * newLightPercentage));
+                            }
+
+                            if (!calcRealisticLights)
+                                continue;
+
                             if (blockLights.Count == 0)
                                 blockLights.Add(lightInfo);
                             else
@@ -180,15 +184,16 @@ namespace ProdigalSoftware.TiVE.Renderer.Lighting
             }
 
             Stopwatch sw = Stopwatch.StartNew();
-            int mid1 = blockSize.X / 3;
-            int mid2 = blockSize.X * 2 / 3;
-            Thread thread1 = StartLightCalculationThread("Light 1", 0, mid1, options);
-            Thread thread2 = StartLightCalculationThread("Light 2", mid1, mid2, options);
-            Thread thread3 = StartLightCalculationThread("Light 3", mid2, blockSize.X, options);
 
-            thread1.Join();
-            thread2.Join();
-            thread3.Join();
+            Thread[] threads = new Thread[NumLightCalculationThreads];
+            for (int i = 0; i < NumLightCalculationThreads; i++)
+            {
+                threads[i] = StartLightCalculationThread("Light " + (i + 1), 
+                    i * blockSize.X / NumLightCalculationThreads, (i + 1) * blockSize.X / NumLightCalculationThreads, options);
+            }
+
+            for (int i = 0; i < threads.Length; i++)
+                threads[i].Join();
 
             sw.Stop();
             Messages.AddDoneText();
@@ -259,7 +264,7 @@ namespace ProdigalSoftware.TiVE.Renderer.Lighting
 
         #region Block class
         /// <summary>
-        /// Represents one block in the game world
+        /// Represents the light information for one block in the game world
         /// </summary>
         private struct BlockLightInfo
         {

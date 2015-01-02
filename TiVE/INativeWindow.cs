@@ -20,6 +20,11 @@ namespace ProdigalSoftware.TiVE
         event EventHandler WindowClosing;
 
         /// <summary>
+        /// Gets the current client bounds of the window (i.e. the part of the window that should display the rendered contents)
+        /// </summary>
+        Rectangle ClientBounds { get; }
+
+        /// <summary>
         /// Sets the window title
         /// </summary>
         string WindowTitle { set; }
@@ -28,6 +33,11 @@ namespace ProdigalSoftware.TiVE
         /// Gets an implementation of the keyboard interface
         /// </summary>
         IKeyboard KeyboardImplementation { get; }
+
+        /// <summary>
+        /// Sets the icon to use for the window
+        /// </summary>
+        Icon Icon { set; }
 
         /// <summary>
         /// Requests the native window to close itself

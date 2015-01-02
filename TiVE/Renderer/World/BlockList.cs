@@ -23,7 +23,6 @@ namespace ProdigalSoftware.TiVE.Renderer.World
 
         private readonly Dictionary<string, BlockInformation> blockToIndexMap = new Dictionary<string, BlockInformation>();
         private readonly List<AnimationInfo> animationsList = new List<AnimationInfo>();
-        private readonly HashSet<BlockInformation> blocksBelongingToAnimations = new HashSet<BlockInformation>();
         private readonly Dictionary<BlockInformation, BlockInformation> blockAnimationMap = new Dictionary<BlockInformation, BlockInformation>();
         private readonly Dictionary<BlockInformation, VoxelGroup> blockMeshes = new Dictionary<BlockInformation, VoxelGroup>();
 
@@ -183,14 +182,8 @@ namespace ProdigalSoftware.TiVE.Renderer.World
                 if (animationsList.Exists(ani => animationInfo.AnimationSequence.Any(bl => ani.AnimationSequence.Contains(bl))))
                     throw new InvalidOperationException("Block is already used as an animation and can not belong to two animations");
 
-                blocksBelongingToAnimations.UnionWith(animationInfo.AnimationSequence);
                 animationsList.Add(animationInfo);
             }
-        }
-
-        public bool BelongsToAnimation(BlockInformation block)
-        {
-            return blocksBelongingToAnimations.Contains(block);
         }
 
         public void UpdateAnimations(float timeSinceLastUpdate)
@@ -224,12 +217,13 @@ namespace ProdigalSoftware.TiVE.Renderer.World
                     for (int y = camMinY; y < camMaxY; y++)
                     {
                         BlockInformation block = gameWorld[x, y, z];
-                        if (!BelongsToAnimation(block))
+                        if (block.NextBlock == null)
                             continue;
 
-                        BlockInformation newBlock = NextFrameFor(block);
-                        if (newBlock != null)
-                            gameWorld[x, y, z] = block = newBlock;
+                        BlockInformation nextBlock;
+                        blockAnimationMap.TryGetValue(block, out nextBlock);
+                        if (nextBlock != null)
+                            gameWorld[x, y, z] = block = nextBlock;
 
                         VoxelGroup voxelGroup;
                         if (!blockMeshes.TryGetValue(block, out voxelGroup))
@@ -244,13 +238,6 @@ namespace ProdigalSoftware.TiVE.Renderer.World
             }
 
             return stats;
-        }
-
-        private BlockInformation NextFrameFor(BlockInformation block)
-        {
-            BlockInformation nextBlock;
-            blockAnimationMap.TryGetValue(block, out nextBlock);
-            return nextBlock;
         }
 
         public BlockInformation this[string blockName]

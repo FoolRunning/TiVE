@@ -16,9 +16,9 @@ namespace ProdigalSoftware.TiVE.Renderer.OpenGL
     internal sealed class OpenGLRendererBackend : IRendererBackend
     {
         #region IRendererBackend implementation
-        public INativeWindow CreateNatveWindow(int width, int height, bool fullscreen, bool vsync)
+        public INativeWindow CreateNatveWindow(int width, int height, FullScreenMode fullscreenMode, int antiAliasAmount, bool vsync)
         {
-            OpenGLDisplay nativeWindow = new OpenGLDisplay(width, height, fullscreen, vsync);
+            OpenGLDisplay nativeWindow = new OpenGLDisplay(width, height, fullscreenMode, vsync, antiAliasAmount);
             nativeWindow.Visible = true;
             return nativeWindow;
         }
@@ -39,9 +39,9 @@ namespace ProdigalSoftware.TiVE.Renderer.OpenGL
             GlUtils.CheckGLErrors();
         }
 
-        public void WindowResized(Rectangle newBounds)
+        public void WindowResized(Rectangle newClientBounds)
         {
-            GL.Viewport(newBounds.X, newBounds.Y, newBounds.Width, newBounds.Height);
+            GL.Viewport(newClientBounds.X, newClientBounds.Y, newClientBounds.Width, newClientBounds.Height);
         }
 
         public void Draw(PrimitiveType primitiveType, IVertexDataCollection data)
@@ -160,18 +160,52 @@ namespace ProdigalSoftware.TiVE.Renderer.OpenGL
             /// <summary>
             /// Creates a window
             /// </summary>
-            public OpenGLDisplay(int width, int height, bool fullscreen, bool vsync)
-                : base(width, height, new GraphicsMode(32, 16, 0, 0), "TiVE",
-                    fullscreen ? GameWindowFlags.Fullscreen : GameWindowFlags.Default, 
+            public OpenGLDisplay(int width, int height, FullScreenMode fullScreenMode, bool vsync, int antiAliasAmount)
+                : base(width, height, new GraphicsMode(32, 16, 0, antiAliasAmount), "TiVE", 
+                    fullScreenMode == FullScreenMode.FullScreen ? GameWindowFlags.Fullscreen : GameWindowFlags.Default, 
                     DisplayDevice.Default, 3, 1, GraphicsContextFlags.ForwardCompatible)
             {
+                if (fullScreenMode == FullScreenMode.WindowFullScreen)
+                {
+                    Width = DisplayDevice.Default.Width;
+                    Height = DisplayDevice.Default.Height;
+                    WindowBorder = WindowBorder.Hidden;
+                    WindowState = WindowState.Fullscreen;
+                }
+                else if (fullScreenMode == FullScreenMode.FullScreen)
+                {
+                    // TODO: Abstract the resolution option and let the user choose the resolution
+                    DisplayResolution resolution = DisplayDevice.Default.SelectResolution(width, height, 32, 0.0f);
+                    DisplayDevice.Default.ChangeResolution(resolution);
+
+                    // This seems to be needed when multiple monitors are present and the chosen resolution would push a 
+                    // centered window onto the other monitor when the resolution is changed.
+                    X = Y = 0;
+
+                    // Not sure why, but some times when switching to fullscreen, the window will get the
+                    // size of a secondary monitor. Reset the size just in case.
+                    Width = resolution.Width;
+                    Height = resolution.Height;
+                }
+                else // Windowed
+                {
+                    WindowBorder = WindowBorder.Resizable;
+                    WindowState = WindowState.Normal;
+                }
+
                 VSync = vsync ? VSyncMode.On : VSyncMode.Off;
+
                 Closing += OpenGLDisplay_Closing;
                 Resize += OpenGLDisplay_Resize;
             }
 
             public event Action<Rectangle> WindowResized;
             public event EventHandler WindowClosing;
+
+            public Rectangle ClientBounds
+            {
+                get { return ClientRectangle; }
+            }
 
             public string WindowTitle
             {
@@ -186,6 +220,8 @@ namespace ProdigalSoftware.TiVE.Renderer.OpenGL
             public void CloseWindow()
             {
                 Exit();
+
+                DisplayDevice.Default.RestoreResolution();
             }
 
             public void ProcessNativeEvents()
@@ -196,13 +232,12 @@ namespace ProdigalSoftware.TiVE.Renderer.OpenGL
             public void UpdateDisplayContents()
             {
                 GlUtils.CheckGLErrors();
-                
                 SwapBuffers();
             }
 
             void OpenGLDisplay_Closing(object sender, System.ComponentModel.CancelEventArgs e)
             {
-                // Although this looks weird, we need to cancel the disposing of the OpenGL context, but we will still exit with the following call
+                // Although this looks weird, we need to cancel the disposing of the OpenGL context, but we will still exit after firing the event
                 e.Cancel = true;
 
                 if (WindowClosing != null)
@@ -214,22 +249,22 @@ namespace ProdigalSoftware.TiVE.Renderer.OpenGL
                 if (WindowResized != null)
                     WindowResized(ClientRectangle);
             }
+        }
+        #endregion
 
-            private class KeyboardImpl : IKeyboard
+        #region KeyboardImpl class
+        private class KeyboardImpl : IKeyboard
+        {
+            private readonly KeyboardDevice device;
+
+            public KeyboardImpl(KeyboardDevice device)
             {
-                private readonly KeyboardDevice device;
+                this.device = device;
+            }
 
-                public KeyboardImpl(KeyboardDevice device)
-                {
-                    this.device = device;
-                }
-
-                #region Implementation of IKeyboard
-                public bool IsKeyPressed(Keys key)
-                {
-                    return device[(Key)(uint)key];
-                }
-                #endregion
+            public bool IsKeyPressed(Keys key)
+            {
+                return device[(Key)(uint)key];
             }
         }
         #endregion

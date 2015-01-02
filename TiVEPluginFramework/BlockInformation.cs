@@ -17,9 +17,8 @@ namespace ProdigalSoftware.TiVEPluginFramework
         private readonly uint[] voxels = new uint[VoxelSize * VoxelSize * VoxelSize];
         private BlockInformation[] rotated;
 
-        private BlockInformation(BlockInformation toCopy, string newBlockName, ParticleSystemInformation particleSystem = null, 
-            ILight light = null, BlockInformation nextBlock = null) : 
-            this(newBlockName, particleSystem ?? toCopy.ParticleSystem, light ?? toCopy.Light, nextBlock ?? toCopy.NextBlock)
+        private BlockInformation(BlockInformation toCopy, string newBlockName) : 
+            this(newBlockName, toCopy.ParticleSystem, toCopy.Light)
         {
             Array.Copy(toCopy.voxels, voxels, voxels.Length);
         }
@@ -70,7 +69,10 @@ namespace ProdigalSoftware.TiVEPluginFramework
         [NotNull]
         private BlockInformation CreateRotated(BlockRotation rotation)
         {
-            BlockInformation rotatedBlock = new BlockInformation(this, BlockName + "R" + (int)rotation, ParticleSystem, Light);
+            if (rotation == BlockRotation.NotRotated)
+                return this;
+
+            BlockInformation rotatedBlock = new BlockInformation(this, BlockName + "R" + (int)rotation);
             switch (rotation)
             {
                 case BlockRotation.NinetyCCW:

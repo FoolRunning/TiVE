@@ -20,11 +20,11 @@ namespace ProdigalSoftware.TiVE
 
     internal interface IRendererBackend
     {
-        INativeWindow CreateNatveWindow(int width, int height, bool fullScreen, bool vsync);
+        INativeWindow CreateNatveWindow(int width, int height, FullScreenMode fullScreenMode, int antiAliasAmount, bool vsync);
 
         void Initialize();
 
-        void WindowResized(Rectangle newBounds);
+        void WindowResized(Rectangle newClientBounds);
 
         void Draw(PrimitiveType primitiveType, IVertexDataCollection data);
 

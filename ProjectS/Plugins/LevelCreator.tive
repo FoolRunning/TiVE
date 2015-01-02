@@ -15,7 +15,7 @@ namespace ProdigalSoftware.ProjectS.Controllers
 
         public GameWorld CreateGameWorld(string gameWorldName, IBlockList blockList)
         {
-            GameWorld gameWorld = new GameWorld(61, 41, 5);
+            GameWorld gameWorld = new GameWorld(41, 31, 5);
 
             BlockInformation lightRed = blockList["Light_Red"];
             BlockInformation lightGreen = blockList["Light_Green"];
@@ -75,13 +75,13 @@ namespace ProdigalSoftware.ProjectS.Controllers
             gameWorld[gameWorld.BlockSize.X - 1, 0, 1] = wallCorner;//.Rotate(BlockRotation.TwoSeventyCCW);
             gameWorld[gameWorld.BlockSize.X - 1, gameWorld.BlockSize.Y - 1, 1] = wallCorner;
 
-            for (int x = 20; x < 51; x++)
+            for (int x = 10; x < 31; x++)
             {
-                gameWorld[x, 20, 1] = wall;
+                gameWorld[x, 15, 1] = wall;
                 if (x % 5 == 0)
                 {
-                    gameWorld[x, 20, 2] = lightBlue;
-                    gameWorld[x, 20, 1] = wallLight;
+                    gameWorld[x, 15, 2] = lightBlue;
+                    gameWorld[x, 15, 1] = wallLight;
                 }
             }
             //gameWorld[19, 20, 1] = wallEnd;//.Rotate(BlockRotation.OneEightyCCW);

@@ -1,4 +1,5 @@
 ﻿using System;
+using JetBrains.Annotations;
 using OpenTK;
 using ProdigalSoftware.TiVE.Renderer.World;
 using ProdigalSoftware.TiVE.Utils;
@@ -7,8 +8,8 @@ namespace ProdigalSoftware.TiVE.Renderer
 {
     internal sealed class Camera
     {
-        private const float NearDist = 1.0f;
-        private const float FarDist = 1000.0f;
+        #region Constants
+        private const float NearDist = 0.5f;
 
         private const int Top = 0;
         private const int Bottom = 1;
@@ -16,40 +17,51 @@ namespace ProdigalSoftware.TiVE.Renderer
         private const int Right = 3;
         private const int Near = 4;
         private const int Far = 5;
+        #endregion
 
+        #region Member variables
         private readonly Plane[] frustrumPlanes = new Plane[6];
 
         private Vector3 location;
         private Vector3 lookAtLocation;
-        private Vector3 upVector;
-        private Matrix4 viewMatrix;
-        private Matrix4 projectionMatrix;
+        private Vector3 upVector = Vector3.UnitY;
         private bool needUpdateViewMatrix;
         private bool needUpdateProjectionMatrix;
-        private float fieldOfView;
-        private float aspectRatio;
+        private float fieldOfView = (float)Math.PI / 3; // 60 degrees
+        private float aspectRatio = 16 / 9.0f;
         private float nearWidth;
         private float nearHeight;
+        private float farDist = 500.0f;
+        #endregion
 
+        #region Constructor
         public Camera()
         {
-            aspectRatio = 16 / 9.0f;
-            fieldOfView = (float)Math.PI / 3; // 60 degrees
-            upVector = Vector3.UnitY;
             needUpdateViewMatrix = true;
             needUpdateProjectionMatrix = true;
         }
+        #endregion
 
-        public Matrix4 ViewMatrix
+        #region Properties
+        public Matrix4 ViewMatrix { get; private set; }
+
+        public Matrix4 ProjectionMatrix { get; private set; }
+
+        [PublicAPI]
+        public float FarDistance
         {
-            get { return viewMatrix; }
+            get { return farDist; }
+            set
+            {
+                if (!Equals(value, farDist))
+                {
+                    farDist = value;
+                    needUpdateProjectionMatrix = true;
+                }
+            }
         }
 
-        public Matrix4 ProjectionMatrix
-        {
-            get { return projectionMatrix; }
-        }
-
+        [PublicAPI]
         public Vector3 UpVector
         {
             get { return upVector; }
@@ -63,6 +75,7 @@ namespace ProdigalSoftware.TiVE.Renderer
             }
         }
 
+        [PublicAPI]
         public Vector3 Location
         {
             get { return location; }
@@ -76,6 +89,7 @@ namespace ProdigalSoftware.TiVE.Renderer
             }
         }
 
+        [PublicAPI]
         public Vector3 LookAtLocation
         {
             get { return lookAtLocation; }
@@ -89,12 +103,13 @@ namespace ProdigalSoftware.TiVE.Renderer
             }
         }
 
+        [PublicAPI]
         public float AspectRatio
         {
             get { return aspectRatio; }
             set 
             {
-                if (value != aspectRatio)
+                if (!Equals(value, aspectRatio))
                 {
                     aspectRatio = value;
                     needUpdateProjectionMatrix = true;
@@ -102,36 +117,38 @@ namespace ProdigalSoftware.TiVE.Renderer
             }
         }
 
+        [PublicAPI]
         public float FoV
         {
             get { return fieldOfView; }
             set
             {
-                if (value != fieldOfView)
+                if (!Equals(value, fieldOfView))
                 {
                     fieldOfView = value;
                     needUpdateProjectionMatrix = true;
                 }
             }
         }
+        #endregion
 
         public void Update()
         {
             if (needUpdateProjectionMatrix)
             {
                 needUpdateProjectionMatrix = false;
-                projectionMatrix = Matrix4.CreatePerspectiveFieldOfView(fieldOfView, aspectRatio, NearDist, FarDist);
+                ProjectionMatrix = Matrix4.CreatePerspectiveFieldOfView(fieldOfView, aspectRatio, NearDist, farDist);
 
                 // Cache projection-related values used in the frustrum calculation
                 nearHeight = NearDist * (float)Math.Tan(FoV * 0.5f);
                 nearWidth = nearHeight * aspectRatio;
-                needUpdateViewMatrix = true;
+                needUpdateViewMatrix = true; // Need to update the view matrix with the new width/height values
             }
 
             if (needUpdateViewMatrix)
             {
                 needUpdateViewMatrix = false;
-                viewMatrix = Matrix4.LookAt(location, lookAtLocation, upVector);
+                ViewMatrix = Matrix4.LookAt(location, lookAtLocation, upVector);
             
                 // Calculate frustrum planes
                 Vector3 zAxis = location - lookAtLocation;
@@ -141,7 +158,7 @@ namespace ProdigalSoftware.TiVE.Renderer
                 Vector3 yAxis = Vector3.Cross(zAxis, xAxis);
 
                 Vector3 nearCenter = location - zAxis * NearDist;
-                Vector3 farCenter = location - zAxis * FarDist;
+                Vector3 farCenter = location - zAxis * farDist;
 
                 frustrumPlanes[Near] = new Plane(-zAxis, nearCenter);
                 frustrumPlanes[Far] = new Plane(zAxis, farCenter);
