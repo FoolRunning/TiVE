@@ -9,6 +9,13 @@ using ProdigalSoftware.TiVE.Starter;
 
 namespace ProdigalSoftware.TiVE
 {
+    public enum FullScreenMode
+    {
+        Windowed,
+        FullScreen,
+        WindowFullScreen
+    }
+
     public static class TiVEController
     {
         internal static readonly PluginManager PluginManager = new PluginManager();

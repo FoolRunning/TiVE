@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Drawing;
 using Microsoft.CSharp.RuntimeBinder;
 using NLua.Exceptions;
 using ProdigalSoftware.TiVE.Renderer;
@@ -14,8 +15,10 @@ namespace ProdigalSoftware.TiVE
 {
     internal sealed class GameLogic
     {
-        private const int GameUpdatesPerSecond = 60;
-        private const int DisplayUpdatesPerSecond = 60;
+        public const string DisplayUpdateThreadName = "Main UI";
+        public const string GameUpdateThreadName = "Main UI";
+
+        private const int UpdatesPerSecond = 60;
 
         private readonly IGameWorldRenderer renderer = new WorldChunkRenderer(3);
         private readonly Camera camera = new Camera();
@@ -31,7 +34,6 @@ namespace ProdigalSoftware.TiVE
 
         private volatile bool continueMainLoop;
         private IKeyboard keyboard;
-        private double lastPrintTime; 
         private dynamic gameScript;
 
         public bool Initialize()
@@ -84,57 +86,55 @@ namespace ProdigalSoftware.TiVE
 
         public void RunMainLoop()
         {
-            INativeWindow nativeWindow = TiVEController.Backend.CreateNatveWindow(1280, 720, false, false);
-            nativeWindow.WindowResized += newSize =>
-                {
-                    TiVEController.Backend.WindowResized(newSize);
-                    camera.AspectRatio = newSize.Width / (float)newSize.Height;
-                };
+            // TODO: Add a way for these to be chosen by the user
+            const FullScreenMode fullScreenMode = FullScreenMode.Windowed;
+            const bool useVsync = true;
+            const int antiAliasAmount = 8;
+
+            INativeWindow nativeWindow = TiVEController.Backend.CreateNatveWindow(1280, 720, fullScreenMode, antiAliasAmount, useVsync);
+            nativeWindow.Icon = Properties.Resources.P_button;
+
+            nativeWindow.WindowResized += NativeWindowResized;
             nativeWindow.WindowClosing += (s, e) => continueMainLoop = false;
             keyboard = nativeWindow.KeyboardImplementation;
 
             TiVEController.Backend.Initialize();
+            NativeWindowResized(nativeWindow.ClientBounds); // Make sure we start out at the correct size
 
-            long ticksPerGameUpdate = Stopwatch.Frequency / GameUpdatesPerSecond;
-            long ticksPerDisplayUpdate = Stopwatch.Frequency / DisplayUpdatesPerSecond;
+            long ticksPerUpdate = Stopwatch.Frequency / UpdatesPerSecond;
 
             continueMainLoop = true;
-            long previousGameUpdateTime = Stopwatch.GetTimestamp();
             long previousDisplayUpdateTime = Stopwatch.GetTimestamp();
+            long lastPrintTime = Stopwatch.GetTimestamp();
+
             while (continueMainLoop)
             {
                 nativeWindow.ProcessNativeEvents();
 
                 long currentTime = Stopwatch.GetTimestamp();
-                if (previousGameUpdateTime + ticksPerGameUpdate <= currentTime)
+                if (lastPrintTime + Stopwatch.Frequency <= currentTime)
                 {
-                    float timeSinceLastFrame = (currentTime - previousGameUpdateTime) / (float)Stopwatch.Frequency;
-                    previousGameUpdateTime = currentTime;
-                    if (!UpdateFrame(timeSinceLastFrame))
-                        break;
+                    lastPrintTime = currentTime;
+                    updateTime.UpdateDisplayedTime();
+                    renderTime.UpdateDisplayedTime();
+                    frameTime.UpdateDisplayedTime();
 
-                    lastPrintTime += timeSinceLastFrame;
-                    if (lastPrintTime > 1)
-                    {
-                        lastPrintTime -= 1;
-                        updateTime.UpdateDisplayedTime();
-                        renderTime.UpdateDisplayedTime();
-                        frameTime.UpdateDisplayedTime();
+                    drawCount.UpdateDisplayedTime();
+                    voxelCount.UpdateDisplayedTime();
+                    renderedVoxelCount.UpdateDisplayedTime();
+                    polygonCount.UpdateDisplayedTime();
 
-                        drawCount.UpdateDisplayedTime();
-                        voxelCount.UpdateDisplayedTime();
-                        renderedVoxelCount.UpdateDisplayedTime();
-                        polygonCount.UpdateDisplayedTime();
-
-                        nativeWindow.WindowTitle = string.Format("TiVE   Frame={6}   Update={5}   Render={4}   Voxels={0}  Rendered={1}  Polys={2}  Draws={3}",
-                            voxelCount.DisplayedValue, renderedVoxelCount.DisplayedValue, polygonCount.DisplayedValue, drawCount.DisplayedValue,
-                            renderTime.DisplayedValue, updateTime.DisplayedValue, frameTime.DisplayedValue);
-                    }
+                    nativeWindow.WindowTitle = string.Format("TiVE   Frame={6}   Update={5}   Render={4}   Voxels={0}  Rendered={1}  Polys={2}  Draws={3}",
+                        voxelCount.DisplayedValue, renderedVoxelCount.DisplayedValue, polygonCount.DisplayedValue, drawCount.DisplayedValue,
+                        renderTime.DisplayedValue, updateTime.DisplayedValue, frameTime.DisplayedValue);
                 }
-                if (previousDisplayUpdateTime + ticksPerDisplayUpdate <= currentTime)
+
+                if (useVsync || previousDisplayUpdateTime + ticksPerUpdate <= currentTime)
                 {
+                    float timeSinceLastFrame = (currentTime - previousDisplayUpdateTime) / (float)Stopwatch.Frequency;
                     previousDisplayUpdateTime = currentTime;
                     RenderFrame();
+                    UpdateGame(timeSinceLastFrame);
                     nativeWindow.UpdateDisplayContents();
                 }
             }
@@ -149,32 +149,10 @@ namespace ProdigalSoftware.TiVE
             Messages.AddDoneText();
         }
 
-        private bool UpdateFrame(float timeSinceLastFrame)
+        private void NativeWindowResized(Rectangle newClientBounds)
         {
-            if (keyboard.IsKeyPressed(Keys.Escape))
-                return false;
-
-            updateTime.MarkStartTime();
-            try
-            {
-                gameScript.Update(camera);
-            }
-            catch (RuntimeBinderException)
-            {
-                Messages.AddError("Can not find Update(camera) function in Game script");
-                return false;
-            }
-            catch (LuaScriptException e)
-            {
-                Messages.AddStackTrace(e);
-                return false;
-            }
-
-            camera.Update();
-            renderer.Update(camera, timeSinceLastFrame);
-
-            updateTime.PushTime();
-            return true;
+            TiVEController.Backend.WindowResized(newClientBounds);
+            camera.AspectRatio = newClientBounds.Width / (float)newClientBounds.Height;
         }
 
         private void RenderFrame()
@@ -196,6 +174,32 @@ namespace ProdigalSoftware.TiVE
 
             renderTime.PushTime();
         }
+        
+        private void UpdateGame(float timeSinceLastFrame)
+        {
+            if (keyboard.IsKeyPressed(Keys.Escape))
+                continueMainLoop = false;
+
+            updateTime.MarkStartTime();
+            try
+            {
+                gameScript.Update(camera);
+            }
+            catch (RuntimeBinderException)
+            {
+                Messages.AddError("Can not find Update(camera) function in Game script");
+                continueMainLoop = false;
+            }
+            catch (LuaScriptException e)
+            {
+                Messages.AddStackTrace(e);
+                continueMainLoop = false;
+            }
+
+            renderer.Update(camera, timeSinceLastFrame);//*/ 1.0f / GameUpdatesPerSecond);
+
+            updateTime.PushTime();
+        }
 
         #region TimeStatHelper class
         private sealed class TimeStatHelper
@@ -206,6 +210,8 @@ namespace ProdigalSoftware.TiVE
             private float maxTime;
             private float totalTime;
             private int dataCount;
+
+            private readonly object syncObj = new object();
 
             public TimeStatHelper(int digitsAfterDecimal, bool showMinMax)
             {
@@ -222,30 +228,37 @@ namespace ProdigalSoftware.TiVE
             /// </summary>
             public void UpdateDisplayedTime()
             {
-                DisplayedValue = string.Format(formatString, totalTime / Math.Max(dataCount, 1), minTime, maxTime);
-                totalTime = 0;
-                dataCount = 0;
-                minTime = float.MaxValue;
-                maxTime = 0;
+                using (new PerformanceLock(syncObj))
+                {
+                    DisplayedValue = string.Format(formatString, totalTime / Math.Max(dataCount, 1), minTime, maxTime);
+                    totalTime = 0;
+                    dataCount = 0;
+                    minTime = float.MaxValue;
+                    maxTime = 0;
+                }
             }
 
             public void MarkStartTime()
             {
-                startTicks = Stopwatch.GetTimestamp();
+                using (new PerformanceLock(syncObj))
+                    startTicks = Stopwatch.GetTimestamp();
             }
 
             public void PushTime()
             {
                 long endTime = Stopwatch.GetTimestamp();
                 float newTime = (endTime - startTicks) * 1000.0f / Stopwatch.Frequency;
-                totalTime += newTime;
-                dataCount++;
+                using (new PerformanceLock(syncObj))
+                {
+                    totalTime += newTime;
+                    dataCount++;
 
-                if (newTime < minTime)
-                    minTime = newTime;
+                    if (newTime < minTime)
+                        minTime = newTime;
 
-                if (newTime > maxTime)
-                    maxTime = newTime;
+                    if (newTime > maxTime)
+                        maxTime = newTime;
+                }
             }
         }
         #endregion
@@ -254,7 +267,7 @@ namespace ProdigalSoftware.TiVE
         private sealed class CountStatHelper
         {
             private readonly string formatString;
-            private int totalCount;
+            private long totalCount;
             private int minCount = int.MaxValue;
             private int maxCount;
             private int dataCount;

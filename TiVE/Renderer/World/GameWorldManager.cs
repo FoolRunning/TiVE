@@ -5,7 +5,7 @@ using ProdigalSoftware.TiVEPluginFramework;
 namespace ProdigalSoftware.TiVE.Renderer.World
 {
     /// <summary>
-    /// Creates a world based on a set of generators
+    /// 
     /// </summary>
     internal static class GameWorldManager
     {

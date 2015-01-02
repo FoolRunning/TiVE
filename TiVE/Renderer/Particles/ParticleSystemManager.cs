@@ -48,7 +48,7 @@ namespace ProdigalSoftware.TiVE.Renderer.Particles
 
         public void UpdateCameraPos(HashSet<GameWorldVoxelChunk> chunksToRender)
         {
-            Debug.Assert(Thread.CurrentThread.Name == "Main UI");
+            Debug.Assert(Thread.CurrentThread.Name == "FrameUpdate");
 
             // TODO: Implement this again based on the new chunk renderer
 
@@ -91,6 +91,8 @@ namespace ProdigalSoftware.TiVE.Renderer.Particles
 
         public RenderStatistics Render(ShaderManager shaderManager, ref Matrix4 matrixMVP)
         {
+            Debug.Assert(Thread.CurrentThread.Name == "Main UI");
+
             renderList.Clear();
             using (new PerformanceLock(particleSystemCollections))
                 renderList.AddRange(particleSystemCollections.Values);
