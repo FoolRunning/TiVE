@@ -12,10 +12,11 @@ namespace ProdigalSoftware.TiVE.Renderer.World
     internal sealed class GameWorldVoxelChunk : IDisposable
     {
         #region Constants
-        public const int BlockSize = 5;
+        public const int BlockSize = 4;
         public const int VoxelSize = BlockSize * BlockInformation.VoxelSize;
         #endregion
 
+        #region Member variables
         private readonly object syncLock = new object();
         private readonly Vector3i chunkLoc;
         private Matrix4 translationMatrix;
@@ -26,6 +27,7 @@ namespace ProdigalSoftware.TiVE.Renderer.World
         private int chunkRenderedVoxelCount;
         private MeshBuilder meshBuilder;
         private IVertexDataCollection mesh;
+        #endregion
 
         public GameWorldVoxelChunk(int chunkX, int chunkY, int chunkZ)
         {
@@ -82,7 +84,7 @@ namespace ProdigalSoftware.TiVE.Renderer.World
 
             Debug.Assert(meshData.IsInitialized);
 
-            IShaderProgram shader = shaderManager.GetShaderProgram(VoxelMeshHelper.Get(false, false).ShaderName);
+            IShaderProgram shader = shaderManager.GetShaderProgram(VoxelMeshHelper.Get(false).ShaderName);
             shader.Bind();
 
             Matrix4 viewProjectionModelMatrix;
@@ -105,7 +107,7 @@ namespace ProdigalSoftware.TiVE.Renderer.World
 
             GameWorld gameWorld = renderer.GameWorld;
             LightProvider lightProvider = renderer.LightProvider;
-            VoxelMeshHelper meshHelper = VoxelMeshHelper.Get(false, false);
+            VoxelMeshHelper meshHelper = VoxelMeshHelper.Get(false);
 
             int voxelStartX = chunkLoc.X * BlockSize * BlockInformation.VoxelSize;
             int voxelStartY = chunkLoc.Y * BlockSize * BlockInformation.VoxelSize;

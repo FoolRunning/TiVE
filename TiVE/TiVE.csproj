@@ -114,7 +114,8 @@
     <Compile Include="Renderer\Meshes\MeshBuilderBase.cs" />
     <Compile Include="Renderer\Voxels\VoxelMeshHelper.cs" />
     <Compile Include="Renderer\World\ChunkRenderTree.cs" />
-    <Compile Include="UserSettingsManager.cs" />
+    <Compile Include="Settings\Setting.cs" />
+    <Compile Include="Settings\UserSettings.cs" />
     <Compile Include="Utils\Plane.cs" />
     <Compile Include="Renderer\Lighting\LightUtils.cs" />
     <Compile Include="Renderer\Particles\ParticleSystemCollection.cs" />

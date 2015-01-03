@@ -65,15 +65,5 @@ namespace ProdigalSoftware.TiVE.Renderer
         /// 
         /// </summary>
         void UnmapData();
-
-        /// <summary>
-        /// Locks the data so that it won't not be deleted (even if Delete() is called)
-        /// </summary>
-        void Lock();
-
-        /// <summary>
-        /// Unlocks the data so it can be deleted
-        /// </summary>
-        void Unlock();
     }
 }

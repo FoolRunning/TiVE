@@ -415,7 +415,6 @@ namespace ProdigalSoftware.TiVE.Renderer.OpenGL
             private readonly bool normalize;
             private readonly bool dynamic;
             private int dataVboId;
-            private bool locked;
 
             public RendererData(T[] data, int elementCount, int elementsPerVertex, DataType dataType, ValueType valueType, bool normalize, bool dynamic)
             {
@@ -439,17 +438,14 @@ namespace ProdigalSoftware.TiVE.Renderer.OpenGL
             /// </summary>
             public void Dispose()
             {
-                if (!locked)
+                if (dataVboId != 0)
                 {
-                    if (dataVboId != 0)
-                    {
-                        GL.DeleteBuffer(dataVboId);
-                        GlUtils.CheckGLErrors();
-                    }
-                    dataVboId = 0;
-                    data = null;
-                    GC.SuppressFinalize(this);
+                    GL.DeleteBuffer(dataVboId);
+                    GlUtils.CheckGLErrors();
                 }
+                dataVboId = 0;
+                data = null;
+                GC.SuppressFinalize(this);
             }
 
             public int DataLength
@@ -545,17 +541,7 @@ namespace ProdigalSoftware.TiVE.Renderer.OpenGL
                 GL.UnmapBuffer(target);
                 GlUtils.CheckGLErrors();
             }
-
-            public void Lock()
-            {
-                locked = true;
-            }
-
-            public void Unlock()
-            {
-                locked = false;
-            }
-
+            
             private void Bind(BufferTarget target, int arrayAttrib)
             {
                 GL.BindBuffer(target, dataVboId);

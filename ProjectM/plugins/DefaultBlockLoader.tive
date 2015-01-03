@@ -13,6 +13,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
 
         public IEnumerable<BlockInformation> CreateBlocks(string blockListName)
         {
+            byte blockCenter = BlockInformation.VoxelSize / 2;
             for (int i = 0; i < 5; i++)
             {
                 yield return CreateBlockInfo("dirt" + i, false, (float)Math.Ceiling(BlockInformation.VoxelSize / 2.0f), new Color4f(129, 53, 2, 255), 1.0f);
@@ -23,27 +24,29 @@ namespace ProdigalSoftware.ProjectM.Plugins
 
             uint[,,] particleVoxels = new uint[1, 1, 1];
             particleVoxels[0, 0, 0] = 0xFFFFFFFF;
-            yield return new BlockInformation("fire", 
-                new ParticleSystemInformation(particleVoxels, new FireUpdater(), new Vector3b(5, 5, 1), 300, 310, true, false),
-                new PointLight(new Vector3b(5, 5, 1), new Color3f(1.0f, 0.9f, 0.6f), 0.002f));
+            BlockInformation fireBlock = new BlockInformation("fire", 
+                new ParticleSystemInformation(particleVoxels, new FireUpdater(), new Vector3b(blockCenter, blockCenter, 1), 300, 310, true, false),
+                new PointLight(new Vector3b(blockCenter, blockCenter, 2), new Color3f(1.0f, 0.9f, 0.6f), 5));
+            fireBlock[blockCenter, blockCenter, 1] = 0xFFFFFFFF;
+            yield return fireBlock;
 
             yield return CreateBlockInfo("light0", false, 2, new Color4f(255, 40, 40, 255), 1.0f, null,
-                new PointLight(new Vector3b(5, 5, 5), new Color3f(1.0f, 0.05f, 0.05f), 0.0009f));
+                new PointLight(new Vector3b(5, 5, 5), new Color3f(1.0f, 0.05f, 0.05f), 15));
 
             yield return CreateBlockInfo("light1", false, 2, new Color4f(255, 255, 40, 255), 1.0f, null,
-                new PointLight(new Vector3b(5, 5, 5), new Color3f(1.0f, 1.0f, 0.05f), 0.0009f));
+                new PointLight(new Vector3b(5, 5, 5), new Color3f(1.0f, 1.0f, 0.05f), 15));
 
             yield return CreateBlockInfo("light2", false, 2, new Color4f(40, 255, 40, 255), 1.0f, null,
-                new PointLight(new Vector3b(5, 5, 5), new Color3f(0.05f, 1.0f, 0.05f), 0.0009f));
+                new PointLight(new Vector3b(5, 5, 5), new Color3f(0.05f, 1.0f, 0.05f), 15));
 
             yield return CreateBlockInfo("light3", false, 2, new Color4f(40, 255, 255, 255), 1.0f, null,
-                new PointLight(new Vector3b(5, 5, 5), new Color3f(0.05f, 1.0f, 1.0f), 0.0009f));
+                new PointLight(new Vector3b(5, 5, 5), new Color3f(0.05f, 1.0f, 1.0f), 15));
 
             yield return CreateBlockInfo("light4", false, 2, new Color4f(40, 40, 255, 255), 1.0f, null,
-                new PointLight(new Vector3b(5, 5, 5), new Color3f(0.05f, 0.05f, 1.0f), 0.0009f));
+                new PointLight(new Vector3b(5, 5, 5), new Color3f(0.05f, 0.05f, 1.0f), 15));
 
             yield return CreateBlockInfo("light5", false, 2, new Color4f(255, 40, 255, 255), 1.0f, null,
-                new PointLight(new Vector3b(5, 5, 5), new Color3f(1.0f, 0.05f, 1.0f), 0.0009f));
+                new PointLight(new Vector3b(5, 5, 5), new Color3f(1.0f, 0.05f, 1.0f), 15));
 
             yield return new BlockInformation("snow",
                 new ParticleSystemInformation(particleVoxels, new SnowUpdater(), new Vector3b(0, 0, 0), 100, 1, false, true));

@@ -11,7 +11,7 @@ namespace ProdigalSoftware.TiVE.Renderer.Voxels
             renderedVoxelCount = 0;
             polygonCount = 0;
 
-            VoxelMeshHelper meshHelper = VoxelMeshHelper.Get(false, false);
+            VoxelMeshHelper meshHelper = VoxelMeshHelper.Get(false);
             meshBuilder.StartNewMesh();
             int xSize = voxels.GetLength(0);
             int ySize = voxels.GetLength(1);

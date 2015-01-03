@@ -32,6 +32,8 @@
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.tbMessages = new System.Windows.Forms.TabPage();
             this.tbOptions = new System.Windows.Forms.TabPage();
+            this.panel1 = new System.Windows.Forms.Panel();
+            this.pnlOptionsList = new System.Windows.Forms.TableLayoutPanel();
             this.tbAdvancedOptions = new System.Windows.Forms.TabPage();
             this.tableLayoutPanel2 = new System.Windows.Forms.TableLayoutPanel();
             this.label1 = new System.Windows.Forms.Label();
@@ -39,13 +41,11 @@
             this.btnExit = new System.Windows.Forms.Button();
             this.btnCopyText = new System.Windows.Forms.Button();
             this.btnStart = new System.Windows.Forms.Button();
-            this.panel1 = new System.Windows.Forms.Panel();
-            this.pnlOptionsList = new System.Windows.Forms.TableLayoutPanel();
             this.tableLayoutPanel1.SuspendLayout();
             this.tabControl1.SuspendLayout();
             this.tbOptions.SuspendLayout();
-            this.tableLayoutPanel2.SuspendLayout();
             this.panel1.SuspendLayout();
+            this.tableLayoutPanel2.SuspendLayout();
             this.SuspendLayout();
             // 
             // tableLayoutPanel1
@@ -99,6 +99,30 @@
             this.tbOptions.TabIndex = 1;
             this.tbOptions.Text = "Options";
             this.tbOptions.UseVisualStyleBackColor = true;
+            // 
+            // panel1
+            // 
+            this.panel1.AutoScroll = true;
+            this.panel1.Controls.Add(this.pnlOptionsList);
+            this.panel1.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.panel1.Location = new System.Drawing.Point(3, 3);
+            this.panel1.Name = "panel1";
+            this.panel1.Size = new System.Drawing.Size(780, 415);
+            this.panel1.TabIndex = 0;
+            // 
+            // pnlOptionsList
+            // 
+            this.pnlOptionsList.AutoSize = true;
+            this.pnlOptionsList.ColumnCount = 2;
+            this.pnlOptionsList.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle());
+            this.pnlOptionsList.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
+            this.pnlOptionsList.Location = new System.Drawing.Point(3, 3);
+            this.pnlOptionsList.Name = "pnlOptionsList";
+            this.pnlOptionsList.RowCount = 1;
+            this.pnlOptionsList.RowStyles.Add(new System.Windows.Forms.RowStyle());
+            this.pnlOptionsList.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 342F));
+            this.pnlOptionsList.Size = new System.Drawing.Size(743, 116);
+            this.pnlOptionsList.TabIndex = 0;
             // 
             // tbAdvancedOptions
             // 
@@ -191,28 +215,6 @@
             this.btnStart.UseVisualStyleBackColor = false;
             this.btnStart.Click += new System.EventHandler(this.btnStart_Click);
             // 
-            // panel1
-            // 
-            this.panel1.Controls.Add(this.pnlOptionsList);
-            this.panel1.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.panel1.Location = new System.Drawing.Point(3, 3);
-            this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(780, 415);
-            this.panel1.TabIndex = 0;
-            // 
-            // pnlOptionsList
-            // 
-            this.pnlOptionsList.ColumnCount = 2;
-            this.pnlOptionsList.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50F));
-            this.pnlOptionsList.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50F));
-            this.pnlOptionsList.Location = new System.Drawing.Point(3, 3);
-            this.pnlOptionsList.Name = "pnlOptionsList";
-            this.pnlOptionsList.RowCount = 2;
-            this.pnlOptionsList.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 50F));
-            this.pnlOptionsList.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 50F));
-            this.pnlOptionsList.Size = new System.Drawing.Size(711, 100);
-            this.pnlOptionsList.TabIndex = 0;
-            // 
             // StarterForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -229,9 +231,10 @@
             this.tableLayoutPanel1.ResumeLayout(false);
             this.tabControl1.ResumeLayout(false);
             this.tbOptions.ResumeLayout(false);
+            this.panel1.ResumeLayout(false);
+            this.panel1.PerformLayout();
             this.tableLayoutPanel2.ResumeLayout(false);
             this.tableLayoutPanel2.PerformLayout();
-            this.panel1.ResumeLayout(false);
             this.ResumeLayout(false);
 
         }

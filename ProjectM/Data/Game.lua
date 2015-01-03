@@ -1,9 +1,12 @@
-﻿WorldXSize = 200;
-WorldYSize = 200;
-WorldZSize = 20;
+﻿WorldXSize = 0;
+WorldYSize = 0;
+WorldZSize = 0;
 
 function Initialize(camera)
     gameWorld = LoadWorld("bla")
+    WorldXSize = gameWorld.BlockSize.X
+    WorldYSize = gameWorld.BlockSize.Y
+    WorldZSize = gameWorld.BlockSize.Z
 
     camera.FarDistance = 1000
     camera.FoV = PI / 4 --45 degrees

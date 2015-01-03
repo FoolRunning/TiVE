@@ -48,7 +48,7 @@ namespace ProdigalSoftware.TiVE.Renderer.Particles
 
         public void UpdateCameraPos(HashSet<GameWorldVoxelChunk> chunksToRender)
         {
-            Debug.Assert(Thread.CurrentThread.Name == "FrameUpdate");
+            Debug.Assert(Thread.CurrentThread.Name == "Main UI");
 
             // TODO: Implement this again based on the new chunk renderer
 

@@ -1,19 +1,21 @@
-﻿WorldXSize = 41;
-WorldYSize = 31;
-WorldZSize = 5;
-HalfWorld = WorldXSize * BlockSize / 2
+﻿WorldXSize = 0;
+WorldYSize = 0;
+WorldZSize = 0;
 
 ambientLightUpdateTime = 0
 currentAmbientLight = 0.4
 
 function Initialize(camera)
-    LoadWorld("Bla")
+    gameWorld = LoadWorld("Bla")
+    WorldXSize = gameWorld.BlockSize.X
+    WorldYSize = gameWorld.BlockSize.Y
+    WorldZSize = gameWorld.BlockSize.Z
     --Renderer().LightProvider.AmbientLight = Color(currentAmbientLight, currentAmbientLight, currentAmbientLight)
 
     camera.FarDistance = 2000
     camera.FoV = PI / 4 --45 degrees
 
-    camera.LookAtLocation = Vector(WorldXSize / 2 * BlockSize, WorldYSize / 2 * BlockSize - 50, 0)
+    camera.LookAtLocation = Vector(WorldXSize * BlockSize / 2, WorldYSize * BlockSize / 2 - 50, 0)
 end
 
 cameraAngle = 25
@@ -21,7 +23,7 @@ cameraAngle = 25
 function Update(camera, keyboard)
     cameraAngle = cameraAngle + 1
 
-    camera.Location = Vector(HalfWorld + Cos(ToRad(cameraAngle / 3)) * 70, -100 + Sin(ToRad(cameraAngle)) * 40, 450)
+    camera.Location = Vector(WorldXSize * BlockSize / 2 + Cos(ToRad(cameraAngle / 3)) * 70, -100 + Sin(ToRad(cameraAngle)) * 40, 450)
 
     ambientLightUpdateTime = ambientLightUpdateTime + 1;
 

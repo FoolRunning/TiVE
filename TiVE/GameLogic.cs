@@ -1,12 +1,15 @@
 ﻿using System;
+using System.Configuration;
 using System.Diagnostics;
 using System.Drawing;
+using System.Threading;
 using Microsoft.CSharp.RuntimeBinder;
 using NLua.Exceptions;
 using ProdigalSoftware.TiVE.Renderer;
 using ProdigalSoftware.TiVE.Renderer.Lighting;
 using ProdigalSoftware.TiVE.Renderer.World;
 using ProdigalSoftware.TiVE.Scripts;
+using ProdigalSoftware.TiVE.Settings;
 using ProdigalSoftware.TiVE.Starter;
 using ProdigalSoftware.TiVEPluginFramework;
 using ProdigalSoftware.Utils;
@@ -15,12 +18,11 @@ namespace ProdigalSoftware.TiVE
 {
     internal sealed class GameLogic
     {
-        public const string DisplayUpdateThreadName = "Main UI";
-        public const string GameUpdateThreadName = "Main UI";
-
         private const int UpdatesPerSecond = 60;
 
-        private readonly IGameWorldRenderer renderer = new WorldChunkRenderer(3);
+        private static readonly long MaxTicksForSleep;
+
+        private readonly IGameWorldRenderer renderer = new WorldChunkRenderer(5);
         private readonly Camera camera = new Camera();
 
         private readonly TimeStatHelper renderTime = new TimeStatHelper(2, true);
@@ -35,6 +37,19 @@ namespace ProdigalSoftware.TiVE
         private volatile bool continueMainLoop;
         private IKeyboard keyboard;
         private dynamic gameScript;
+
+        static GameLogic()
+        {
+            for (int i = 0; i < 500; i++)
+            {
+                long startTime = Stopwatch.GetTimestamp();
+                Thread.Sleep(1);
+                long totalTime = Stopwatch.GetTimestamp() - startTime;
+                if (totalTime > MaxTicksForSleep)
+                    MaxTicksForSleep = totalTime;
+            }
+            Console.WriteLine("Sleeping for 1ms can be " + MaxTicksForSleep * 1000.0f / Stopwatch.Frequency + "ms long");
+        }
 
         public bool Initialize()
         {
@@ -87,9 +102,10 @@ namespace ProdigalSoftware.TiVE
         public void RunMainLoop()
         {
             // TODO: Add a way for these to be chosen by the user
-            const FullScreenMode fullScreenMode = FullScreenMode.Windowed;
-            const bool useVsync = true;
-            const int antiAliasAmount = 8;
+            const FullScreenMode fullScreenMode = FullScreenMode.WindowFullScreen;
+            
+            bool useVsync = TiVEController.UserSettings.Get(UserSettings.EnableVSyncKey);
+            int antiAliasAmount = TiVEController.UserSettings.Get(UserSettings.AntiAliasAmountKey);
 
             INativeWindow nativeWindow = TiVEController.Backend.CreateNatveWindow(1280, 720, fullScreenMode, antiAliasAmount, useVsync);
             nativeWindow.Icon = Properties.Resources.P_button;
@@ -137,6 +153,8 @@ namespace ProdigalSoftware.TiVE
                     UpdateGame(timeSinceLastFrame);
                     nativeWindow.UpdateDisplayContents();
                 }
+                else if (previousDisplayUpdateTime + ticksPerUpdate - MaxTicksForSleep > currentTime)
+                    Thread.Sleep(1);
             }
 
             Messages.Print("Cleaning up...");
@@ -159,7 +177,6 @@ namespace ProdigalSoftware.TiVE
         {
             frameTime.PushTime();
             frameTime.MarkStartTime();
-            //frameTime.AddData((float)e.Time * 1000f);
 
             renderTime.MarkStartTime();
 

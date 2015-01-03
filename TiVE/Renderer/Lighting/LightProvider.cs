@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Threading;
+using ProdigalSoftware.TiVE.Settings;
 using ProdigalSoftware.TiVE.Starter;
 using ProdigalSoftware.TiVEPluginFramework;
 using ProdigalSoftware.TiVEPluginFramework.Lighting;
@@ -24,13 +25,14 @@ namespace ProdigalSoftware.TiVE.Renderer.Lighting
 
     internal sealed class LightProvider
     {
-        private const int NumLightCalculationThreads = 3;
+        private const int NumLightCalculationThreads = 5;
         private const int MaxLightsPerBlock = 10;
-        private const float MinLightValue = 0.002f; // 0.002f (0.2%) produces the best result as that is less then a single light value's worth
+        private const int HalfBlockVoxelSize = BlockInformation.VoxelSize / 2;
 
         private readonly Vector3i blockSize;
         private readonly BlockLightInfo[] blockLightInfo;
         private readonly GameWorld gameWorld;
+        private readonly bool useSimpleLighting;
         private volatile int totalComplete;
         private volatile int lastPercentComplete;
 
@@ -41,14 +43,12 @@ namespace ProdigalSoftware.TiVE.Renderer.Lighting
             this.gameWorld = gameWorld;
             blockSize = new Vector3i(gameWorld.BlockSize.X, gameWorld.BlockSize.Y, gameWorld.BlockSize.Z);
 
-            Stopwatch sw = Stopwatch.StartNew();
             blockLightInfo = new BlockLightInfo[gameWorld.BlockSize.X * gameWorld.BlockSize.Y * gameWorld.BlockSize.Z];
             for (int i = 0; i < blockLightInfo.Length; i++)
                 blockLightInfo[i] = new BlockLightInfo(MaxLightsPerBlock);
-            sw.Stop();
-            Console.WriteLine("Allocating light blocks took " + sw.ElapsedMilliseconds + "ms");
 
             ambientLight = new Color3f(0, 0, 0);
+            useSimpleLighting = TiVEController.UserSettings.Get(UserSettings.SimpleLightingKey);
         }
 
         public Color3f AmbientLight
@@ -68,8 +68,7 @@ namespace ProdigalSoftware.TiVE.Renderer.Lighting
             int sizeX = blockSize.X;
             int sizeY = blockSize.Y;
             int sizeZ = blockSize.Z;
-            float maxVoxelDist = (float)Math.Sqrt(1.0 / (light.Attenuation * MinLightValue));
-            int maxLightBlockDist = (int)Math.Ceiling(maxVoxelDist / BlockInformation.VoxelSize);
+            int maxLightBlockDist = (int)light.LightBlockDist; // LightUtils.GetLightBlockDist(light);
 
             int startX = Math.Max(0, blockX - maxLightBlockDist);
             int startY = Math.Max(0, blockY - maxLightBlockDist);
@@ -85,9 +84,9 @@ namespace ProdigalSoftware.TiVE.Renderer.Lighting
                 {
                     for (int by = startY; by < endY; by++)
                     {
-                        int vx = bx * BlockInformation.VoxelSize + 5;
-                        int vy = by * BlockInformation.VoxelSize + 5;
-                        int vz = bz * BlockInformation.VoxelSize + 5;
+                        int vx = bx * BlockInformation.VoxelSize + HalfBlockVoxelSize;
+                        int vy = by * BlockInformation.VoxelSize + HalfBlockVoxelSize;
+                        int vz = bz * BlockInformation.VoxelSize + HalfBlockVoxelSize;
                         float newLightPercentage = LightUtils.GetLightPercentage(lightInfo, vx, vy, vz);
                         List<LightInfo> blockLights = GetLights(bx, by, bz);
                         using (new PerformanceLock(blockLights))
@@ -143,7 +142,8 @@ namespace ProdigalSoftware.TiVE.Renderer.Lighting
             int blockY = voxelY / BlockInformation.VoxelSize;
             int blockZ = voxelZ / BlockInformation.VoxelSize;
 
-            //return ambientLight + blockLightInfo[GetBlockOffset(blockX, blockY, blockZ)].BlockLight;
+            if (useSimpleLighting) // TODO: make this much more efficient
+                return ambientLight + blockLightInfo[GetBlockOffset(blockX, blockY, blockZ)].BlockLight;
 
             Color3f color = ambientLight;
 
@@ -192,8 +192,8 @@ namespace ProdigalSoftware.TiVE.Renderer.Lighting
                     i * blockSize.X / NumLightCalculationThreads, (i + 1) * blockSize.X / NumLightCalculationThreads, options);
             }
 
-            for (int i = 0; i < threads.Length; i++)
-                threads[i].Join();
+            foreach (Thread thread in threads)
+                thread.Join();
 
             sw.Stop();
             Messages.AddDoneText();
