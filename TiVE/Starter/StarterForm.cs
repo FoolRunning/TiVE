@@ -2,6 +2,7 @@
 using System.Drawing;
 using System.Reflection;
 using System.Windows.Forms;
+using ProdigalSoftware.TiVE.Settings;
 
 namespace ProdigalSoftware.TiVE.Starter
 {
@@ -30,12 +31,13 @@ namespace ProdigalSoftware.TiVE.Starter
             tbMessages.Enabled = false;
         }
 
-        public void EnableControls()
+        public void AfterInitialLoad()
         {
             Invoke(new Action(() =>
                 {
                     tbMessages.Enabled = true;
                     btnStart.Enabled = true;
+                    InitializeOptions();
                 }));
         }
 
@@ -122,6 +124,53 @@ namespace ProdigalSoftware.TiVE.Starter
         {
             Clipboard.SetText(Messages.AllText, TextDataFormat.UnicodeText);
         }
+
+        private void UserOption_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            ComboBox comboBox = (ComboBox)sender;
+            UserSettingOptions optionChanged = (UserSettingOptions)comboBox.Tag;
+            TiVEController.UserSettings.Set(optionChanged.SettingKey, ((UserSettingOption)comboBox.SelectedItem).Value);
+        }
         #endregion
+
+        private void InitializeOptions()
+        {
+            int row = 0;
+            foreach (UserSettingOptions options in TiVEController.UserSettings.AllUserSettingOptions)
+            {
+                Label label = new Label();
+                label.Font = new Font(label.Font.FontFamily, 12);
+                label.Anchor = AnchorStyles.Left | AnchorStyles.Right;
+                label.AutoSize = true;
+                label.Text = options.Description;
+                pnlOptionsList.Controls.Add(label, 0, row);
+
+                ComboBox comboBox = new ComboBox();
+                comboBox.Font = new Font(comboBox.Font.FontFamily, 12);
+                comboBox.DropDownStyle = ComboBoxStyle.DropDownList;
+                comboBox.Anchor = AnchorStyles.Left;
+                comboBox.Tag = options;
+                comboBox.Width = 300;
+                int index = 0;
+                int indexToSelect = 0;
+                Setting currentSetting = TiVEController.UserSettings.Get(options.SettingKey);
+                foreach (UserSettingOption option in options.ValidOptions)
+                {
+                    comboBox.Items.Add(option);
+                    if (option.Value == currentSetting)
+                        indexToSelect = index;
+                    index++;
+                }
+
+                comboBox.SelectedIndex = indexToSelect;
+                comboBox.SelectedIndexChanged += UserOption_SelectedIndexChanged;
+
+                pnlOptionsList.Controls.Add(comboBox, 1, row);
+                pnlOptionsList.RowStyles.Add(new RowStyle());
+                row++;
+            }
+
+            pnlOptionsList.RowCount = row + 1;
+        }
     }
 }

@@ -8,6 +8,6 @@ namespace ProdigalSoftware.TiVEPluginFramework.Lighting
 
         Color3f Color { get; }
 
-        float Attenuation { get; }
+        float LightBlockDist { get; }
     }
 }

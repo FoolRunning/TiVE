@@ -10,8 +10,7 @@ namespace ProdigalSoftware.TiVE.Renderer.World
 {
     internal sealed class WorldChunkManager : IDisposable
     {
-        private const int MaxChunkUpdatesPerFrame = 7;
-        private const int MeshBuildersPerThread = 5;
+        private const int MeshBuildersPerThread = 3;
 
         private readonly List<GameWorldVoxelChunk> chunksToDelete = new List<GameWorldVoxelChunk>();
         private readonly HashSet<GameWorldVoxelChunk> loadedChunks = new HashSet<GameWorldVoxelChunk>();
@@ -50,7 +49,7 @@ namespace ProdigalSoftware.TiVE.Renderer.World
 
         public void Update(HashSet<GameWorldVoxelChunk> chunksToRender)
         {
-            Debug.Assert(Thread.CurrentThread.Name == "FrameUpdate");
+            Debug.Assert(Thread.CurrentThread.Name == "Main UI");
 
             foreach (GameWorldVoxelChunk chunk in chunksToRender)
             {
@@ -116,12 +115,12 @@ namespace ProdigalSoftware.TiVE.Renderer.World
         {
             List<MeshBuilder> meshBuilders = new List<MeshBuilder>();
             for (int i = 0; i < MeshBuildersPerThread; i++)
-                meshBuilders.Add(new MeshBuilder(4000000, 4000000));
+                meshBuilders.Add(new MeshBuilder(1500000, 2500000));
 
             int bottleneckCount = 0;
             while (!endCreationThreads)
             {
-                Thread.Sleep(3);
+                Thread.Sleep(1);
 
                 int count;
                 using (new PerformanceLock(chunkLoadQueue))
@@ -141,6 +140,7 @@ namespace ProdigalSoftware.TiVE.Renderer.World
                         Messages.AddWarning("Mesh creation bottlenecked!");
                     }
 
+                    //Console.WriteLine("Mesh creation slowed!");
                     continue; // No free meshbuilders to use
                 }
 

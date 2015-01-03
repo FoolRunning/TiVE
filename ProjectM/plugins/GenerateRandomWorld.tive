@@ -15,7 +15,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
 
         public GameWorld CreateGameWorld(string gameWorldName, IBlockList blockList)
         {
-            GameWorld gameWorld = new GameWorld(200, 200, 20);
+            GameWorld gameWorld = new GameWorld(500, 500, 20);
 
             long seed = LongRandom();
             //AddBiomes(gameWorld, seed);
@@ -127,7 +127,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
                         if (noiseVal > -0.05 && noiseVal < -0.04)
                             gameWorld[x, y, depth] = fire;
                     }
-                    if (random1.NextDouble() < 0.01)
+                    if (random1.NextDouble() < 0.02)
                         gameWorld[x, y, random1.Next(gameWorld.BlockSize.Z - 3)] = lights.NextBlock();
 
                     //if (random1.NextDouble() < 0.2)

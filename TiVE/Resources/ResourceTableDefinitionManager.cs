@@ -408,7 +408,7 @@ namespace ProdigalSoftware.TiVE.Resources
             Name = name;
             ValueType = valueType;
             Required = required;
-
+            
             bool validDefault;
             switch (valueType)
             {

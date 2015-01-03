@@ -143,7 +143,7 @@ namespace ProdigalSoftware.TiVE.Renderer.World
                             writer.Write(block.Light.Color.G);
                             writer.Write(block.Light.Color.B);
 
-                            writer.Write(block.Light.Attenuation);
+                            writer.Write(block.Light.LightBlockDist);
                         }
                     }
                     blockFile.AddEntry(block.BlockName + "." + FileExtension, memStream.ToArray());
