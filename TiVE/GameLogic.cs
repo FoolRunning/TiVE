@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Configuration;
 using System.Diagnostics;
 using System.Drawing;
 using System.Threading;
@@ -20,9 +19,8 @@ namespace ProdigalSoftware.TiVE
     {
         private const int UpdatesPerSecond = 60;
 
-        private static readonly long MaxTicksForSleep;
+        private static readonly long maxTicksForSleep;
 
-        private readonly IGameWorldRenderer renderer = new WorldChunkRenderer(5);
         private readonly Camera camera = new Camera();
 
         private readonly TimeStatHelper renderTime = new TimeStatHelper(2, true);
@@ -36,23 +34,28 @@ namespace ProdigalSoftware.TiVE
 
         private volatile bool continueMainLoop;
         private IKeyboard keyboard;
+        private IGameWorldRenderer renderer;
         private dynamic gameScript;
 
         static GameLogic()
         {
-            for (int i = 0; i < 500; i++)
+            for (int i = 0; i < 100; i++)
             {
                 long startTime = Stopwatch.GetTimestamp();
                 Thread.Sleep(1);
                 long totalTime = Stopwatch.GetTimestamp() - startTime;
-                if (totalTime > MaxTicksForSleep)
-                    MaxTicksForSleep = totalTime;
+                if (totalTime > maxTicksForSleep)
+                    maxTicksForSleep = totalTime;
             }
-            Console.WriteLine("Sleeping for 1ms can be " + MaxTicksForSleep * 1000.0f / Stopwatch.Frequency + "ms long");
+            Console.WriteLine("Sleeping for 1ms can be " + maxTicksForSleep * 1000.0f / Stopwatch.Frequency + "ms long");
         }
 
         public bool Initialize()
         {
+            // Creation of the renderer must be done before the call to Initialize on the script
+            int numChunkCreationThreads = TiVEController.UserSettings.Get(UserSettings.ChunkCreationThreadsKey);
+            renderer = new WorldChunkRenderer(numChunkCreationThreads);
+
             gameScript = TiVEController.LuaScripts.GetScript("Game");
             if (gameScript == null)
             {
@@ -95,19 +98,21 @@ namespace ProdigalSoftware.TiVE
             }
 
             // Calculate static lighting
-            renderer.LightProvider.Calculate(CalcOptions.CalculateAllLights); 
+            renderer.LightProvider.Calculate(CalcOptions.CalculateLights);
             return true;
         }
 
         public void RunMainLoop()
         {
-            // TODO: Add a way for these to be chosen by the user
-            const FullScreenMode fullScreenMode = FullScreenMode.WindowFullScreen;
-            
+            FullScreenMode fullScreenMode = (FullScreenMode)(int)TiVEController.UserSettings.Get(UserSettings.FullScreenModeKey);
             bool useVsync = TiVEController.UserSettings.Get(UserSettings.EnableVSyncKey);
             int antiAliasAmount = TiVEController.UserSettings.Get(UserSettings.AntiAliasAmountKey);
 
-            INativeWindow nativeWindow = TiVEController.Backend.CreateNatveWindow(1280, 720, fullScreenMode, antiAliasAmount, useVsync);
+            // TODO: Add a way for these to be chosen by the user
+            const int width = 1280;
+            const int height = 720;
+
+            INativeWindow nativeWindow = TiVEController.Backend.CreateNatveWindow(width, height, fullScreenMode, antiAliasAmount, useVsync);
             nativeWindow.Icon = Properties.Resources.P_button;
 
             nativeWindow.WindowResized += NativeWindowResized;
@@ -153,7 +158,7 @@ namespace ProdigalSoftware.TiVE
                     UpdateGame(timeSinceLastFrame);
                     nativeWindow.UpdateDisplayContents();
                 }
-                else if (previousDisplayUpdateTime + ticksPerUpdate - MaxTicksForSleep > currentTime)
+                else if (previousDisplayUpdateTime + ticksPerUpdate - maxTicksForSleep > currentTime)
                     Thread.Sleep(1);
             }
 

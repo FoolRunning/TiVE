@@ -5,19 +5,19 @@ namespace ProdigalSoftware.TiVE.Renderer.Lighting
 {
     internal sealed class LightInfo
     {
-        public readonly int VoxelLocX;
-        public readonly int VoxelLocY;
-        public readonly int VoxelLocZ;
-        public readonly float VoxelLightDist;
+        public readonly short VoxelLocX;
+        public readonly short VoxelLocY;
+        public readonly short VoxelLocZ;
+        public readonly float CachedLightCalc;
         public readonly ILight Light;
 
-        public LightInfo(int blockX, int blockY, int blockZ, ILight light)
+        public LightInfo(int blockX, int blockY, int blockZ, ILight light, float cachedLightCalc)
         {
-            VoxelLocX = light.Location.X + blockX * BlockInformation.VoxelSize;
-            VoxelLocY = light.Location.Y + blockY * BlockInformation.VoxelSize;
-            VoxelLocZ = light.Location.Z + blockZ * BlockInformation.VoxelSize;
-            VoxelLightDist = light.LightBlockDist * BlockInformation.VoxelSize;
+            VoxelLocX = (short)(light.Location.X + blockX * BlockInformation.VoxelSize);
+            VoxelLocY = (short)(light.Location.Y + blockY * BlockInformation.VoxelSize);
+            VoxelLocZ = (short)(light.Location.Z + blockZ * BlockInformation.VoxelSize);
             Light = light;
+            CachedLightCalc = cachedLightCalc;
         }
     }
 }

@@ -6,7 +6,7 @@ namespace ProdigalSoftware.TiVE.Settings
     {
         public static readonly Setting Null = new NullSetting();
 
-        protected abstract string SaveAsString();
+        public abstract string SaveAsString();
 
         protected abstract bool AreEqual(Setting setting);
 
@@ -148,7 +148,7 @@ namespace ProdigalSoftware.TiVE.Settings
     #region NullSetting class
     internal sealed class NullSetting : Setting
     {
-        protected override string SaveAsString()
+        public override string SaveAsString()
         {
             return "";
         }
@@ -174,8 +174,8 @@ namespace ProdigalSoftware.TiVE.Settings
         {
             this.value = value;
         }
-        
-        protected override string SaveAsString()
+
+        public override string SaveAsString()
         {
             return value.ToString();
         }
@@ -208,7 +208,7 @@ namespace ProdigalSoftware.TiVE.Settings
             this.value = value;
         }
 
-        protected override string SaveAsString()
+        public override string SaveAsString()
         {
             return value.ToString();
         }
@@ -246,7 +246,7 @@ namespace ProdigalSoftware.TiVE.Settings
             this.value = value;
         }
 
-        protected override string SaveAsString()
+        public override string SaveAsString()
         {
             return value;
         }
@@ -277,7 +277,7 @@ namespace ProdigalSoftware.TiVE.Settings
             this.value = value;
         }
 
-        protected override string SaveAsString()
+        public override string SaveAsString()
         {
             return value.ToString();
         }
@@ -309,7 +309,7 @@ namespace ProdigalSoftware.TiVE.Settings
             this.value = value;
         }
 
-        protected override string SaveAsString()
+        public override string SaveAsString()
         {
             return value.ToString();
         }

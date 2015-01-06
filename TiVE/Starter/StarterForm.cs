@@ -135,22 +135,34 @@ namespace ProdigalSoftware.TiVE.Starter
 
         private void InitializeOptions()
         {
+            ClearOptionsOnPanel(pnlDisplayOptionsList);
+            ClearOptionsOnPanel(pnlAdvancedOptionsList);
+
             int row = 0;
             foreach (UserSettingOptions options in TiVEController.UserSettings.AllUserSettingOptions)
             {
+                TableLayoutPanel panelToAddTo;
+                switch (options.OptionTab)
+                {
+                    case UserOptionTab.Display: panelToAddTo = pnlDisplayOptionsList; break;
+                    case UserOptionTab.Controls:
+                    case UserOptionTab.Sound:
+                    default: panelToAddTo = pnlAdvancedOptionsList; break;
+                }
+
                 Label label = new Label();
                 label.Font = new Font(label.Font.FontFamily, 12);
                 label.Anchor = AnchorStyles.Left | AnchorStyles.Right;
                 label.AutoSize = true;
                 label.Text = options.Description;
-                pnlOptionsList.Controls.Add(label, 0, row);
+                panelToAddTo.Controls.Add(label, 0, row);
 
                 ComboBox comboBox = new ComboBox();
                 comboBox.Font = new Font(comboBox.Font.FontFamily, 12);
                 comboBox.DropDownStyle = ComboBoxStyle.DropDownList;
                 comboBox.Anchor = AnchorStyles.Left;
                 comboBox.Tag = options;
-                comboBox.Width = 300;
+                comboBox.Width = 250;
                 int index = 0;
                 int indexToSelect = 0;
                 Setting currentSetting = TiVEController.UserSettings.Get(options.SettingKey);
@@ -165,12 +177,20 @@ namespace ProdigalSoftware.TiVE.Starter
                 comboBox.SelectedIndex = indexToSelect;
                 comboBox.SelectedIndexChanged += UserOption_SelectedIndexChanged;
 
-                pnlOptionsList.Controls.Add(comboBox, 1, row);
-                pnlOptionsList.RowStyles.Add(new RowStyle());
+                panelToAddTo.Controls.Add(comboBox, 1, row);
+                panelToAddTo.RowStyles.Add(new RowStyle(SizeType.AutoSize));
                 row++;
             }
 
-            pnlOptionsList.RowCount = row + 1;
+            tabControl1.TabPages.Remove(tbControls);
+            tabControl1.TabPages.Remove(tbSound);
+        }
+
+        private static void ClearOptionsOnPanel(TableLayoutPanel panel)
+        {
+            panel.AutoSizeMode = AutoSizeMode.GrowAndShrink;
+            panel.RowCount = 0;
+            panel.RowStyles.Clear();
         }
     }
 }

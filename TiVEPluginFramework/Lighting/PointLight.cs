@@ -4,7 +4,7 @@ namespace ProdigalSoftware.TiVEPluginFramework.Lighting
 {
     public sealed class PointLight : ILight
     {
-        public PointLight(Vector3b location, Color3f color, float lightBlockDist)
+        public PointLight(Vector3b location, Color3f color, int lightBlockDist)
         {
             Location = location;
             Color = color;
@@ -13,7 +13,7 @@ namespace ProdigalSoftware.TiVEPluginFramework.Lighting
 
         public Vector3b Location { get; private set; }
 
-        public float LightBlockDist { get; private set; }
+        public int LightBlockDist { get; private set; }
 
         public Color3f Color { get; private set; }
     }

@@ -19,7 +19,7 @@ namespace ProdigalSoftware.TiVE.Renderer.World
 
         private const string InfoFileHeader = "TiVEb";
         private const string BlockFileInternalInfoFile = "blocks.info";
-        private const short FileVersion = 2;
+        private const short FileVersion = 3;
 
         private readonly Dictionary<string, BlockInformation> blockToIndexMap = new Dictionary<string, BlockInformation>();
         private readonly List<AnimationInfo> animationsList = new List<AnimationInfo>();
@@ -92,8 +92,12 @@ namespace ProdigalSoftware.TiVE.Renderer.World
                             float colR = reader.ReadSingle();
                             float colG = reader.ReadSingle();
                             float colB = reader.ReadSingle();
-                            float atten = reader.ReadSingle();
-                            block.Light = new PointLight(new Vector3b(locX, locY, locZ), new Color3f(colR, colG, colB), atten);
+                            int maxBlocks;
+                            if (fileVersion >= 3) // Version 3 changed attentuation to the max number of blocks
+                                maxBlocks = reader.ReadInt16();
+                            else
+                                maxBlocks = (int)reader.ReadSingle();
+                            block.Light = new PointLight(new Vector3b(locX, locY, locZ), new Color3f(colR, colG, colB), maxBlocks);
                         }
                         newBlockList.AddBlock(block);
                     }
@@ -143,7 +147,7 @@ namespace ProdigalSoftware.TiVE.Renderer.World
                             writer.Write(block.Light.Color.G);
                             writer.Write(block.Light.Color.B);
 
-                            writer.Write(block.Light.LightBlockDist);
+                            writer.Write((short)block.Light.LightBlockDist);
                         }
                     }
                     blockFile.AddEntry(block.BlockName + "." + FileExtension, memStream.ToArray());

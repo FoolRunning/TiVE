@@ -31,21 +31,27 @@
             this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.tbMessages = new System.Windows.Forms.TabPage();
-            this.tbOptions = new System.Windows.Forms.TabPage();
+            this.tbDisplay = new System.Windows.Forms.TabPage();
             this.panel1 = new System.Windows.Forms.Panel();
-            this.pnlOptionsList = new System.Windows.Forms.TableLayoutPanel();
-            this.tbAdvancedOptions = new System.Windows.Forms.TabPage();
+            this.pnlDisplayOptionsList = new System.Windows.Forms.TableLayoutPanel();
+            this.tbAdvanced = new System.Windows.Forms.TabPage();
             this.tableLayoutPanel2 = new System.Windows.Forms.TableLayoutPanel();
             this.label1 = new System.Windows.Forms.Label();
             this.comboBox1 = new System.Windows.Forms.ComboBox();
             this.btnExit = new System.Windows.Forms.Button();
             this.btnCopyText = new System.Windows.Forms.Button();
             this.btnStart = new System.Windows.Forms.Button();
+            this.tbControls = new System.Windows.Forms.TabPage();
+            this.tbSound = new System.Windows.Forms.TabPage();
+            this.panel2 = new System.Windows.Forms.Panel();
+            this.pnlAdvancedOptionsList = new System.Windows.Forms.TableLayoutPanel();
             this.tableLayoutPanel1.SuspendLayout();
             this.tabControl1.SuspendLayout();
-            this.tbOptions.SuspendLayout();
+            this.tbDisplay.SuspendLayout();
             this.panel1.SuspendLayout();
+            this.tbAdvanced.SuspendLayout();
             this.tableLayoutPanel2.SuspendLayout();
+            this.panel2.SuspendLayout();
             this.SuspendLayout();
             // 
             // tableLayoutPanel1
@@ -72,8 +78,10 @@
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.tabControl1.Controls.Add(this.tbMessages);
-            this.tabControl1.Controls.Add(this.tbOptions);
-            this.tabControl1.Controls.Add(this.tbAdvancedOptions);
+            this.tabControl1.Controls.Add(this.tbDisplay);
+            this.tabControl1.Controls.Add(this.tbControls);
+            this.tabControl1.Controls.Add(this.tbSound);
+            this.tabControl1.Controls.Add(this.tbAdvanced);
             this.tabControl1.Location = new System.Drawing.Point(3, 3);
             this.tabControl1.Name = "tabControl1";
             this.tabControl1.SelectedIndex = 0;
@@ -89,49 +97,47 @@
             this.tbMessages.TabIndex = 0;
             this.tbMessages.Text = "Messages";
             // 
-            // tbOptions
+            // tbDisplay
             // 
-            this.tbOptions.Controls.Add(this.panel1);
-            this.tbOptions.Location = new System.Drawing.Point(4, 22);
-            this.tbOptions.Name = "tbOptions";
-            this.tbOptions.Padding = new System.Windows.Forms.Padding(3);
-            this.tbOptions.Size = new System.Drawing.Size(786, 421);
-            this.tbOptions.TabIndex = 1;
-            this.tbOptions.Text = "Options";
-            this.tbOptions.UseVisualStyleBackColor = true;
+            this.tbDisplay.Controls.Add(this.panel1);
+            this.tbDisplay.Location = new System.Drawing.Point(4, 22);
+            this.tbDisplay.Name = "tbDisplay";
+            this.tbDisplay.Size = new System.Drawing.Size(786, 421);
+            this.tbDisplay.TabIndex = 1;
+            this.tbDisplay.Text = "Display";
             // 
             // panel1
             // 
             this.panel1.AutoScroll = true;
-            this.panel1.Controls.Add(this.pnlOptionsList);
+            this.panel1.Controls.Add(this.pnlDisplayOptionsList);
             this.panel1.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.panel1.Location = new System.Drawing.Point(3, 3);
+            this.panel1.Location = new System.Drawing.Point(0, 0);
             this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(780, 415);
+            this.panel1.Size = new System.Drawing.Size(786, 421);
             this.panel1.TabIndex = 0;
             // 
-            // pnlOptionsList
+            // pnlDisplayOptionsList
             // 
-            this.pnlOptionsList.AutoSize = true;
-            this.pnlOptionsList.ColumnCount = 2;
-            this.pnlOptionsList.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle());
-            this.pnlOptionsList.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
-            this.pnlOptionsList.Location = new System.Drawing.Point(3, 3);
-            this.pnlOptionsList.Name = "pnlOptionsList";
-            this.pnlOptionsList.RowCount = 1;
-            this.pnlOptionsList.RowStyles.Add(new System.Windows.Forms.RowStyle());
-            this.pnlOptionsList.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 342F));
-            this.pnlOptionsList.Size = new System.Drawing.Size(743, 116);
-            this.pnlOptionsList.TabIndex = 0;
+            this.pnlDisplayOptionsList.AutoSize = true;
+            this.pnlDisplayOptionsList.ColumnCount = 2;
+            this.pnlDisplayOptionsList.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle());
+            this.pnlDisplayOptionsList.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
+            this.pnlDisplayOptionsList.Location = new System.Drawing.Point(3, 3);
+            this.pnlDisplayOptionsList.Name = "pnlDisplayOptionsList";
+            this.pnlDisplayOptionsList.RowCount = 1;
+            this.pnlDisplayOptionsList.RowStyles.Add(new System.Windows.Forms.RowStyle());
+            this.pnlDisplayOptionsList.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 116F));
+            this.pnlDisplayOptionsList.Size = new System.Drawing.Size(743, 116);
+            this.pnlDisplayOptionsList.TabIndex = 0;
             // 
-            // tbAdvancedOptions
+            // tbAdvanced
             // 
-            this.tbAdvancedOptions.Location = new System.Drawing.Point(4, 22);
-            this.tbAdvancedOptions.Name = "tbAdvancedOptions";
-            this.tbAdvancedOptions.Size = new System.Drawing.Size(786, 421);
-            this.tbAdvancedOptions.TabIndex = 2;
-            this.tbAdvancedOptions.Text = "Advanced Options";
-            this.tbAdvancedOptions.UseVisualStyleBackColor = true;
+            this.tbAdvanced.Controls.Add(this.panel2);
+            this.tbAdvanced.Location = new System.Drawing.Point(4, 22);
+            this.tbAdvanced.Name = "tbAdvanced";
+            this.tbAdvanced.Size = new System.Drawing.Size(786, 421);
+            this.tbAdvanced.TabIndex = 2;
+            this.tbAdvanced.Text = "Advanced";
             // 
             // tableLayoutPanel2
             // 
@@ -215,6 +221,46 @@
             this.btnStart.UseVisualStyleBackColor = false;
             this.btnStart.Click += new System.EventHandler(this.btnStart_Click);
             // 
+            // tbControls
+            // 
+            this.tbControls.Location = new System.Drawing.Point(4, 22);
+            this.tbControls.Name = "tbControls";
+            this.tbControls.Size = new System.Drawing.Size(786, 421);
+            this.tbControls.TabIndex = 3;
+            this.tbControls.Text = "Controls";
+            // 
+            // tbSound
+            // 
+            this.tbSound.Location = new System.Drawing.Point(4, 22);
+            this.tbSound.Name = "tbSound";
+            this.tbSound.Size = new System.Drawing.Size(786, 421);
+            this.tbSound.TabIndex = 4;
+            this.tbSound.Text = "Sound";
+            // 
+            // panel2
+            // 
+            this.panel2.AutoScroll = true;
+            this.panel2.Controls.Add(this.pnlAdvancedOptionsList);
+            this.panel2.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.panel2.Location = new System.Drawing.Point(0, 0);
+            this.panel2.Name = "panel2";
+            this.panel2.Size = new System.Drawing.Size(786, 421);
+            this.panel2.TabIndex = 0;
+            // 
+            // pnlAdvancedOptionsList
+            // 
+            this.pnlAdvancedOptionsList.AutoSize = true;
+            this.pnlAdvancedOptionsList.ColumnCount = 2;
+            this.pnlAdvancedOptionsList.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle());
+            this.pnlAdvancedOptionsList.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
+            this.pnlAdvancedOptionsList.Location = new System.Drawing.Point(3, 3);
+            this.pnlAdvancedOptionsList.Name = "pnlAdvancedOptionsList";
+            this.pnlAdvancedOptionsList.RowCount = 1;
+            this.pnlAdvancedOptionsList.RowStyles.Add(new System.Windows.Forms.RowStyle());
+            this.pnlAdvancedOptionsList.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 116F));
+            this.pnlAdvancedOptionsList.Size = new System.Drawing.Size(743, 116);
+            this.pnlAdvancedOptionsList.TabIndex = 1;
+            // 
             // StarterForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -230,11 +276,14 @@
             this.Text = "TiVE Launcher";
             this.tableLayoutPanel1.ResumeLayout(false);
             this.tabControl1.ResumeLayout(false);
-            this.tbOptions.ResumeLayout(false);
+            this.tbDisplay.ResumeLayout(false);
             this.panel1.ResumeLayout(false);
             this.panel1.PerformLayout();
+            this.tbAdvanced.ResumeLayout(false);
             this.tableLayoutPanel2.ResumeLayout(false);
             this.tableLayoutPanel2.PerformLayout();
+            this.panel2.ResumeLayout(false);
+            this.panel2.PerformLayout();
             this.ResumeLayout(false);
 
         }
@@ -244,8 +293,8 @@
         private System.Windows.Forms.TableLayoutPanel tableLayoutPanel1;
         private System.Windows.Forms.TabControl tabControl1;
         private System.Windows.Forms.TabPage tbMessages;
-        private System.Windows.Forms.TabPage tbOptions;
-        private System.Windows.Forms.TabPage tbAdvancedOptions;
+        private System.Windows.Forms.TabPage tbDisplay;
+        private System.Windows.Forms.TabPage tbAdvanced;
         private System.Windows.Forms.TableLayoutPanel tableLayoutPanel2;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.ComboBox comboBox1;
@@ -253,6 +302,10 @@
         private System.Windows.Forms.Button btnCopyText;
         private System.Windows.Forms.Button btnStart;
         private System.Windows.Forms.Panel panel1;
-        private System.Windows.Forms.TableLayoutPanel pnlOptionsList;
+        private System.Windows.Forms.TableLayoutPanel pnlDisplayOptionsList;
+        private System.Windows.Forms.TabPage tbControls;
+        private System.Windows.Forms.TabPage tbSound;
+        private System.Windows.Forms.Panel panel2;
+        private System.Windows.Forms.TableLayoutPanel pnlAdvancedOptionsList;
     }
 }

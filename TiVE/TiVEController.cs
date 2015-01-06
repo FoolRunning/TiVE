@@ -80,6 +80,7 @@ namespace ProdigalSoftware.TiVE
             LuaScripts.Dispose();
             TableDefinitions.Dispose();
             PluginManager.Dispose();
+            UserSettings.Save();
         }
     }
 }

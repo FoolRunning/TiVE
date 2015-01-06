@@ -109,6 +109,7 @@
   <ItemGroup>
     <Compile Include="IKeyboard.cs" />
     <Compile Include="Keys.cs" />
+    <Compile Include="Renderer\Lighting\LightingModel.cs" />
     <Compile Include="Renderer\Lighting\LightProvider.cs" />
     <Compile Include="Renderer\Meshes\LargeMeshBuilder.cs" />
     <Compile Include="Renderer\Meshes\MeshBuilderBase.cs" />
@@ -117,7 +118,6 @@
     <Compile Include="Settings\Setting.cs" />
     <Compile Include="Settings\UserSettings.cs" />
     <Compile Include="Utils\Plane.cs" />
-    <Compile Include="Renderer\Lighting\LightUtils.cs" />
     <Compile Include="Renderer\Particles\ParticleSystemCollection.cs" />
     <Compile Include="Renderer\RenderStatistics.cs" />
     <Compile Include="Renderer\Meshes\MeshBuilder.cs" />

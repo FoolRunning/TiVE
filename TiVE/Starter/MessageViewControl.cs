@@ -72,6 +72,7 @@ namespace ProdigalSoftware.TiVE.Starter
             {
                 Items.RemoveAt(Items.Count - 1);
                 Items.Add(currentLine);
+                TopIndex = Items.Count - 1;
             };
             
             if (IsHandleCreated && InvokeRequired)
@@ -94,8 +95,6 @@ namespace ProdigalSoftware.TiVE.Starter
             currentLine = new MessageLine();
             lock (Items)
                 Items.Add(currentLine);
-
-            TopIndex = Items.Count - 1;
         }
 
         /// <summary>
@@ -123,7 +122,7 @@ namespace ProdigalSoftware.TiVE.Starter
         protected override void OnDrawItem(DrawItemEventArgs e)
         {
             e.Graphics.FillRectangle(s_backgroundBrush, e.Bounds);
-            if (e.Index > 5)
+            if (e.Index > 4)
             {
                 e.Graphics.DrawLine(s_baselinePen, TextState.MarginWidth, e.Bounds.Bottom - 1
                     , e.Bounds.Width - TextState.MarginWidth, e.Bounds.Bottom - 1);

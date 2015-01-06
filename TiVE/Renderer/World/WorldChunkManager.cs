@@ -120,20 +120,21 @@ namespace ProdigalSoftware.TiVE.Renderer.World
             int bottleneckCount = 0;
             while (!endCreationThreads)
             {
-                Thread.Sleep(1);
-
                 int count;
                 using (new PerformanceLock(chunkLoadQueue))
                     count = chunkLoadQueue.Count;
 
                 if (count == 0)
+                {
+                    Thread.Sleep(5);
                     continue;
+                }
 
                 MeshBuilder meshBuilder = meshBuilders.Find(NotLocked);
                 if (meshBuilder == null)
                 {
                     bottleneckCount++;
-                    if (bottleneckCount > 50) // 150ms give or take
+                    if (bottleneckCount > 100) // 100ms give or take
                     {
                         bottleneckCount = 0;
                         // Too many chunks are waiting to be intialized. Still not sure how this can happen.
@@ -141,6 +142,7 @@ namespace ProdigalSoftware.TiVE.Renderer.World
                     }
 
                     //Console.WriteLine("Mesh creation slowed!");
+                    Thread.Sleep(1);
                     continue; // No free meshbuilders to use
                 }
 
