@@ -74,7 +74,7 @@ namespace ProdigalSoftware.TiVEEditor.BlockLists
                 for (int x = 0; x < BlockInformation.VoxelSize; x++)
                 {
                     for (int y = 0; y < BlockInformation.VoxelSize; y++)
-                        floorBlocks[i][x, y, BlockInformation.VoxelSize - 1] = (uint)(random.Next(0xFFFFFF) | 0xFF000000);
+                        floorBlocks[i][x, y, BlockInformation.VoxelSize - 1] = ((uint)random.Next(0xFFFFFF) | 0xFF000000);
                 }
 
                 for (int s = 0; s < BlockInformation.VoxelSize; s++)
@@ -346,7 +346,7 @@ namespace ProdigalSoftware.TiVEEditor.BlockLists
                     else
                     {
                         block.Light = new PointLight(new Vector3b((byte)spnLightLocX.Value, (byte)spnLightLocY.Value, (byte)spnLightLocZ.Value),
-                            (Color3f)dialog.Color, 0.001f);
+                            (Color3f)dialog.Color, 10);
                     }
 
                     hasUnsavedChanges = true;
@@ -363,7 +363,7 @@ namespace ProdigalSoftware.TiVEEditor.BlockLists
 
             BlockInformation block = SelectedBlock;
             block.Light = new PointLight(new Vector3b((byte)spnLightLocX.Value, (byte)spnLightLocY.Value, (byte)spnLightLocZ.Value),
-                (Color3f)btnLightColor.BackColor, 0.001f);
+                (Color3f)btnLightColor.BackColor, 10);
 
             hasUnsavedChanges = true;
             UpdateState();

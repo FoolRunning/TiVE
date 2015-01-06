@@ -15,30 +15,26 @@ namespace ProdigalSoftware.TiVE.Renderer.Lighting
     public enum CalcOptions
     {
         None = 0,
-        ClearSimpleLights = 1,
-        ClearRealisticLights = 2,
-        CalculateSimpleLights = 4,
-        CalculateRealisticLights = 8,
-        ClearAllLights = ClearSimpleLights | ClearRealisticLights,
-        CalculateAllLights = CalculateSimpleLights | CalculateRealisticLights
+        ClearLights = 1,
+        CalculateLights = 2
     }
 
-    internal sealed class LightProvider
+    internal abstract class LightProvider
     {
-        private const int NumLightCalculationThreads = 5;
+        private const int NumLightCalculationThreads = 4;
         private const int MaxLightsPerBlock = 10;
         private const int HalfBlockVoxelSize = BlockInformation.VoxelSize / 2;
 
         private readonly Vector3i blockSize;
         private readonly BlockLightInfo[] blockLightInfo;
         private readonly GameWorld gameWorld;
-        private readonly bool useSimpleLighting;
+        private readonly LightingModel lightingModel;
         private volatile int totalComplete;
         private volatile int lastPercentComplete;
 
         private Color3f ambientLight;
 
-        public LightProvider(GameWorld gameWorld)
+        private LightProvider(GameWorld gameWorld)
         {
             this.gameWorld = gameWorld;
             blockSize = new Vector3i(gameWorld.BlockSize.X, gameWorld.BlockSize.Y, gameWorld.BlockSize.Z);
@@ -47,8 +43,15 @@ namespace ProdigalSoftware.TiVE.Renderer.Lighting
             for (int i = 0; i < blockLightInfo.Length; i++)
                 blockLightInfo[i] = new BlockLightInfo(MaxLightsPerBlock);
 
-            ambientLight = new Color3f(0, 0, 0);
-            useSimpleLighting = TiVEController.UserSettings.Get(UserSettings.SimpleLightingKey);
+            ambientLight = Color3f.Empty;
+            lightingModel = LightingModel.Get(gameWorld.LightingModelType);
+        }
+
+        public static LightProvider Get(GameWorld gameWorld)
+        {
+            if (TiVEController.UserSettings.Get(UserSettings.SimpleLightingKey))
+                return new SimpleLightProvider(gameWorld);
+            return new SmoothLightProvider(gameWorld);
         }
 
         public Color3f AmbientLight
@@ -57,18 +60,19 @@ namespace ProdigalSoftware.TiVE.Renderer.Lighting
             set { ambientLight = value; }
         }
 
-        public void FillWorldWithLight(ILight light, int blockX, int blockY, int blockZ, CalcOptions options)
+        /// <summary>
+        /// Gets the light value at the specified voxel
+        /// </summary>
+        /// <remarks>Very performance-critical method</remarks>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)] // Probably can't be inlined because it's an abstract method, but try anyways
+        public abstract Color3f GetLightAt(int voxelX, int voxelY, int voxelZ);
+
+        public void FillWorldWithLight(ILight light, int blockX, int blockY, int blockZ)
         {
-            if ((options & CalcOptions.CalculateAllLights) == 0)
-                return;
-
-            bool calcSimpleLights = (options & CalcOptions.CalculateSimpleLights) != 0;
-            bool calcRealisticLights = (options & CalcOptions.CalculateRealisticLights) != 0;
-
             int sizeX = blockSize.X;
             int sizeY = blockSize.Y;
             int sizeZ = blockSize.Z;
-            int maxLightBlockDist = (int)light.LightBlockDist; // LightUtils.GetLightBlockDist(light);
+            int maxLightBlockDist = light.LightBlockDist;
 
             int startX = Math.Max(0, blockX - maxLightBlockDist);
             int startY = Math.Max(0, blockY - maxLightBlockDist);
@@ -76,7 +80,7 @@ namespace ProdigalSoftware.TiVE.Renderer.Lighting
             int endX = Math.Min(sizeX, blockX + maxLightBlockDist);
             int endY = Math.Min(sizeY, blockY + maxLightBlockDist);
             int endZ = Math.Min(sizeZ, blockZ + maxLightBlockDist);
-            LightInfo lightInfo = new LightInfo(blockX, blockY, blockZ, light);
+            LightInfo lightInfo = new LightInfo(blockX, blockY, blockZ, light, lightingModel.GetCacheLightCalculation(light));
 
             for (int bz = startZ; bz < endZ; bz++)
             {
@@ -87,19 +91,15 @@ namespace ProdigalSoftware.TiVE.Renderer.Lighting
                         int vx = bx * BlockInformation.VoxelSize + HalfBlockVoxelSize;
                         int vy = by * BlockInformation.VoxelSize + HalfBlockVoxelSize;
                         int vz = bz * BlockInformation.VoxelSize + HalfBlockVoxelSize;
-                        float newLightPercentage = LightUtils.GetLightPercentage(lightInfo, vx, vy, vz);
+                        float newLightPercentage = lightingModel.GetLightPercentage(lightInfo, vx, vy, vz);
                         List<LightInfo> blockLights = GetLights(bx, by, bz);
                         using (new PerformanceLock(blockLights))
                         {
-                            if (calcSimpleLights)
-                            {
-                                Color3f currentBlockLight = GetBlockLight(bx, by, bz);
-                                SetBlockLight(bx, by, bz, currentBlockLight + (light.Color * newLightPercentage));
-                            }
+                            // Calculate simple lighting information
+                            Color3f currentBlockLight = GetBlockLight(bx, by, bz);
+                            SetBlockLight(bx, by, bz, currentBlockLight + (light.Color * newLightPercentage));
 
-                            if (!calcRealisticLights)
-                                continue;
-
+                            // Calculate smooth lighting information
                             if (blockLights.Count == 0)
                                 blockLights.Add(lightInfo);
                             else
@@ -108,7 +108,7 @@ namespace ProdigalSoftware.TiVE.Renderer.Lighting
                                 int leastLightIndex = blockLights.Count;
                                 for (int i = 0; i < blockLights.Count; i++)
                                 {
-                                    float lightPercentage = LightUtils.GetLightPercentage(blockLights[i], vx, vy, vz);
+                                    float lightPercentage = lightingModel.GetLightPercentage(blockLights[i], vx, vy, vz);
                                     if (lightPercentage < newLightPercentage)
                                     {
                                         leastLightIndex = i;
@@ -131,31 +131,6 @@ namespace ProdigalSoftware.TiVE.Renderer.Lighting
             }
         }
 
-        /// <summary>
-        /// Gets the light value at the specified voxel
-        /// </summary>
-        /// <remarks>Very performance-critical method</remarks>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Color3f GetLightAt(int voxelX, int voxelY, int voxelZ)
-        {
-            int blockX = voxelX / BlockInformation.VoxelSize;
-            int blockY = voxelY / BlockInformation.VoxelSize;
-            int blockZ = voxelZ / BlockInformation.VoxelSize;
-
-            if (useSimpleLighting) // TODO: make this much more efficient
-                return ambientLight + blockLightInfo[GetBlockOffset(blockX, blockY, blockZ)].BlockLight;
-
-            Color3f color = ambientLight;
-
-            List<LightInfo> blockLights = blockLightInfo[GetBlockOffset(blockX, blockY, blockZ)].Lights;
-            for (int i = 0; i < blockLights.Count && i < 10; i++)
-            {
-                LightInfo lightInfo = blockLights[i];
-                color += lightInfo.Light.Color * LightUtils.GetLightPercentage(lightInfo, voxelX, voxelY, voxelZ);
-            }
-            return color;
-        }
-
         public void Calculate(CalcOptions options)
         {
             if (options == CalcOptions.None)
@@ -163,10 +138,7 @@ namespace ProdigalSoftware.TiVE.Renderer.Lighting
 
             Messages.Print("Calculating static lighting...");
 
-            bool clearSimpleLights = (options & CalcOptions.ClearSimpleLights) != 0;
-            bool clearRealisticLights = (options & CalcOptions.ClearRealisticLights) != 0;
-
-            if (clearSimpleLights || clearRealisticLights)
+            if ((options & CalcOptions.ClearLights) != 0)
             {
                 for (int z = 0; z < blockSize.Z; z++)
                 {
@@ -174,33 +146,33 @@ namespace ProdigalSoftware.TiVE.Renderer.Lighting
                     {
                         for (int y = 0; y < blockSize.Y; y++)
                         {
-                            if (clearSimpleLights)
-                                SetBlockLight(x, y, z, Color3f.Empty);
-                            if (clearRealisticLights)
-                                GetLights(x, y, z).Clear();
+                            SetBlockLight(x, y, z, Color3f.Empty);
+                            GetLights(x, y, z).Clear();
                         }
                     }
                 }
             }
 
             Stopwatch sw = Stopwatch.StartNew();
-
-            Thread[] threads = new Thread[NumLightCalculationThreads];
-            for (int i = 0; i < NumLightCalculationThreads; i++)
+            if ((options & CalcOptions.CalculateLights) != 0)
             {
-                threads[i] = StartLightCalculationThread("Light " + (i + 1), 
-                    i * blockSize.X / NumLightCalculationThreads, (i + 1) * blockSize.X / NumLightCalculationThreads, options);
-            }
+                Thread[] threads = new Thread[NumLightCalculationThreads];
+                for (int i = 0; i < NumLightCalculationThreads; i++)
+                {
+                    threads[i] = StartLightCalculationThread("Light " + (i + 1),
+                        i * blockSize.X / NumLightCalculationThreads, (i + 1) * blockSize.X / NumLightCalculationThreads);
+                }
 
-            foreach (Thread thread in threads)
-                thread.Join();
+                foreach (Thread thread in threads)
+                    thread.Join();
+            }
+            Messages.AddDoneText();
 
             sw.Stop();
-            Messages.AddDoneText();
-            Messages.Println(string.Format("Lighting took {0}ms", sw.ElapsedTicks * 1000.0f / Stopwatch.Frequency));
+            Console.WriteLine("Lighting took {0}ms", sw.ElapsedTicks * 1000.0f / Stopwatch.Frequency);
         }
 
-        private Thread StartLightCalculationThread(string threadName, int startX, int endX, CalcOptions options)
+        private Thread StartLightCalculationThread(string threadName, int startX, int endX)
         {
             Thread thread = new Thread(() =>
             {
@@ -223,7 +195,7 @@ namespace ProdigalSoftware.TiVE.Renderer.Lighting
                         {
                             ILight light = gameWorld[x, y, z].Light;
                             if (light != null)
-                                FillWorldWithLight(light, x, y, z, options);
+                                FillWorldWithLight(light, x, y, z);
                         }
                     }
                     totalComplete++;
@@ -259,6 +231,50 @@ namespace ProdigalSoftware.TiVE.Renderer.Lighting
         {
             MiscUtils.CheckConstraints(x, y, z, blockSize);
             return (x * blockSize.Z + z) * blockSize.Y + y; // y-axis major for speed
+        }
+        #endregion
+
+        #region SmoothLightProvider class
+        private sealed class SmoothLightProvider : LightProvider
+        {
+            public SmoothLightProvider(GameWorld gameWorld) : base(gameWorld)
+            {
+            }
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)] // Probably can't be inlined because it's an abstract method, but try anyways
+            public override Color3f GetLightAt(int voxelX, int voxelY, int voxelZ)
+            {
+                int blockX = voxelX / BlockInformation.VoxelSize;
+                int blockY = voxelY / BlockInformation.VoxelSize;
+                int blockZ = voxelZ / BlockInformation.VoxelSize;
+
+                Color3f color = ambientLight;
+                List<LightInfo> blockLights = blockLightInfo[GetBlockOffset(blockX, blockY, blockZ)].Lights;
+                for (int i = 0; i < blockLights.Count; i++)
+                {
+                    LightInfo lightInfo = blockLights[i];
+                    color += lightInfo.Light.Color * lightingModel.GetLightPercentage(lightInfo, voxelX, voxelY, voxelZ);
+                }
+                return color;
+            }
+        }
+        #endregion
+
+        #region SimpleLightProvider class
+        private sealed class SimpleLightProvider : LightProvider
+        {
+            public SimpleLightProvider(GameWorld gameWorld) : base(gameWorld)
+            {
+            }
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)] // Probably can't be inlined because it's an abstract method, but try anyways
+            public override Color3f GetLightAt(int voxelX, int voxelY, int voxelZ)
+            {
+                int blockX = voxelX / BlockInformation.VoxelSize;
+                int blockY = voxelY / BlockInformation.VoxelSize;
+                int blockZ = voxelZ / BlockInformation.VoxelSize;
+                return ambientLight + blockLightInfo[GetBlockOffset(blockX, blockY, blockZ)].BlockLight;
+            }
         }
         #endregion
 

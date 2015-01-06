@@ -45,6 +45,12 @@ function Update(camera, keyboard)
         camLoc.Z = Min(camLoc.Z + 2.0, 55.0 * BlockSize)
     end
 
+    if (camLoc.Z > 10 * BlockSize) then
+        camera.FarDistance = 1000
+    else
+        camera.FarDistance = 400
+    end
+
     camera.Location = camLoc
     camera.LookAtLocation = Vector(camLoc.X, camLoc.Y + 150, -20)
 end

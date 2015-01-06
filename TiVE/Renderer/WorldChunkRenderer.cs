@@ -70,7 +70,7 @@ namespace ProdigalSoftware.TiVE.Renderer
 
             BlockList = newBlockList;
             GameWorld = newGameWorld;
-            LightProvider = new LightProvider(newGameWorld);
+            LightProvider = LightProvider.Get(newGameWorld);
 
             renderTree = new ChunkRenderTree(newGameWorld);
             chunkManager = new WorldChunkManager(this, maxChunkCreationThreads);

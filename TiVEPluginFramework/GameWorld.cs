@@ -1,8 +1,17 @@
 ﻿using System.Runtime.CompilerServices;
+using JetBrains.Annotations;
 using ProdigalSoftware.Utils;
 
 namespace ProdigalSoftware.TiVEPluginFramework
 {
+    public enum LightingModelType
+    {
+        Realistic,
+        BrightRealistic,
+        Fantasy1,
+        Fantasy2
+    }
+
     /// <summary>
     /// Contains the information about the game world.
     /// </summary>
@@ -12,8 +21,11 @@ namespace ProdigalSoftware.TiVEPluginFramework
         private readonly Vector3i blockSize;
         private readonly Block[] worldBlocks;
 
+
         public GameWorld(int blockSizeX, int blockSizeY, int blockSizeZ)
         {
+            LightingModelType = LightingModelType.Realistic;
+
             blockSize = new Vector3i(blockSizeX, blockSizeY, blockSizeZ);
             voxelSize = new Vector3i(blockSizeX * BlockInformation.VoxelSize, blockSizeY * BlockInformation.VoxelSize, blockSizeZ * BlockInformation.VoxelSize);
 
@@ -21,6 +33,9 @@ namespace ProdigalSoftware.TiVEPluginFramework
             for (int i = 0; i < worldBlocks.Length; i++)
                 worldBlocks[i] = new Block(BlockInformation.Empty);
         }
+
+        [PublicAPI]
+        public LightingModelType LightingModelType { get; set; }
 
         /// <summary>
         /// Gets the voxel size of the game world

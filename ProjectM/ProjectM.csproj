@@ -81,6 +81,9 @@
     <Prefer32Bit>true</Prefer32Bit>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationIcon>p button.ico</ApplicationIcon>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="DynamicLua, Version=1.1.2.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -111,6 +114,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="p button.ico" />
     <None Include="App.config" />
     <Content Include="Data\additionalTables.def">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

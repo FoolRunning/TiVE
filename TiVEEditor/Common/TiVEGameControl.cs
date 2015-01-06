@@ -24,6 +24,7 @@ namespace ProdigalSoftware.TiVEEditor.Common
 
             if (!reallyDesignMode)
             {
+                TiVEController.UserSettings.Load();
                 timer.Interval = 100;
                 timer.Tick += timer_Tick;
                 timer.Start();
@@ -59,7 +60,7 @@ namespace ProdigalSoftware.TiVEEditor.Common
         {
             if (refreshStaticLighting)
             {
-                renderer.LightProvider.Calculate(CalcOptions.ClearRealisticLights | CalcOptions.CalculateRealisticLights);
+                renderer.LightProvider.Calculate(CalcOptions.ClearLights | CalcOptions.CalculateLights);
                 //lightingHelper.Calculate(CalcOptions.ClearSimpleLights | CalcOptions.CalculateSimpleLights);
             }
             renderer.RefreshLevel();
