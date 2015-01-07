@@ -99,6 +99,12 @@ namespace ProdigalSoftware.TiVE
 
             // Calculate static lighting
             renderer.LightProvider.Calculate(CalcOptions.CalculateLights);
+
+            // This seems to be needed for the GC to realize that the light information and the game world are long-lived
+            // to keep it from causing pauses shortly after starting the render loop.
+            for (int i = 0; i < 3; i++)
+                GC.Collect();
+
             return true;
         }
 

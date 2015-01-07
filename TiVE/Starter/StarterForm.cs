@@ -9,7 +9,7 @@ namespace ProdigalSoftware.TiVE.Starter
     internal partial class StarterForm : Form
     {
         /// <summary>string containing the copyright information</summary>
-        private const string CopyrightString = "© 2013-2014 Prodigal Software";
+        private const string CopyrightString = "© 2013-2015 Prodigal Software";
 
         private Point startOfDrag;
         private Point startingLocation;

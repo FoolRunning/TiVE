@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -26,7 +25,7 @@ namespace ProdigalSoftware.TiVE.Renderer.Lighting
         private const int HalfBlockVoxelSize = BlockInformation.VoxelSize / 2;
 
         private readonly Vector3i blockSize;
-        private readonly BlockLightInfo[] blockLightInfo;
+        private readonly BlockLightsInfo[] blockLightsInfo;
         private readonly GameWorld gameWorld;
         private readonly LightingModel lightingModel;
         private volatile int totalComplete;
@@ -39,9 +38,9 @@ namespace ProdigalSoftware.TiVE.Renderer.Lighting
             this.gameWorld = gameWorld;
             blockSize = new Vector3i(gameWorld.BlockSize.X, gameWorld.BlockSize.Y, gameWorld.BlockSize.Z);
 
-            blockLightInfo = new BlockLightInfo[gameWorld.BlockSize.X * gameWorld.BlockSize.Y * gameWorld.BlockSize.Z];
-            for (int i = 0; i < blockLightInfo.Length; i++)
-                blockLightInfo[i] = new BlockLightInfo(MaxLightsPerBlock);
+            blockLightsInfo = new BlockLightsInfo[gameWorld.BlockSize.X * gameWorld.BlockSize.Y * gameWorld.BlockSize.Z];
+            for (int i = 0; i < blockLightsInfo.Length; i++)
+                blockLightsInfo[i] = new BlockLightsInfo(MaxLightsPerBlock);
 
             ambientLight = Color3f.Empty;
             lightingModel = LightingModel.Get(gameWorld.LightingModelType);
@@ -92,38 +91,38 @@ namespace ProdigalSoftware.TiVE.Renderer.Lighting
                         int vy = by * BlockInformation.VoxelSize + HalfBlockVoxelSize;
                         int vz = bz * BlockInformation.VoxelSize + HalfBlockVoxelSize;
                         float newLightPercentage = lightingModel.GetLightPercentage(lightInfo, vx, vy, vz);
-                        List<LightInfo> blockLights = GetLights(bx, by, bz);
+                        LightInfo[] blockLights = blockLightsInfo[GetBlockOffset(bx, by, bz)].Lights;
                         using (new PerformanceLock(blockLights))
                         {
                             // Calculate simple lighting information
-                            Color3f currentBlockLight = GetBlockLight(bx, by, bz);
-                            SetBlockLight(bx, by, bz, currentBlockLight + (light.Color * newLightPercentage));
+                            SetBlockLight(bx, by, bz, GetBlockLight(bx, by, bz) + (light.Color * newLightPercentage));
 
                             // Calculate smooth lighting information
-                            if (blockLights.Count == 0)
-                                blockLights.Add(lightInfo);
-                            else
+                            // Sort lights by highest percentage to lowest
+                            int leastLightIndex = MaxLightsPerBlock;
+                            for (int i = 0; i < blockLights.Length; i++)
                             {
-                                // Sort lights by highest percentage to lowest
-                                int leastLightIndex = blockLights.Count;
-                                for (int i = 0; i < blockLights.Count; i++)
+                                LightInfo otherInfo = blockLights[i];
+                                if (otherInfo == null)
                                 {
-                                    float lightPercentage = lightingModel.GetLightPercentage(blockLights[i], vx, vy, vz);
-                                    if (lightPercentage < newLightPercentage)
-                                    {
-                                        leastLightIndex = i;
-                                        break;
-                                    }
+                                    leastLightIndex = i;
+                                    break;
                                 }
 
-                                if (leastLightIndex < blockLights.Count || blockLights.Count < MaxLightsPerBlock)
+                                float otherLightPercentage = lightingModel.GetLightPercentage(otherInfo, vx, vy, vz);
+                                if (otherLightPercentage < newLightPercentage)
                                 {
-                                    if (blockLights.Count >= MaxLightsPerBlock)
-                                        blockLights.RemoveAt(blockLights.Count - 1);
-                                    blockLights.Insert(leastLightIndex, lightInfo);
-
-                                    Debug.Assert(blockLights.Count <= MaxLightsPerBlock, "Should never add more then max lights");
+                                    leastLightIndex = i;
+                                    break;
                                 }
+                            }
+
+                            if (leastLightIndex < MaxLightsPerBlock)
+                            {
+                                for (int i = MaxLightsPerBlock - 1; i > leastLightIndex; i--)
+                                    blockLights[i] = blockLights[i - 1];
+
+                                blockLights[leastLightIndex] = lightInfo;
                             }
                         }
                     }
@@ -147,7 +146,7 @@ namespace ProdigalSoftware.TiVE.Renderer.Lighting
                         for (int y = 0; y < blockSize.Y; y++)
                         {
                             SetBlockLight(x, y, z, Color3f.Empty);
-                            GetLights(x, y, z).Clear();
+                            Array.Clear(blockLightsInfo[GetBlockOffset(x, y, z)].Lights, 0, MaxLightsPerBlock);
                         }
                     }
                 }
@@ -169,7 +168,7 @@ namespace ProdigalSoftware.TiVE.Renderer.Lighting
             Messages.AddDoneText();
 
             sw.Stop();
-            Console.WriteLine("Lighting took {0}ms", sw.ElapsedTicks * 1000.0f / Stopwatch.Frequency);
+            Messages.AddDebug(string.Format("Lighting took {0}ms", sw.ElapsedMilliseconds));
         }
 
         private Thread StartLightCalculationThread(string threadName, int startX, int endX)
@@ -207,19 +206,14 @@ namespace ProdigalSoftware.TiVE.Renderer.Lighting
             return thread;
         }
 
-        private List<LightInfo> GetLights(int blockX, int blockY, int blockZ)
-        {
-            return blockLightInfo[GetBlockOffset(blockX, blockY, blockZ)].Lights;
-        }
-
         private Color3f GetBlockLight(int blockX, int blockY, int blockZ)
         {
-            return blockLightInfo[GetBlockOffset(blockX, blockY, blockZ)].BlockLight;
+            return blockLightsInfo[GetBlockOffset(blockX, blockY, blockZ)].BlockLight;
         }
 
         private void SetBlockLight(int blockX, int blockY, int blockZ, Color3f light)
         {
-            blockLightInfo[GetBlockOffset(blockX, blockY, blockZ)].BlockLight = light;
+            blockLightsInfo[GetBlockOffset(blockX, blockY, blockZ)].BlockLight = light;
         }
 
         #region Private helper methods
@@ -249,10 +243,12 @@ namespace ProdigalSoftware.TiVE.Renderer.Lighting
                 int blockZ = voxelZ / BlockInformation.VoxelSize;
 
                 Color3f color = ambientLight;
-                List<LightInfo> blockLights = blockLightInfo[GetBlockOffset(blockX, blockY, blockZ)].Lights;
-                for (int i = 0; i < blockLights.Count; i++)
+                LightInfo[] blockLights = blockLightsInfo[GetBlockOffset(blockX, blockY, blockZ)].Lights;
+                for (int i = 0; i < blockLights.Length; i++)
                 {
                     LightInfo lightInfo = blockLights[i];
+                    if (lightInfo == null)
+                        break;
                     color += lightInfo.Light.Color * lightingModel.GetLightPercentage(lightInfo, voxelX, voxelY, voxelZ);
                 }
                 return color;
@@ -273,7 +269,7 @@ namespace ProdigalSoftware.TiVE.Renderer.Lighting
                 int blockX = voxelX / BlockInformation.VoxelSize;
                 int blockY = voxelY / BlockInformation.VoxelSize;
                 int blockZ = voxelZ / BlockInformation.VoxelSize;
-                return ambientLight + blockLightInfo[GetBlockOffset(blockX, blockY, blockZ)].BlockLight;
+                return ambientLight + blockLightsInfo[GetBlockOffset(blockX, blockY, blockZ)].BlockLight;
             }
         }
         #endregion
@@ -282,18 +278,18 @@ namespace ProdigalSoftware.TiVE.Renderer.Lighting
         /// <summary>
         /// Represents the light information for one block in the game world
         /// </summary>
-        private struct BlockLightInfo
+        private struct BlockLightsInfo
         {
             /// <summary>
             /// List of lights that affect this block
             /// </summary>
-            public readonly List<LightInfo> Lights;
+            public readonly LightInfo[] Lights;
 
             public Color3f BlockLight;
 
-            public BlockLightInfo(int lightListSize)
+            public BlockLightsInfo(int lightListSize)
             {
-                Lights = new List<LightInfo>(lightListSize);
+                Lights = new LightInfo[lightListSize];
                 BlockLight = new Color3f();
             }
         }

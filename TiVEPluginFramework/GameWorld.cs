@@ -21,7 +21,6 @@ namespace ProdigalSoftware.TiVEPluginFramework
         private readonly Vector3i blockSize;
         private readonly Block[] worldBlocks;
 
-
         public GameWorld(int blockSizeX, int blockSizeY, int blockSizeZ)
         {
             LightingModelType = LightingModelType.Realistic;
