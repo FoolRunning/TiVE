@@ -52,6 +52,6 @@ function Update(camera, keyboard)
     end
 
     camera.Location = camLoc
-    camera.LookAtLocation = Vector(camLoc.X, camLoc.Y + 150, -20)
+    camera.LookAtLocation = Vector(camLoc.X, camLoc.Y + 150, 20)
 end
 

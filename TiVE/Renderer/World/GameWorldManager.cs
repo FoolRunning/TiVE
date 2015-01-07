@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using ProdigalSoftware.TiVE.Starter;
 using ProdigalSoftware.TiVEPluginFramework;
 
@@ -58,6 +59,47 @@ namespace ProdigalSoftware.TiVE.Renderer.World
                     if (createdWorld != null)
                     {
                         Messages.AddDoneText();
+
+                        Dictionary<BlockInformation, int> voxelsInBlocks = new Dictionary<BlockInformation, int>();
+                        foreach (BlockInformation block in blockList.AllBlocks)
+                        {
+                            int voxelsInBlock = 0;
+                            for (int bz = 0; bz < BlockInformation.VoxelSize; bz++)
+                            {
+                                for (int bx = 0; bx < BlockInformation.VoxelSize; bx++)
+                                {
+                                    for (int by = 0; by < BlockInformation.VoxelSize; by++)
+                                    {
+                                        if (block[bx, by, bz] != 0)
+                                            voxelsInBlock++;
+                                    }
+                                }
+                            }
+                            voxelsInBlocks[block] = voxelsInBlock;
+                            
+                        }
+
+                        long totalVoxels = 0;
+                        int totalBlocks = 0;
+                        for (int wz = 0; wz < createdWorld.BlockSize.Z; wz++)
+                        {
+                            for (int wx = 0; wx < createdWorld.BlockSize.X; wx++)
+                            {
+                                for (int wy = 0; wy < createdWorld.BlockSize.Y; wy++)
+                                {
+                                    BlockInformation block = createdWorld[wx, wy, wz];
+                                    if (block != BlockInformation.Empty)
+                                    {
+                                        totalBlocks++;
+                                        totalVoxels += voxelsInBlocks[block];
+                                    }
+                                }
+                            }
+                        }
+
+                        Messages.AddDebug(string.Format("Blocks in world: {0:N0}", totalBlocks));
+                        Messages.AddDebug(string.Format("Voxels in world: {0:N0}", totalVoxels));
+
                         return createdWorld;
                     }
                 }
