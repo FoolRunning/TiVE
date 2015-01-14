@@ -207,7 +207,7 @@ namespace ProdigalSoftware.TiVE.Renderer.Particles
 
             if (systemInfo.TransparentParticles)
             {
-                TiVEController.Backend.SetBlendMode(BlendMode.None);
+                TiVEController.Backend.SetBlendMode(BlendMode.Realistic);
                 TiVEController.Backend.EnableDepthWriting();
             }
 

@@ -14,6 +14,7 @@ namespace ProdigalSoftware.TiVE.Renderer
     {
         private readonly HashSet<GameWorldVoxelChunk> chunksToRender = new HashSet<GameWorldVoxelChunk>();
         private readonly int maxChunkCreationThreads;
+        private Camera camera;
         private WorldChunkManager chunkManager;
         private ParticleSystemManager particleManager;
         private ShaderManager shaderManager;
@@ -23,6 +24,7 @@ namespace ProdigalSoftware.TiVE.Renderer
         public WorldChunkRenderer(int maxChunkCreationThreads)
         {
             this.maxChunkCreationThreads = maxChunkCreationThreads;
+            camera = new Camera();
         }
 
         public void Dispose()
@@ -51,6 +53,17 @@ namespace ProdigalSoftware.TiVE.Renderer
             shaderManager = null;
 
             GC.Collect();
+        }
+
+        public Camera Camera 
+        {
+            get { return camera; }
+            set
+            {
+                if (value == null)
+                    throw new ArgumentNullException("value");
+                camera = value;
+            }
         }
 
         public GameWorld GameWorld { get; private set; }
@@ -84,8 +97,8 @@ namespace ProdigalSoftware.TiVE.Renderer
             if (chunkManager != null)
                 chunkManager.ReloadAllChunks();
         }
-
-        public void Update(Camera camera, float timeSinceLastFrame)
+        
+        public void Update(float timeSinceLastFrame)
         {
             camera.Update();
 
@@ -99,7 +112,7 @@ namespace ProdigalSoftware.TiVE.Renderer
             BlockList.UpdateAnimations(timeSinceLastFrame);
         }
 
-        public RenderStatistics Draw(Camera camera)
+        public RenderStatistics Draw()
         {
             chunkManager.CleanUpChunks();
 

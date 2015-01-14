@@ -103,8 +103,8 @@ namespace ProdigalSoftware.TiVEEditor.Common
 
                 camera.Update();
 
-                renderer.Update(camera, 0.0f);
-                renderer.Draw(camera);
+                renderer.Update(0.0f);
+                renderer.Draw();
                 SwapBuffers();
             }
         }

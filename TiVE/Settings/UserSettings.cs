@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Xml;
+using ProdigalSoftware.TiVE.Renderer.Lighting;
 using ProdigalSoftware.TiVE.Starter;
 
 namespace ProdigalSoftware.TiVE.Settings
@@ -91,9 +92,11 @@ namespace ProdigalSoftware.TiVE.Settings
                 new UserSettingOption("True", new BoolSetting(true)), 
                 new UserSettingOption("False *", new BoolSetting(false))));
 
-            settingOptions.Add(new UserSettingOptions(SimpleLightingKey, "Simple lighting", UserOptionTab.Display, new BoolSetting(false),
-                new UserSettingOption("True", new BoolSetting(true)),
-                new UserSettingOption("False *", new BoolSetting(false))));
+            settingOptions.Add(new UserSettingOptions(SimpleLightingKey, "Lighting complexity", UserOptionTab.Display, 
+                new EnumSetting<LightComplexity>(LightComplexity.Smooth),
+                new UserSettingOption("Simple", new EnumSetting<LightComplexity>(LightComplexity.Simple)),
+                new UserSettingOption("Smooth *", new EnumSetting<LightComplexity>(LightComplexity.Smooth)),
+                new UserSettingOption("Realistic (extrememly slow!)", new EnumSetting<LightComplexity>(LightComplexity.Realistic))));
 
             settingOptions.Add(new UserSettingOptions(ChunkCreationThreadsKey, "Chunk creation threads", UserOptionTab.Advanced, new IntSetting(3),
                 new UserSettingOption(new IntSetting(1)),

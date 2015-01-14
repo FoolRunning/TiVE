@@ -34,7 +34,7 @@ namespace ProdigalSoftware.TiVE.Renderer.OpenGL
             GL.CullFace(CullFaceMode.Back);
             GL.FrontFace(FrontFaceDirection.Cw);
 
-            GL.Disable(EnableCap.Blend);
+            SetBlendMode(BlendMode.Realistic);
 
             GlUtils.CheckGLErrors();
         }

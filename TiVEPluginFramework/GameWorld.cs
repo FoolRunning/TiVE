@@ -83,12 +83,14 @@ namespace ProdigalSoftware.TiVEPluginFramework
             int blockX = voxelX / BlockInformation.VoxelSize;
             int blockY = voxelY / BlockInformation.VoxelSize;
             int blockZ = voxelZ / BlockInformation.VoxelSize;
+            BlockInformation block = worldBlocks[GetBlockOffset(blockX, blockY, blockZ)].BlockInfo;
+            if (block == BlockInformation.Empty)
+                return 0;
 
             int blockVoxelX = voxelX % BlockInformation.VoxelSize;
             int blockVoxelY = voxelY % BlockInformation.VoxelSize;
             int blockVoxelZ = voxelZ % BlockInformation.VoxelSize;
 
-            BlockInformation block = worldBlocks[GetBlockOffset(blockX, blockY, blockZ)].BlockInfo;
             return block[blockVoxelX, blockVoxelY, blockVoxelZ];
         }
 

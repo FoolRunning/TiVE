@@ -15,8 +15,8 @@ namespace ProdigalSoftware.ProjectM.Plugins
 
         public GameWorld CreateGameWorld(string gameWorldName, IBlockList blockList)
         {
-            GameWorld gameWorld = new GameWorld(250, 250, 20);
-            gameWorld.LightingModelType = LightingModelType.Realistic;
+            GameWorld gameWorld = new GameWorld(500, 500, 20);
+            gameWorld.LightingModelType = LightingModelType.Fantasy2;
             long seed = LongRandom();
             //AddBiomes(gameWorld, seed);
             FillWorld(gameWorld, seed, blockList);

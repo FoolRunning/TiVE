@@ -20,9 +20,7 @@ namespace ProdigalSoftware.TiVE
         private const int UpdatesPerSecond = 60;
 
         private static readonly long maxTicksForSleep;
-
-        private readonly Camera camera = new Camera();
-
+        
         private readonly TimeStatHelper renderTime = new TimeStatHelper(2, true);
         private readonly TimeStatHelper updateTime = new TimeStatHelper(2, true);
         private readonly TimeStatHelper frameTime = new TimeStatHelper(2, true);
@@ -84,7 +82,7 @@ namespace ProdigalSoftware.TiVE
 
             try
             {
-                gameScript.Initialize(camera);
+                gameScript.Initialize(renderer.Camera);
             }
             catch (RuntimeBinderException)
             {
@@ -181,7 +179,7 @@ namespace ProdigalSoftware.TiVE
         private void NativeWindowResized(Rectangle newClientBounds)
         {
             TiVEController.Backend.WindowResized(newClientBounds);
-            camera.AspectRatio = newClientBounds.Width / (float)newClientBounds.Height;
+            renderer.Camera.AspectRatio = newClientBounds.Width / (float)newClientBounds.Height;
         }
 
         private void RenderFrame()
@@ -193,7 +191,7 @@ namespace ProdigalSoftware.TiVE
 
             TiVEController.Backend.BeforeRenderFrame();
 
-            RenderStatistics stats = renderer.Draw(camera);
+            RenderStatistics stats = renderer.Draw();
 
             drawCount.PushCount(stats.DrawCount);
             voxelCount.PushCount(stats.VoxelCount);
@@ -211,7 +209,7 @@ namespace ProdigalSoftware.TiVE
             updateTime.MarkStartTime();
             try
             {
-                gameScript.Update(camera);
+                gameScript.Update(renderer.Camera);
             }
             catch (RuntimeBinderException)
             {
@@ -224,7 +222,7 @@ namespace ProdigalSoftware.TiVE
                 continueMainLoop = false;
             }
 
-            renderer.Update(camera, timeSinceLastFrame);//*/ 1.0f / GameUpdatesPerSecond);
+            renderer.Update(timeSinceLastFrame);//*/ 1.0f / GameUpdatesPerSecond);
 
             updateTime.PushTime();
         }

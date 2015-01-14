@@ -8,6 +8,8 @@ namespace ProdigalSoftware.TiVE
 {
     internal interface IGameWorldRenderer : IDisposable
     {
+        Camera Camera { get; set; }
+
         GameWorld GameWorld { get; }
 
         BlockList BlockList { get; }
@@ -18,8 +20,8 @@ namespace ProdigalSoftware.TiVE
 
         void RefreshLevel();
 
-        void Update(Camera camera, float timeSinceLastFrame);
+        void Update(float timeSinceLastFrame);
 
-        RenderStatistics Draw(Camera camera);
+        RenderStatistics Draw();
     }
 }
