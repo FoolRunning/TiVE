@@ -7,6 +7,7 @@ function Initialize(camera)
     WorldXSize = gameWorld.BlockSize.X
     WorldYSize = gameWorld.BlockSize.Y
     WorldZSize = gameWorld.BlockSize.Z
+    Renderer().LightProvider.AmbientLight = Color(0.1, 0.1, 0.1)
 
     camera.FarDistance = 1000
     camera.FoV = PI / 4 --45 degrees
