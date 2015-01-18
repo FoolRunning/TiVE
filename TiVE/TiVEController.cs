@@ -62,8 +62,8 @@ namespace ProdigalSoftware.TiVE
                 bool success = PluginManager.LoadPlugins();
                 if (success)
                     UserSettings.Load();
-                if (success)
-                    success = TableDefinitions.Initialize();
+                //if (success)
+                //   success = TableDefinitions.Initialize();
                 if (success)
                     success = LuaScripts.Initialize();
 

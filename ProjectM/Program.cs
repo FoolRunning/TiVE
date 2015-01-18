@@ -8,7 +8,7 @@ namespace ProdigalSoftware.ProjectM
     static class Program
     {
         const string Format = "{0}: {1,7:0.000} ";
-        const int dim = 80;
+        const int dim = 100;
         private const int PassCount = 300;
         private const int TestSize = dim * dim * dim;
 
@@ -31,6 +31,7 @@ namespace ProdigalSoftware.ProjectM
         #region Test struct vs. class access speed
         private static void TestStructClassAccess()
         {
+            Console.WriteLine();
             Struct();
             StructUnsafe();
             Class();
@@ -161,6 +162,7 @@ namespace ProdigalSoftware.ProjectM
         #region Test array-type speeds
         private static void TestArrayMethods()
         {
+            Console.WriteLine();
             Jagged();
             Multi();
             Single();
@@ -237,13 +239,13 @@ namespace ProdigalSoftware.ProjectM
                 total += timer.ElapsedTicks * 1000.0 / Stopwatch.Frequency;
             }
             Console.WriteLine(Format, "Single array", total / PassCount);
-            Console.WriteLine();
         }
         #endregion
 
         #region Test multiple arrays vs. array of struct
         private static void TestSingleItemVersusMultipleArray()
         {
+            Console.WriteLine();
             TestAccessMultiple();
             TestAccessStruct();
         }

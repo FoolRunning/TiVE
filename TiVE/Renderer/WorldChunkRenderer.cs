@@ -81,6 +81,9 @@ namespace ProdigalSoftware.TiVE.Renderer
 
             Dispose();
 
+            shaderManager = new ShaderManager();
+            shaderManager.Initialize();
+
             BlockList = newBlockList;
             GameWorld = newGameWorld;
             LightProvider = LightProvider.Get(newGameWorld);
@@ -88,8 +91,6 @@ namespace ProdigalSoftware.TiVE.Renderer
             renderTree = new ChunkRenderTree(newGameWorld);
             chunkManager = new WorldChunkManager(this, maxChunkCreationThreads);
             particleManager = new ParticleSystemManager(this);
-            shaderManager = new ShaderManager();
-            shaderManager.Initialize();
         }
 
         public void RefreshLevel()

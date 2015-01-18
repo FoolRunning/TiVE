@@ -12,7 +12,7 @@ namespace ProdigalSoftware.TiVE.Settings
     internal sealed class UserSettings
     {
         public const string FullScreenModeKey = "fullScreenMode";
-        public const string SimpleLightingKey = "simpleLighting";
+        public const string LightingComplexityKey = "lightingComplexity";
         public const string ShadedVoxelsKey = "shadedVoxels";
         public const string EnableVSyncKey = "enbaleVSync";
         public const string AntiAliasAmountKey = "antiAliasAmount";
@@ -92,11 +92,11 @@ namespace ProdigalSoftware.TiVE.Settings
                 new UserSettingOption("True", new BoolSetting(true)), 
                 new UserSettingOption("False *", new BoolSetting(false))));
 
-            settingOptions.Add(new UserSettingOptions(SimpleLightingKey, "Lighting complexity", UserOptionTab.Display, 
+            settingOptions.Add(new UserSettingOptions(LightingComplexityKey, "Lighting complexity", UserOptionTab.Display, 
                 new EnumSetting<LightComplexity>(LightComplexity.Smooth),
                 new UserSettingOption("Simple", new EnumSetting<LightComplexity>(LightComplexity.Simple)),
                 new UserSettingOption("Smooth *", new EnumSetting<LightComplexity>(LightComplexity.Smooth)),
-                new UserSettingOption("Realistic (extrememly slow!)", new EnumSetting<LightComplexity>(LightComplexity.Realistic))));
+                new UserSettingOption("Realistic (very slow!)", new EnumSetting<LightComplexity>(LightComplexity.Realistic))));
 
             settingOptions.Add(new UserSettingOptions(ChunkCreationThreadsKey, "Chunk creation threads", UserOptionTab.Advanced, new IntSetting(3),
                 new UserSettingOption(new IntSetting(1)),

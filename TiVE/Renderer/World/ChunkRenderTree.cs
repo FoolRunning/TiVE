@@ -12,14 +12,14 @@ namespace ProdigalSoftware.TiVE.Renderer.World
     {
         #region Constants
         private const int ChunkVoxelSize = GameWorldVoxelChunk.VoxelSize;
-        private const int FarTopLeft = 0;
-        private const int FarTopRight = 1;
-        private const int FarBottomLeft = 2;
-        private const int FarBottomRight = 3;
-        private const int NearTopLeft = 4;
-        private const int NearTopRight = 5;
-        private const int NearBottomLeft = 6;
-        private const int NearBottomRight = 7;
+        private const int NearTopLeft = 0;
+        private const int NearTopRight = 1;
+        private const int NearBottomLeft = 2;
+        private const int NearBottomRight = 3;
+        private const int FarTopLeft = 4;
+        private const int FarTopRight = 5;
+        private const int FarBottomLeft = 6;
+        private const int FarBottomRight = 7;
         #endregion
 
         #region Member variables
