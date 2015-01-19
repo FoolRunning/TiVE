@@ -51,7 +51,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
                 new PointLight(blockCenterVector, new Color3f(1.0f, 0.0f, 1.0f), forFantasyLighting ? 10 : 20));
 
             yield return new BlockInformation("snow",
-                new ParticleSystemInformation(particleVoxels, new SnowUpdater(), new Vector3b(0, 0, 0), 100, 1, false, true));
+                new ParticleSystemInformation(particleVoxels, new SnowUpdater(), new Vector3b(0, 0, 0), 100, 4, false, true));
 
             particleVoxels = new uint[3, 3, 3];
             particleVoxels[1, 1, 1] = 0xFFFFFFFF;
@@ -62,7 +62,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
             particleVoxels[1, 1, 0] = 0xFFFFFFFF;
             particleVoxels[1, 1, 2] = 0xFFFFFFFF;
             yield return CreateBlockInfo("fountain", false, BlockInformation.VoxelSize / 2, new Color4f(20, 20, 150, 255), 1.0f,
-                new ParticleSystemInformation(particleVoxels, new FountainUpdater(), new Vector3b(3, 3, 7), 1000, 2200, false, true));
+                new ParticleSystemInformation(particleVoxels, new FountainUpdater(), new Vector3b(blockCenter, blockCenter, 13), 1000, 2200, false, true));
         }
 
         public IEnumerable<BlockAnimationDefinition> CreateAnimations(string blockListName)
@@ -252,7 +252,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
                 return true;
             }
 
-            private const float AliveTime = 2.0f;
+            private const float AliveTime = 1.5f;
 
             public override void Update(Particle particle, float timeSinceLastFrame, float systemX, float systemY, float systemZ)
             {
@@ -270,10 +270,10 @@ namespace ProdigalSoftware.ProjectM.Plugins
 
             public override void InitializeNew(Particle particle, float startX, float startY, float startZ)
             {
-                float angle = (float)random.NextDouble() * 2.0f * 3.141592f;
-                float totalVel = (float)random.NextDouble() * 10.0f + 20.0f;
+                float angle = (float)random.NextDouble() * 4.0f * 3.141592f;
+                float totalVel = (float)random.NextDouble() * 20.0f + 20.0f;
                 particle.VelX = (float)Math.Cos(angle) * totalVel;
-                particle.VelZ = (float)random.NextDouble() * 10.0f + 40.0f;
+                particle.VelZ = (float)random.NextDouble() * 20.0f + 40.0f;
                 particle.VelY = (float)Math.Sin(angle) * totalVel;
 
                 particle.X = startX;

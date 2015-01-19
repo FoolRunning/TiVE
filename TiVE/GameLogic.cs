@@ -19,8 +19,6 @@ namespace ProdigalSoftware.TiVE
     {
         private const int UpdatesPerSecond = 60;
 
-        private static readonly long maxTicksForSleep;
-        
         private readonly TimeStatHelper renderTime = new TimeStatHelper(2, true);
         private readonly TimeStatHelper updateTime = new TimeStatHelper(2, true);
         private readonly TimeStatHelper frameTime = new TimeStatHelper(2, true);
@@ -34,19 +32,6 @@ namespace ProdigalSoftware.TiVE
         private IKeyboard keyboard;
         private IGameWorldRenderer renderer;
         private dynamic gameScript;
-
-        static GameLogic()
-        {
-            for (int i = 0; i < 100; i++)
-            {
-                long startTime = Stopwatch.GetTimestamp();
-                Thread.Sleep(1);
-                long totalTime = Stopwatch.GetTimestamp() - startTime;
-                if (totalTime > maxTicksForSleep)
-                    maxTicksForSleep = totalTime;
-            }
-            Console.WriteLine("Sleeping for 1ms can be " + maxTicksForSleep * 1000.0f / Stopwatch.Frequency + "ms long");
-        }
 
         public bool Initialize()
         {
@@ -158,11 +143,12 @@ namespace ProdigalSoftware.TiVE
                 {
                     float timeSinceLastFrame = (currentTime - previousDisplayUpdateTime) / (float)Stopwatch.Frequency;
                     previousDisplayUpdateTime = currentTime;
-                    RenderFrame();
-                    UpdateGame(timeSinceLastFrame);
                     nativeWindow.UpdateDisplayContents();
+
+                    UpdateGame(timeSinceLastFrame);
+                    RenderFrame();
                 }
-                else if (previousDisplayUpdateTime + ticksPerUpdate - maxTicksForSleep > currentTime)
+                else if (previousDisplayUpdateTime + ticksPerUpdate - TiVEController.MaxTicksForSleep > currentTime)
                     Thread.Sleep(1);
             }
 

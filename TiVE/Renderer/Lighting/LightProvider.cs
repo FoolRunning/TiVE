@@ -87,14 +87,14 @@ namespace ProdigalSoftware.TiVE.Renderer.Lighting
         /// </summary>
         /// <remarks>Very performance-critical method</remarks>
         [MethodImpl(MethodImplOptions.AggressiveInlining)] // Probably can't be inlined because it's an abstract method, but try anyways
-        public abstract Color3f GetLightAt(int voxelX, int voxelY, int voxelZ);
+        public abstract Color3f GetLightAtFast(int voxelX, int voxelY, int voxelZ);
 
         /// <summary>
         /// Gets the light value at the specified voxel. This version is faster if the caller already has the other parameters
         /// </summary>
         /// <remarks>Very performance-critical method</remarks>
         [MethodImpl(MethodImplOptions.AggressiveInlining)] // Probably can't be inlined because it's an abstract method, but try anyways
-        public abstract Color3f GetLightAtOptimized(int voxelX, int voxelY, int voxelZ, int blockX, int blockY, int blockZ, VoxelSides visibleSides);
+        public abstract Color3f GetLightAt(int voxelX, int voxelY, int voxelZ, int blockX, int blockY, int blockZ, VoxelSides visibleSides);
 
         public void Calculate(CalcOptions options)
         {
@@ -247,30 +247,23 @@ namespace ProdigalSoftware.TiVE.Renderer.Lighting
             {
             }
 
-            public override Color3f GetLightAt(int voxelX, int voxelY, int voxelZ)
+            public override Color3f GetLightAtFast(int voxelX, int voxelY, int voxelZ)
             {
-                VoxelSides sides = VoxelSides.None;
-                if (voxelX > 0 && gameWorld.GetVoxel(voxelX - 1, voxelY, voxelZ) == 0)
-                    sides |= VoxelSides.Left;
-                if (voxelY > 0 && gameWorld.GetVoxel(voxelX, voxelY - 1, voxelZ) == 0)
-                    sides |= VoxelSides.Bottom;
-                if (voxelZ > 0 && gameWorld.GetVoxel(voxelX, voxelY, voxelZ - 1) == 0)
-                    sides |= VoxelSides.Back;
-
-                if (voxelX < gameWorld.VoxelSize.X - 1 && gameWorld.GetVoxel(voxelX + 1, voxelY, voxelZ) == 0)
-                    sides |= VoxelSides.Right;
-                if (voxelY < gameWorld.VoxelSize.Y - 1 && gameWorld.GetVoxel(voxelX, voxelY + 1, voxelZ) == 0)
-                    sides |= VoxelSides.Top;
-                if (voxelZ < gameWorld.VoxelSize.Z - 1 && gameWorld.GetVoxel(voxelX, voxelY, voxelZ + 1) == 0)
-                    sides |= VoxelSides.Front;
-
                 int blockX = voxelX / BlockInformation.VoxelSize;
                 int blockY = voxelY / BlockInformation.VoxelSize;
                 int blockZ = voxelZ / BlockInformation.VoxelSize;
-                return GetLightAtOptimized(voxelX, voxelY, voxelZ, blockX, blockY, blockZ, sides);
+                Color3f color = AmbientLight;
+                LightInfo[] lightsInBlock = lightsInBlocks[GetBlockLightOffset(blockX, blockY, blockZ)];
+                for (int i = 0; i < lightsInBlock.Length; i++)
+                {
+                    LightInfo lightInfo = lightsInBlock[i];
+                    if (lightInfo != null && NoVoxelInLine(lightInfo, voxelX, voxelY, voxelZ))
+                        color += lightInfo.Light.Color * lightingModel.GetLightPercentage(lightInfo, voxelX, voxelY, voxelZ);
+                }
+                return color;
             }
 
-            public override Color3f GetLightAtOptimized(int voxelX, int voxelY, int voxelZ, int blockX, int blockY, int blockZ, VoxelSides visibleSides)
+            public override Color3f GetLightAt(int voxelX, int voxelY, int voxelZ, int blockX, int blockY, int blockZ, VoxelSides visibleSides)
             {
                 bool availableMinusX = (visibleSides & VoxelSides.Left) != 0;
                 bool availableMinusY = (visibleSides & VoxelSides.Bottom) != 0;
@@ -279,9 +272,8 @@ namespace ProdigalSoftware.TiVE.Renderer.Lighting
                 bool availablePlusY = (visibleSides & VoxelSides.Top) != 0;
                 bool availablePlusZ = (visibleSides & VoxelSides.Front) != 0;
 
-                LightInfo[] lightsInBlock = lightsInBlocks[GetBlockLightOffset(blockX, blockY, blockZ)];
-
                 Color3f color = AmbientLight;
+                LightInfo[] lightsInBlock = lightsInBlocks[GetBlockLightOffset(blockX, blockY, blockZ)];
                 for (int i = 0; i < lightsInBlock.Length; i++)
                 {
                     LightInfo lightInfo = lightsInBlock[i];
@@ -397,16 +389,16 @@ namespace ProdigalSoftware.TiVE.Renderer.Lighting
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)] // Probably can't be inlined because it's an abstract method, but try anyways
-            public override Color3f GetLightAt(int voxelX, int voxelY, int voxelZ)
+            public override Color3f GetLightAtFast(int voxelX, int voxelY, int voxelZ)
             {
                 int blockX = voxelX / BlockInformation.VoxelSize;
                 int blockY = voxelY / BlockInformation.VoxelSize;
                 int blockZ = voxelZ / BlockInformation.VoxelSize;
-                return GetLightAtOptimized(voxelX, voxelY, voxelZ, blockX, blockY, blockZ, VoxelSides.None);
+                return GetLightAt(voxelX, voxelY, voxelZ, blockX, blockY, blockZ, VoxelSides.None);
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)] // Probably can't be inlined because it's an abstract method, but try anyways
-            public override Color3f GetLightAtOptimized(int voxelX, int voxelY, int voxelZ, int blockX, int blockY, int blockZ, VoxelSides visibleSides)
+            public override Color3f GetLightAt(int voxelX, int voxelY, int voxelZ, int blockX, int blockY, int blockZ, VoxelSides visibleSides)
             {
                 LightInfo[] lightsInBlock = lightsInBlocks[GetBlockLightOffset(blockX, blockY, blockZ)];
 
@@ -431,16 +423,16 @@ namespace ProdigalSoftware.TiVE.Renderer.Lighting
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)] // Probably can't be inlined because it's an abstract method, but try anyways
-            public override Color3f GetLightAt(int voxelX, int voxelY, int voxelZ)
+            public override Color3f GetLightAtFast(int voxelX, int voxelY, int voxelZ)
             {
                 int blockX = voxelX / BlockInformation.VoxelSize;
                 int blockY = voxelY / BlockInformation.VoxelSize;
                 int blockZ = voxelZ / BlockInformation.VoxelSize;
-                return GetLightAtOptimized(voxelX, voxelY, voxelZ, blockX, blockY, blockZ, VoxelSides.None);
+                return GetLightAt(voxelX, voxelY, voxelZ, blockX, blockY, blockZ, VoxelSides.None);
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)] // Probably can't be inlined because it's an abstract method, but try anyways
-            public override Color3f GetLightAtOptimized(int voxelX, int voxelY, int voxelZ, int blockX, int blockY, int blockZ, VoxelSides visibleSides)
+            public override Color3f GetLightAt(int voxelX, int voxelY, int voxelZ, int blockX, int blockY, int blockZ, VoxelSides visibleSides)
             {
                 return AmbientLight + blockLights[GetBlockLightOffset(blockX, blockY, blockZ)];
             }

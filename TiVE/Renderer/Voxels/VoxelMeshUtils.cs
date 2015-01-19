@@ -5,13 +5,14 @@ namespace ProdigalSoftware.TiVE.Renderer.Voxels
 {
     internal static class VoxelMeshUtils
     {
-        public static void GenerateMesh(uint[,,] voxels, MeshBuilder meshBuilder, out int voxelCount, out int renderedVoxelCount, out int polygonCount)
+        public static void GenerateMesh(uint[,,] voxels, MeshBuilder meshBuilder, bool forInstances, 
+            out int voxelCount, out int renderedVoxelCount, out int polygonCount)
         {
             voxelCount = 0;
             renderedVoxelCount = 0;
             polygonCount = 0;
 
-            VoxelMeshHelper meshHelper = VoxelMeshHelper.Get(false);
+            VoxelMeshHelper meshHelper = VoxelMeshHelper.Get(forInstances);
             meshBuilder.StartNewMesh();
             int xSize = voxels.GetLength(0);
             int ySize = voxels.GetLength(1);

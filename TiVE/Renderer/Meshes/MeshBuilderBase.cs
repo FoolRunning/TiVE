@@ -68,7 +68,7 @@ namespace ProdigalSoftware.TiVE.Renderer.Meshes
 
         public abstract IRendererData GetLocationData();
 
-        private IRendererData GetColorData()
+        public IRendererData GetColorData()
         {
             return TiVEController.Backend.CreateData(colorData, vertexCount, 4, DataType.Vertex, ValueType.Byte, true, false);
         }

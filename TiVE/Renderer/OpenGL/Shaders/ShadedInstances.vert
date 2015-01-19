@@ -4,8 +4,8 @@
 uniform mat4 matrix_ModelViewProjection;
  
 // incoming vertex information
-in vec3 in_Color;
 in vec3 in_Position;
+in vec4 in_Color;
 
 // incoming vertex information for each instance
 in vec3 in_InstancePos;
