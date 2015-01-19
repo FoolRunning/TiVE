@@ -19,6 +19,7 @@ namespace ProdigalSoftware.TiVE.Renderer.World
         #region Member variables
         private readonly object syncLock = new object();
         private readonly Vector3i chunkLoc;
+        private readonly Vector3i chunkBlockLoc;
         private Matrix4 translationMatrix;
         private bool deleted;
 
@@ -32,6 +33,7 @@ namespace ProdigalSoftware.TiVE.Renderer.World
         public GameWorldVoxelChunk(int chunkX, int chunkY, int chunkZ)
         {
             chunkLoc = new Vector3i(chunkX, chunkY, chunkZ);
+            chunkBlockLoc = new Vector3i(chunkX * BlockSize, chunkY * BlockSize, chunkZ * BlockSize);
             translationMatrix = Matrix4.CreateTranslation(chunkX * VoxelSize, chunkY * VoxelSize, chunkZ * VoxelSize);
         }
 
@@ -49,6 +51,11 @@ namespace ProdigalSoftware.TiVE.Renderer.World
                 mesh = null;
                 deleted = true;
             }
+        }
+
+        public Vector3i ChunkBlockLocation
+        {
+            get { return chunkBlockLoc; }
         }
 
         public bool IsDeleted
@@ -154,8 +161,6 @@ namespace ProdigalSoftware.TiVE.Renderer.World
                                     
                                     int voxelY = blockY * BlockInformation.VoxelSize + by;
 
-                                    voxelCount++;
-
                                     VoxelSides sides = VoxelSides.None;
 
                                     // Check to see if the front side is visible
@@ -212,9 +217,10 @@ namespace ProdigalSoftware.TiVE.Renderer.World
                                     else if (voxelY < maxVoxelY && gameWorld.GetVoxel(voxelX, voxelY + 1, voxelZ) == 0)
                                         sides |= VoxelSides.Top;
 
+                                    voxelCount++;
                                     if (sides != VoxelSides.None)
                                     {
-                                        Color3f lightColor = lightProvider.GetLightAtOptimized(voxelX, voxelY, voxelZ, blockX, blockY, blockZ, sides);
+                                        Color3f lightColor = lightProvider.GetLightAt(voxelX, voxelY, voxelZ, blockX, blockY, blockZ, sides);
                                         byte a = (byte)((color >> 24) & 0xFF);
                                         byte r = (byte)Math.Min(255, (int)(((color >> 16) & 0xFF) * lightColor.R));
                                         byte g = (byte)Math.Min(255, (int)(((color >> 8) & 0xFF) * lightColor.G));

@@ -66,7 +66,7 @@ namespace ProdigalSoftware.TiVE.Renderer.Particles
                 }
                 else
                 {
-                    // Particle died replace with an existing alive particle
+                    // Particle died - replace with an existing alive particle
                     int lastAliveIndex = aliveParticles - 1;
                     Particle lastAlive = particleList[lastAliveIndex];
                     particleList[lastAliveIndex] = part;
@@ -112,10 +112,10 @@ namespace ProdigalSoftware.TiVE.Renderer.Particles
             if (partX < 0 || partX >= worldSize.X || partY < 0 || partY >= worldSize.Y || partZ < 0 || partZ >= worldSize.Z)
                 lightColor = lightProvider.AmbientLight;
             else
-                lightColor = lightProvider.GetLightAt(partX, partY, partZ);
+                lightColor = lightProvider.GetLightAtFast(partX, partY, partZ);
 
-            return new Color4b((byte)Math.Min(255, color.R * lightColor.R), (byte)Math.Min(255, color.G * lightColor.G),
-                (byte)Math.Min(255, color.B * lightColor.B), 255);
+            return new Color4b((byte)Math.Min(255, (int)(color.R * lightColor.R)), (byte)Math.Min(255, (int)(color.G * lightColor.G)),
+                (byte)Math.Min(255, (int)(color.B * lightColor.B)), 255);
         }
     }
 }

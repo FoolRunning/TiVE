@@ -4,6 +4,7 @@ using System.Diagnostics;
 using OpenTK;
 using ProdigalSoftware.TiVE.Renderer.Meshes;
 using ProdigalSoftware.TiVE.Renderer.Voxels;
+using ProdigalSoftware.TiVE.Settings;
 using ProdigalSoftware.TiVEPluginFramework.Particles;
 using ProdigalSoftware.Utils;
 
@@ -27,6 +28,7 @@ namespace ProdigalSoftware.TiVE.Renderer.Particles
         private readonly ParticleSystemInformation systemInfo;
 
         private readonly IRendererData voxelInstanceLocationData;
+        private readonly IRendererData voxelInstanceColorData;
         private readonly int polysPerParticle;
         private readonly int voxelsPerParticle;
         private readonly int renderedVoxelsPerParticle;
@@ -53,9 +55,12 @@ namespace ProdigalSoftware.TiVE.Renderer.Particles
 
             // Create particle voxel model to be used for each particle
             MeshBuilder voxelInstanceBuilder = new MeshBuilder(150, 0);
-            VoxelMeshUtils.GenerateMesh(systemInfo.ParticleVoxels, voxelInstanceBuilder,
+            VoxelMeshUtils.GenerateMesh(systemInfo.ParticleVoxels, voxelInstanceBuilder, true,
                 out voxelsPerParticle, out renderedVoxelsPerParticle, out polysPerParticle);
+
             voxelInstanceLocationData = voxelInstanceBuilder.GetLocationData();
+            if (TiVEController.UserSettings.Get(UserSettings.ShadedVoxelsKey))
+                voxelInstanceColorData = voxelInstanceBuilder.GetColorData();
 
             locations = new Vector3s[systemInfo.MaxParticles * 5];
             colors = new Color4b[systemInfo.MaxParticles * 5];
@@ -160,7 +165,7 @@ namespace ProdigalSoftware.TiVE.Renderer.Particles
                 ParticleSystem system = updateList[i];
                 if (system != null)
                 {
-                    //lock (syncObj)
+                    lock (syncObj)
                         system.Update(timeSinceLastFrame, particles[i], locations, colors, renderer, ref dataIndex);
                 }
             }
@@ -178,6 +183,9 @@ namespace ProdigalSoftware.TiVE.Renderer.Particles
                 // Initialize the data for use in the renderer
                 instances = TiVEController.Backend.CreateVertexDataCollection();
                 instances.AddBuffer(voxelInstanceLocationData);
+                if (TiVEController.UserSettings.Get(UserSettings.ShadedVoxelsKey))
+                    instances.AddBuffer(voxelInstanceColorData);
+
                 locationData = TiVEController.Backend.CreateData(locations, 0, 3, DataType.Instance, ValueType.Short, false, true);
                 instances.AddBuffer(locationData);
                 colorData = TiVEController.Backend.CreateData(colors, 0, 4, DataType.Instance, ValueType.Byte, true, true);
@@ -185,7 +193,7 @@ namespace ProdigalSoftware.TiVE.Renderer.Particles
                 instances.Initialize();
             }
 
-            IShaderProgram shader = shaderManager.GetShaderProgram(HasTransparency ? "TransparentParticles" : "SolidParticles");
+            IShaderProgram shader = shaderManager.GetShaderProgram(VoxelMeshHelper.Get(true).ShaderName);
             shader.Bind();
             shader.SetUniform("matrix_ModelViewProjection", ref matrixMVP);
 
@@ -197,7 +205,7 @@ namespace ProdigalSoftware.TiVE.Renderer.Particles
 
             // Put the data for the current particles into the graphics memory and draw them
             int totalParticles = totalAliveParticles;
-            //lock (syncObj)
+            lock (syncObj)
             {
                 locationData.UpdateData(locations, totalParticles);
                 colorData.UpdateData(colors, totalParticles);

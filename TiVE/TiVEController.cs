@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Threading;
 using System.Windows.Forms;
 using ProdigalSoftware.TiVE.Plugins;
@@ -19,6 +20,7 @@ namespace ProdigalSoftware.TiVE
 
     public static class TiVEController
     {
+        internal static readonly long MaxTicksForSleep;
         internal static readonly PluginManager PluginManager = new PluginManager();
         internal static readonly ResourceTableDefinitionManager TableDefinitions = new ResourceTableDefinitionManager();
         internal static readonly LuaScripts LuaScripts = new LuaScripts();
@@ -26,6 +28,19 @@ namespace ProdigalSoftware.TiVE
         internal static readonly UserSettings UserSettings = new UserSettings();
 
         private static StarterForm starterForm;
+
+        static TiVEController()
+        {
+            for (int i = 0; i < 100; i++)
+            {
+                long startTime = Stopwatch.GetTimestamp();
+                Thread.Sleep(1);
+                long totalTime = Stopwatch.GetTimestamp() - startTime;
+                if (totalTime > MaxTicksForSleep)
+                    MaxTicksForSleep = totalTime;
+            }
+            Console.WriteLine("Sleeping for 1ms can be " + MaxTicksForSleep * 1000.0f / Stopwatch.Frequency + "ms long");
+        }
 
         public static void RunStarter()
         {
