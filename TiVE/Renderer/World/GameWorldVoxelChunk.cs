@@ -127,9 +127,9 @@ namespace ProdigalSoftware.TiVE.Renderer.World
             int blockStartZ = chunkLoc.Z * BlockSize;
             int blockEndZ = Math.Min((chunkLoc.Z + 1) * BlockSize, gameWorld.BlockSize.Z);
 
-            int maxVoxelX = gameWorld.VoxelSize.X;
-            int maxVoxelY = gameWorld.VoxelSize.Y;
-            int maxVoxelZ = gameWorld.VoxelSize.Z;
+            int maxVoxelX = gameWorld.VoxelSize.X - 1;
+            int maxVoxelY = gameWorld.VoxelSize.Y - 1;
+            int maxVoxelZ = gameWorld.VoxelSize.Z - 1;
 
             int voxelCount = 0;
             int renderedVoxelCount = 0;
