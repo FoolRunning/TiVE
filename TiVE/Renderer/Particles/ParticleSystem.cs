@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using ProdigalSoftware.TiVE.Renderer.Lighting;
 using ProdigalSoftware.TiVEPluginFramework.Particles;
@@ -11,6 +12,7 @@ namespace ProdigalSoftware.TiVE.Renderer.Particles
     /// </summary>
     internal sealed class ParticleSystem : IParticleSystem
     {
+        private static readonly ParticleSorter sorter = new ParticleSorter();
         private readonly ParticleSystemInformation systemInfo;
         private float numOfParticlesNeeded;
 
@@ -39,6 +41,12 @@ namespace ProdigalSoftware.TiVE.Renderer.Particles
             ParticleController upd = sysInfo.Controller;
             upd.BeginUpdate(this, timeSinceLastFrame);
 
+            if (sysInfo.TransparencyType == TransparencyType.Realistic)
+            {
+                sorter.CameraLocation = new Vector3i((int)renderer.Camera.Location.X, (int)renderer.Camera.Location.Y, (int)renderer.Camera.Location.Z);
+                Array.Sort(particleList, sorter);
+            }
+
             int aliveParticles = AliveParticles;
             numOfParticlesNeeded += ParticlesPerSecond * timeSinceLastFrame;
             int newParticleCount = Math.Min((int)numOfParticlesNeeded, systemInfo.MaxParticles - aliveParticles);
@@ -46,7 +54,7 @@ namespace ProdigalSoftware.TiVE.Renderer.Particles
             Vector3i worldSize = renderer.GameWorld.VoxelSize;
             LightProvider lightProvider = renderer.LightProvider;
             bool isLit = systemInfo.IsLit;
-
+            
             float locX = Location.X;
             float locY = Location.Y;
             float locZ = Location.Z;
@@ -115,7 +123,37 @@ namespace ProdigalSoftware.TiVE.Renderer.Particles
                 lightColor = lightProvider.GetLightAtFast(partX, partY, partZ);
 
             return new Color4b((byte)Math.Min(255, (int)(color.R * lightColor.R)), (byte)Math.Min(255, (int)(color.G * lightColor.G)),
-                (byte)Math.Min(255, (int)(color.B * lightColor.B)), 255);
+                (byte)Math.Min(255, (int)(color.B * lightColor.B)), color.A);
         }
+
+        #region ParticleSorter class
+        private class ParticleSorter : IComparer<Particle>
+        {
+            public Vector3i CameraLocation;
+
+            public int Compare(Particle p1, Particle p2)
+            {
+                if (p1.Time <= 0.0f && p2.Time <= 0.0f)
+                    return 0;
+
+                if (p1.Time <= 0.0f)
+                    return 1;
+
+                if (p2.Time <= 0.0f)
+                    return -1;
+
+                int p1DistX = (int)p1.X - CameraLocation.X;
+                int p1DistY = (int)p1.Y - CameraLocation.Y;
+                int p1DistZ = (int)p1.Z - CameraLocation.Z;
+                int p1DistSquared = p1DistX * p1DistX + p1DistY * p1DistY + p1DistZ * p1DistZ;
+
+                int p2DistX = (int)p2.X - CameraLocation.X;
+                int p2DistY = (int)p2.Y - CameraLocation.Y;
+                int p2DistZ = (int)p2.Z - CameraLocation.Z;
+                int p2DistSquared = p2DistX * p2DistX + p2DistY * p2DistY + p2DistZ * p2DistZ;
+                return p2DistSquared - p1DistSquared;
+            }
+        }
+        #endregion
     }
 }

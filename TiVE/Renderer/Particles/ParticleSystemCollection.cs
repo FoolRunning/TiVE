@@ -87,11 +87,11 @@ namespace ProdigalSoftware.TiVE.Renderer.Particles
 
         #region Properties
         /// <summary>
-        /// Gets whether the particles in this collection contain transparency
+        /// 
         /// </summary>
-        public bool HasTransparency
+        public TransparencyType TransparencyType
         {
-            get { return systemInfo.TransparentParticles; }
+            get { return systemInfo.TransparencyType; }
         }
         #endregion
 
@@ -197,10 +197,11 @@ namespace ProdigalSoftware.TiVE.Renderer.Particles
             shader.Bind();
             shader.SetUniform("matrix_ModelViewProjection", ref matrixMVP);
 
-            if (systemInfo.TransparentParticles)
+            if (systemInfo.TransparencyType != TransparencyType.None)
             {
                 TiVEController.Backend.DisableDepthWriting();
-                TiVEController.Backend.SetBlendMode(BlendMode.Additive);
+                if (systemInfo.TransparencyType == TransparencyType.Additive)
+                    TiVEController.Backend.SetBlendMode(BlendMode.Additive);
             }
 
             // Put the data for the current particles into the graphics memory and draw them
@@ -213,7 +214,7 @@ namespace ProdigalSoftware.TiVE.Renderer.Particles
             instances.Bind();
             TiVEController.Backend.Draw(PrimitiveType.Triangles, instances);
 
-            if (systemInfo.TransparentParticles)
+            if (systemInfo.TransparencyType != TransparencyType.None)
             {
                 TiVEController.Backend.SetBlendMode(BlendMode.Realistic);
                 TiVEController.Backend.EnableDepthWriting();

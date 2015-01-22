@@ -27,7 +27,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
             uint[,,] particleVoxels = new uint[1, 1, 1];
             particleVoxels[0, 0, 0] = 0xFFFFFFFF;
             BlockInformation fireBlock = new BlockInformation("fire", 
-                new ParticleSystemInformation(particleVoxels, new FireUpdater(), new Vector3b(blockCenter, blockCenter, 1), 300, 310, true, false),
+                new ParticleSystemInformation(particleVoxels, new FireUpdater(), new Vector3b(blockCenter, blockCenter, 1), 300, 310, TransparencyType.Additive, false),
                 new PointLight(new Vector3b(blockCenter, blockCenter, 2), new Color3f(1.0f, 0.9f, 0.6f), forFantasyLighting ? 5 : 10));
             fireBlock[blockCenter, blockCenter, 1] = 0xFFFFFFFF;
             yield return fireBlock;
@@ -51,7 +51,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
                 new PointLight(blockCenterVector, new Color3f(1.0f, 0.0f, 1.0f), forFantasyLighting ? 10 : 20));
 
             yield return new BlockInformation("snow",
-                new ParticleSystemInformation(particleVoxels, new SnowUpdater(), new Vector3b(0, 0, 0), 100, 4, false, true));
+                new ParticleSystemInformation(particleVoxels, new SnowUpdater(), new Vector3b(0, 0, 0), 100, 4, TransparencyType.None, true));
 
             particleVoxels = new uint[3, 3, 3];
             particleVoxels[1, 1, 1] = 0xFFFFFFFF;
@@ -62,7 +62,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
             particleVoxels[1, 1, 0] = 0xFFFFFFFF;
             particleVoxels[1, 1, 2] = 0xFFFFFFFF;
             yield return CreateBlockInfo("fountain", false, BlockInformation.VoxelSize / 2, new Color4f(20, 20, 150, 255), 1.0f,
-                new ParticleSystemInformation(particleVoxels, new FountainUpdater(), new Vector3b(blockCenter, blockCenter, 13), 1000, 2200, false, true));
+                new ParticleSystemInformation(particleVoxels, new FountainUpdater(), new Vector3b(blockCenter, blockCenter, 13), 200, 500, TransparencyType.Realistic, true));
         }
 
         public IEnumerable<BlockAnimationDefinition> CreateAnimations(string blockListName)
@@ -156,7 +156,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
                 else
                     particle.Z = random.Next(56 * BlockInformation.VoxelSize) + 3 * BlockInformation.VoxelSize;
 
-                particle.Color = new Color4b(255, 255, 255, 100);
+                particle.Color = new Color4b(255, 255, 255, 255);
                 particle.Time = (float)random.NextDouble() * AliveTime / 2.0f + AliveTime / 2.0f;
             }
         }
@@ -175,9 +175,9 @@ namespace ProdigalSoftware.ProjectM.Plugins
                 for (int i = 0; i < 256; i++)
                 {
                     if (i < 150)
-                        colorList[i] = new Color4b(255, (byte)(255 - (i * 1.7f)), (byte)(50 - i / 3), 200);
+                        colorList[i] = new Color4b(255, (byte)(255 - (i * 1.7f)), (byte)(50 - i / 3), 250);
                     if (i >= 150)
-                        colorList[i] = new Color4b((byte)(255 - (i - 150) * 2.4f), 0, 0, 200);
+                        colorList[i] = new Color4b((byte)(255 - (i - 150) * 2.4f), 0, 0, 250);
                 }
             }
 
@@ -243,7 +243,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
             static FountainUpdater()
             {
                 for (int i = 0; i < 256; i++)
-                    colorList[i] = new Color4b((byte)(55 - (int)((255 - i) / 5.0f)), (byte)(150 - (int)((255 - i) / 2.0f)), 255, 255);
+                    colorList[i] = new Color4b((byte)(55 - (int)((255 - i) / 5.0f)), (byte)(150 - (int)((255 - i) / 2.0f)), 255, (byte)(130 - i / 2));
             }
 
             #region Implementation of ParticleController
@@ -252,11 +252,11 @@ namespace ProdigalSoftware.ProjectM.Plugins
                 return true;
             }
 
-            private const float AliveTime = 1.5f;
+            private const float AliveTime = 2.0f;
 
             public override void Update(Particle particle, float timeSinceLastFrame, float systemX, float systemY, float systemZ)
             {
-                particle.VelZ -= 100.0f * timeSinceLastFrame;
+                particle.VelZ -= 200.0f * timeSinceLastFrame;
                 ApplyVelocity(particle, timeSinceLastFrame);
                 particle.Time -= timeSinceLastFrame;
 
@@ -270,10 +270,10 @@ namespace ProdigalSoftware.ProjectM.Plugins
 
             public override void InitializeNew(Particle particle, float startX, float startY, float startZ)
             {
-                float angle = (float)random.NextDouble() * 4.0f * 3.141592f;
-                float totalVel = (float)random.NextDouble() * 20.0f + 20.0f;
+                float angle = (float)random.NextDouble() * 2.0f * 3.141592f;
+                float totalVel = (float)random.NextDouble() * 5.0f + 3.0f;
                 particle.VelX = (float)Math.Cos(angle) * totalVel;
-                particle.VelZ = (float)random.NextDouble() * 20.0f + 40.0f;
+                particle.VelZ = (float)random.NextDouble() * 30.0f + 110.0f;
                 particle.VelY = (float)Math.Sin(angle) * totalVel;
 
                 particle.X = startX;

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using OpenTK;
 using ProdigalSoftware.TiVE.Renderer.World;
@@ -29,7 +30,7 @@ namespace ProdigalSoftware.TiVE.Renderer.Particles
         {
             this.renderer = renderer;
             particleUpdateThread = new Thread(ParticleUpdateLoop);
-            particleUpdateThread.Priority = ThreadPriority.BelowNormal;
+            particleUpdateThread.Priority = ThreadPriority.Normal;
             particleUpdateThread.IsBackground = true;
             particleUpdateThread.Name = "ParticleUpdate";
             particleUpdateThread.Start();
@@ -110,19 +111,16 @@ namespace ProdigalSoftware.TiVE.Renderer.Particles
 
             RenderStatistics stats = new RenderStatistics();
             // Render opaque particles first
-            foreach (ParticleSystemCollection system in renderList)
-            {
-                if (!system.HasTransparency)
-                    stats += system.Render(shaderManager, ref matrixMVP);
-            }
+            foreach (ParticleSystemCollection system in renderList.Where(s => s.TransparencyType == TransparencyType.None))
+                stats += system.Render(shaderManager, ref matrixMVP);
 
             // Render transparent particles last
-            foreach (ParticleSystemCollection system in renderList)
-            {
-                if (system.HasTransparency)
-                    stats += system.Render(shaderManager, ref matrixMVP);
-            }
+            foreach (ParticleSystemCollection system in renderList.Where(s => s.TransparencyType == TransparencyType.Additive))
+                stats += system.Render(shaderManager, ref matrixMVP);
 
+            foreach (ParticleSystemCollection system in renderList.Where(s => s.TransparencyType == TransparencyType.Realistic))
+                stats += system.Render(shaderManager, ref matrixMVP);
+ 
             return stats;
         }
 
