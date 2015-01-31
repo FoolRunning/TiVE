@@ -29,7 +29,6 @@ namespace ProdigalSoftware.ProjectM.Plugins
             BlockInformation fireBlock = new BlockInformation("fire", 
                 new ParticleSystemInformation(particleVoxels, new FireUpdater(), new Vector3b(blockCenter, blockCenter, 1), 300, 310, TransparencyType.Additive, false),
                 new PointLight(new Vector3b(blockCenter, blockCenter, 2), new Color3f(1.0f, 0.9f, 0.6f), forFantasyLighting ? 5 : 10));
-            fireBlock[blockCenter, blockCenter, 1] = 0xFFFFFFFF;
             yield return fireBlock;
 
             yield return CreateBlockInfo("light0", false, 2, new Color4f(255, 0, 0, 255), 1.0f, null,
@@ -164,7 +163,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
 
         private class FireUpdater : ParticleController
         {
-            private const float FlameDeacceleration = 27.0f;
+            private const float FlameDeacceleration = 35.0f;
             private const float AliveTime = 1.0f;
 
             private readonly Random random = new Random();
@@ -220,9 +219,9 @@ namespace ProdigalSoftware.ProjectM.Plugins
             public override void InitializeNew(Particle particle, float startX, float startY, float startZ)
             {
                 float angle = (float)random.NextDouble() * 2.0f * 3.141592f;
-                float totalVel = (float)random.NextDouble() * 4.0f + 10.0f;
+                float totalVel = (float)random.NextDouble() * 6.0f + 10.0f;
                 particle.VelX = (float)Math.Cos(angle) * totalVel;
-                particle.VelZ = (float)random.NextDouble() * 10.0f + 8.0f;
+                particle.VelZ = (float)random.NextDouble() * 11.0f + 8.0f;
                 particle.VelY = (float)Math.Sin(angle) * totalVel;
 
                 particle.X = startX;
@@ -243,7 +242,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
             static FountainUpdater()
             {
                 for (int i = 0; i < 256; i++)
-                    colorList[i] = new Color4b((byte)(55 - (int)((255 - i) / 5.0f)), (byte)(150 - (int)((255 - i) / 2.0f)), 255, (byte)(130 - i / 2));
+                    colorList[i] = new Color4b((byte)(55 - (int)((255 - i) / 5.0f)), (byte)(150 - (int)((255 - i) / 2.0f)), 255, (byte)(90 - i / 3));
             }
 
             #region Implementation of ParticleController

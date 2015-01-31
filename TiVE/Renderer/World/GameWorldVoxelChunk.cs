@@ -102,11 +102,6 @@ namespace ProdigalSoftware.TiVE.Renderer.World
             return new RenderStatistics(1, chunkPolygonCount, chunkVoxelCount, chunkRenderedVoxelCount);
         }
 
-        public override string ToString()
-        {
-            return string.Format("Chunk ({0}, {1}, {2}) {3}v", chunkLoc.X, chunkLoc.Y, chunkLoc.Z, chunkVoxelCount);
-        }
-
         public void Load(MeshBuilder newMeshBuilder, IGameWorldRenderer renderer)
         {
             Debug.Assert(newMeshBuilder.IsLocked);
@@ -135,6 +130,8 @@ namespace ProdigalSoftware.TiVE.Renderer.World
             int renderedVoxelCount = 0;
             int polygonCount = 0;
 
+            const int lodVoxelSize = 2;
+
             for (int blockZ = blockEndZ - 1; blockZ >= blockStartZ; blockZ--)
             {
                 for (int blockX = blockStartX; blockX < blockEndX; blockX++)
@@ -145,15 +142,15 @@ namespace ProdigalSoftware.TiVE.Renderer.World
                         if (block == BlockInformation.Empty || block.NextBlock != null)
                             continue;
 
-                        for (int bz = BlockInformation.VoxelSize - 1; bz >= 0; bz--)
+                        for (int bz = BlockInformation.VoxelSize - 1; bz >= 0; bz -= lodVoxelSize)
                         {
                             int voxelZ = blockZ * BlockInformation.VoxelSize + bz;
                             byte chunkVoxelZ = (byte)(voxelZ - voxelStartZ);
-                            for (int bx = 0; bx < BlockInformation.VoxelSize; bx++)
+                            for (int bx = 0; bx < BlockInformation.VoxelSize; bx += lodVoxelSize)
                             {
                                 int voxelX = blockX * BlockInformation.VoxelSize + bx;
                                 byte chunkVoxelX = (byte)(voxelX - voxelStartX);
-                                for (int by = 0; by < BlockInformation.VoxelSize; by++)
+                                for (int by = 0; by < BlockInformation.VoxelSize; by += lodVoxelSize)
                                 {
                                     uint color = block[bx, by, bz];
                                     if (color == 0)
@@ -163,58 +160,58 @@ namespace ProdigalSoftware.TiVE.Renderer.World
 
                                     VoxelSides sides = VoxelSides.None;
 
-                                    // Check to see if the front side is visible
-                                    if (bz < BlockInformation.VoxelSize - 1)
-                                    {
-                                        if (block[bx, by, bz + 1] == 0)
-                                            sides |= VoxelSides.Front;
-                                    }
-                                    else if (voxelZ < maxVoxelZ && gameWorld.GetVoxel(voxelX, voxelY, voxelZ + 1) == 0)
-                                        sides |= VoxelSides.Front;
-
                                     // Check to see if the back side is visible
-                                    if (bz > 0)
+                                    if (bz >= lodVoxelSize)
                                     {
-                                        if (block[bx, by, bz - 1] == 0)
+                                        if (block[bx, by, bz - lodVoxelSize] == 0)
                                             sides |= VoxelSides.Back;
                                     }
-                                    else if (voxelZ > 0 && gameWorld.GetVoxel(voxelX, voxelY, voxelZ - 1) == 0)
+                                    else if (voxelZ >= lodVoxelSize && gameWorld.GetVoxel(voxelX, voxelY, voxelZ - lodVoxelSize) == 0)
                                         sides |= VoxelSides.Back;
 
-                                    // Check to see if the left side is visible
-                                    if (bx > 0)
+                                    // Check to see if the front side is visible
+                                    if (bz < BlockInformation.VoxelSize - lodVoxelSize)
                                     {
-                                        if (block[bx - 1, by, bz] == 0)
+                                        if (block[bx, by, bz + lodVoxelSize] == 0)
+                                            sides |= VoxelSides.Front;
+                                    }
+                                    else if (voxelZ + lodVoxelSize <= maxVoxelZ && gameWorld.GetVoxel(voxelX, voxelY, voxelZ + lodVoxelSize) == 0)
+                                        sides |= VoxelSides.Front;
+
+                                    // Check to see if the left side is visible
+                                    if (bx >= lodVoxelSize)
+                                    {
+                                        if (block[bx - lodVoxelSize, by, bz] == 0)
                                             sides |= VoxelSides.Left;
                                     }
-                                    else if (voxelX > 0 && gameWorld.GetVoxel(voxelX - 1, voxelY, voxelZ) == 0)
+                                    else if (voxelX >= lodVoxelSize && gameWorld.GetVoxel(voxelX - lodVoxelSize, voxelY, voxelZ) == 0)
                                         sides |= VoxelSides.Left;
 
                                     // Check to see if the right side is visible
-                                    if (bx < BlockInformation.VoxelSize - 1)
+                                    if (bx < BlockInformation.VoxelSize - lodVoxelSize)
                                     {
-                                        if (block[bx + 1, by, bz] == 0)
+                                        if (block[bx + lodVoxelSize, by, bz] == 0)
                                             sides |= VoxelSides.Right;
                                     }
-                                    else if (voxelX < maxVoxelX && gameWorld.GetVoxel(voxelX + 1, voxelY, voxelZ) == 0)
+                                    else if (voxelX + lodVoxelSize <= maxVoxelX && gameWorld.GetVoxel(voxelX + lodVoxelSize, voxelY, voxelZ) == 0)
                                         sides |= VoxelSides.Right;
 
                                     // Check to see if the bottom side is visible
-                                    if (by > 0)
+                                    if (by >= lodVoxelSize)
                                     {
-                                        if (block[bx, by - 1, bz] == 0)
+                                        if (block[bx, by - lodVoxelSize, bz] == 0)
                                             sides |= VoxelSides.Bottom;
                                     }
-                                    else if (voxelY > 0 && gameWorld.GetVoxel(voxelX, voxelY - 1, voxelZ) == 0)
+                                    else if (voxelY >= lodVoxelSize && gameWorld.GetVoxel(voxelX, voxelY - lodVoxelSize, voxelZ) == 0)
                                         sides |= VoxelSides.Bottom;
 
                                     // Check to see if the top side is visible
-                                    if (by < BlockInformation.VoxelSize - 1)
+                                    if (by < BlockInformation.VoxelSize - lodVoxelSize)
                                     {
-                                        if (block[bx, by + 1, bz] == 0)
+                                        if (block[bx, by + lodVoxelSize, bz] == 0)
                                             sides |= VoxelSides.Top;
                                     }
-                                    else if (voxelY < maxVoxelY && gameWorld.GetVoxel(voxelX, voxelY + 1, voxelZ) == 0)
+                                    else if (voxelY + lodVoxelSize <= maxVoxelY && gameWorld.GetVoxel(voxelX, voxelY + lodVoxelSize, voxelZ) == 0)
                                         sides |= VoxelSides.Top;
 
                                     voxelCount++;
@@ -227,7 +224,7 @@ namespace ProdigalSoftware.TiVE.Renderer.World
                                         byte b = (byte)Math.Min(255, (int)(((color >> 0) & 0xFF) * lightColor.B));
 
                                         polygonCount += meshHelper.AddVoxel(newMeshBuilder, sides,
-                                            chunkVoxelX, (byte)(voxelY - voxelStartY), chunkVoxelZ, new Color4b(r, g, b, a));
+                                            chunkVoxelX, (byte)(voxelY - voxelStartY), chunkVoxelZ, new Color4b(r, g, b, a), lodVoxelSize);
                                         renderedVoxelCount++;
                                     }
                                 }
@@ -259,6 +256,11 @@ namespace ProdigalSoftware.TiVE.Renderer.World
                     chunkRenderedVoxelCount = renderedVoxelCount;
                 }
             }
+        }
+
+        public override string ToString()
+        {
+            return string.Format("Chunk ({0}, {1}, {2}) {3}v", chunkLoc.X, chunkLoc.Y, chunkLoc.Z, chunkVoxelCount);
         }
 
         private void InitializeNewMesh()

@@ -16,12 +16,63 @@ namespace ProdigalSoftware.TiVE.Settings
         public const string ShadedVoxelsKey = "shadedVoxels";
         public const string EnableVSyncKey = "enbaleVSync";
         public const string AntiAliasAmountKey = "antiAliasAmount";
+        public const string DetailDistanceKey = "detailDistance";
         public const string ChunkCreationThreadsKey = "chunkCreationThreads";
+        public const string UseThreadedParticlesKey = "useThreadedParticles";
 
         private const string UserSettingsFileName = "UserSettings.xml";
 
-        private readonly List<UserSettingOptions> settingOptions = new List<UserSettingOptions>();
+        private static readonly List<UserSettingOptions> settingOptions = new List<UserSettingOptions>();
         private readonly Dictionary<string, Setting> settings = new Dictionary<string, Setting>();
+
+        static UserSettings()
+        {
+            settingOptions.Add(new UserSettingOptions(FullScreenModeKey, "Full screen mode", UserOptionTab.Display,
+                new EnumSetting<FullScreenMode>(FullScreenMode.WindowFullScreen),
+                new UserSettingOption("Full screen window *", new EnumSetting<FullScreenMode>(FullScreenMode.WindowFullScreen)),
+                new UserSettingOption("Full screen", new EnumSetting<FullScreenMode>(FullScreenMode.FullScreen)),
+                new UserSettingOption("Window", new EnumSetting<FullScreenMode>(FullScreenMode.Windowed))));
+
+            settingOptions.Add(new UserSettingOptions(EnableVSyncKey, "V-sync", UserOptionTab.Display, new BoolSetting(true),
+                new UserSettingOption("True *", new BoolSetting(true)),
+                new UserSettingOption("False", new BoolSetting(false))));
+
+            settingOptions.Add(new UserSettingOptions(AntiAliasAmountKey, "Anti-Aliasing", UserOptionTab.Display, new IntSetting(0),
+                new UserSettingOption("None *", new IntSetting(0)),
+                new UserSettingOption("2x", new IntSetting(2)),
+                new UserSettingOption("4x", new IntSetting(4)),
+                new UserSettingOption("8x", new IntSetting(8)),
+                new UserSettingOption("16x", new IntSetting(16))));
+
+            settingOptions.Add(new UserSettingOptions(DetailDistanceKey, "Block detail distance", UserOptionTab.Display, new IntSetting(750),
+                new UserSettingOption("Closest", new IntSetting(150)),
+                new UserSettingOption("Close", new IntSetting(250)),
+                new UserSettingOption("Mid", new IntSetting(500)),
+                new UserSettingOption("Far *", new IntSetting(750)),
+                new UserSettingOption("Furthest", new IntSetting(1000))));
+
+            settingOptions.Add(new UserSettingOptions(ShadedVoxelsKey, "Shade voxels", UserOptionTab.Display, new BoolSetting(false),
+                new UserSettingOption("True", new BoolSetting(true)),
+                new UserSettingOption("False *", new BoolSetting(false))));
+
+            settingOptions.Add(new UserSettingOptions(LightingComplexityKey, "Lighting complexity", UserOptionTab.Display,
+                new EnumSetting<LightComplexity>(LightComplexity.Smooth),
+                new UserSettingOption("Simple", new EnumSetting<LightComplexity>(LightComplexity.Simple)),
+                new UserSettingOption("Smooth *", new EnumSetting<LightComplexity>(LightComplexity.Smooth)),
+                new UserSettingOption("Realistic (very slow!)", new EnumSetting<LightComplexity>(LightComplexity.Realistic))));
+
+            settingOptions.Add(new UserSettingOptions(ChunkCreationThreadsKey, "Chunk creation threads", UserOptionTab.Advanced, new IntSetting(3),
+                new UserSettingOption(new IntSetting(1)),
+                new UserSettingOption(new IntSetting(2)),
+                new UserSettingOption("3 *", new IntSetting(3)),
+                new UserSettingOption(new IntSetting(4)),
+                new UserSettingOption(new IntSetting(5)),
+                new UserSettingOption(new IntSetting(6))));
+
+            settingOptions.Add(new UserSettingOptions(UseThreadedParticlesKey, "Threaded particles", UserOptionTab.Advanced, new BoolSetting(true),
+                new UserSettingOption("True *", new BoolSetting(true)),
+                new UserSettingOption("False", new BoolSetting(false))));
+        }
 
         private static string SettingsFileFolder
         {
@@ -70,41 +121,6 @@ namespace ProdigalSoftware.TiVE.Settings
         public void Load()
         {
             Messages.Print("Loading user settings...");
-
-            settingOptions.Add(new UserSettingOptions(FullScreenModeKey, "Full screen mode", UserOptionTab.Display, 
-                new EnumSetting<FullScreenMode>(FullScreenMode.WindowFullScreen),
-                new UserSettingOption("Full screen window *", new EnumSetting<FullScreenMode>(FullScreenMode.WindowFullScreen)),
-                new UserSettingOption("Full screen", new EnumSetting<FullScreenMode>(FullScreenMode.FullScreen)),
-                new UserSettingOption("Window", new EnumSetting<FullScreenMode>(FullScreenMode.Windowed))));
-
-            settingOptions.Add(new UserSettingOptions(EnableVSyncKey, "V-sync", UserOptionTab.Display, new BoolSetting(true), 
-                new UserSettingOption("True *", new BoolSetting(true)), 
-                new UserSettingOption("False", new BoolSetting(false))));
-
-            settingOptions.Add(new UserSettingOptions(AntiAliasAmountKey, "Anti-Aliasing", UserOptionTab.Display, new IntSetting(0), 
-                new UserSettingOption("None *", new IntSetting(0)), 
-                new UserSettingOption("2x", new IntSetting(2)), 
-                new UserSettingOption("4x", new IntSetting(4)), 
-                new UserSettingOption("8x", new IntSetting(8)), 
-                new UserSettingOption("16x", new IntSetting(16))));
-
-            settingOptions.Add(new UserSettingOptions(ShadedVoxelsKey, "Shade voxels", UserOptionTab.Display, new BoolSetting(false), 
-                new UserSettingOption("True", new BoolSetting(true)), 
-                new UserSettingOption("False *", new BoolSetting(false))));
-
-            settingOptions.Add(new UserSettingOptions(LightingComplexityKey, "Lighting complexity", UserOptionTab.Display, 
-                new EnumSetting<LightComplexity>(LightComplexity.Smooth),
-                new UserSettingOption("Simple", new EnumSetting<LightComplexity>(LightComplexity.Simple)),
-                new UserSettingOption("Smooth *", new EnumSetting<LightComplexity>(LightComplexity.Smooth)),
-                new UserSettingOption("Realistic (very slow!)", new EnumSetting<LightComplexity>(LightComplexity.Realistic))));
-
-            settingOptions.Add(new UserSettingOptions(ChunkCreationThreadsKey, "Chunk creation threads", UserOptionTab.Advanced, new IntSetting(3),
-                new UserSettingOption(new IntSetting(1)),
-                new UserSettingOption(new IntSetting(2)),
-                new UserSettingOption("3 *", new IntSetting(3)),
-                new UserSettingOption(new IntSetting(4)),
-                new UserSettingOption(new IntSetting(5)),
-                new UserSettingOption(new IntSetting(6))));
             
             // Initialize all settings to their default values
             foreach (UserSettingOptions setting in settingOptions)
@@ -123,7 +139,7 @@ namespace ProdigalSoftware.TiVE.Settings
                         {
                             UserSettingOptions options = settingOptions.Find(op => op.SettingKey == setting.Name);
                             if (options == null)
-                                continue; // Could not find an option with the correct key
+                                continue; // Could not find an option with the correct key so just keep the default value
 
                             string settingValue = setting.InnerText;
                             UserSettingOption selectedOption = options.ValidOptions.FirstOrDefault(op => op.Value.SaveAsString() == settingValue);
@@ -133,7 +149,6 @@ namespace ProdigalSoftware.TiVE.Settings
                     }
                 }
             }
-
 
             Messages.AddDoneText();
         }

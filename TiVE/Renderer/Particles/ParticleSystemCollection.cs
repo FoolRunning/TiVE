@@ -16,14 +16,13 @@ namespace ProdigalSoftware.TiVE.Renderer.Particles
     internal sealed class ParticleSystemCollection : IDisposable
     {
         #region Member variables
+        private static readonly ParticleSystemSorter sorter = new ParticleSystemSorter();
         /// <summary>List of particles systems in this collection</summary>
         private readonly List<ParticleSystem> particleSystems = new List<ParticleSystem>();
         /// <summary>Copy of the particle systems list used for updating without locking too long</summary>
         private readonly List<ParticleSystem> updateList = new List<ParticleSystem>();
         /// <summary>Quick lookup for the index of a system</summary>
-        private readonly Dictionary<ParticleSystem, int> particleSystemIndex = new Dictionary<ParticleSystem, int>();
-        /// <summary>Holds the particles for each system</summary>
-        private readonly List<Particle[]> particles = new List<Particle[]>();
+        private readonly Dictionary<RunningParticleSystem, int> particleSystemIndex = new Dictionary<RunningParticleSystem, int>();
 
         private readonly ParticleSystemInformation systemInfo;
 
@@ -67,7 +66,7 @@ namespace ProdigalSoftware.TiVE.Renderer.Particles
 
             // Initialize room for 5 particle systems in the collection
             for (int i = 0; i < 5; i++)
-                AddNewBlankSystem();
+                particleSystems.Add(new ParticleSystem(systemInfo));
         }
 
         /// <summary>
@@ -99,52 +98,48 @@ namespace ProdigalSoftware.TiVE.Renderer.Particles
         /// <summary>
         /// Adds the specified particle system to this collection
         /// </summary>
-        public void Add(ParticleSystem system)
+        public void Add(RunningParticleSystem system)
         {
-            Debug.Assert(system.SystemInformation == systemInfo);
+            Debug.Assert(system.SystemInfo == systemInfo);
 
             using (new PerformanceLock(particleSystems))
             {
-                int availableIndex = particleSystems.FindIndex(sys => sys == null);
-                if (availableIndex >= 0)
-                {
-                    // Found a free space to use
-                    particleSystems[availableIndex] = system;
-                    particleSystemIndex[system] = availableIndex;
-                    ResetSystemParticles(availableIndex);
-                }
-                else
+                int availableIndex = particleSystems.FindIndex(sys => !sys.IsAlive);
+                if (availableIndex < 0)
                 {
                     // No free space, make room for 10 more particle systems and add the new system in the first new spot
-                    int newIndex = particleSystems.Count;
+                    availableIndex = particleSystems.Count;
                     for (int i = 0; i < 10; i++)
-                        AddNewBlankSystem();
-                    particleSystems[newIndex] = system;
-                    particleSystemIndex[system] = newIndex;
+                        particleSystems.Add(new ParticleSystem(systemInfo));
 
                     int origCount = locations.Length;
                     int newCount = origCount + systemInfo.MaxParticles * 10;
-                    Array.Resize(ref locations, newCount);
-                    Array.Resize(ref colors, newCount);
+                    lock (syncObj)
+                    {
+                        Array.Resize(ref locations, newCount);
+                        Array.Resize(ref colors, newCount);
+                    }
                 }
+
+                particleSystems[availableIndex].Reset(system.WorldLocation);
+                particleSystems[availableIndex].IsAlive = true;
+                particleSystemIndex[system] = availableIndex;
             }
         }
 
         /// <summary>
         /// Removes the specified particle system from this collection
         /// </summary>
-        public void Remove(ParticleSystem system)
+        public void Remove(RunningParticleSystem system)
         {
-            Debug.Assert(system.SystemInformation == systemInfo);
+            Debug.Assert(system.SystemInfo == systemInfo);
 
             using (new PerformanceLock(particleSystems))
             {
                 int systemIndex;
                 if (particleSystemIndex.TryGetValue(system, out systemIndex))
-                {
-                    particleSystems[systemIndex] = null;
-                    particleSystemIndex.Remove(system);
-                }
+                    particleSystems[systemIndex].IsAlive = false;
+                particleSystemIndex.Remove(system);
             }
         }
 
@@ -159,14 +154,20 @@ namespace ProdigalSoftware.TiVE.Renderer.Particles
             using (new PerformanceLock(particleSystems))
                 updateList.AddRange(particleSystems); // Make copy to not lock during the updating
 
+            if (systemInfo.TransparencyType == TransparencyType.Realistic)
+            {
+                sorter.CameraLocation = new Vector3i((int)renderer.Camera.Location.X, (int)renderer.Camera.Location.Y, (int)renderer.Camera.Location.Z);
+                updateList.Sort(sorter);
+            }
+
             int dataIndex = 0;
             for (int i = 0; i < updateList.Count; i++)
             {
                 ParticleSystem system = updateList[i];
-                if (system != null)
+                if (system.IsAlive)
                 {
                     lock (syncObj)
-                        system.Update(timeSinceLastFrame, particles[i], locations, colors, renderer, ref dataIndex);
+                        system.Update(timeSinceLastFrame, locations, colors, renderer, ref dataIndex);
                 }
             }
 
@@ -225,29 +226,32 @@ namespace ProdigalSoftware.TiVE.Renderer.Particles
         }
         #endregion
 
-        #region Private helper methods
-        /// <summary>
-        /// Resets the time for the particles in the particle system at the specified index
-        /// </summary>
-        private void ResetSystemParticles(int index)
+        private sealed class ParticleSystemSorter : IComparer<ParticleSystem>
         {
-            Particle[] particleList = particles[index];
-            for (int i = 0; i < particleList.Length; i++)
-                particleList[i].Time = 0.0f;
-        }
+            public Vector3i CameraLocation;
 
-        /// <summary>
-        /// Creates room for another particle system in this collection
-        /// </summary>
-        private void AddNewBlankSystem()
-        {
-            particleSystems.Add(null);
+            public int Compare(ParticleSystem ps1, ParticleSystem ps2)
+            {
+                if (ps1 == null && ps2 == null)
+                    return 0;
 
-            Particle[] newParticles = new Particle[systemInfo.MaxParticles];
-            for (int i = 0; i < newParticles.Length; i++)
-                newParticles[i] = new Particle();
-            particles.Add(newParticles);
+                if (ps1 == null)
+                    return 1;
+
+                if (ps2 == null)
+                    return -1;
+
+                int p1DistX = ps1.Location.X - CameraLocation.X;
+                int p1DistY = ps1.Location.Y - CameraLocation.Y;
+                int p1DistZ = ps1.Location.Z - CameraLocation.Z;
+                int p1DistSquared = p1DistX * p1DistX + p1DistY * p1DistY + p1DistZ * p1DistZ;
+
+                int p2DistX = ps2.Location.X - CameraLocation.X;
+                int p2DistY = ps2.Location.Y - CameraLocation.Y;
+                int p2DistZ = ps2.Location.Z - CameraLocation.Z;
+                int p2DistSquared = p2DistX * p2DistX + p2DistY * p2DistY + p2DistZ * p2DistZ;
+                return p2DistSquared - p1DistSquared;
+            }
         }
-        #endregion
     }
 }

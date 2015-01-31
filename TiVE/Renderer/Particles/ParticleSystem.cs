@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using ProdigalSoftware.TiVE.Renderer.Lighting;
 using ProdigalSoftware.TiVEPluginFramework.Particles;
@@ -14,13 +15,16 @@ namespace ProdigalSoftware.TiVE.Renderer.Particles
     {
         private static readonly ParticleSorter sorter = new ParticleSorter();
         private readonly ParticleSystemInformation systemInfo;
+        private readonly Particle[] particles;
         private float numOfParticlesNeeded;
 
-        public ParticleSystem(ParticleSystemInformation systemInfo, int worldX, int worldY, int worldZ)
+        public ParticleSystem(ParticleSystemInformation systemInfo)
         {
             this.systemInfo = systemInfo;
-            Location = new Vector3i(worldX, worldY, worldZ);
             ParticlesPerSecond = systemInfo.ParticlesPerSecond;
+            particles = new Particle[systemInfo.MaxParticles];
+            for (int i = 0; i < particles.Length; i++)
+                particles[i] = new Particle();
         }
 
         public ParticleSystemInformation SystemInformation
@@ -34,18 +38,23 @@ namespace ProdigalSoftware.TiVE.Renderer.Particles
 
         public int ParticlesPerSecond { get; set; }
 
-        public void Update(float timeSinceLastFrame, Particle[] particleList, Vector3s[] locationArray, Color4b[] colorArray, 
+        public bool IsAlive { get; set; }
+
+        public void Reset(Vector3i worldLoc)
+        {
+            Location = worldLoc;
+            for (int i = 0; i < particles.Length; i++)
+                particles[i].Time = 0.0f;
+        }
+
+        public void Update(float timeSinceLastFrame, Vector3s[] locationArray, Color4b[] colorArray, 
             IGameWorldRenderer renderer, ref int dataIndex)
         {
+            Debug.Assert(IsAlive);
+
             ParticleSystemInformation sysInfo = systemInfo;
             ParticleController upd = sysInfo.Controller;
             upd.BeginUpdate(this, timeSinceLastFrame);
-
-            if (sysInfo.TransparencyType == TransparencyType.Realistic)
-            {
-                sorter.CameraLocation = new Vector3i((int)renderer.Camera.Location.X, (int)renderer.Camera.Location.Y, (int)renderer.Camera.Location.Z);
-                Array.Sort(particleList, sorter);
-            }
 
             int aliveParticles = AliveParticles;
             numOfParticlesNeeded += ParticlesPerSecond * timeSinceLastFrame;
@@ -60,7 +69,7 @@ namespace ProdigalSoftware.TiVE.Renderer.Particles
             float locZ = Location.Z;
             for (int i = 0; i < aliveParticles; i++)
             {
-                Particle part = particleList[i];
+                Particle part = particles[i];
                 if (part.Time > 0.0f)
                 {
                     // Normal case - particle is still alive, so just update it
@@ -76,38 +85,40 @@ namespace ProdigalSoftware.TiVE.Renderer.Particles
                 {
                     // Particle died - replace with an existing alive particle
                     int lastAliveIndex = aliveParticles - 1;
-                    Particle lastAlive = particleList[lastAliveIndex];
-                    particleList[lastAliveIndex] = part;
-                    particleList[i] = lastAlive;
+                    Particle lastAlive = particles[lastAliveIndex];
+                    particles[lastAliveIndex] = part;
+                    particles[i] = lastAlive;
                     part = lastAlive;
                     aliveParticles--;
                     // Just replaced current dead particle with an alive one. Need to update it.
                     upd.Update(part, timeSinceLastFrame, locX, locY, locZ);
                 }
-
-                short partX = (short)part.X;
-                short partY = (short)part.Y;
-                short partZ = (short)part.Z;
-                locationArray[dataIndex] = new Vector3s(partX, partY, partZ);
-
-                colorArray[dataIndex] = isLit ? CalculateParticleColor(partX, partY, partZ, part.Color, worldSize, lightProvider) : part.Color;
-                dataIndex++;
             }
 
             // Intialize any new particles that are still needed
             for (int i = 0; i < newParticleCount; i++)
             {
-                Particle part = particleList[aliveParticles];
+                Particle part = particles[aliveParticles];
                 upd.InitializeNew(part, locX, locY, locZ);
-                
+                aliveParticles++;
+            }
+
+            if (sysInfo.TransparencyType == TransparencyType.Realistic)
+            {
+                sorter.CameraLocation = new Vector3i((int)renderer.Camera.Location.X, (int)renderer.Camera.Location.Y, (int)renderer.Camera.Location.Z);
+                Array.Sort(particles, sorter);
+            }
+
+            for (int i = 0; i < aliveParticles; i++)
+            {
+                Particle part = particles[i];
                 short partX = (short)part.X;
                 short partY = (short)part.Y;
                 short partZ = (short)part.Z;
                 locationArray[dataIndex] = new Vector3s(partX, partY, partZ);
-                colorArray[dataIndex] = isLit ? CalculateParticleColor(partX, partY, partZ, part.Color, worldSize, lightProvider) : part.Color;
 
+                colorArray[dataIndex] = isLit ? CalculateParticleColor(partX, partY, partZ, part.Color, worldSize, lightProvider) : part.Color;
                 dataIndex++;
-                aliveParticles++;
             }
 
             AliveParticles = aliveParticles;
