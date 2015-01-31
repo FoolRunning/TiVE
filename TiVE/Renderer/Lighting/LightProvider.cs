@@ -257,8 +257,17 @@ namespace ProdigalSoftware.TiVE.Renderer.Lighting
                 for (int i = 0; i < lightsInBlock.Length; i++)
                 {
                     LightInfo lightInfo = lightsInBlock[i];
-                    if (lightInfo != null && NoVoxelInLine(lightInfo, voxelX, voxelY, voxelZ))
+                    if (lightInfo == null)
+                        break;
+
+                    if (NoVoxelInLine(lightInfo, voxelX, voxelY, voxelZ))
                         color += lightInfo.Light.Color * lightingModel.GetLightPercentage(lightInfo, voxelX, voxelY, voxelZ);
+                    else
+                    {
+                        // Simulate a very crude and simple reflective ambient lighting model by using the light reduced by 80% for
+                        // voxels in a "shadow".
+                        color += lightInfo.Light.Color * (lightingModel.GetLightPercentage(lightInfo, voxelX, voxelY, voxelZ) * 0.2f);
+                    }
                 }
                 return color;
             }

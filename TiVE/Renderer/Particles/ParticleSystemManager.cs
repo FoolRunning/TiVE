@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading;
 using OpenTK;
 using ProdigalSoftware.TiVE.Renderer.World;
+using ProdigalSoftware.TiVE.Settings;
 using ProdigalSoftware.TiVEPluginFramework;
 using ProdigalSoftware.TiVEPluginFramework.Particles;
 using ProdigalSoftware.Utils;
@@ -20,8 +21,9 @@ namespace ProdigalSoftware.TiVE.Renderer.Particles
         private readonly Dictionary<ParticleSystemInformation, ParticleSystemCollection> particleSystemCollections =
             new Dictionary<ParticleSystemInformation, ParticleSystemCollection>();
 
-        private readonly HashSet<SystemInfo> runningSystems = new HashSet<SystemInfo>();
-        private readonly List<SystemInfo> systemsToDelete = new List<SystemInfo>();
+        private readonly HashSet<RunningParticleSystem> systemsToRender = new HashSet<RunningParticleSystem>();
+        private readonly HashSet<RunningParticleSystem> runningSystems = new HashSet<RunningParticleSystem>();
+        private readonly List<RunningParticleSystem> systemsToDelete = new List<RunningParticleSystem>();
         private readonly IGameWorldRenderer renderer;
         private readonly Thread particleUpdateThread;
         private volatile bool stopThread;
@@ -29,25 +31,26 @@ namespace ProdigalSoftware.TiVE.Renderer.Particles
         public ParticleSystemManager(IGameWorldRenderer renderer)
         {
             this.renderer = renderer;
-            particleUpdateThread = new Thread(ParticleUpdateLoop);
-            particleUpdateThread.Priority = ThreadPriority.Normal;
-            particleUpdateThread.IsBackground = true;
-            particleUpdateThread.Name = "ParticleUpdate";
-            particleUpdateThread.Start();
+            if (TiVEController.UserSettings.Get(UserSettings.UseThreadedParticlesKey))
+            {
+                particleUpdateThread = new Thread(ParticleUpdateLoop);
+                particleUpdateThread.Priority = ThreadPriority.Normal;
+                particleUpdateThread.IsBackground = true;
+                particleUpdateThread.Name = "ParticleUpdate";
+                particleUpdateThread.Start();
+            }
         }
 
         public void Dispose()
         {
             stopThread = true;
-            if (particleUpdateThread.IsAlive)
+            if (particleUpdateThread != null && particleUpdateThread.IsAlive)
                 particleUpdateThread.Join();
 
             foreach (ParticleSystemCollection systemCollection in particleSystemCollections.Values)
                 systemCollection.Dispose();
             particleSystemCollections.Clear();
         }
-
-        private readonly HashSet<SystemInfo> systemsToRender = new HashSet<SystemInfo>();
 
         public void UpdateCameraPos(HashSet<GameWorldVoxelChunk> chunksToRender)
         {
@@ -64,29 +67,27 @@ namespace ProdigalSoftware.TiVE.Renderer.Particles
                 int blockLimitY = chunk.ChunkBlockLocation.Y + GameWorldVoxelChunk.BlockSize;
                 int blockLimitZ = chunk.ChunkBlockLocation.Z + GameWorldVoxelChunk.BlockSize;
 
-                for (int z = blockStartZ; z < blockLimitZ; z++)
+                for (int blockZ = blockStartZ; blockZ < blockLimitZ; blockZ++)
                 {
-                    for (int x = blockStartX; x < blockLimitX; x++)
+                    for (int blockX = blockStartX; blockX < blockLimitX; blockX++)
                     {
-                        for (int y = blockStartY; y < blockLimitY; y++)
+                        for (int blockY = blockStartY; blockY < blockLimitY; blockY++)
                         {
-                            ParticleSystemInformation particleInfo = gameWorld[x, y, z].ParticleSystem;
-                            SystemInfo systemInfo = new SystemInfo(x, y, z);
-                            systemsToRender.Add(systemInfo);
-                            if (particleInfo != null && !runningSystems.Contains(systemInfo))
+                            ParticleSystemInformation particleInfo = gameWorld[blockX, blockY, blockZ].ParticleSystem;
+                            RunningParticleSystem runningParticleSystem = new RunningParticleSystem(blockX, blockY, blockZ);
+                            systemsToRender.Add(runningParticleSystem);
+                            if (particleInfo != null && !runningSystems.Contains(runningParticleSystem))
                             {
-                                Vector3b loc = particleInfo.Location;
-                                ParticleSystem system = new ParticleSystem(particleInfo, (x * BlockInformation.VoxelSize) + loc.X,
-                                    (y * BlockInformation.VoxelSize) + loc.Y, (z * BlockInformation.VoxelSize) + loc.Z);
-                                runningSystems.Add(new SystemInfo(x, y, z, system));
-                                AddParticleSystem(system);
+                                RunningParticleSystem newSystem = new RunningParticleSystem(blockX, blockY, blockZ, particleInfo);
+                                runningSystems.Add(newSystem);
+                                AddParticleSystem(newSystem);
                             }
                         }
                     }
                 }
             }
 
-            foreach (SystemInfo runningSystem in runningSystems)
+            foreach (RunningParticleSystem runningSystem in runningSystems)
             {
                 if (!systemsToRender.Contains(runningSystem))
                     systemsToDelete.Add(runningSystem);
@@ -94,11 +95,17 @@ namespace ProdigalSoftware.TiVE.Renderer.Particles
 
             for (int i = 0; i < systemsToDelete.Count; i++)
             {
-                SystemInfo runningSystem = systemsToDelete[i];
+                RunningParticleSystem runningSystem = systemsToDelete[i];
                 runningSystems.Remove(runningSystem);
-                RemoveParticleSystem(runningSystem.System);
+                RemoveParticleSystem(runningSystem);
             }
             systemsToDelete.Clear();
+        }
+
+        public void UpdateParticles(float timeSinceLastUpdate)
+        {
+            foreach (ParticleSystemCollection collection in particleSystemCollections.Values)
+                collection.UpdateAll(renderer, timeSinceLastUpdate);
         }
 
         public RenderStatistics Render(ShaderManager shaderManager, ref Matrix4 matrixMVP)
@@ -124,22 +131,22 @@ namespace ProdigalSoftware.TiVE.Renderer.Particles
             return stats;
         }
 
-        private void AddParticleSystem(ParticleSystem system)
+        private void AddParticleSystem(RunningParticleSystem system)
         {
             ParticleSystemCollection collection;
             using (new PerformanceLock(particleSystemCollections))
             {
-                if (!particleSystemCollections.TryGetValue(system.SystemInformation, out collection))
-                    particleSystemCollections[system.SystemInformation] = collection = new ParticleSystemCollection(system.SystemInformation);
+                if (!particleSystemCollections.TryGetValue(system.SystemInfo, out collection))
+                    particleSystemCollections[system.SystemInfo] = collection = new ParticleSystemCollection(system.SystemInfo);
             }
             collection.Add(system);
         }
 
-        private void RemoveParticleSystem(ParticleSystem system)
+        private void RemoveParticleSystem(RunningParticleSystem system)
         {
             ParticleSystemCollection collection;
             using (new PerformanceLock(particleSystemCollections))
-                particleSystemCollections.TryGetValue(system.SystemInformation, out collection);
+                particleSystemCollections.TryGetValue(system.SystemInfo, out collection);
 
             if (collection != null)
                 collection.Remove(system);
@@ -174,49 +181,5 @@ namespace ProdigalSoftware.TiVE.Renderer.Particles
             }
             sw.Stop();
         }
-
-        #region SystemInfo struct
-        private struct SystemInfo
-        {
-            public readonly ParticleSystem System;
-
-            private readonly int x;
-            private readonly int y;
-            private readonly int z;
-
-            public SystemInfo(int x, int y, int z)
-            {
-                this.x = x;
-                this.y = y;
-                this.z = z;
-                System = null;
-            }
-
-            public SystemInfo(int x, int y, int z, ParticleSystem system)
-            {
-                this.x = x;
-                this.y = y;
-                this.z = z;
-                System = system;
-            }
-
-            public override bool Equals(object obj)
-            {
-                SystemInfo other = (SystemInfo)obj;
-                return other.x == x && other.y == y && other.z == z;
-            }
-
-            public override int GetHashCode()
-            {
-                // 12 bits for x and y and 8 bits for z (Enough for unique hashes for each block of a 4096x4096x256 world)
-                return ((x & 0xFFF) << 20) ^ ((y & 0xFFF) << 8) ^ (z & 0xFF);
-            }
-
-            public override string ToString()
-            {
-                return string.Format("SystemInfo ({0}, {1}, {2}) - {3}", x, y, z, System != null ? System.SystemInformation.Controller.ToString() : "{none}");
-            }
-        }
-        #endregion
     }
 }

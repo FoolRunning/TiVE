@@ -27,7 +27,7 @@ namespace ProdigalSoftware.TiVE.Renderer.Voxels
 
         public abstract string ShaderName { get; }
 
-        public abstract int AddVoxel(MeshBuilder meshBuilder, VoxelSides sides, byte x, byte y, byte z, Color4b color);
+        public abstract int AddVoxel(MeshBuilder meshBuilder, VoxelSides sides, byte x, byte y, byte z, Color4b color, int voxelSize = 1);
 
         #region NonShadedNonInstancedVoxelMeshHelper class
         private sealed class NonShadedNonInstancedVoxelMeshHelper : VoxelMeshHelper
@@ -37,11 +37,11 @@ namespace ProdigalSoftware.TiVE.Renderer.Voxels
                 get { return "NonShadedNonInstanced"; }
             }
 
-            public override int AddVoxel(MeshBuilder meshBuilder, VoxelSides sides, byte x, byte y, byte z, Color4b color)
+            public override int AddVoxel(MeshBuilder meshBuilder, VoxelSides sides, byte x, byte y, byte z, Color4b color, int voxelSize = 1)
             {
-                byte x2 = (byte)(x + 1);
-                byte y2 = (byte)(y + 1);
-                byte z2 = (byte)(z + 1);
+                byte x2 = (byte)(x + voxelSize);
+                byte y2 = (byte)(y + voxelSize);
+                byte z2 = (byte)(z + voxelSize);
                 int v1 = meshBuilder.Add(x, y2, z, color);
                 int v2 = meshBuilder.Add(x2, y2, z, color);
                 int v3 = meshBuilder.Add(x2, y2, z2, color);
@@ -137,12 +137,12 @@ namespace ProdigalSoftware.TiVE.Renderer.Voxels
                 get { return "NonShadedInstanced"; }
             }
 
-            public override int AddVoxel(MeshBuilder meshBuilder, VoxelSides sides, byte x, byte y, byte z, Color4b color)
+            public override int AddVoxel(MeshBuilder meshBuilder, VoxelSides sides, byte x, byte y, byte z, Color4b color, int voxelSize = 1)
             {
                 int polygonCount = 0;
-                byte x2 = (byte)(x + 1);
-                byte y2 = (byte)(y + 1);
-                byte z2 = (byte)(z + 1);
+                byte x2 = (byte)(x + voxelSize);
+                byte y2 = (byte)(y + voxelSize);
+                byte z2 = (byte)(z + voxelSize);
                 if ((sides & VoxelSides.Front) != 0)
                 {
                     meshBuilder.Add(x, y, z2, color);
@@ -228,12 +228,12 @@ namespace ProdigalSoftware.TiVE.Renderer.Voxels
                 get { return "ShadedNonInstanced"; }
             }
 
-            public override int AddVoxel(MeshBuilder meshBuilder, VoxelSides sides, byte x, byte y, byte z, Color4b color)
+            public override int AddVoxel(MeshBuilder meshBuilder, VoxelSides sides, byte x, byte y, byte z, Color4b color, int voxelSize = 1)
             {
                 int polygonCount = 0;
-                byte x2 = (byte)(x + 1);
-                byte y2 = (byte)(y + 1);
-                byte z2 = (byte)(z + 1);
+                byte x2 = (byte)(x + voxelSize);
+                byte y2 = (byte)(y + voxelSize);
+                byte z2 = (byte)(z + voxelSize);
                 if ((sides & VoxelSides.Front) != 0)
                 {
                     int v3 = meshBuilder.Add(x2, y2, z2, color);
@@ -353,12 +353,12 @@ namespace ProdigalSoftware.TiVE.Renderer.Voxels
                 get { return "ShadedInstanced"; }
             }
 
-            public override int AddVoxel(MeshBuilder meshBuilder, VoxelSides sides, byte x, byte y, byte z, Color4b color)
+            public override int AddVoxel(MeshBuilder meshBuilder, VoxelSides sides, byte x, byte y, byte z, Color4b color, int voxelSize = 1)
             {
                 int polygonCount = 0;
-                byte x2 = (byte)(x + 1);
-                byte y2 = (byte)(y + 1);
-                byte z2 = (byte)(z + 1);
+                byte x2 = (byte)(x + voxelSize);
+                byte y2 = (byte)(y + voxelSize);
+                byte z2 = (byte)(z + voxelSize);
                 if ((sides & VoxelSides.Front) != 0)
                 {
                     meshBuilder.Add(x, y, z2, color);

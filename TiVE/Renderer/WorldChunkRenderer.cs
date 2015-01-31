@@ -6,6 +6,7 @@ using OpenTK;
 using ProdigalSoftware.TiVE.Renderer.Lighting;
 using ProdigalSoftware.TiVE.Renderer.Particles;
 using ProdigalSoftware.TiVE.Renderer.World;
+using ProdigalSoftware.TiVE.Settings;
 using ProdigalSoftware.TiVEPluginFramework;
 
 namespace ProdigalSoftware.TiVE.Renderer
@@ -109,6 +110,9 @@ namespace ProdigalSoftware.TiVE.Renderer
             renderTree.FillChunksToRender(chunksToRender, camera);
 
             particleManager.UpdateCameraPos(chunksToRender);
+            if (!TiVEController.UserSettings.Get(UserSettings.UseThreadedParticlesKey))
+                particleManager.UpdateParticles(timeSinceLastFrame);
+
             chunkManager.Update(chunksToRender);
             BlockList.UpdateAnimations(timeSinceLastFrame);
         }
