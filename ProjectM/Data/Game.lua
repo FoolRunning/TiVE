@@ -12,6 +12,7 @@ function Initialize(camera)
     camera.FarDistance = 1000
     camera.FoV = PI / 4 --45 degrees
     camera.Location = Vector(WorldXSize * BlockSize / 2, WorldYSize * BlockSize / 2, 345)
+    camera.FarDistance = 1000
 end
 
 function Update(camera, keyboard)
@@ -44,12 +45,6 @@ function Update(camera, keyboard)
         camLoc.Z = Max(camLoc.Z - 2.0, 2 * BlockSize)
     elseif (KeyPressed(Keys.KeypadMinus)) then --Zoom out
         camLoc.Z = Min(camLoc.Z + 2.0, 55.0 * BlockSize)
-    end
-
-    if (camLoc.Z > 10 * BlockSize) then
-        camera.FarDistance = 1000
-    else
-        camera.FarDistance = 400
     end
 
     camera.Location = camLoc

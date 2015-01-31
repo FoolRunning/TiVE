@@ -113,7 +113,7 @@ namespace ProdigalSoftware.TiVE.Renderer
             if (!TiVEController.UserSettings.Get(UserSettings.UseThreadedParticlesKey))
                 particleManager.UpdateParticles(timeSinceLastFrame);
 
-            chunkManager.Update(chunksToRender);
+            chunkManager.Update(chunksToRender, camera);
             BlockList.UpdateAnimations(timeSinceLastFrame);
         }
 

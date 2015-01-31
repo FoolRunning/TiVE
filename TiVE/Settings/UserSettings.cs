@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Xml;
 using ProdigalSoftware.TiVE.Renderer.Lighting;
+using ProdigalSoftware.TiVE.Renderer.World;
 using ProdigalSoftware.TiVE.Starter;
 
 namespace ProdigalSoftware.TiVE.Settings
@@ -44,12 +45,13 @@ namespace ProdigalSoftware.TiVE.Settings
                 new UserSettingOption("8x", new IntSetting(8)),
                 new UserSettingOption("16x", new IntSetting(16))));
 
-            settingOptions.Add(new UserSettingOptions(DetailDistanceKey, "Block detail distance", UserOptionTab.Display, new IntSetting(750),
-                new UserSettingOption("Closest", new IntSetting(150)),
-                new UserSettingOption("Close", new IntSetting(250)),
-                new UserSettingOption("Mid", new IntSetting(500)),
-                new UserSettingOption("Far *", new IntSetting(750)),
-                new UserSettingOption("Furthest", new IntSetting(1000))));
+            settingOptions.Add(new UserSettingOptions(DetailDistanceKey, "Block detail distance", UserOptionTab.Display, 
+                new EnumSetting<VoxelDetailLevelDistance>(VoxelDetailLevelDistance.Far),
+                new UserSettingOption("Closest", new EnumSetting<VoxelDetailLevelDistance>(VoxelDetailLevelDistance.Closest)),
+                new UserSettingOption("Close", new EnumSetting<VoxelDetailLevelDistance>(VoxelDetailLevelDistance.Close)),
+                new UserSettingOption("Mid", new EnumSetting<VoxelDetailLevelDistance>(VoxelDetailLevelDistance.Mid)),
+                new UserSettingOption("Far *", new EnumSetting<VoxelDetailLevelDistance>(VoxelDetailLevelDistance.Far)),
+                new UserSettingOption("Furthest", new EnumSetting<VoxelDetailLevelDistance>(VoxelDetailLevelDistance.Furthest))));
 
             settingOptions.Add(new UserSettingOptions(ShadedVoxelsKey, "Shade voxels", UserOptionTab.Display, new BoolSetting(false),
                 new UserSettingOption("True", new BoolSetting(true)),
