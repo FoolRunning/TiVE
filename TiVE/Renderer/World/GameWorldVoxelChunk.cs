@@ -140,16 +140,16 @@ namespace ProdigalSoftware.TiVE.Renderer.World
             LightProvider lightProvider = renderer.LightProvider;
             VoxelMeshHelper meshHelper = VoxelMeshHelper.Get(false);
 
-            int voxelStartX = chunkLoc.X * BlockSize * BlockInformation.VoxelSize;
-            int voxelStartY = chunkLoc.Y * BlockSize * BlockInformation.VoxelSize;
-            int voxelStartZ = chunkLoc.Z * BlockSize * BlockInformation.VoxelSize;
-
             int blockStartX = chunkLoc.X * BlockSize;
             int blockEndX = Math.Min((chunkLoc.X + 1) * BlockSize, gameWorld.BlockSize.X);
             int blockStartY = chunkLoc.Y * BlockSize;
             int blockEndY = Math.Min((chunkLoc.Y + 1) * BlockSize, gameWorld.BlockSize.Y);
             int blockStartZ = chunkLoc.Z * BlockSize;
             int blockEndZ = Math.Min((chunkLoc.Z + 1) * BlockSize, gameWorld.BlockSize.Z);
+
+            int voxelStartX = blockStartX * BlockInformation.VoxelSize;
+            int voxelStartY = blockStartY * BlockInformation.VoxelSize;
+            int voxelStartZ = blockStartZ * BlockInformation.VoxelSize;
 
             int voxelSize = 1 << voxelDetailLevel;
             int maxVoxelX = gameWorld.VoxelSize.X - 1 - voxelSize;
@@ -170,6 +170,8 @@ namespace ProdigalSoftware.TiVE.Renderer.World
                         BlockInformation block = gameWorld[blockX, blockY, blockZ];
                         if (block == BlockInformation.Empty || block.NextBlock != null)
                             continue;
+
+                        voxelCount += block.TotalVoxels;
 
                         for (int bz = BlockInformation.VoxelSize - 1; bz >= 0; bz -= voxelSize)
                         {
@@ -243,7 +245,6 @@ namespace ProdigalSoftware.TiVE.Renderer.World
                                     else if (voxelY <= maxVoxelY && gameWorld.GetVoxel(voxelX, voxelY + voxelSize, voxelZ) == 0)
                                         sides |= VoxelSides.Top;
 
-                                    voxelCount++;
                                     if (sides != VoxelSides.None)
                                     {
                                         Color3f lightColor = lightProvider.GetLightAt(voxelX, voxelY, voxelZ, blockX, blockY, blockZ, sides);

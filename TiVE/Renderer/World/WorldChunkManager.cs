@@ -5,32 +5,32 @@ using System.Linq;
 using System.Threading;
 using ProdigalSoftware.TiVE.Renderer.Meshes;
 using ProdigalSoftware.TiVE.Settings;
-using ProdigalSoftware.TiVE.Starter;
 using ProdigalSoftware.Utils;
 
 namespace ProdigalSoftware.TiVE.Renderer.World
 {
     internal enum VoxelDetailLevelDistance
     {
-        Closest,
-        Close,
-        Mid,
-        Far,
-        Furthest
+        Closest = 0,
+        Close = 1,
+        Mid = 2,
+        Far = 3,
+        Furthest = 4
     }
 
     internal sealed class WorldChunkManager : IDisposable
     {
-        private const int VoxelDetailLevelSections = 3;
+        private const int VoxelDetailLevelSections = 4;
         private const int BestVoxelDetailLevel = 0;
         private const int WorstVoxelDetailLevel = VoxelDetailLevelSections - 1;
-        private const int MeshBuildersPerThread = 3;
+        private const int TotalMeshBuilders = 10;
 
         private readonly List<GameWorldVoxelChunk> chunksToDelete = new List<GameWorldVoxelChunk>();
         private readonly HashSet<GameWorldVoxelChunk> loadedChunks = new HashSet<GameWorldVoxelChunk>();
 
         private readonly List<Thread> chunkCreationThreads = new List<Thread>();
-        private readonly List<Queue<GameWorldVoxelChunk>> chunkLoadQueue = new List<Queue<GameWorldVoxelChunk>>(4);
+        private readonly List<Queue<GameWorldVoxelChunk>> chunkLoadQueue;
+        private readonly List<MeshBuilder> meshBuilders;
 
         private readonly IGameWorldRenderer renderer;
         
@@ -40,8 +40,13 @@ namespace ProdigalSoftware.TiVE.Renderer.World
         {
             this.renderer = renderer;
 
+            chunkLoadQueue = new List<Queue<GameWorldVoxelChunk>>(VoxelDetailLevelSections); 
             for (int i = BestVoxelDetailLevel; i <= WorstVoxelDetailLevel; i++)
-                chunkLoadQueue.Add(new Queue<GameWorldVoxelChunk>(500));
+                chunkLoadQueue.Add(new Queue<GameWorldVoxelChunk>(300));
+
+            meshBuilders = new List<MeshBuilder>(TotalMeshBuilders);
+            for (int i = 0; i < TotalMeshBuilders; i++)
+                meshBuilders.Add(new MeshBuilder(1500000, 2000000));
 
             for (int i = 0; i < maxThreads; i++)
                 chunkCreationThreads.Add(StartChunkCreateThread(i + 1));
@@ -87,7 +92,7 @@ namespace ProdigalSoftware.TiVE.Renderer.World
                 }
             }
         }
-
+        
         private static int GetPerferedVoxelDetailLevel(GameWorldVoxelChunk chunk, Camera camera, VoxelDetailLevelDistance currentVoxelDetalLevelSetting)
         {
             Vector3i chunkLoc = chunk.ChunkVoxelLocation;
@@ -96,22 +101,22 @@ namespace ProdigalSoftware.TiVE.Renderer.World
             int distY = chunkLoc.Y - cameraLoc.Y;
             int distZ = chunkLoc.Z - cameraLoc.Z;
 
-            int distSquared = distX * distX + distY * distY + distZ * distZ;
+            int dist = (int)Math.Sqrt(distX * distX + distY * distY + distZ * distZ);
             int distancePerLevel;
             switch (currentVoxelDetalLevelSetting)
             {
-                case VoxelDetailLevelDistance.Closest: distancePerLevel = 300 * 300; break;
-                case VoxelDetailLevelDistance.Close: distancePerLevel = 500 * 500; break;
-                case VoxelDetailLevelDistance.Mid: distancePerLevel = 650 * 650; break;
-                case VoxelDetailLevelDistance.Far: distancePerLevel = 850 * 850; break;
-                default: distancePerLevel = 1000 * 1000; break;
+                case VoxelDetailLevelDistance.Closest: distancePerLevel = 150; break;
+                case VoxelDetailLevelDistance.Close: distancePerLevel = 250; break;
+                case VoxelDetailLevelDistance.Mid: distancePerLevel = 400; break;
+                case VoxelDetailLevelDistance.Far: distancePerLevel = 500; break;
+                default: distancePerLevel = 600; break;
             }
 
             for (int i = BestVoxelDetailLevel; i <= WorstVoxelDetailLevel; i++)
             {
-                if (distSquared <= distancePerLevel)
+                if (dist <= distancePerLevel)
                     return i;
-                distSquared -= distancePerLevel;
+                dist -= distancePerLevel * (i + 1);
             }
             return WorstVoxelDetailLevel;
         }
@@ -166,11 +171,6 @@ namespace ProdigalSoftware.TiVE.Renderer.World
 
         private void ChunkCreateLoop()
         {
-            List<MeshBuilder> meshBuilders = new List<MeshBuilder>();
-            for (int i = 0; i < MeshBuildersPerThread; i++)
-                meshBuilders.Add(new MeshBuilder(1500000, 2500000));
-
-            int bottleneckCount = 0;
             while (!endCreationThreads)
             {
                 bool hasItemToLoad;
@@ -183,23 +183,19 @@ namespace ProdigalSoftware.TiVE.Renderer.World
                     continue;
                 }
 
-                MeshBuilder meshBuilder = meshBuilders.Find(NotLocked);
+                MeshBuilder meshBuilder;
+                using (new PerformanceLock(meshBuilders))
+                {
+                    meshBuilder = meshBuilders.Find(NotLocked);
+                    if (meshBuilder != null)
+                        meshBuilder.StartNewMesh(); // Found a mesh builder - grab it quick!
+                }
+
                 if (meshBuilder == null)
                 {
-                    bottleneckCount++;
-                    if (bottleneckCount > 200) // 200ms give or take
-                    {
-                        bottleneckCount = 0;
-                        // Too many chunks are waiting to be intialized. Still not sure how this can happen.
-                        Messages.AddWarning("Mesh creation bottlenecked!");
-                    }
-
-                    //Console.WriteLine("Mesh creation slowed!");
                     Thread.Sleep(1);
                     continue; // No free meshbuilders to use
                 }
-
-                bottleneckCount = 0;
 
                 GameWorldVoxelChunk chunk = null;
                 int foundChunkDetailLevel = WorstVoxelDetailLevel;
@@ -217,9 +213,12 @@ namespace ProdigalSoftware.TiVE.Renderer.World
                 }
 
                 if (chunk == null || chunk.IsDeleted)
-                    continue; // Couldn't find a chunk to load or chunk got deleted while waiting to be loaded
+                {
+                    // Couldn't find a chunk to load or chunk got deleted while waiting to be loaded. No need to hold onto the mesh builder.
+                    meshBuilder.DropMesh();
+                    continue; 
+                }
 
-                meshBuilder.StartNewMesh();
                 chunk.Load(meshBuilder, renderer, foundChunkDetailLevel);
             }
         }

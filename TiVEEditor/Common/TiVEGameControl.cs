@@ -14,7 +14,6 @@ namespace ProdigalSoftware.TiVEEditor.Common
     internal class TiVEGameControl : GLControl
     {
         private readonly Timer timer = new Timer();
-        private readonly Camera camera = new Camera();
         private readonly WorldChunkRenderer renderer = new WorldChunkRenderer(1);
         private readonly bool reallyDesignMode;
 
@@ -48,7 +47,7 @@ namespace ProdigalSoftware.TiVEEditor.Common
 
         public Camera Camera
         {
-            get { return camera; }
+            get { return renderer.Camera; }
         }
 
         public void SetGameWorld(BlockList blockList, GameWorld gameWorld)
@@ -100,9 +99,7 @@ namespace ProdigalSoftware.TiVEEditor.Common
             {
                 MakeCurrent();
                 TiVEController.Backend.BeforeRenderFrame();
-
-                camera.Update();
-
+                
                 renderer.Update(0.0f);
                 renderer.Draw();
                 SwapBuffers();
@@ -114,7 +111,7 @@ namespace ProdigalSoftware.TiVEEditor.Common
             base.OnResize(e);
             if (!reallyDesignMode)
             {
-                camera.AspectRatio = ClientRectangle.Width / (float)ClientRectangle.Height;
+                Camera.AspectRatio = ClientRectangle.Width / (float)ClientRectangle.Height;
 
                 MakeCurrent();
                 TiVEController.Backend.WindowResized(ClientRectangle);

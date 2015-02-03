@@ -2,8 +2,8 @@
 
 # Shader for unshaded voxels - non-instanced
 [NonShadedNonInstanced]
-vert: ProdigalSoftware.TiVE.Renderer.OpenGL.Shaders.Unshaded.vert
-frag: ProdigalSoftware.TiVE.Renderer.OpenGL.Shaders.Simple.frag
+vert: ProdigalSoftware.TiVE.Renderer.OpenTKImpl.Shaders.Unshaded.vert
+frag: ProdigalSoftware.TiVE.Renderer.OpenTKImpl.Shaders.Simple.frag
 attrib: in_Position
 attrib: in_Color
 uniform: matrix_ModelViewProjection
@@ -11,8 +11,8 @@ uniform: matrix_ModelViewProjection
 
 # Shader for unshaded voxels - instanced
 [NonShadedInstanced]
-vert: ProdigalSoftware.TiVE.Renderer.OpenGL.Shaders.UnshadedInstances.vert
-frag: ProdigalSoftware.TiVE.Renderer.OpenGL.Shaders.Simple.frag
+vert: ProdigalSoftware.TiVE.Renderer.OpenTKImpl.Shaders.UnshadedInstances.vert
+frag: ProdigalSoftware.TiVE.Renderer.OpenTKImpl.Shaders.Simple.frag
 attrib: in_Position
 attrib: in_InstancePos
 attrib: in_InstanceColor
@@ -21,8 +21,8 @@ uniform: matrix_ModelViewProjection
 
 # Shader for shaded voxels - non-instanced
 [ShadedNonInstanced]
-vert: ProdigalSoftware.TiVE.Renderer.OpenGL.Shaders.Shaded.vert
-frag: ProdigalSoftware.TiVE.Renderer.OpenGL.Shaders.Simple.frag
+vert: ProdigalSoftware.TiVE.Renderer.OpenTKImpl.Shaders.Shaded.vert
+frag: ProdigalSoftware.TiVE.Renderer.OpenTKImpl.Shaders.Simple.frag
 attrib: in_Position
 attrib: in_Color
 uniform: matrix_ModelViewProjection
@@ -30,8 +30,8 @@ uniform: matrix_ModelViewProjection
 
 # Shader for shaded voxels - instanced
 [ShadedInstanced]
-vert: ProdigalSoftware.TiVE.Renderer.OpenGL.Shaders.ShadedInstances.vert
-frag: ProdigalSoftware.TiVE.Renderer.OpenGL.Shaders.Simple.frag
+vert: ProdigalSoftware.TiVE.Renderer.OpenTKImpl.Shaders.ShadedInstances.vert
+frag: ProdigalSoftware.TiVE.Renderer.OpenTKImpl.Shaders.Simple.frag
 attrib: in_Position
 attrib: in_Color
 attrib: in_InstancePos

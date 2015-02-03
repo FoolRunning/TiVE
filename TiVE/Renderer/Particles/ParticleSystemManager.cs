@@ -63,9 +63,9 @@ namespace ProdigalSoftware.TiVE.Renderer.Particles
                 int blockStartX = chunk.ChunkBlockLocation.X;
                 int blockStartY = chunk.ChunkBlockLocation.Y;
                 int blockStartZ = chunk.ChunkBlockLocation.Z;
-                int blockLimitX = chunk.ChunkBlockLocation.X + GameWorldVoxelChunk.BlockSize;
-                int blockLimitY = chunk.ChunkBlockLocation.Y + GameWorldVoxelChunk.BlockSize;
-                int blockLimitZ = chunk.ChunkBlockLocation.Z + GameWorldVoxelChunk.BlockSize;
+                int blockLimitX = Math.Min(chunk.ChunkBlockLocation.X + GameWorldVoxelChunk.BlockSize, gameWorld.BlockSize.X);
+                int blockLimitY = Math.Min(chunk.ChunkBlockLocation.Y + GameWorldVoxelChunk.BlockSize, gameWorld.BlockSize.Y);
+                int blockLimitZ = Math.Min(chunk.ChunkBlockLocation.Z + GameWorldVoxelChunk.BlockSize, gameWorld.BlockSize.Z);
 
                 for (int blockZ = blockStartZ; blockZ < blockLimitZ; blockZ++)
                 {
@@ -74,13 +74,16 @@ namespace ProdigalSoftware.TiVE.Renderer.Particles
                         for (int blockY = blockStartY; blockY < blockLimitY; blockY++)
                         {
                             ParticleSystemInformation particleInfo = gameWorld[blockX, blockY, blockZ].ParticleSystem;
-                            RunningParticleSystem runningParticleSystem = new RunningParticleSystem(blockX, blockY, blockZ);
-                            systemsToRender.Add(runningParticleSystem);
-                            if (particleInfo != null && !runningSystems.Contains(runningParticleSystem))
+                            if (particleInfo != null)
                             {
-                                RunningParticleSystem newSystem = new RunningParticleSystem(blockX, blockY, blockZ, particleInfo);
-                                runningSystems.Add(newSystem);
-                                AddParticleSystem(newSystem);
+                                RunningParticleSystem runningParticleSystem = new RunningParticleSystem(blockX, blockY, blockZ);
+                                systemsToRender.Add(runningParticleSystem);
+                                if (!runningSystems.Contains(runningParticleSystem))
+                                {
+                                    RunningParticleSystem newSystem = new RunningParticleSystem(blockX, blockY, blockZ, particleInfo);
+                                    runningSystems.Add(newSystem);
+                                    AddParticleSystem(newSystem);
+                                }
                             }
                         }
                     }

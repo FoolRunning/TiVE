@@ -2,21 +2,22 @@
 WorldYSize = 0;
 WorldZSize = 0;
 
-function Initialize(camera)
+function Initialize()
     gameWorld = LoadWorld("bla")
     WorldXSize = gameWorld.BlockSize.X
     WorldYSize = gameWorld.BlockSize.Y
     WorldZSize = gameWorld.BlockSize.Z
     Renderer().LightProvider.AmbientLight = Color(0.1, 0.1, 0.1)
 
-    camera.FarDistance = 1000
-    camera.FoV = PI / 4 --45 degrees
-    camera.Location = Vector(WorldXSize * BlockSize / 2, WorldYSize * BlockSize / 2, 345)
-    camera.FarDistance = 1000
+    Camera().FarDistance = 1000
+    Camera().FoV = PI / 4 --45 degrees
+    Camera().Location = Vector(WorldXSize * BlockSize / 2, WorldYSize * BlockSize / 2, 345)
+    Camera().FarDistance = 1000
+    Camera().UpVector = Vector(0, 0, 1)
 end
 
-function Update(camera, keyboard)
-    camLoc = camera.Location
+function Update()
+    camLoc = Camera().Location
 
     speed = 2
     if (KeyPressed(Keys.LShift)) then --Speed up
@@ -47,7 +48,7 @@ function Update(camera, keyboard)
         camLoc.Z = Min(camLoc.Z + 2.0, 55.0 * BlockSize)
     end
 
-    camera.Location = camLoc
-    camera.LookAtLocation = Vector(camLoc.X, camLoc.Y + 150, 20)
+    Camera().Location = camLoc
+    Camera().LookAtLocation = Vector(camLoc.X, camLoc.Y + 150, 50)
 end
 

@@ -4,48 +4,43 @@ using System.Drawing;
 namespace ProdigalSoftware.TiVE
 {
     /// <summary>
-    /// Represents a native window created by the backend. 
+    /// Represents a native display created by the backend. 
     /// </summary>
-    internal interface INativeWindow : IDisposable
+    internal interface INativeDisplay : IDisposable
     {
         /// <summary>
-        /// Fired when the native window is resized
+        /// Fired when the native display is resized
         /// </summary>
-        event Action<Rectangle> WindowResized;
+        event Action<Rectangle> DisplayResized;
 
         /// <summary>
-        /// Fired when the native window is getting ready to close. 
+        /// Fired when the native display is getting ready to close. 
         /// The current implementation context should still be valid when this is called.
         /// </summary>
-        event EventHandler WindowClosing;
+        event EventHandler DisplayClosing;
 
         /// <summary>
-        /// Gets the current client bounds of the window (i.e. the part of the window that should display the rendered contents)
+        /// Gets the current client bounds of the display (i.e. the part of the display that should display the rendered contents)
         /// </summary>
         Rectangle ClientBounds { get; }
 
         /// <summary>
-        /// Sets the window title
+        /// Sets the display title if windowed
         /// </summary>
         string WindowTitle { set; }
 
         /// <summary>
-        /// Gets an implementation of the keyboard interface
-        /// </summary>
-        IKeyboard KeyboardImplementation { get; }
-
-        /// <summary>
-        /// Sets the icon to use for the window
+        /// Sets the icon to use for the display
         /// </summary>
         Icon Icon { set; }
 
         /// <summary>
-        /// Requests the native window to close itself
+        /// Requests the native display to close itself
         /// </summary>
         void CloseWindow();
 
         /// <summary>
-        /// Requests that the native window process any pending native events in the event queue
+        /// Requests that the native display process any pending native events in the event queue
         /// </summary>
         void ProcessNativeEvents();
 

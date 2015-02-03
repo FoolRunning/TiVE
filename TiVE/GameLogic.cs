@@ -51,9 +51,10 @@ namespace ProdigalSoftware.TiVE
             gameScript.KeyPressed = new Func<Keys, bool>(k => keyboard.IsKeyPressed(k));
             gameScript.Vector = new Func<float, float, float, OpenTK.Vector3>((x, y, z) => new OpenTK.Vector3(x, y, z));
             gameScript.Color = new Func<float, float, float, Color3f>((r, g, b) => new Color3f(r, g, b));
+            gameScript.Renderer = new Func<IGameWorldRenderer>(() => renderer);
+            gameScript.Camera = new Func<Camera>(() => renderer.Camera);
             gameScript.GameWorld = new Func<GameWorld>(() => renderer.GameWorld);
             gameScript.ReloadLevel = new Action(() => renderer.RefreshLevel());
-            gameScript.Renderer = new Func<IGameWorldRenderer>(() => renderer);
 
             gameScript.LoadWorld = new Func<string, GameWorld>(worldName =>
             {
@@ -101,15 +102,15 @@ namespace ProdigalSoftware.TiVE
             const int width = 1280;
             const int height = 720;
 
-            INativeWindow nativeWindow = TiVEController.Backend.CreateNatveWindow(width, height, fullScreenMode, antiAliasAmount, useVsync);
-            nativeWindow.Icon = Properties.Resources.P_button;
+            INativeDisplay nativeDisplay = TiVEController.Backend.CreateNatveDisplay(width, height, fullScreenMode, antiAliasAmount, useVsync);
+            nativeDisplay.Icon = Properties.Resources.P_button;
 
-            nativeWindow.WindowResized += NativeWindowResized;
-            nativeWindow.WindowClosing += (s, e) => continueMainLoop = false;
-            keyboard = nativeWindow.KeyboardImplementation;
+            nativeDisplay.DisplayResized += NativeDisplayResized;
+            nativeDisplay.DisplayClosing += (s, e) => continueMainLoop = false;
+            keyboard = TiVEController.Backend.Keyboard;
 
             TiVEController.Backend.Initialize();
-            NativeWindowResized(nativeWindow.ClientBounds); // Make sure we start out at the correct size
+            NativeDisplayResized(nativeDisplay.ClientBounds); // Make sure we start out at the correct size
 
             long ticksPerUpdate = Stopwatch.Frequency / UpdatesPerSecond;
 
@@ -119,7 +120,7 @@ namespace ProdigalSoftware.TiVE
 
             while (continueMainLoop)
             {
-                nativeWindow.ProcessNativeEvents();
+                nativeDisplay.ProcessNativeEvents();
 
                 long currentTime = Stopwatch.GetTimestamp();
                 if (lastPrintTime + Stopwatch.Frequency <= currentTime)
@@ -134,7 +135,7 @@ namespace ProdigalSoftware.TiVE
                     renderedVoxelCount.UpdateDisplayedTime();
                     polygonCount.UpdateDisplayedTime();
 
-                    nativeWindow.WindowTitle = string.Format("TiVE   Frame={6}   Update={5}   Render={4}   Voxels={0}  Rendered={1}  Polys={2}  Draws={3}",
+                    nativeDisplay.WindowTitle = string.Format("TiVE   Frame={6}   Update={5}   Render={4}   Voxels={0}  Rendered={1}  Polys={2}  Draws={3}",
                         voxelCount.DisplayedValue, renderedVoxelCount.DisplayedValue, polygonCount.DisplayedValue, drawCount.DisplayedValue,
                         renderTime.DisplayedValue, updateTime.DisplayedValue, frameTime.DisplayedValue);
                 }
@@ -143,7 +144,7 @@ namespace ProdigalSoftware.TiVE
                 {
                     float timeSinceLastFrame = (currentTime - previousDisplayUpdateTime) / (float)Stopwatch.Frequency;
                     previousDisplayUpdateTime = currentTime;
-                    nativeWindow.UpdateDisplayContents();
+                    nativeDisplay.UpdateDisplayContents();
 
                     UpdateGame(timeSinceLastFrame);
                     RenderFrame();
@@ -156,13 +157,13 @@ namespace ProdigalSoftware.TiVE
             
             keyboard = null;
             renderer.Dispose();
-            nativeWindow.CloseWindow();
-            nativeWindow.Dispose();
+            nativeDisplay.CloseWindow();
+            nativeDisplay.Dispose();
 
             Messages.AddDoneText();
         }
 
-        private void NativeWindowResized(Rectangle newClientBounds)
+        private void NativeDisplayResized(Rectangle newClientBounds)
         {
             TiVEController.Backend.WindowResized(newClientBounds);
             renderer.Camera.AspectRatio = newClientBounds.Width / (float)newClientBounds.Height;
@@ -189,6 +190,8 @@ namespace ProdigalSoftware.TiVE
         
         private void UpdateGame(float timeSinceLastFrame)
         {
+            keyboard.Update();
+
             if (keyboard.IsKeyPressed(Keys.Escape))
                 continueMainLoop = false;
 

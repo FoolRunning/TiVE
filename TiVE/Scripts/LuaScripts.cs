@@ -10,7 +10,7 @@ using ProdigalSoftware.TiVEPluginFramework;
 
 namespace ProdigalSoftware.TiVE.Scripts
 {
-    public sealed class LuaScripts : IDisposable
+    internal sealed class LuaScripts : IDisposable
     {
         private readonly Dictionary<string, dynamic> scripts = new Dictionary<string, dynamic>();
 
