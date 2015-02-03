@@ -167,36 +167,36 @@ namespace ProdigalSoftware.ProjectM.Plugins
                     double noiseVal = Noise.GetNoise((xOff1 + x) * scaleX1, (yOff1 + y) * scaleY1) * 0.7f +
                             Noise.GetNoise((xOff2 + x) * scaleX2, (yOff2 + y) * scaleY2) * 0.4f +
                             Noise.GetNoise((xOff3 + x) * scaleX3, (yOff3 + y) * scaleY3) * 0.2f;
-                    if (noiseVal > 0.2)
+                    if (noiseVal > 0.1)
                     {
                         gameWorld[x, y, 1] = null;
                         gameWorld[x, y, 2] = null;
                         gameWorld[x, y, 3] = null;
                     }
-                    if (noiseVal > 0.3)
+                    if (noiseVal > 0.2)
                     {
                         gameWorld[x, y, 4] = null;
                         gameWorld[x, y, 5] = null;
                         gameWorld[x, y, 6] = null;
                     }
-                    if (noiseVal > 0.4)
+                    if (noiseVal > 0.3)
                     {
                         gameWorld[x, y, 7] = null;
                         gameWorld[x, y, 8] = null;
                         gameWorld[x, y, 9] = null;
                     }
-                    if (noiseVal > 0.5)
+                    if (noiseVal > 0.4)
                     {
                         gameWorld[x, y, 10] = null;
                         gameWorld[x, y, 11] = null;
                         gameWorld[x, y, 12] = null;
                     }
-                    if (noiseVal > 0.6)
+                    if (noiseVal > 0.5)
                     {
                         gameWorld[x, y, 13] = null;
                         gameWorld[x, y, 14] = null;
-                        //gameWorld[x, y, 14] null);
-                        //gameWorld[x, y, 15] null);
+                        gameWorld[x, y, 15] = null;
+                        gameWorld[x, y, 16] = null;
                     }
                 }
             }
@@ -204,7 +204,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
 
         private static void Fill(GameWorld gameWorld, int x, int y, ref int depth, BlockRandomizer block)
         {
-            for (int i = 0; i < 3; i++)
+            for (int i = 0; i < 4; i++)
                 gameWorld[x, y, depth++] = block.NextBlock();
         }
 

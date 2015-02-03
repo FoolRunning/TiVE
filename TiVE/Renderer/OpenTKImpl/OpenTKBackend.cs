@@ -11,16 +11,26 @@ using OpenTK.Input;
 using ProdigalSoftware.TiVE.Starter;
 using ProdigalSoftware.Utils;
 
-namespace ProdigalSoftware.TiVE.Renderer.OpenGL
+namespace ProdigalSoftware.TiVE.Renderer.OpenTKImpl
 {
-    internal sealed class OpenGLRendererBackend : IRendererBackend
+    internal sealed class OpenTKBackend : IControllerBackend
     {
-        #region IRendererBackend implementation
-        public INativeWindow CreateNatveWindow(int width, int height, FullScreenMode fullscreenMode, int antiAliasAmount, bool vsync)
+        #region IControllerBackend implementation
+        public IKeyboard Keyboard
         {
-            OpenGLDisplay nativeWindow = new OpenGLDisplay(width, height, fullscreenMode, vsync, antiAliasAmount);
-            nativeWindow.Visible = true;
-            return nativeWindow;
+            get { return new KeyboardImpl(); }
+        }
+
+        public IMouse Mouse
+        {
+            get { return null; }
+        }
+
+        public INativeDisplay CreateNatveDisplay(int width, int height, FullScreenMode fullscreenMode, int antiAliasAmount, bool vsync)
+        {
+            OpenTKDisplay nativeDisplay = new OpenTKDisplay(width, height, fullscreenMode, vsync, antiAliasAmount);
+            nativeDisplay.Visible = true;
+            return nativeDisplay;
         }
         
         public void Initialize()
@@ -90,7 +100,7 @@ namespace ProdigalSoftware.TiVE.Renderer.OpenGL
 
         public string GetShaderDefinitionFileResourcePath()
         {
-            return "ProdigalSoftware.TiVE.Renderer.OpenGL.Shaders.Shaders.shad";
+            return "ProdigalSoftware.TiVE.Renderer.OpenTKImpl.Shaders.Shaders.shad";
         }
 
         public void SetBlendMode(BlendMode mode)
@@ -155,12 +165,9 @@ namespace ProdigalSoftware.TiVE.Renderer.OpenGL
         #endregion
 
         #region OpenGLDisplay class
-        private sealed class OpenGLDisplay : GameWindow, INativeWindow
+        private sealed class OpenTKDisplay : GameWindow, INativeDisplay
         {
-            /// <summary>
-            /// Creates a window
-            /// </summary>
-            public OpenGLDisplay(int width, int height, FullScreenMode fullScreenMode, bool vsync, int antiAliasAmount)
+            public OpenTKDisplay(int width, int height, FullScreenMode fullScreenMode, bool vsync, int antiAliasAmount)
                 : base(width, height, new GraphicsMode(32, 16, 0, antiAliasAmount), "TiVE", 
                     fullScreenMode == FullScreenMode.FullScreen ? GameWindowFlags.Fullscreen : GameWindowFlags.Default, 
                     DisplayDevice.Default, 3, 1, GraphicsContextFlags.ForwardCompatible)
@@ -199,8 +206,8 @@ namespace ProdigalSoftware.TiVE.Renderer.OpenGL
                 Resize += OpenGLDisplay_Resize;
             }
 
-            public event Action<Rectangle> WindowResized;
-            public event EventHandler WindowClosing;
+            public event Action<Rectangle> DisplayResized;
+            public event EventHandler DisplayClosing;
 
             public Rectangle ClientBounds
             {
@@ -210,11 +217,6 @@ namespace ProdigalSoftware.TiVE.Renderer.OpenGL
             public string WindowTitle
             {
                 set { Title = value; }
-            }
-
-            public IKeyboard KeyboardImplementation
-            {
-                get { return new KeyboardImpl(Keyboard); }
             }
 
             public void CloseWindow()
@@ -240,14 +242,14 @@ namespace ProdigalSoftware.TiVE.Renderer.OpenGL
                 // Although this looks weird, we need to cancel the disposing of the OpenGL context, but we will still exit after firing the event
                 e.Cancel = true;
 
-                if (WindowClosing != null)
-                    WindowClosing(this, EventArgs.Empty);
+                if (DisplayClosing != null)
+                    DisplayClosing(this, EventArgs.Empty);
             }
 
             void OpenGLDisplay_Resize(object sender, EventArgs e)
             {
-                if (WindowResized != null)
-                    WindowResized(ClientRectangle);
+                if (DisplayResized != null)
+                    DisplayResized(ClientRectangle);
             }
         }
         #endregion
@@ -255,16 +257,16 @@ namespace ProdigalSoftware.TiVE.Renderer.OpenGL
         #region KeyboardImpl class
         private class KeyboardImpl : IKeyboard
         {
-            private readonly KeyboardDevice device;
+            private KeyboardState currentState;
 
-            public KeyboardImpl(KeyboardDevice device)
+            public void Update()
             {
-                this.device = device;
+                currentState = OpenTK.Input.Keyboard.GetState();
             }
 
             public bool IsKeyPressed(Keys key)
             {
-                return device[(Key)(uint)key];
+                return currentState[(Key)(uint)key];
             }
         }
         #endregion

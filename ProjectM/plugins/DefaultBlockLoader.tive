@@ -27,7 +27,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
             uint[,,] particleVoxels = new uint[1, 1, 1];
             particleVoxels[0, 0, 0] = 0xFFFFFFFF;
             BlockInformation fireBlock = new BlockInformation("fire", 
-                new ParticleSystemInformation(particleVoxels, new FireUpdater(), new Vector3b(blockCenter, blockCenter, 1), 300, 310, TransparencyType.Additive, false),
+                new ParticleSystemInformation(particleVoxels, new FireUpdater(), new Vector3b(blockCenter, blockCenter, 1), 300, 400, TransparencyType.Additive, false),
                 new PointLight(new Vector3b(blockCenter, blockCenter, 2), new Color3f(1.0f, 0.9f, 0.6f), forFantasyLighting ? 5 : 10));
             yield return fireBlock;
 
@@ -50,7 +50,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
                 new PointLight(blockCenterVector, new Color3f(1.0f, 0.0f, 1.0f), forFantasyLighting ? 10 : 20));
 
             yield return new BlockInformation("snow",
-                new ParticleSystemInformation(particleVoxels, new SnowUpdater(), new Vector3b(0, 0, 0), 100, 4, TransparencyType.None, true));
+                new ParticleSystemInformation(particleVoxels, new SnowUpdater(), new Vector3b(0, 0, 0), 100, 1, TransparencyType.None, true));
 
             particleVoxels = new uint[3, 3, 3];
             particleVoxels[1, 1, 1] = 0xFFFFFFFF;
@@ -61,7 +61,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
             particleVoxels[1, 1, 0] = 0xFFFFFFFF;
             particleVoxels[1, 1, 2] = 0xFFFFFFFF;
             yield return CreateBlockInfo("fountain", false, BlockInformation.VoxelSize / 2, new Color4f(20, 20, 150, 255), 1.0f,
-                new ParticleSystemInformation(particleVoxels, new FountainUpdater(), new Vector3b(blockCenter, blockCenter, 13), 200, 500, TransparencyType.Realistic, true));
+                new ParticleSystemInformation(particleVoxels, new FountainUpdater(), new Vector3b(blockCenter, blockCenter, 13), 100, 300, TransparencyType.Realistic, true));
         }
 
         public IEnumerable<BlockAnimationDefinition> CreateAnimations(string blockListName)

@@ -117,6 +117,7 @@ namespace ProdigalSoftware.TiVE.Starter
 
         private void btnStart_Click(object sender, EventArgs e)
         {
+            TiVEController.UserSettings.Save();
             TiVEController.RunEngine();
         }
 

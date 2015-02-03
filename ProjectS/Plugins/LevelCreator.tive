@@ -15,7 +15,7 @@ namespace ProdigalSoftware.ProjectS.Controllers
 
         public GameWorld CreateGameWorld(string gameWorldName, IBlockList blockList)
         {
-            GameWorld gameWorld = new GameWorld(41, 31, 5);
+            GameWorld gameWorld = new GameWorld(41, 31, 4);
 
             BlockInformation lightRed = blockList["Light_Red"];
             BlockInformation lightGreen = blockList["Light_Green"];

@@ -3,7 +3,7 @@ using System.Diagnostics;
 using System.Threading;
 using System.Windows.Forms;
 using ProdigalSoftware.TiVE.Plugins;
-using ProdigalSoftware.TiVE.Renderer.OpenGL;
+using ProdigalSoftware.TiVE.Renderer.OpenTKImpl;
 using ProdigalSoftware.TiVE.Resources;
 using ProdigalSoftware.TiVE.Scripts;
 using ProdigalSoftware.TiVE.Settings;
@@ -11,20 +11,13 @@ using ProdigalSoftware.TiVE.Starter;
 
 namespace ProdigalSoftware.TiVE
 {
-    public enum FullScreenMode
-    {
-        Windowed,
-        FullScreen,
-        WindowFullScreen
-    }
-
     public static class TiVEController
     {
         internal static readonly long MaxTicksForSleep;
         internal static readonly PluginManager PluginManager = new PluginManager();
         internal static readonly ResourceTableDefinitionManager TableDefinitions = new ResourceTableDefinitionManager();
         internal static readonly LuaScripts LuaScripts = new LuaScripts();
-        internal static readonly IRendererBackend Backend = new OpenGLRendererBackend();
+        internal static readonly IControllerBackend Backend = new OpenTKBackend();
         internal static readonly UserSettings UserSettings = new UserSettings();
 
         private static StarterForm starterForm;

@@ -13,7 +13,7 @@ namespace ProdigalSoftware.TiVE.Renderer.Lighting
 {
     #region CalcOptions enum
     [Flags]
-    public enum CalcOptions
+    internal enum CalcOptions
     {
         None = 0,
         ClearLights = 1,
@@ -22,7 +22,7 @@ namespace ProdigalSoftware.TiVE.Renderer.Lighting
     #endregion
 
     #region LightComplexity enum
-    public enum LightComplexity
+    internal enum LightComplexity
     {
         Simple,
         Smooth,
@@ -56,8 +56,8 @@ namespace ProdigalSoftware.TiVE.Renderer.Lighting
 
             blockLights = new Color3f[gameWorld.BlockSize.X * gameWorld.BlockSize.Y * gameWorld.BlockSize.Z];
             lightsInBlocks = new LightInfo[gameWorld.BlockSize.X * gameWorld.BlockSize.Y * gameWorld.BlockSize.Z][];
-            for (int i = 0; i < lightsInBlocks.Length; i++)
-                lightsInBlocks[i] = new LightInfo[MaxLightsPerBlock];
+            //for (int i = 0; i < lightsInBlocks.Length; i++)
+            //    lightsInBlocks[i] = new LightInfo[MaxLightsPerBlock];
 
             AmbientLight = Color3f.Empty;
             lightingModel = LightingModel.Get(gameWorld.LightingModelType);
@@ -111,7 +111,11 @@ namespace ProdigalSoftware.TiVE.Renderer.Lighting
                     for (int x = 0; x < blockSize.X; x++)
                     {
                         for (int y = 0; y < blockSize.Y; y++)
-                            Array.Clear(lightsInBlocks[GetBlockLightOffset(x, y, z)], 0, MaxLightsPerBlock);
+                        {
+                            LightInfo[] lightsInBlock = lightsInBlocks[GetBlockLightOffset(x, y, z)];
+                            if (lightsInBlock != null)
+                                Array.Clear(lightsInBlock, 0, MaxLightsPerBlock);
+                        }
                     }
                 }
             }
@@ -160,11 +164,18 @@ namespace ProdigalSoftware.TiVE.Renderer.Lighting
                         int vy = by * BlockInformation.VoxelSize + HalfBlockVoxelSize;
                         int vz = bz * BlockInformation.VoxelSize + HalfBlockVoxelSize;
                         float newLightPercentage = lightingModel.GetLightPercentage(lightInfo, vx, vy, vz);
-                        LightInfo[] lightsInBlock = lightsInBlocks[GetBlockLightOffset(bx, by, bz)];
+                        if (newLightPercentage < 0.008f)
+                            continue; // doesn't affect the block enough to talk about
+
+                        int arrayOffset = GetBlockLightOffset(bx, by, bz);
+                        LightInfo[] lightsInBlock = lightsInBlocks[arrayOffset];
+                        if (lightsInBlock == null)
+                            lightsInBlocks[arrayOffset] = lightsInBlock = new LightInfo[MaxLightsPerBlock];
+
                         using (new PerformanceLock(lightsInBlock))
                         {
                             // Calculate simple lighting information
-                            blockLights[GetBlockLightOffset(bx, by, bz)] += (light.Color * newLightPercentage);
+                            blockLights[arrayOffset] += (light.Color * newLightPercentage);
 
                             // Calculate smooth lighting information
                             // Sort lights by highest percentage to lowest
@@ -252,8 +263,11 @@ namespace ProdigalSoftware.TiVE.Renderer.Lighting
                 int blockX = voxelX / BlockInformation.VoxelSize;
                 int blockY = voxelY / BlockInformation.VoxelSize;
                 int blockZ = voxelZ / BlockInformation.VoxelSize;
-                Color3f color = AmbientLight;
                 LightInfo[] lightsInBlock = lightsInBlocks[GetBlockLightOffset(blockX, blockY, blockZ)];
+                if (lightsInBlock == null)
+                    return AmbientLight;
+
+                Color3f color = AmbientLight;
                 for (int i = 0; i < lightsInBlock.Length; i++)
                 {
                     LightInfo lightInfo = lightsInBlock[i];
@@ -281,8 +295,11 @@ namespace ProdigalSoftware.TiVE.Renderer.Lighting
                 bool availablePlusY = (visibleSides & VoxelSides.Top) != 0;
                 bool availablePlusZ = (visibleSides & VoxelSides.Front) != 0;
 
-                Color3f color = AmbientLight;
                 LightInfo[] lightsInBlock = lightsInBlocks[GetBlockLightOffset(blockX, blockY, blockZ)];
+                if (lightsInBlock == null)
+                    return AmbientLight;
+
+                Color3f color = AmbientLight;
                 for (int i = 0; i < lightsInBlock.Length; i++)
                 {
                     LightInfo lightInfo = lightsInBlock[i];
@@ -410,6 +427,8 @@ namespace ProdigalSoftware.TiVE.Renderer.Lighting
             public override Color3f GetLightAt(int voxelX, int voxelY, int voxelZ, int blockX, int blockY, int blockZ, VoxelSides visibleSides)
             {
                 LightInfo[] lightsInBlock = lightsInBlocks[GetBlockLightOffset(blockX, blockY, blockZ)];
+                if (lightsInBlock == null)
+                    return AmbientLight;
 
                 Color3f color = AmbientLight;
                 for (int i = 0; i < lightsInBlock.Length; i++)

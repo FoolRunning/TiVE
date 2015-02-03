@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using JetBrains.Annotations;
 using ProdigalSoftware.TiVEPluginFramework.Lighting;
@@ -16,6 +17,7 @@ namespace ProdigalSoftware.TiVEPluginFramework
 
         private readonly uint[] voxels = new uint[VoxelSize * VoxelSize * VoxelSize];
         private BlockInformation[] rotated;
+        private int totalVoxels = -1;
 
         private BlockInformation(BlockInformation toCopy, string newBlockName) : 
             this(newBlockName, toCopy.ParticleSystem, toCopy.Light)
@@ -44,13 +46,27 @@ namespace ProdigalSoftware.TiVEPluginFramework
         public ParticleSystemInformation ParticleSystem { get; internal set; }
         public ILight Light { get; internal set; }
 
+        public int TotalVoxels
+        {
+            get
+            {
+                if (totalVoxels == -1)
+                    totalVoxels = voxels.Count(v => v != 0);
+                return totalVoxels;
+            }
+        }
+
         /// <summary>
         /// Gets/sets the voxel at the specified location
         /// </summary>
         public uint this[int x, int y, int z]
         {
             get { return voxels[GetOffset(x, y, z)]; }
-            set { voxels[GetOffset(x, y, z)] = value; }
+            set 
+            { 
+                voxels[GetOffset(x, y, z)] = value;
+                totalVoxels = -1; // Need to recalculate
+            }
         }
 
         internal BlockInformation Rotate(BlockRotation rotation)

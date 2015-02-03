@@ -3,7 +3,7 @@ using System.Diagnostics;
 using OpenTK.Graphics.OpenGL;
 using ProdigalSoftware.TiVE.Starter;
 
-namespace ProdigalSoftware.TiVE.Renderer.OpenGL
+namespace ProdigalSoftware.TiVE.Renderer.OpenTKImpl
 {
     internal static class GlUtils
     {

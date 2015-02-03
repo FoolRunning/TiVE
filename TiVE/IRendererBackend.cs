@@ -1,33 +1,76 @@
 ﻿using System.Drawing;
+using JetBrains.Annotations;
 using ProdigalSoftware.TiVE.Renderer;
 
 namespace ProdigalSoftware.TiVE
 {
+    /// <summary>
+    /// Types of primitives used to draw sets of vertexes
+    /// </summary>
     internal enum PrimitiveType
     {
-        Points,
+        /// <summary>Data will be drawn using points (i.e. each vertex will be a point)</summary>
+        [PublicAPI] Points,
+        /// <summary>Data will be drawn using lines (i.e. every two vertexes will be a line)</summary>
         Lines,
+        /// <summary>Data will be drawn using triangles (i.e. every three vertexes will be a triangle)</summary>
         Triangles,
-        Quads,
+        /// <summary>Data will be drawn using quads (i.e. every four vertexes will be a quad)</summary>
+        Quads
     }
 
     internal enum BlendMode
     {
         None,
         Realistic,
-        Additive,
+        Additive
     }
 
-    internal interface IRendererBackend
+    /// <summary>
+    /// Native display creation modes
+    /// </summary>
+    internal enum FullScreenMode
     {
-        INativeWindow CreateNatveWindow(int width, int height, FullScreenMode fullScreenMode, int antiAliasAmount, bool vsync);
+        /// <summary>Display will be created inside a normal window</summary>
+        Windowed,
+        /// <summary>Display will be created by going into exclusive full-screen mode</summary>
+        FullScreen,
+        /// <summary>Display will be created using a window that takes up the whole screen (at the current resolution)</summary>
+        WindowFullScreen
+    }
 
+    internal interface IControllerBackend
+    {
+        /// <summary>
+        /// Gets an implementation of the keyboard interface
+        /// </summary>
+        IKeyboard Keyboard { get; }
+
+        /// <summary>
+        /// Gets an implementation of the mouse interface
+        /// </summary>
+        IMouse Mouse { get; }
+
+        INativeDisplay CreateNatveDisplay(int width, int height, FullScreenMode fullScreenMode, int antiAliasAmount, bool vsync);
+
+        /// <summary>
+        /// Called to perform one-time initialization to setup the render state
+        /// </summary>
         void Initialize();
 
+        /// <summary>
+        /// Tell the renderer backend that the render window has changed to the specified bounds
+        /// </summary>
         void WindowResized(Rectangle newClientBounds);
 
+        /// <summary>
+        /// Draws the specified data to the render output using the specified primitive type
+        /// </summary>
         void Draw(PrimitiveType primitiveType, IVertexDataCollection data);
 
+        /// <summary>
+        /// Initialize the render state for a new frame
+        /// </summary>
         void BeforeRenderFrame();
 
         IVertexDataCollection CreateVertexDataCollection();
@@ -37,12 +80,21 @@ namespace ProdigalSoftware.TiVE
         
         IShaderProgram CreateShaderProgram();
 
-        string GetShaderDefinitionFileResourcePath();
-
         void SetBlendMode(BlendMode mode);
 
+        /// <summary>
+        /// Disables writing to the depth buffer
+        /// </summary>
         void DisableDepthWriting();
 
+        /// <summary>
+        /// Enables writing to the depth buffer
+        /// </summary>
         void EnableDepthWriting();
+
+        /// <summary>
+        /// Gets the path in the assembly for the shader definitions for the backend
+        /// </summary>
+        string GetShaderDefinitionFileResourcePath();
     }
 }

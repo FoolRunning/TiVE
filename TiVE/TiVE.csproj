@@ -108,6 +108,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="IKeyboard.cs" />
+    <Compile Include="IMouse.cs" />
     <Compile Include="Keys.cs" />
     <Compile Include="Renderer\Lighting\LightingModel.cs" />
     <Compile Include="Renderer\Lighting\LightProvider.cs" />
@@ -144,10 +145,10 @@
     <Compile Include="Renderer\IVertexDataCollection.cs" />
     <Compile Include="IGameWorldRenderer.cs" />
     <Compile Include="IRendererBackend.cs" />
-    <Compile Include="Renderer\OpenGL\OpenGLRendererBackend.cs" />
+    <Compile Include="Renderer\OpenTKImpl\OpenTKBackend.cs" />
     <Compile Include="Renderer\WorldChunkRenderer.cs" />
     <Compile Include="Renderer\Camera.cs" />
-    <Compile Include="Renderer\OpenGL\GlUtils.cs" />
+    <Compile Include="Renderer\OpenTKImpl\GlUtils.cs" />
     <Compile Include="Renderer\Sprite.cs" />
     <Compile Include="Renderer\World\BlockList.cs" />
     <Compile Include="Renderer\World\GameWorldManager.cs" />
@@ -199,12 +200,12 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
-    <EmbeddedResource Include="Renderer\OpenGL\Shaders\Simple.frag" />
-    <EmbeddedResource Include="Renderer\OpenGL\Shaders\Unshaded.vert" />
-    <EmbeddedResource Include="Renderer\OpenGL\Shaders\UnshadedInstances.vert" />
-    <EmbeddedResource Include="Renderer\OpenGL\Shaders\Shaders.shad" />
-    <EmbeddedResource Include="Renderer\OpenGL\Shaders\Shaded.vert" />
-    <EmbeddedResource Include="Renderer\OpenGL\Shaders\ShadedInstances.vert" />
+    <EmbeddedResource Include="Renderer\OpenTKImpl\Shaders\Simple.frag" />
+    <EmbeddedResource Include="Renderer\OpenTKImpl\Shaders\Unshaded.vert" />
+    <EmbeddedResource Include="Renderer\OpenTKImpl\Shaders\UnshadedInstances.vert" />
+    <EmbeddedResource Include="Renderer\OpenTKImpl\Shaders\Shaders.shad" />
+    <EmbeddedResource Include="Renderer\OpenTKImpl\Shaders\Shaded.vert" />
+    <EmbeddedResource Include="Renderer\OpenTKImpl\Shaders\ShadedInstances.vert" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\TiVEPluginFramework\TiVEPluginFramework.csproj">
