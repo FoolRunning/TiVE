@@ -18,7 +18,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
             for (int i = 0; i < 5; i++)
             {
                 yield return CreateBlockInfo("dirt" + i, false, (float)Math.Ceiling(BlockInformation.VoxelSize / 2.0f), new Color4f(129, 53, 2, 255), 1.0f);
-                yield return CreateBlockInfo("back" + i, true, 0, new Color4f(235, 235, 235, 255), 1.0f);
+                yield return CreateBlockInfo("back" + i, false, 0, new Color4f(235, 235, 235, 255), 1.0f);
                 yield return CreateBlockInfo("stone" + i, false, 0, new Color4f(120, 120, 120, 255), 1.0f);
                 yield return CreateBlockInfo("sand" + i, false, 0, new Color4f(120, 100, 20, 255), 0.2f);
             }

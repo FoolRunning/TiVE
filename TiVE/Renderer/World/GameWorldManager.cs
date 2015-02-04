@@ -59,26 +59,7 @@ namespace ProdigalSoftware.TiVE.Renderer.World
                     if (createdWorld != null)
                     {
                         Messages.AddDoneText();
-
-                        Dictionary<BlockInformation, int> voxelsInBlocks = new Dictionary<BlockInformation, int>();
-                        foreach (BlockInformation block in blockList.AllBlocks)
-                        {
-                            int voxelsInBlock = 0;
-                            for (int bz = 0; bz < BlockInformation.VoxelSize; bz++)
-                            {
-                                for (int bx = 0; bx < BlockInformation.VoxelSize; bx++)
-                                {
-                                    for (int by = 0; by < BlockInformation.VoxelSize; by++)
-                                    {
-                                        if (block[bx, by, bz] != 0)
-                                            voxelsInBlock++;
-                                    }
-                                }
-                            }
-                            voxelsInBlocks[block] = voxelsInBlock;
-                            
-                        }
-
+                        
                         long totalVoxels = 0;
                         int totalBlocks = 0;
                         for (int wz = 0; wz < createdWorld.BlockSize.Z; wz++)
@@ -91,7 +72,7 @@ namespace ProdigalSoftware.TiVE.Renderer.World
                                     if (block != BlockInformation.Empty)
                                     {
                                         totalBlocks++;
-                                        totalVoxels += voxelsInBlocks[block];
+                                        totalVoxels += block.TotalVoxels;
                                     }
                                 }
                             }

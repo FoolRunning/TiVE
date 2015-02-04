@@ -163,6 +163,9 @@ namespace ProdigalSoftware.TiVE.Renderer.World
             
             for (int blockZ = blockEndZ - 1; blockZ >= blockStartZ; blockZ--)
             {
+                if (deleted)
+                    break;
+
                 for (int blockX = blockStartX; blockX < blockEndX; blockX++)
                 {
                     for (int blockY = blockStartY; blockY < blockEndY; blockY++)
@@ -173,7 +176,8 @@ namespace ProdigalSoftware.TiVE.Renderer.World
 
                         voxelCount += block.TotalVoxels;
 
-                        for (int bz = BlockInformation.VoxelSize - 1; bz >= 0; bz -= voxelSize)
+                        //for (int bz = BlockInformation.VoxelSize - 1; bz >= 0; bz -= voxelSize)
+                        for (int bz = 0; bz < BlockInformation.VoxelSize; bz += voxelSize)
                         {
                             int voxelZ = blockZ * BlockInformation.VoxelSize + bz;
                             byte chunkVoxelZ = (byte)(voxelZ - voxelStartZ);
