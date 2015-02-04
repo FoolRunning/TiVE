@@ -56,8 +56,6 @@ namespace ProdigalSoftware.TiVE.Renderer.Lighting
 
             blockLights = new Color3f[gameWorld.BlockSize.X * gameWorld.BlockSize.Y * gameWorld.BlockSize.Z];
             lightsInBlocks = new LightInfo[gameWorld.BlockSize.X * gameWorld.BlockSize.Y * gameWorld.BlockSize.Z][];
-            //for (int i = 0; i < lightsInBlocks.Length; i++)
-            //    lightsInBlocks[i] = new LightInfo[MaxLightsPerBlock];
 
             AmbientLight = Color3f.Empty;
             lightingModel = LightingModel.Get(gameWorld.LightingModelType);
@@ -111,11 +109,7 @@ namespace ProdigalSoftware.TiVE.Renderer.Lighting
                     for (int x = 0; x < blockSize.X; x++)
                     {
                         for (int y = 0; y < blockSize.Y; y++)
-                        {
-                            LightInfo[] lightsInBlock = lightsInBlocks[GetBlockLightOffset(x, y, z)];
-                            if (lightsInBlock != null)
-                                Array.Clear(lightsInBlock, 0, MaxLightsPerBlock);
-                        }
+                            lightsInBlocks[GetBlockLightOffset(x, y, z)] = null;
                     }
                 }
             }
@@ -153,6 +147,7 @@ namespace ProdigalSoftware.TiVE.Renderer.Lighting
             int endY = Math.Min(sizeY, blockY + maxLightBlockDist);
             int endZ = Math.Min(sizeZ, blockZ + maxLightBlockDist);
             LightInfo lightInfo = new LightInfo(blockX, blockY, blockZ, light, lightingModel.GetCacheLightCalculation(light));
+            LightInfo[][] lib = lightsInBlocks;
 
             for (int bz = startZ; bz < endZ; bz++)
             {
@@ -164,23 +159,29 @@ namespace ProdigalSoftware.TiVE.Renderer.Lighting
                         int vy = by * BlockInformation.VoxelSize + HalfBlockVoxelSize;
                         int vz = bz * BlockInformation.VoxelSize + HalfBlockVoxelSize;
                         float newLightPercentage = lightingModel.GetLightPercentage(lightInfo, vx, vy, vz);
-                        if (newLightPercentage < 0.008f)
+                        if (newLightPercentage < 0.001f)
                             continue; // doesn't affect the block enough to talk about
 
                         int arrayOffset = GetBlockLightOffset(bx, by, bz);
-                        LightInfo[] lightsInBlock = lightsInBlocks[arrayOffset];
-                        if (lightsInBlock == null)
-                            lightsInBlocks[arrayOffset] = lightsInBlock = new LightInfo[MaxLightsPerBlock];
 
-                        using (new PerformanceLock(lightsInBlock))
+                        LightInfo[] lightsInBlock;
+                        lock (lib)
+                        {
+                            if (lib[arrayOffset] == null)
+                                lib[arrayOffset] = lightsInBlock = new LightInfo[MaxLightsPerBlock];
+                            else
+                                lightsInBlock = lib[arrayOffset];
+                        }
+
+                        lock (lightsInBlock)
                         {
                             // Calculate simple lighting information
                             blockLights[arrayOffset] += (light.Color * newLightPercentage);
 
                             // Calculate smooth lighting information
                             // Sort lights by highest percentage to lowest
-                            int leastLightIndex = MaxLightsPerBlock;
-                            for (int i = 0; i < MaxLightsPerBlock; i++)
+                            int leastLightIndex = lightsInBlock.Length;
+                            for (int i = 0; i < lightsInBlock.Length; i++)
                             {
                                 LightInfo otherInfo = lightsInBlock[i];
                                 if (otherInfo == null || lightingModel.GetLightPercentage(otherInfo, vx, vy, vz) < newLightPercentage)
@@ -190,9 +191,9 @@ namespace ProdigalSoftware.TiVE.Renderer.Lighting
                                 }
                             }
 
-                            if (leastLightIndex < MaxLightsPerBlock)
+                            if (leastLightIndex < lightsInBlock.Length)
                             {
-                                for (int i = MaxLightsPerBlock - 1; i > leastLightIndex; i--)
+                                for (int i = lightsInBlock.Length - 1; i > leastLightIndex; i--)
                                     lightsInBlock[i] = lightsInBlock[i - 1];
 
                                 lightsInBlock[leastLightIndex] = lightInfo;
@@ -278,9 +279,9 @@ namespace ProdigalSoftware.TiVE.Renderer.Lighting
                         color += lightInfo.Light.Color * lightingModel.GetLightPercentage(lightInfo, voxelX, voxelY, voxelZ);
                     else
                     {
-                        // Simulate a very crude and simple reflective ambient lighting model by using the light reduced by 80% for
+                        // Simulate a very crude and simple reflective ambient lighting model by using the light reduced by 70% for
                         // voxels in a "shadow".
-                        color += lightInfo.Light.Color * (lightingModel.GetLightPercentage(lightInfo, voxelX, voxelY, voxelZ) * 0.2f);
+                        color += lightInfo.Light.Color * (lightingModel.GetLightPercentage(lightInfo, voxelX, voxelY, voxelZ) * 0.3f);
                     }
                 }
                 return color;
@@ -317,9 +318,9 @@ namespace ProdigalSoftware.TiVE.Renderer.Lighting
                     }
                     else
                     {
-                        // Simulate a very crude and simple reflective ambient lighting model by using the light reduced by 80% for
+                        // Simulate a very crude and simple reflective ambient lighting model by using the light reduced by 70% for
                         // voxels in a "shadow".
-                        color += lightInfo.Light.Color * (lightingModel.GetLightPercentage(lightInfo, voxelX, voxelY, voxelZ) * 0.2f);
+                        color += lightInfo.Light.Color * (lightingModel.GetLightPercentage(lightInfo, voxelX, voxelY, voxelZ) * 0.3f);
                     }
                 }
                 return color;

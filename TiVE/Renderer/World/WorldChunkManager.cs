@@ -23,7 +23,7 @@ namespace ProdigalSoftware.TiVE.Renderer.World
         private const int VoxelDetailLevelSections = 4;
         private const int BestVoxelDetailLevel = 0;
         private const int WorstVoxelDetailLevel = VoxelDetailLevelSections - 1;
-        private const int TotalMeshBuilders = 10;
+        private const int TotalMeshBuilders = 20;
 
         private readonly List<GameWorldVoxelChunk> chunksToDelete = new List<GameWorldVoxelChunk>();
         private readonly HashSet<GameWorldVoxelChunk> loadedChunks = new HashSet<GameWorldVoxelChunk>();
@@ -105,11 +105,11 @@ namespace ProdigalSoftware.TiVE.Renderer.World
             int distancePerLevel;
             switch (currentVoxelDetalLevelSetting)
             {
-                case VoxelDetailLevelDistance.Closest: distancePerLevel = 150; break;
-                case VoxelDetailLevelDistance.Close: distancePerLevel = 250; break;
+                case VoxelDetailLevelDistance.Closest: distancePerLevel = 200; break;
+                case VoxelDetailLevelDistance.Close: distancePerLevel = 300; break;
                 case VoxelDetailLevelDistance.Mid: distancePerLevel = 400; break;
-                case VoxelDetailLevelDistance.Far: distancePerLevel = 500; break;
-                default: distancePerLevel = 600; break;
+                case VoxelDetailLevelDistance.Far: distancePerLevel = 550; break;
+                default: distancePerLevel = 700; break;
             }
 
             for (int i = BestVoxelDetailLevel; i <= WorstVoxelDetailLevel; i++)
