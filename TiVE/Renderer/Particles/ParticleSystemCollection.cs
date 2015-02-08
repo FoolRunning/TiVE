@@ -53,7 +53,7 @@ namespace ProdigalSoftware.TiVE.Renderer.Particles
             this.systemInfo = systemInfo;
 
             // Create particle voxel model to be used for each particle
-            MeshBuilder voxelInstanceBuilder = new MeshBuilder(150, 0);
+            MeshBuilder voxelInstanceBuilder = new MeshBuilder(1000, 0);
             VoxelMeshUtils.GenerateMesh(systemInfo.ParticleVoxels, voxelInstanceBuilder, true,
                 out voxelsPerParticle, out renderedVoxelsPerParticle, out polysPerParticle);
 

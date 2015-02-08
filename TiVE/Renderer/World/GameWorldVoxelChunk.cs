@@ -251,7 +251,7 @@ namespace ProdigalSoftware.TiVE.Renderer.World
 
                                     if (sides != VoxelSides.None)
                                     {
-                                        Color3f lightColor = lightProvider.GetLightAt(voxelX, voxelY, voxelZ, blockX, blockY, blockZ, sides);
+                                        Color3f lightColor = lightProvider.GetLightAt(voxelX, voxelY, voxelZ, voxelSize, blockX, blockY, blockZ, sides);
                                         byte a = (byte)((color >> 24) & 0xFF);
                                         byte r = (byte)Math.Min(255, (int)(((color >> 16) & 0xFF) * lightColor.R));
                                         byte g = (byte)Math.Min(255, (int)(((color >> 8) & 0xFF) * lightColor.G));
