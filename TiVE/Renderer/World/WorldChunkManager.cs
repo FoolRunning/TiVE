@@ -105,11 +105,11 @@ namespace ProdigalSoftware.TiVE.Renderer.World
             int distancePerLevel;
             switch (currentVoxelDetalLevelSetting)
             {
-                case VoxelDetailLevelDistance.Closest: distancePerLevel = 200; break;
-                case VoxelDetailLevelDistance.Close: distancePerLevel = 300; break;
-                case VoxelDetailLevelDistance.Mid: distancePerLevel = 400; break;
-                case VoxelDetailLevelDistance.Far: distancePerLevel = 550; break;
-                default: distancePerLevel = 700; break;
+                case VoxelDetailLevelDistance.Closest: distancePerLevel = 300; break;
+                case VoxelDetailLevelDistance.Close: distancePerLevel = 450; break;
+                case VoxelDetailLevelDistance.Mid: distancePerLevel = 600; break;
+                case VoxelDetailLevelDistance.Far: distancePerLevel = 750; break;
+                default: distancePerLevel = 900; break;
             }
 
             for (int i = BestVoxelDetailLevel; i <= WorstVoxelDetailLevel; i++)

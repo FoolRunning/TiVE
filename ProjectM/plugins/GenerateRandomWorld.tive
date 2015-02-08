@@ -204,7 +204,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
 
         private static void Fill(GameWorld gameWorld, int x, int y, ref int depth, BlockRandomizer block)
         {
-            for (int i = 0; i < 4; i++)
+            for (int i = 0; i < 3; i++)
                 gameWorld[x, y, depth++] = block.NextBlock();
         }
 

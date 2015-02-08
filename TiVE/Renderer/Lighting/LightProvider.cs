@@ -92,7 +92,7 @@ namespace ProdigalSoftware.TiVE.Renderer.Lighting
         /// </summary>
         /// <remarks>Very performance-critical method</remarks>
         [MethodImpl(MethodImplOptions.AggressiveInlining)] // Probably can't be inlined because it's an abstract method, but try anyways
-        public abstract Color3f GetLightAt(int voxelX, int voxelY, int voxelZ, int blockX, int blockY, int blockZ, VoxelSides visibleSides);
+        public abstract Color3f GetLightAt(int voxelX, int voxelY, int voxelZ, int voxelSize, int blockX, int blockY, int blockZ, VoxelSides visibleSides);
 
         public void Calculate(CalcOptions options)
         {
@@ -159,7 +159,7 @@ namespace ProdigalSoftware.TiVE.Renderer.Lighting
                         int vy = by * BlockInformation.VoxelSize + HalfBlockVoxelSize;
                         int vz = bz * BlockInformation.VoxelSize + HalfBlockVoxelSize;
                         float newLightPercentage = lightingModel.GetLightPercentage(lightInfo, vx, vy, vz);
-                        if (newLightPercentage < 0.001f)
+                        if (newLightPercentage < 0.005f)
                             continue; // doesn't affect the block enough to talk about
 
                         int arrayOffset = GetBlockLightOffset(bx, by, bz);
@@ -287,7 +287,7 @@ namespace ProdigalSoftware.TiVE.Renderer.Lighting
                 return color;
             }
 
-            public override Color3f GetLightAt(int voxelX, int voxelY, int voxelZ, int blockX, int blockY, int blockZ, VoxelSides visibleSides)
+            public override Color3f GetLightAt(int voxelX, int voxelY, int voxelZ, int voxelSize, int blockX, int blockY, int blockZ, VoxelSides visibleSides)
             {
                 bool availableMinusX = (visibleSides & VoxelSides.Left) != 0;
                 bool availableMinusY = (visibleSides & VoxelSides.Bottom) != 0;
@@ -307,12 +307,12 @@ namespace ProdigalSoftware.TiVE.Renderer.Lighting
                     if (lightInfo == null)
                         break;
 
-                    if ((availableMinusX && lightInfo.VoxelLocX <= voxelX && NoVoxelInLine(lightInfo, voxelX - 1, voxelY, voxelZ)) ||
-                        (availableMinusY && lightInfo.VoxelLocY <= voxelY && NoVoxelInLine(lightInfo, voxelX, voxelY - 1, voxelZ)) ||
-                        (availableMinusZ && lightInfo.VoxelLocZ <= voxelZ && NoVoxelInLine(lightInfo, voxelX, voxelY, voxelZ - 1)) ||
-                        (availablePlusX && lightInfo.VoxelLocX >= voxelX && NoVoxelInLine(lightInfo, voxelX + 1, voxelY, voxelZ)) ||
-                        (availablePlusY && lightInfo.VoxelLocY >= voxelY && NoVoxelInLine(lightInfo, voxelX, voxelY + 1, voxelZ)) ||
-                        (availablePlusZ && lightInfo.VoxelLocZ >= voxelZ && NoVoxelInLine(lightInfo, voxelX, voxelY, voxelZ + 1)))
+                    if ((availableMinusX && lightInfo.VoxelLocX <= voxelX && NoVoxelInLine(lightInfo, voxelX - voxelSize, voxelY, voxelZ)) ||
+                        (availableMinusY && lightInfo.VoxelLocY <= voxelY && NoVoxelInLine(lightInfo, voxelX, voxelY - voxelSize, voxelZ)) ||
+                        (availableMinusZ && lightInfo.VoxelLocZ <= voxelZ && NoVoxelInLine(lightInfo, voxelX, voxelY, voxelZ - voxelSize)) ||
+                        (availablePlusX && lightInfo.VoxelLocX >= voxelX && NoVoxelInLine(lightInfo, voxelX + voxelSize, voxelY, voxelZ)) ||
+                        (availablePlusY && lightInfo.VoxelLocY >= voxelY && NoVoxelInLine(lightInfo, voxelX, voxelY + voxelSize, voxelZ)) ||
+                        (availablePlusZ && lightInfo.VoxelLocZ >= voxelZ && NoVoxelInLine(lightInfo, voxelX, voxelY, voxelZ + voxelSize)))
                     {
                         color += lightInfo.Light.Color * lightingModel.GetLightPercentage(lightInfo, voxelX, voxelY, voxelZ);
                     }
@@ -421,11 +421,11 @@ namespace ProdigalSoftware.TiVE.Renderer.Lighting
                 int blockX = voxelX / BlockInformation.VoxelSize;
                 int blockY = voxelY / BlockInformation.VoxelSize;
                 int blockZ = voxelZ / BlockInformation.VoxelSize;
-                return GetLightAt(voxelX, voxelY, voxelZ, blockX, blockY, blockZ, VoxelSides.None);
+                return GetLightAt(voxelX, voxelY, voxelZ, 1, blockX, blockY, blockZ, VoxelSides.None);
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)] // Probably can't be inlined because it's an abstract method, but try anyways
-            public override Color3f GetLightAt(int voxelX, int voxelY, int voxelZ, int blockX, int blockY, int blockZ, VoxelSides visibleSides)
+            public override Color3f GetLightAt(int voxelX, int voxelY, int voxelZ, int voxelSize, int blockX, int blockY, int blockZ, VoxelSides visibleSides)
             {
                 LightInfo[] lightsInBlock = lightsInBlocks[GetBlockLightOffset(blockX, blockY, blockZ)];
                 if (lightsInBlock == null)
@@ -457,11 +457,11 @@ namespace ProdigalSoftware.TiVE.Renderer.Lighting
                 int blockX = voxelX / BlockInformation.VoxelSize;
                 int blockY = voxelY / BlockInformation.VoxelSize;
                 int blockZ = voxelZ / BlockInformation.VoxelSize;
-                return GetLightAt(voxelX, voxelY, voxelZ, blockX, blockY, blockZ, VoxelSides.None);
+                return GetLightAt(voxelX, voxelY, voxelZ, 1, blockX, blockY, blockZ, VoxelSides.None);
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)] // Probably can't be inlined because it's an abstract method, but try anyways
-            public override Color3f GetLightAt(int voxelX, int voxelY, int voxelZ, int blockX, int blockY, int blockZ, VoxelSides visibleSides)
+            public override Color3f GetLightAt(int voxelX, int voxelY, int voxelZ, int voxelSize, int blockX, int blockY, int blockZ, VoxelSides visibleSides)
             {
                 return AmbientLight + blockLights[GetBlockLightOffset(blockX, blockY, blockZ)];
             }
