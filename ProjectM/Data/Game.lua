@@ -7,7 +7,7 @@ function Initialize()
     WorldXSize = gameWorld.BlockSize.X
     WorldYSize = gameWorld.BlockSize.Y
     WorldZSize = gameWorld.BlockSize.Z
-    Renderer().LightProvider.AmbientLight = Color(0.1, 0.1, 0.1)
+    Renderer().LightProvider.AmbientLight = Color(0.05, 0.05, 0.05)
 
     Camera().FarDistance = 1000
     Camera().FoV = PI / 4 --45 degrees
@@ -26,26 +26,26 @@ function Update()
         speed = 0.2
     end
 
-    if (KeyPressed(Keys.A)) then --Move left
+    if (KeyPressed(Keys.A) and VoxelAt((camLoc.X - speed), camLoc.Y, camLoc.Z) == 0) then --Move left
         camLoc.X = camLoc.X - speed
     end
 
-    if (KeyPressed(Keys.D)) then --Move right
+    if (KeyPressed(Keys.D) and VoxelAt((camLoc.X + speed), camLoc.Y, camLoc.Z) == 0) then --Move right
         camLoc.X = camLoc.X + speed
     end
 
-    if (KeyPressed(Keys.W)) then --Move up
+    if (KeyPressed(Keys.W) and VoxelAt(camLoc.X, camLoc.Y + speed, camLoc.Z) == 0) then --Move up
         camLoc.Y = camLoc.Y + speed
     end
 
-    if (KeyPressed(Keys.S)) then --Move down
+    if (KeyPressed(Keys.S) and VoxelAt(camLoc.X, camLoc.Y - speed, camLoc.Z) == 0) then --Move down
         camLoc.Y = camLoc.Y - speed
     end
 
-    if (KeyPressed(Keys.KeypadPlus)) then --Zoom in
-        camLoc.Z = Max(camLoc.Z - 2.0, 2 * BlockSize)
-    elseif (KeyPressed(Keys.KeypadMinus)) then --Zoom out
-        camLoc.Z = Min(camLoc.Z + 2.0, 55.0 * BlockSize)
+    if (KeyPressed(Keys.KeypadPlus) and VoxelAt(camLoc.X, camLoc.Y, camLoc.Z - 2) == 0) then --Zoom in
+        camLoc.Z = Max(camLoc.Z - 2, 2 * BlockSize)
+    elseif (KeyPressed(Keys.KeypadMinus) and VoxelAt(camLoc.X, camLoc.Y, camLoc.Z + 2) == 0) then --Zoom out
+        camLoc.Z = Min(camLoc.Z + 2, 55 * BlockSize)
     end
 
     Camera().Location = camLoc

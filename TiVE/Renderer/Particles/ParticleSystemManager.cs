@@ -34,7 +34,7 @@ namespace ProdigalSoftware.TiVE.Renderer.Particles
             if (TiVEController.UserSettings.Get(UserSettings.UseThreadedParticlesKey))
             {
                 particleUpdateThread = new Thread(ParticleUpdateLoop);
-                particleUpdateThread.Priority = ThreadPriority.Normal;
+                particleUpdateThread.Priority = ThreadPriority.BelowNormal;
                 particleUpdateThread.IsBackground = true;
                 particleUpdateThread.Name = "ParticleUpdate";
                 particleUpdateThread.Start();

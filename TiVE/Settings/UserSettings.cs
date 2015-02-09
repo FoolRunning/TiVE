@@ -58,9 +58,8 @@ namespace ProdigalSoftware.TiVE.Settings
                 new UserSettingOption("False *", new BoolSetting(false))));
 
             settingOptions.Add(new UserSettingOptions(LightingComplexityKey, "Lighting complexity", UserOptionTab.Display,
-                new EnumSetting<LightComplexity>(LightComplexity.Smooth),
-                new UserSettingOption("Simple", new EnumSetting<LightComplexity>(LightComplexity.Simple)),
-                new UserSettingOption("Smooth *", new EnumSetting<LightComplexity>(LightComplexity.Smooth)),
+                new EnumSetting<LightComplexity>(LightComplexity.Simple),
+                new UserSettingOption("Simple *", new EnumSetting<LightComplexity>(LightComplexity.Simple)),
                 new UserSettingOption("Realistic", new EnumSetting<LightComplexity>(LightComplexity.Realistic))));
 
             settingOptions.Add(new UserSettingOptions(ChunkCreationThreadsKey, "Chunk creation threads", UserOptionTab.Advanced, new IntSetting(3),

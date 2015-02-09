@@ -55,6 +55,24 @@ namespace ProdigalSoftware.TiVE
             gameScript.Camera = new Func<Camera>(() => renderer.Camera);
             gameScript.GameWorld = new Func<GameWorld>(() => renderer.GameWorld);
             gameScript.ReloadLevel = new Action(() => renderer.RefreshLevel());
+            gameScript.EmptyBlock = BlockInformation.Empty;
+            gameScript.BlockAt = new Func<int, int, int, BlockInformation>((blockX, blockY, blockZ) =>
+            {
+                GameWorld gameWorld = renderer.GameWorld;
+                if (blockX < 0 || blockX >= gameWorld.BlockSize.X || blockY < 0 || blockY >= gameWorld.BlockSize.Y || blockZ < 0 || blockZ >= gameWorld.BlockSize.Z)
+                    return BlockInformation.Empty;
+
+                return gameWorld[blockX, blockY, blockZ];
+            });
+
+            gameScript.VoxelAt = new Func<int, int, int, uint>((voxelX, voxelY, voxelZ) =>
+            {
+                GameWorld gameWorld = renderer.GameWorld;
+                if (voxelX < 0 || voxelX >= gameWorld.VoxelSize.X || voxelY < 0 || voxelY >= gameWorld.VoxelSize.Y || voxelZ < 0 || voxelZ >= gameWorld.VoxelSize.Z)
+                    return 0;
+
+                return gameWorld.GetVoxel(voxelX, voxelY, voxelZ);
+            });
 
             gameScript.LoadWorld = new Func<string, GameWorld>(worldName =>
             {
