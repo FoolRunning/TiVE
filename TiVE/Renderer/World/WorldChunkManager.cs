@@ -20,7 +20,7 @@ namespace ProdigalSoftware.TiVE.Renderer.World
 
     internal sealed class WorldChunkManager : IDisposable
     {
-        private const int VoxelDetailLevelSections = 4;
+        private const int VoxelDetailLevelSections = 3;
         private const int BestVoxelDetailLevel = 0;
         private const int WorstVoxelDetailLevel = VoxelDetailLevelSections - 1;
         private const int TotalMeshBuilders = 20;

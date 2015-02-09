@@ -174,6 +174,7 @@ namespace ProdigalSoftware.TiVE.Renderer.World
                         if (block == BlockInformation.Empty || block.NextBlock != null)
                             continue;
 
+                        bool blockIsLit = block.IsLIt;
                         voxelCount += block.TotalVoxels;
 
                         //for (int bz = BlockInformation.VoxelSize - 1; bz >= 0; bz -= voxelSize)
@@ -251,7 +252,9 @@ namespace ProdigalSoftware.TiVE.Renderer.World
 
                                     if (sides != VoxelSides.None)
                                     {
-                                        Color3f lightColor = lightProvider.GetLightAt(voxelX, voxelY, voxelZ, voxelSize, blockX, blockY, blockZ, sides);
+                                        Color3f lightColor = blockIsLit ? 
+                                            lightProvider.GetLightAt(voxelX, voxelY, voxelZ, voxelSize, blockX, blockY, blockZ, sides) :
+                                            Color3f.White;
                                         byte a = (byte)((color >> 24) & 0xFF);
                                         byte r = (byte)Math.Min(255, (int)(((color >> 16) & 0xFF) * lightColor.R));
                                         byte g = (byte)Math.Min(255, (int)(((color >> 8) & 0xFF) * lightColor.G));

@@ -15,20 +15,21 @@ namespace ProdigalSoftware.ProjectM.Plugins
         {
             byte blockCenter = BlockInformation.VoxelSize / 2;
             Vector3b blockCenterVector = new Vector3b(blockCenter, blockCenter, blockCenter);
+            uint[, ,] particleVoxels = new uint[1, 1, 1];
+            particleVoxels[0, 0, 0] = 0xFFFFFFFF;
             for (int i = 0; i < 5; i++)
             {
                 yield return CreateBlockInfo("dirt" + i, false, (float)Math.Ceiling(BlockInformation.VoxelSize / 2.0f), new Color4f(129, 53, 2, 255), 1.0f);
-                yield return CreateBlockInfo("back" + i, false, 0, new Color4f(235, 235, 235, 255), 1.0f);
+                yield return CreateBlockInfo("back" + i, false, 0, new Color4f(235, 235, 235, 255), 1.0f, 
+                    new ParticleSystemInformation(particleVoxels, new SnowUpdater(), new Vector3b(0, 0, 0), 100, 1, TransparencyType.None, true));
                 yield return CreateBlockInfo("stone" + i, false, 0, new Color4f(120, 120, 120, 255), 1.0f);
                 yield return CreateBlockInfo("sand" + i, false, 0, new Color4f(120, 100, 20, 255), 0.2f);
             }
 
             const bool forFantasyLighting = true;
-            uint[,,] particleVoxels = new uint[1, 1, 1];
-            particleVoxels[0, 0, 0] = 0xFFFFFFFF;
             BlockInformation fireBlock = new BlockInformation("fire", 
                 new ParticleSystemInformation(particleVoxels, new FireUpdater(), new Vector3b(blockCenter, blockCenter, 1), 300, 400, TransparencyType.Additive, false),
-                new PointLight(new Vector3b(blockCenter, blockCenter, 2), new Color3f(1.0f, 0.9f, 0.6f), forFantasyLighting ? 7 : 14));
+                new PointLight(new Vector3b(blockCenter, blockCenter, 2), new Color3f(1.0f, 0.8f, 0.6f), forFantasyLighting ? 5 : 10));
             yield return fireBlock;
 
             yield return CreateBlockInfo("light0", false, 2, new Color4f(255, 0, 0, 255), 1.0f, null,
@@ -49,8 +50,8 @@ namespace ProdigalSoftware.ProjectM.Plugins
             yield return CreateBlockInfo("light5", false, 2, new Color4f(255, 0, 255, 255), 1.0f, null,
                 new PointLight(blockCenterVector, new Color3f(1.0f, 0.0f, 1.0f), forFantasyLighting ? 10 : 20));
 
-            yield return new BlockInformation("snow",
-                new ParticleSystemInformation(particleVoxels, new SnowUpdater(), new Vector3b(0, 0, 0), 100, 1, TransparencyType.None, true));
+            yield return CreateBlockInfo("light6", false, 2, new Color4f(255, 255, 255, 255), 1.0f, null,
+                new PointLight(blockCenterVector, new Color3f(1.0f, 1.0f, 1.0f), forFantasyLighting ? 10 : 20));
 
             particleVoxels = new uint[3, 3, 3];
             particleVoxels[1, 1, 1] = 0xFFFFFFFF;
@@ -74,7 +75,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
         {
             const int mid = BlockInformation.VoxelSize / 2;
 
-            BlockInformation block = new BlockInformation(name, particleSystem, light);
+            BlockInformation block = new BlockInformation(name, particleSystem, light, null, light == null);
             for (int x = 0; x < BlockInformation.VoxelSize; x++)
             {
                 for (int y = 0; y < BlockInformation.VoxelSize; y++)
@@ -89,7 +90,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
                         }
 
                         if (random.NextDouble() < voxelDensity)
-                            block[x, y, z] = CreateColorFromColor(color).ToArgb();
+                            block[x, y, z] = (light == null) ? CreateColorFromColor(color).ToArgb() : ((Color4b)color).ToArgb();
                     }
                 }
             }

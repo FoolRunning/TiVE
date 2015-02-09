@@ -25,7 +25,8 @@ namespace ProdigalSoftware.TiVEPluginFramework
             Array.Copy(toCopy.voxels, voxels, voxels.Length);
         }
 
-        public BlockInformation(string blockName, ParticleSystemInformation particleSystem = null, ILight light = null, BlockInformation nextBlock = null)
+        public BlockInformation(string blockName, ParticleSystemInformation particleSystem = null, ILight light = null, BlockInformation nextBlock = null, 
+            bool isLit = true)
         {
             if (blockName == null)
                 throw new ArgumentNullException("blockName");
@@ -34,6 +35,7 @@ namespace ProdigalSoftware.TiVEPluginFramework
             ParticleSystem = particleSystem;
             Light = light;
             NextBlock = nextBlock;
+            IsLIt = isLit;
         }
 
         internal uint[] VoxelsArray
@@ -41,6 +43,7 @@ namespace ProdigalSoftware.TiVEPluginFramework
             get { return voxels; }
         }
 
+        public bool IsLIt { get; internal set; }
         public BlockInformation NextBlock { get; internal set; }
         public string BlockName  { get; internal set; }
         public ParticleSystemInformation ParticleSystem { get; internal set; }
@@ -82,7 +85,11 @@ namespace ProdigalSoftware.TiVEPluginFramework
             return rotatedBlock;
         }
 
-        [NotNull]
+        public override string ToString()
+        {
+            return BlockName;
+        }
+
         private BlockInformation CreateRotated(BlockRotation rotation)
         {
             if (rotation == BlockRotation.NotRotated)
