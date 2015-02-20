@@ -116,6 +116,7 @@
     <Compile Include="Renderer\Meshes\MeshBuilderBase.cs" />
     <Compile Include="Renderer\Particles\RunningParticleSystem.cs" />
     <Compile Include="Renderer\Voxels\VoxelMeshHelper.cs" />
+    <Compile Include="Renderer\World\ChunkLoadQueue.cs" />
     <Compile Include="Renderer\World\ChunkRenderTree.cs" />
     <Compile Include="Settings\Setting.cs" />
     <Compile Include="Settings\UserSettings.cs" />
