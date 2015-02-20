@@ -19,7 +19,8 @@ namespace ProdigalSoftware.TiVEPluginFramework
     {
         private readonly Vector3i voxelSize;
         private readonly Vector3i blockSize;
-        private readonly Block[] worldBlocks;
+        private readonly BlockInformation[] blocks;
+        private readonly BlockState[] blockStates;
 
         public GameWorld(int blockSizeX, int blockSizeY, int blockSizeZ)
         {
@@ -28,9 +29,10 @@ namespace ProdigalSoftware.TiVEPluginFramework
             blockSize = new Vector3i(blockSizeX, blockSizeY, blockSizeZ);
             voxelSize = new Vector3i(blockSizeX * BlockInformation.VoxelSize, blockSizeY * BlockInformation.VoxelSize, blockSizeZ * BlockInformation.VoxelSize);
 
-            worldBlocks = new Block[blockSizeX * blockSizeY * blockSizeZ];
-            for (int i = 0; i < worldBlocks.Length; i++)
-                worldBlocks[i] = new Block(BlockInformation.Empty);
+            blockStates = new BlockState[blockSizeX * blockSizeY * blockSizeZ];
+            blocks = new BlockInformation[blockSizeX * blockSizeY * blockSizeZ];
+            for (int i = 0; i < blocks.Length; i++)
+                blocks[i] = BlockInformation.Empty;
         }
 
         [PublicAPI]
@@ -57,18 +59,18 @@ namespace ProdigalSoftware.TiVEPluginFramework
         /// </summary>
         public BlockInformation this[int blockX, int blockY, int blockZ]
         {
-            get { return worldBlocks[GetBlockOffset(blockX, blockY, blockZ)].BlockInfo; }
-            set { worldBlocks[GetBlockOffset(blockX, blockY, blockZ)].BlockInfo = value ?? BlockInformation.Empty; }
+            get { return blocks[GetBlockOffset(blockX, blockY, blockZ)]; }
+            set { blocks[GetBlockOffset(blockX, blockY, blockZ)] = value ?? BlockInformation.Empty; }
         }
 
         public BlockState GetBlockState(int blockX, int blockY, int blockZ)
         {
-            return worldBlocks[GetBlockOffset(blockX, blockY, blockZ)].State;
+            return blockStates[GetBlockOffset(blockX, blockY, blockZ)];
         }
 
         public void SetBlockState(int blockX, int blockY, int blockZ, BlockState state)
         {
-            worldBlocks[GetBlockOffset(blockX, blockY, blockZ)].State = state;
+            blockStates[GetBlockOffset(blockX, blockY, blockZ)] = state;
         }
 
         /// <summary>
@@ -83,7 +85,7 @@ namespace ProdigalSoftware.TiVEPluginFramework
             int blockX = voxelX / BlockInformation.VoxelSize;
             int blockY = voxelY / BlockInformation.VoxelSize;
             int blockZ = voxelZ / BlockInformation.VoxelSize;
-            BlockInformation block = worldBlocks[GetBlockOffset(blockX, blockY, blockZ)].BlockInfo;
+            BlockInformation block = blocks[GetBlockOffset(blockX, blockY, blockZ)];
             if (block == BlockInformation.Empty)
                 return 0;
 
@@ -103,30 +105,6 @@ namespace ProdigalSoftware.TiVEPluginFramework
         {
             MiscUtils.CheckConstraints(x, y, z, blockSize);
             return (x * blockSize.Z + z) * blockSize.Y + y; // y-axis major for speed
-        }
-        #endregion
-
-        #region Block class
-        /// <summary>
-        /// Represents one block in the game world
-        /// </summary>
-        private struct Block
-        {
-            /// <summary>
-            /// Information about the block
-            /// </summary>
-            public BlockInformation BlockInfo;
-
-            /// <summary>
-            /// Information about the state of the block
-            /// </summary>
-            public BlockState State;
-
-            public Block(BlockInformation blockInfo)
-            {
-                BlockInfo = blockInfo;
-                State = new BlockState();
-            }
         }
         #endregion
     }

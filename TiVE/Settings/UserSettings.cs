@@ -46,11 +46,11 @@ namespace ProdigalSoftware.TiVE.Settings
                 new UserSettingOption("16x", new IntSetting(16))));
 
             settingOptions.Add(new UserSettingOptions(DetailDistanceKey, "Block detail distance", UserOptionTab.Display, 
-                new EnumSetting<VoxelDetailLevelDistance>(VoxelDetailLevelDistance.Far),
+                new EnumSetting<VoxelDetailLevelDistance>(VoxelDetailLevelDistance.Mid),
                 new UserSettingOption("Closest", new EnumSetting<VoxelDetailLevelDistance>(VoxelDetailLevelDistance.Closest)),
                 new UserSettingOption("Close", new EnumSetting<VoxelDetailLevelDistance>(VoxelDetailLevelDistance.Close)),
-                new UserSettingOption("Mid", new EnumSetting<VoxelDetailLevelDistance>(VoxelDetailLevelDistance.Mid)),
-                new UserSettingOption("Far *", new EnumSetting<VoxelDetailLevelDistance>(VoxelDetailLevelDistance.Far)),
+                new UserSettingOption("Mid *", new EnumSetting<VoxelDetailLevelDistance>(VoxelDetailLevelDistance.Mid)),
+                new UserSettingOption("Far", new EnumSetting<VoxelDetailLevelDistance>(VoxelDetailLevelDistance.Far)),
                 new UserSettingOption("Furthest", new EnumSetting<VoxelDetailLevelDistance>(VoxelDetailLevelDistance.Furthest))));
 
             settingOptions.Add(new UserSettingOptions(ShadedVoxelsKey, "Shade voxels", UserOptionTab.Display, new BoolSetting(false),

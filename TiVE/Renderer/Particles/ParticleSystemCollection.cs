@@ -34,7 +34,7 @@ namespace ProdigalSoftware.TiVE.Renderer.Particles
 
         private readonly object syncObj = new object();
 
-        private Vector3s[] locations;
+        private Vector3us[] locations;
         private Color4b[] colors;
         
         private int totalAliveParticles;
@@ -61,7 +61,7 @@ namespace ProdigalSoftware.TiVE.Renderer.Particles
             if (TiVEController.UserSettings.Get(UserSettings.ShadedVoxelsKey))
                 voxelInstanceColorData = voxelInstanceBuilder.GetColorData();
 
-            locations = new Vector3s[systemInfo.MaxParticles * 5];
+            locations = new Vector3us[systemInfo.MaxParticles * 5];
             colors = new Color4b[systemInfo.MaxParticles * 5];
 
             // Initialize room for 5 particle systems in the collection
@@ -187,7 +187,7 @@ namespace ProdigalSoftware.TiVE.Renderer.Particles
                 if (TiVEController.UserSettings.Get(UserSettings.ShadedVoxelsKey))
                     instances.AddBuffer(voxelInstanceColorData);
 
-                locationData = TiVEController.Backend.CreateData(locations, 0, 3, DataType.Instance, ValueType.Short, false, true);
+                locationData = TiVEController.Backend.CreateData(locations, 0, 3, DataType.Instance, ValueType.UShort, false, true);
                 instances.AddBuffer(locationData);
                 colorData = TiVEController.Backend.CreateData(colors, 0, 4, DataType.Instance, ValueType.Byte, true, true);
                 instances.AddBuffer(colorData);

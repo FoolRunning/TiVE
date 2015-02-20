@@ -2,7 +2,6 @@
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using JetBrains.Annotations;
 using ProdigalSoftware.TiVEPluginFramework.Lighting;
 using ProdigalSoftware.TiVEPluginFramework.Particles;
 

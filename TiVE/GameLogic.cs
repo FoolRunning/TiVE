@@ -25,8 +25,8 @@ namespace ProdigalSoftware.TiVE
 
         private readonly CountStatHelper drawCount = new CountStatHelper(4, false);
         private readonly CountStatHelper voxelCount = new CountStatHelper(8, false);
-        private readonly CountStatHelper polygonCount = new CountStatHelper(8, false);
         private readonly CountStatHelper renderedVoxelCount = new CountStatHelper(8, false);
+        private readonly CountStatHelper polygonCount = new CountStatHelper(8, false);
 
         private volatile bool continueMainLoop;
         private IKeyboard keyboard;

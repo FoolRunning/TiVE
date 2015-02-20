@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using OpenTK;
 using ProdigalSoftware.TiVE.Renderer.Lighting;
 using ProdigalSoftware.TiVEPluginFramework.Particles;
 using ProdigalSoftware.Utils;
@@ -26,12 +27,7 @@ namespace ProdigalSoftware.TiVE.Renderer.Particles
             for (int i = 0; i < particles.Length; i++)
                 particles[i] = new Particle();
         }
-
-        public ParticleSystemInformation SystemInformation
-        {
-            get { return systemInfo; }
-        }
-
+        
         public int AliveParticles { get; private set; }
 
         public Vector3i Location { get; set; }
@@ -47,7 +43,7 @@ namespace ProdigalSoftware.TiVE.Renderer.Particles
                 particles[i].Time = 0.0f;
         }
 
-        public void Update(float timeSinceLastFrame, Vector3s[] locationArray, Color4b[] colorArray, 
+        public void Update(float timeSinceLastFrame, Vector3us[] locationArray, Color4b[] colorArray, 
             IGameWorldRenderer renderer, ref int dataIndex)
         {
             Debug.Assert(IsAlive);
@@ -62,6 +58,7 @@ namespace ProdigalSoftware.TiVE.Renderer.Particles
             numOfParticlesNeeded -= newParticleCount;
             Vector3i worldSize = renderer.GameWorld.VoxelSize;
             LightProvider lightProvider = renderer.LightProvider;
+            Particle[] particleList = particles;
             bool isLit = systemInfo.IsLit;
             
             float locX = Location.X;
@@ -69,7 +66,7 @@ namespace ProdigalSoftware.TiVE.Renderer.Particles
             float locZ = Location.Z;
             for (int i = 0; i < aliveParticles; i++)
             {
-                Particle part = particles[i];
+                Particle part = particleList[i];
                 if (part.Time > 0.0f)
                 {
                     // Normal case - particle is still alive, so just update it
@@ -85,9 +82,9 @@ namespace ProdigalSoftware.TiVE.Renderer.Particles
                 {
                     // Particle died - replace with an existing alive particle
                     int lastAliveIndex = aliveParticles - 1;
-                    Particle lastAlive = particles[lastAliveIndex];
-                    particles[lastAliveIndex] = part;
-                    particles[i] = lastAlive;
+                    Particle lastAlive = particleList[lastAliveIndex];
+                    particleList[lastAliveIndex] = part;
+                    particleList[i] = lastAlive;
                     part = lastAlive;
                     aliveParticles--;
                     // Just replaced current dead particle with an alive one. Need to update it.
@@ -98,7 +95,7 @@ namespace ProdigalSoftware.TiVE.Renderer.Particles
             // Intialize any new particles that are still needed
             for (int i = 0; i < newParticleCount; i++)
             {
-                Particle part = particles[aliveParticles];
+                Particle part = particleList[aliveParticles];
                 upd.InitializeNew(part, locX, locY, locZ);
                 aliveParticles++;
             }
@@ -106,16 +103,19 @@ namespace ProdigalSoftware.TiVE.Renderer.Particles
             if (sysInfo.TransparencyType == TransparencyType.Realistic)
             {
                 sorter.CameraLocation = new Vector3i((int)renderer.Camera.Location.X, (int)renderer.Camera.Location.Y, (int)renderer.Camera.Location.Z);
-                Array.Sort(particles, sorter);
+                Array.Sort(particleList, sorter);
             }
 
             for (int i = 0; i < aliveParticles; i++)
             {
-                Particle part = particles[i];
-                short partX = (short)part.X;
-                short partY = (short)part.Y;
-                short partZ = (short)part.Z;
-                locationArray[dataIndex] = new Vector3s(partX, partY, partZ);
+                Particle part = particleList[i];
+                if (part.X < 0.0f || part.Y < 0.0f || part.Z < 0.0f)
+                    continue;
+
+                ushort partX = (ushort)part.X;
+                ushort partY = (ushort)part.Y;
+                ushort partZ = (ushort)part.Z;
+                locationArray[dataIndex] = new Vector3us(partX, partY, partZ);
 
                 colorArray[dataIndex] = isLit ? CalculateParticleColor(partX, partY, partZ, part.Color, worldSize, lightProvider) : part.Color;
                 dataIndex++;
