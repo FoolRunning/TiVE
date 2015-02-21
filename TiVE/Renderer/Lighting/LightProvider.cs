@@ -140,7 +140,8 @@ namespace ProdigalSoftware.TiVE.Renderer.Lighting
             int endX = Math.Min(sizeX, blockX + maxLightBlockDist);
             int endY = Math.Min(sizeY, blockY + maxLightBlockDist);
             int endZ = Math.Min(sizeZ, blockZ + maxLightBlockDist);
-            LightInfo lightInfo = new LightInfo(blockX, blockY, blockZ, light, lightingModel.GetCacheLightCalculation(light));
+            LightingModel lm = lightingModel;
+            LightInfo lightInfo = new LightInfo(blockX, blockY, blockZ, light, lm.GetCacheLightCalculation(light));
             LightInfo[][] lib = lightsInBlocks;
 
             for (int bz = startZ; bz < endZ; bz++)
@@ -152,8 +153,8 @@ namespace ProdigalSoftware.TiVE.Renderer.Lighting
                         int vx = bx * BlockInformation.VoxelSize + HalfBlockVoxelSize;
                         int vy = by * BlockInformation.VoxelSize + HalfBlockVoxelSize;
                         int vz = bz * BlockInformation.VoxelSize + HalfBlockVoxelSize;
-                        float newLightPercentage = lightingModel.GetLightPercentage(lightInfo, vx, vy, vz);
-                        if (newLightPercentage < 0.004f)
+                        float newLightPercentage = lm.GetLightPercentage(lightInfo, vx, vy, vz);
+                        if (newLightPercentage < 0.002f)
                             continue; // doesn't affect the block enough to talk about
 
                         int arrayOffset = GetBlockLightOffset(bx, by, bz);
@@ -175,7 +176,7 @@ namespace ProdigalSoftware.TiVE.Renderer.Lighting
                             for (int i = 0; i < lightsInBlock.Length; i++)
                             {
                                 LightInfo otherInfo = lightsInBlock[i];
-                                if (otherInfo == null || lightingModel.GetLightPercentage(otherInfo, vx, vy, vz) < newLightPercentage)
+                                if (otherInfo == null || lm.GetLightPercentage(otherInfo, vx, vy, vz) < newLightPercentage)
                                 {
                                     leastLightIndex = i;
                                     break;
