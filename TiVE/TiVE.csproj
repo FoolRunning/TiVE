@@ -107,12 +107,17 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Core\Engine.cs" />
     <Compile Include="Core\GameObject.cs" />
     <Compile Include="Core\GameObjectManager.cs" />
     <Compile Include="Core\Handle.cs" />
+    <Compile Include="Core\EngineSystem.cs" />
+    <Compile Include="Debugging\SystemTimingHelper.cs" />
     <Compile Include="IKeyboard.cs" />
     <Compile Include="IMouse.cs" />
     <Compile Include="Keys.cs" />
+    <Compile Include="Renderer\Lighting\LightList.cs" />
+    <Compile Include="Settings\DisplaySetting.cs" />
     <Compile Include="Renderer\Lighting\LightingModel.cs" />
     <Compile Include="Renderer\Lighting\LightProvider.cs" />
     <Compile Include="Renderer\Meshes\LargeMeshBuilder.cs" />

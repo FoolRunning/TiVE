@@ -96,6 +96,7 @@
     <Otherwise />
   </Choose>
   <ItemGroup>
+    <Compile Include="Core\EngineTests.cs" />
     <Compile Include="Core\GameObjectManagerTests.cs" />
     <Compile Include="Core\HandleTests.cs" />
     <Compile Include="Resources\ResourceTableDefinitionManagerTests.cs" />

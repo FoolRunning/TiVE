@@ -57,15 +57,21 @@ namespace ProdigalSoftware.TiVE.Renderer.Particles
             Debug.Assert(Thread.CurrentThread.Name == "Main UI");
 
             GameWorld gameWorld = renderer.GameWorld;
-            systemsToRender.Clear();
+            HashSet<RunningParticleSystem> toRenderList = systemsToRender;
+            HashSet<RunningParticleSystem> runningList = runningSystems;
+
+            int blockXSize = gameWorld.BlockSize.X;
+            int blockYSize = gameWorld.BlockSize.Y;
+            int blockZSize = gameWorld.BlockSize.Z;
+            toRenderList.Clear();
             foreach (GameWorldVoxelChunk chunk in chunksToRender)
             {
                 int blockStartX = chunk.ChunkBlockLocation.X;
                 int blockStartY = chunk.ChunkBlockLocation.Y;
                 int blockStartZ = chunk.ChunkBlockLocation.Z;
-                int blockLimitX = Math.Min(chunk.ChunkBlockLocation.X + GameWorldVoxelChunk.BlockSize, gameWorld.BlockSize.X);
-                int blockLimitY = Math.Min(chunk.ChunkBlockLocation.Y + GameWorldVoxelChunk.BlockSize, gameWorld.BlockSize.Y);
-                int blockLimitZ = Math.Min(chunk.ChunkBlockLocation.Z + GameWorldVoxelChunk.BlockSize, gameWorld.BlockSize.Z);
+                int blockLimitX = Math.Min(blockStartX + GameWorldVoxelChunk.BlockSize, blockXSize);
+                int blockLimitY = Math.Min(blockStartY + GameWorldVoxelChunk.BlockSize, blockYSize);
+                int blockLimitZ = Math.Min(blockStartZ + GameWorldVoxelChunk.BlockSize, blockZSize);
 
                 for (int blockZ = blockStartZ; blockZ < blockLimitZ; blockZ++)
                 {
@@ -77,11 +83,11 @@ namespace ProdigalSoftware.TiVE.Renderer.Particles
                             if (particleInfo != null)
                             {
                                 RunningParticleSystem runningParticleSystem = new RunningParticleSystem(blockX, blockY, blockZ);
-                                systemsToRender.Add(runningParticleSystem);
-                                if (!runningSystems.Contains(runningParticleSystem))
+                                toRenderList.Add(runningParticleSystem);
+                                if (!runningList.Contains(runningParticleSystem))
                                 {
                                     RunningParticleSystem newSystem = new RunningParticleSystem(blockX, blockY, blockZ, particleInfo);
-                                    runningSystems.Add(newSystem);
+                                    runningList.Add(newSystem);
                                     AddParticleSystem(newSystem);
                                 }
                             }
@@ -90,16 +96,16 @@ namespace ProdigalSoftware.TiVE.Renderer.Particles
                 }
             }
 
-            foreach (RunningParticleSystem runningSystem in runningSystems)
+            foreach (RunningParticleSystem runningSystem in runningList)
             {
-                if (!systemsToRender.Contains(runningSystem))
+                if (!toRenderList.Contains(runningSystem))
                     systemsToDelete.Add(runningSystem);
             }
 
             for (int i = 0; i < systemsToDelete.Count; i++)
             {
                 RunningParticleSystem runningSystem = systemsToDelete[i];
-                runningSystems.Remove(runningSystem);
+                runningList.Remove(runningSystem);
                 RemoveParticleSystem(runningSystem);
             }
             systemsToDelete.Clear();

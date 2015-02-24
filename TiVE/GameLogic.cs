@@ -4,6 +4,7 @@ using System.Drawing;
 using System.Threading;
 using Microsoft.CSharp.RuntimeBinder;
 using NLua.Exceptions;
+using ProdigalSoftware.TiVE.Debugging;
 using ProdigalSoftware.TiVE.Renderer;
 using ProdigalSoftware.TiVE.Renderer.Lighting;
 using ProdigalSoftware.TiVE.Renderer.World;
@@ -19,9 +20,9 @@ namespace ProdigalSoftware.TiVE
     {
         private const int UpdatesPerSecond = 60;
 
-        private readonly TimeStatHelper renderTime = new TimeStatHelper(2, true);
-        private readonly TimeStatHelper updateTime = new TimeStatHelper(2, true);
-        private readonly TimeStatHelper frameTime = new TimeStatHelper(2, true);
+        private readonly SystemTimingHelper renderTime = new SystemTimingHelper(2, true);
+        private readonly SystemTimingHelper updateTime = new SystemTimingHelper(2, true);
+        private readonly SystemTimingHelper frameTime = new SystemTimingHelper(2, true);
 
         private readonly CountStatHelper drawCount = new CountStatHelper(4, false);
         private readonly CountStatHelper voxelCount = new CountStatHelper(8, false);
@@ -115,12 +116,9 @@ namespace ProdigalSoftware.TiVE
             FullScreenMode fullScreenMode = (FullScreenMode)(int)TiVEController.UserSettings.Get(UserSettings.FullScreenModeKey);
             bool useVsync = TiVEController.UserSettings.Get(UserSettings.EnableVSyncKey);
             int antiAliasAmount = TiVEController.UserSettings.Get(UserSettings.AntiAliasAmountKey);
+            ResolutionSetting displaySetting = (ResolutionSetting)TiVEController.UserSettings.Get(UserSettings.DisplayResolutionKey);
 
-            // TODO: Add a way for these to be chosen by the user
-            const int width = 1280;
-            const int height = 720;
-
-            INativeDisplay nativeDisplay = TiVEController.Backend.CreateNatveDisplay(width, height, fullScreenMode, antiAliasAmount, useVsync);
+            INativeDisplay nativeDisplay = TiVEController.Backend.CreateNatveDisplay(displaySetting, fullScreenMode, antiAliasAmount, useVsync);
             nativeDisplay.Icon = Properties.Resources.P_button;
 
             nativeDisplay.DisplayResized += NativeDisplayResized;
@@ -190,9 +188,9 @@ namespace ProdigalSoftware.TiVE
         private void RenderFrame()
         {
             frameTime.PushTime();
-            frameTime.MarkStartTime();
+            frameTime.StartTime();
 
-            renderTime.MarkStartTime();
+            renderTime.StartTime();
 
             TiVEController.Backend.BeforeRenderFrame();
 
@@ -213,7 +211,7 @@ namespace ProdigalSoftware.TiVE
             if (keyboard.IsKeyPressed(Keys.Escape))
                 continueMainLoop = false;
 
-            updateTime.MarkStartTime();
+            updateTime.StartTime();
             try
             {
                 gameScript.Update(renderer.Camera);
@@ -233,68 +231,6 @@ namespace ProdigalSoftware.TiVE
 
             updateTime.PushTime();
         }
-
-        #region TimeStatHelper class
-        private sealed class TimeStatHelper
-        {
-            private readonly string formatString;
-            private long startTicks;
-            private float minTime = float.MaxValue;
-            private float maxTime;
-            private float totalTime;
-            private int dataCount;
-
-            private readonly object syncObj = new object();
-
-            public TimeStatHelper(int digitsAfterDecimal, bool showMinMax)
-            {
-                if (showMinMax)
-                    formatString = "{0:F" + digitsAfterDecimal + "}({1:F" + digitsAfterDecimal + "}-{2:F" + digitsAfterDecimal + "})";
-                else
-                    formatString = "{0:F" + digitsAfterDecimal + "}";
-            }
-
-            public string DisplayedValue { get; private set; }
-
-            /// <summary>
-            /// Updates the display time with the average of the data points
-            /// </summary>
-            public void UpdateDisplayedTime()
-            {
-                using (new PerformanceLock(syncObj))
-                {
-                    DisplayedValue = string.Format(formatString, totalTime / Math.Max(dataCount, 1), minTime, maxTime);
-                    totalTime = 0;
-                    dataCount = 0;
-                    minTime = float.MaxValue;
-                    maxTime = 0;
-                }
-            }
-
-            public void MarkStartTime()
-            {
-                using (new PerformanceLock(syncObj))
-                    startTicks = Stopwatch.GetTimestamp();
-            }
-
-            public void PushTime()
-            {
-                long endTime = Stopwatch.GetTimestamp();
-                float newTime = (endTime - startTicks) * 1000.0f / Stopwatch.Frequency;
-                using (new PerformanceLock(syncObj))
-                {
-                    totalTime += newTime;
-                    dataCount++;
-
-                    if (newTime < minTime)
-                        minTime = newTime;
-
-                    if (newTime > maxTime)
-                        maxTime = newTime;
-                }
-            }
-        }
-        #endregion
 
         #region CountStatHelper class
         private sealed class CountStatHelper

@@ -33,7 +33,6 @@ namespace ProdigalSoftware.TiVE.Renderer.Lighting
     {
         #region Constants
         private const int NumLightCalculationThreads = 4;
-        private const int MaxLightsPerBlock = 5;
         private const int HalfBlockVoxelSize = BlockInformation.VoxelSize / 2;
         #endregion
 
@@ -129,6 +128,7 @@ namespace ProdigalSoftware.TiVE.Renderer.Lighting
         
         public void FillWorldWithLight(ILight light, int blockX, int blockY, int blockZ)
         {
+            int maxLightsPerBlock = TiVEController.UserSettings.Get(UserSettings.LightsPerBlockKey);
             int sizeX = blockSize.X;
             int sizeY = blockSize.Y;
             int sizeZ = blockSize.Z;
@@ -163,7 +163,7 @@ namespace ProdigalSoftware.TiVE.Renderer.Lighting
                         lock (lib)
                         {
                             if (lib[arrayOffset] == null)
-                                lib[arrayOffset] = lightsInBlock = new LightInfo[MaxLightsPerBlock];
+                                lib[arrayOffset] = lightsInBlock = new LightInfo[maxLightsPerBlock];
                             else
                                 lightsInBlock = lib[arrayOffset];
                         }

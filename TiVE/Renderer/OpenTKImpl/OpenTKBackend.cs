@@ -26,9 +26,19 @@ namespace ProdigalSoftware.TiVE.Renderer.OpenTKImpl
             get { return null; }
         }
 
-        public INativeDisplay CreateNatveDisplay(int width, int height, FullScreenMode fullscreenMode, int antiAliasAmount, bool vsync)
+        public IEnumerable<DisplaySetting> AvailableDisplaySettings
         {
-            OpenTKDisplay nativeDisplay = new OpenTKDisplay(width, height, fullscreenMode, vsync, antiAliasAmount);
+            get 
+            {
+                return DisplayDevice.Default.AvailableResolutions
+                    .Where(r => (r.BitsPerPixel == 24 || r.BitsPerPixel == 32) && r.RefreshRate >= 60)
+                    .Select(r => new DisplaySetting(r.Width, r.Height, (int)r.RefreshRate));
+            }
+        }
+
+        public INativeDisplay CreateNatveDisplay(DisplaySetting displaySetting, FullScreenMode fullscreenMode, int antiAliasAmount, bool vsync)
+        {
+            OpenTKDisplay nativeDisplay = new OpenTKDisplay(displaySetting, fullscreenMode, vsync, antiAliasAmount);
             nativeDisplay.Visible = true;
             return nativeDisplay;
         }
@@ -167,8 +177,8 @@ namespace ProdigalSoftware.TiVE.Renderer.OpenTKImpl
         #region OpenGLDisplay class
         private sealed class OpenTKDisplay : GameWindow, INativeDisplay
         {
-            public OpenTKDisplay(int width, int height, FullScreenMode fullScreenMode, bool vsync, int antiAliasAmount)
-                : base(width, height, new GraphicsMode(32, 16, 0, antiAliasAmount), "TiVE", 
+            public OpenTKDisplay(DisplaySetting displaySetting, FullScreenMode fullScreenMode, bool vsync, int antiAliasAmount)
+                : base(displaySetting.Width, displaySetting.Height, new GraphicsMode(32, 16, 0, antiAliasAmount), "TiVE", 
                     fullScreenMode == FullScreenMode.FullScreen ? GameWindowFlags.Fullscreen : GameWindowFlags.Default, 
                     DisplayDevice.Default, 3, 1, GraphicsContextFlags.ForwardCompatible)
             {
@@ -181,8 +191,8 @@ namespace ProdigalSoftware.TiVE.Renderer.OpenTKImpl
                 }
                 else if (fullScreenMode == FullScreenMode.FullScreen)
                 {
-                    // TODO: Abstract the resolution option and let the user choose the resolution
-                    DisplayResolution resolution = DisplayDevice.Default.SelectResolution(width, height, 32, 0.0f);
+                    DisplayResolution resolution = DisplayDevice.Default.SelectResolution(
+                        displaySetting.Width, displaySetting.Height, 32, displaySetting.RefreshRate);
                     DisplayDevice.Default.ChangeResolution(resolution);
 
                     // This seems to be needed when multiple monitors are present and the chosen resolution would push a 
