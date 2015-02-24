@@ -59,9 +59,9 @@ namespace TiVETests.Core
             GameObject obj2 = manager.CreateNewGameObject();
             GameObject obj3 = manager.CreateNewGameObject();
 
-            Assert.AreEqual(obj2, manager.Get(new Handle(0, 1, 1)));
-            Assert.AreEqual(obj1, manager.Get(new Handle(0, 1, 0)));
-            Assert.AreEqual(obj3, manager.Get(new Handle(0, 1, 2)));
+            Assert.That(manager.Get(new Handle(0, 1, 1)), Is.EqualTo(obj2));
+            Assert.That(manager.Get(new Handle(0, 1, 0)), Is.EqualTo(obj1));
+            Assert.That(manager.Get(new Handle(0, 1, 2)), Is.EqualTo(obj3));
         }
 
         [Test]
@@ -74,9 +74,9 @@ namespace TiVETests.Core
 
             manager.Delete(obj2);
 
-            Assert.AreEqual(obj1, manager.Get(new Handle(0, 1, 0)));
-            Assert.IsNull(manager.Get(new Handle(0, 1, 1)));
-            Assert.AreEqual(obj3, manager.Get(new Handle(0, 1, 2)));
+            Assert.That(manager.Get(new Handle(0, 1, 0)), Is.EqualTo(obj1));
+            Assert.That(manager.Get(new Handle(0, 1, 1)), Is.Null);
+            Assert.That(manager.Get(new Handle(0, 1, 2)), Is.EqualTo(obj3));
         }
 
         [Test]
@@ -90,10 +90,10 @@ namespace TiVETests.Core
             manager.Delete(obj2);
             GameObject obj4 = manager.CreateNewGameObject();
 
-            Assert.AreEqual(obj1, manager.Get(new Handle(0, 1, 0)));
-            Assert.IsNull(manager.Get(new Handle(0, 1, 1)));
-            Assert.AreEqual(obj3, manager.Get(new Handle(0, 1, 2)));
-            Assert.AreEqual(obj4, manager.Get(new Handle(0, 2, 1)));
+            Assert.That(manager.Get(new Handle(0, 1, 0)), Is.EqualTo(obj1));
+            Assert.That(manager.Get(new Handle(0, 1, 1)), Is.Null);
+            Assert.That(manager.Get(new Handle(0, 1, 2)), Is.EqualTo(obj3));
+            Assert.That(manager.Get(new Handle(0, 2, 1)), Is.EqualTo(obj4));
         }
         #endregion
 
@@ -109,8 +109,8 @@ namespace TiVETests.Core
             manager.Delete(obj1);
             manager.Delete(new Handle(0, 1, 3));
 
-            Assert.IsNull(manager.Get(new Handle(0, 1, 0)));
-            Assert.IsNull(manager.Get(new Handle(0, 1, 3)));
+            Assert.That(manager.Get(new Handle(0, 1, 0)), Is.Null);
+            Assert.That(manager.Get(new Handle(0, 1, 3)), Is.Null);
         }
 
         [Test]
@@ -125,9 +125,9 @@ namespace TiVETests.Core
             manager.Delete(obj1);
             manager.Delete(obj1);
 
-            Assert.IsNull(manager.Get(new Handle(0, 1, 0)));
-            Assert.AreEqual(obj2, manager.Get(new Handle(0, 1, 1)));
-            Assert.AreEqual(obj3, manager.Get(new Handle(0, 1, 2)));
+            Assert.That(manager.Get(new Handle(0, 1, 0)), Is.Null);
+            Assert.That(manager.Get(new Handle(0, 1, 1)), Is.EqualTo(obj2));
+            Assert.That(manager.Get(new Handle(0, 1, 2)), Is.EqualTo(obj3));
         }
 
         [Test]
@@ -142,16 +142,16 @@ namespace TiVETests.Core
             manager.Delete(new Handle(1, 1, 0));
             manager.Delete(new Handle(0, 1, 4));
 
-            Assert.AreEqual(obj1, manager.Get(new Handle(0, 1, 0)));
-            Assert.AreEqual(obj2, manager.Get(new Handle(0, 1, 1)));
-            Assert.AreEqual(obj3, manager.Get(new Handle(0, 1, 2)));
+            Assert.That(manager.Get(new Handle(0, 1, 0)), Is.EqualTo(obj1));
+            Assert.That(manager.Get(new Handle(0, 1, 1)), Is.EqualTo(obj2));
+            Assert.That(manager.Get(new Handle(0, 1, 2)), Is.EqualTo(obj3));
         }
         #endregion
 
         #region Private helper methods
         private static void VerifyGameObject(GameObject obj, Handle expectedHandle)
         {
-            Assert.AreEqual((object)expectedHandle, obj.Handle);
+            Assert.That(obj.Handle, Is.EqualTo(expectedHandle));
         }
         #endregion
     }

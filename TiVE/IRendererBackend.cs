@@ -1,4 +1,5 @@
-﻿using System.Drawing;
+﻿using System.Collections.Generic;
+using System.Drawing;
 using JetBrains.Annotations;
 using ProdigalSoftware.TiVE.Renderer;
 
@@ -51,7 +52,12 @@ namespace ProdigalSoftware.TiVE
         /// </summary>
         IMouse Mouse { get; }
 
-        INativeDisplay CreateNatveDisplay(int width, int height, FullScreenMode fullScreenMode, int antiAliasAmount, bool vsync);
+        /// <summary>
+        /// Gets a list of available display modes for the main display
+        /// </summary>
+        IEnumerable<DisplaySetting> AvailableDisplaySettings { get; }
+        
+        INativeDisplay CreateNatveDisplay(DisplaySetting displaySetting, FullScreenMode fullScreenMode, int antiAliasAmount, bool vsync);
 
         /// <summary>
         /// Called to perform one-time initialization to setup the render state

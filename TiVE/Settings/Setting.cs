@@ -1,4 +1,5 @@
 ﻿using System;
+using ProdigalSoftware.TiVE.Renderer;
 
 namespace ProdigalSoftware.TiVE.Settings
 {
@@ -57,6 +58,11 @@ namespace ProdigalSoftware.TiVE.Settings
         public static implicit operator string(Setting setting)
         {
             return setting.ToString(null);
+        }
+
+        public static implicit operator DisplaySetting(Setting setting)
+        {
+            return (ResolutionSetting)setting;
         }
         #endregion
 
@@ -300,18 +306,19 @@ namespace ProdigalSoftware.TiVE.Settings
     }
     #endregion
 
+    #region ResolutionSetting class
     internal sealed class ResolutionSetting : Setting
     {
-        private readonly int value;
-        
-        public ResolutionSetting(int value)
+        private readonly DisplaySetting value;
+
+        public ResolutionSetting(DisplaySetting value)
         {
             this.value = value;
         }
 
         public override string SaveAsString()
         {
-            return value.ToString();
+            return string.Format("{0}x{1}@{2}", value.Width, value.Height, value.RefreshRate);
         }
 
         protected override bool AreEqual(Setting setting)
@@ -323,5 +330,11 @@ namespace ProdigalSoftware.TiVE.Settings
         {
             return TypeCode.Object;
         }
+
+        public static implicit operator DisplaySetting(ResolutionSetting setting)
+        {
+            return setting.value;
+        }
     }
+    #endregion
 }

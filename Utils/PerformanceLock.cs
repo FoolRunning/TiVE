@@ -4,7 +4,7 @@ using System.Threading;
 namespace ProdigalSoftware.Utils
 {
     /// <summary>
-    /// Lock replacement for speed-critical code. If a lock takes longer then 1ms to obtain, then a message is written to the debug output.
+    /// Lock replacement for speed-critical code. If a lock takes longer then 1ms to obtain, then a message is written to the console output.
     /// </summary>
     public struct PerformanceLock : IDisposable
     {

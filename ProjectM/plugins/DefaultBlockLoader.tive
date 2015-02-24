@@ -11,19 +11,30 @@ namespace ProdigalSoftware.ProjectM.Plugins
     {
         private static readonly Random random = new Random();
 
+        private const int Front = 1;
+        private const int Back = 2;
+        private const int Left = 4;
+        private const int Right = 8;
+        private const int Top = 16;
+        private const int Bottom = 32;
+
         public IEnumerable<BlockInformation> CreateBlocks(string blockListName)
         {
             byte blockCenter = BlockInformation.VoxelSize / 2;
             Vector3b blockCenterVector = new Vector3b(blockCenter, blockCenter, blockCenter);
             uint[, ,] particleVoxels = new uint[1, 1, 1];
             particleVoxels[0, 0, 0] = 0xFFFFFFFF;
+            for (int i = 0; i < 64; i++)
+            {
+                yield return CreateBlockInfo("dirt" + i, new Color4f(140, 30, 15, 255), 1.0f, i);
+                yield return CreateBlockInfo("ston" + i, new Color4f(120, 120, 120, 255), 1.0f, i);
+                yield return CreateBlockInfo("sand" + i, new Color4f(120, 100, 20, 255), 0.1f, i);
+            }
+
             for (int i = 0; i < 5; i++)
             {
-                yield return CreateBlockInfo("dirt" + i, false, (float)Math.Ceiling(BlockInformation.VoxelSize / 2.0f), new Color4f(129, 53, 2, 255), 1.0f);
-                yield return CreateBlockInfo("back" + i, false, 0, new Color4f(235, 235, 235, 255), 1.0f, 
+                yield return CreateBlockInfo("back" + i, false, 0, new Color4f(235, 235, 235, 255), 1.0f,
                     new ParticleSystemInformation(particleVoxels, new SnowUpdater(), new Vector3b(0, 0, 0), 100, 1, TransparencyType.None, true));
-                yield return CreateBlockInfo("stone" + i, false, 0, new Color4f(120, 120, 120, 255), 1.0f);
-                yield return CreateBlockInfo("sand" + i, false, 0, new Color4f(120, 100, 20, 255), 0.2f);
             }
 
             const bool forFantasyLighting = true;
@@ -70,6 +81,72 @@ namespace ProdigalSoftware.ProjectM.Plugins
             yield return new BlockAnimationDefinition(100, "sand0", "sand1", "sand2", "sand3", "sand0");
         }
 
+        private static BlockInformation CreateBlockInfo(string name, Color4f color, float voxelDensity, int sides)
+        {
+            const float mid = BlockInformation.VoxelSize / 2.0f - 0.5f;
+            float sphereSize = BlockInformation.VoxelSize / 2.0f;
+
+            BlockInformation block = new BlockInformation(name);
+            for (int x = 0; x < BlockInformation.VoxelSize; x++)
+            {
+                for (int y = 0; y < BlockInformation.VoxelSize; y++)
+                {
+                    for (int z = 0; z < BlockInformation.VoxelSize; z++)
+                    {
+                        if (((sides & Top) != 0 && (sides & Front) != 0 && y - (int)mid > BlockInformation.VoxelSize - z) ||   // rounded Top-Front
+                            ((sides & Front) != 0 && (sides & Bottom) != 0 && y + (int)mid < z) ||                             // rounded Front-Bottom
+                            ((sides & Bottom) != 0 && (sides & Back) != 0 && y + (int)mid < BlockInformation.VoxelSize - z) || // rounded Bottom-Back
+                            ((sides & Back) != 0 && (sides & Top) != 0 && y - (int)mid > z))                                   // rounded Back-Top
+                        {
+                            // Cylinder around the x-axis
+                            float dist = (y - mid) * (y - mid) + (z - mid) * (z - mid);
+                            if (dist > sphereSize * sphereSize)
+                                continue;
+                        }
+
+                        if (((sides & Right) != 0 && (sides & Front) != 0 && x - (int)mid > BlockInformation.VoxelSize - z) || // rounded Right-Front
+                            ((sides & Front) != 0 && (sides & Left) != 0 && x + (int)mid < z) ||                               // rounded Front-Left
+                            ((sides & Left) != 0 && (sides & Back) != 0 && x + (int)mid < BlockInformation.VoxelSize - z) ||   // rounded Left-Back
+                            ((sides & Back) != 0 && (sides & Right) != 0 && x - (int)mid > z))                                 // rounded Back-Right
+                        {
+                            // Cylinder around the y-axis
+                            float dist = (x - mid) * (x - mid) + (z - mid) * (z - mid);
+                            if (dist > sphereSize * sphereSize)
+                                continue;
+                        }
+
+                        if (((sides & Right) != 0 && (sides & Top) != 0 && x - (int)mid > BlockInformation.VoxelSize - y) ||   // rounded Right-Top
+                            ((sides & Top) != 0 && (sides & Left) != 0 && x + (int)mid < y) ||                                 // rounded Top-Left
+                            ((sides & Left) != 0 && (sides & Bottom) != 0 && x + (int)mid < BlockInformation.VoxelSize - y) || // rounded Left-Bottom
+                            ((sides & Bottom) != 0 && (sides & Right) != 0 && x - (int)mid > y))                               // rounded Bottom-Right
+                        {
+                            // Cylinder around the z-axis
+                            float dist = (x - mid) * (x - mid) + (y - mid) * (y - mid);
+                            if (dist > sphereSize * sphereSize)
+                                continue;
+                        }
+
+                        if ((((sides & Top) != 0 && (sides & Bottom) != 0 && (sides & Left) != 0 && x < mid) || // rounded Left
+                            ((sides & Top) != 0 && (sides & Bottom) != 0 && (sides & Right) != 0 && x > mid) || // rounded Right
+                            ((sides & Top) != 0 && (sides & Right) != 0 && (sides & Left) != 0 && y > mid) ||   // rounded Top
+                            ((sides & Bottom) != 0 && (sides & Right) != 0 && (sides & Left) != 0 && y < mid))  // rounded Bottom
+                            && (((sides & Front) != 0 && z > mid) || ((sides & Back) != 0 && z < mid)))         // on the front or back
+                        {
+                            // rounded front or back
+                            float dist = (x - mid) * (x - mid) + (y - mid) * (y - mid) + (z - mid) * (z - mid);
+                            if (dist > sphereSize * sphereSize)
+                                continue;
+                        }
+
+                        if (random.NextDouble() < voxelDensity)
+                            block[x, y, z] = CreateColorFromColor(color).ToArgb();
+                    }
+                }
+            }
+
+            return block;
+        }
+
         private static BlockInformation CreateBlockInfo(string name, bool frontOnly, float sphereSize, Color4f color, float voxelDensity,
             ParticleSystemInformation particleSystem = null, ILight light = null)
         {
@@ -100,7 +177,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
 
         private static Color4b CreateColorFromColor(Color4f seed)
         {
-            float scale = (float)(random.NextDouble() * 0.16 + 0.92);
+            float scale = (float)(random.NextDouble() * 0.1 + 0.95);
             return new Color4b(Math.Min(seed.R * scale, 1.0f), Math.Min(seed.G * scale, 1.0f), 
                 Math.Min(seed.B * scale, 1.0f), seed.A);
         }
