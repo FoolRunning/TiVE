@@ -146,7 +146,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
                         if (noiseVal > -0.05 && noiseVal < -0.04)
                             gameWorld[x, y, depth] = fire;
                     }
-                    if (random1.NextDouble() < 0.10)
+                    if (random1.NextDouble() < 0.02)
                         gameWorld[x, y, random1.Next(gameWorld.BlockSize.Z - 7) + 1] = lights.NextBlock();
                 }
             }

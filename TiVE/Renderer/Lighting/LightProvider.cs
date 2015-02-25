@@ -32,7 +32,6 @@ namespace ProdigalSoftware.TiVE.Renderer.Lighting
     internal abstract class LightProvider
     {
         #region Constants
-        private const int NumLightCalculationThreads = 4;
         private const int HalfBlockVoxelSize = BlockInformation.VoxelSize / 2;
         #endregion
 
@@ -50,10 +49,11 @@ namespace ProdigalSoftware.TiVE.Renderer.Lighting
         {
             this.gameWorld = gameWorld;
             blockSize = new Vector3i(gameWorld.BlockSize.X, gameWorld.BlockSize.Y, gameWorld.BlockSize.Z);
-            lightsInBlocks = new LightInfo[gameWorld.BlockSize.X * gameWorld.BlockSize.Y * gameWorld.BlockSize.Z][];
 
             AmbientLight = Color3f.Empty;
             lightingModel = LightingModel.Get(gameWorld.LightingModelType);
+
+            lightsInBlocks = new LightInfo[gameWorld.BlockSize.X * gameWorld.BlockSize.Y * gameWorld.BlockSize.Z][];
         }
 
         /// <summary>
@@ -97,24 +97,19 @@ namespace ProdigalSoftware.TiVE.Renderer.Lighting
 
             if ((options & CalcOptions.ClearLights) != 0)
             {
-                for (int z = 0; z < blockSize.Z; z++)
-                {
-                    for (int x = 0; x < blockSize.X; x++)
-                    {
-                        for (int y = 0; y < blockSize.Y; y++)
-                            lightsInBlocks[GetBlockLightOffset(x, y, z)] = null;
-                    }
-                }
+                for (int i = 0; i < lightsInBlocks.Length; i++)
+                    lightsInBlocks[i] = null;
             }
 
             Stopwatch sw = Stopwatch.StartNew();
             if ((options & CalcOptions.CalculateLights) != 0)
             {
-                Thread[] threads = new Thread[NumLightCalculationThreads];
-                for (int i = 0; i < NumLightCalculationThreads; i++)
+                int numThreads = Environment.ProcessorCount > 2 ? Environment.ProcessorCount - 1 : 1;
+                Thread[] threads = new Thread[numThreads];
+                for (int i = 0; i < numThreads; i++)
                 {
                     threads[i] = StartLightCalculationThread("Light " + (i + 1),
-                        i * blockSize.X / NumLightCalculationThreads, (i + 1) * blockSize.X / NumLightCalculationThreads);
+                        i * blockSize.X / numThreads, (i + 1) * blockSize.X / numThreads);
                 }
 
                 foreach (Thread thread in threads)
@@ -159,15 +154,17 @@ namespace ProdigalSoftware.TiVE.Renderer.Lighting
 
                         int arrayOffset = GetBlockLightOffset(bx, by, bz);
 
-                        LightInfo[] lightsInBlock;
-                        lock (lib)
+                        LightInfo[] lightsInBlock = lib[arrayOffset];
+                        if (lightsInBlock == null)
                         {
-                            if (lib[arrayOffset] == null)
-                                lib[arrayOffset] = lightsInBlock = new LightInfo[maxLightsPerBlock];
-                            else
+                            lock (lib)
+                            {
                                 lightsInBlock = lib[arrayOffset];
+                                if (lightsInBlock == null) // Check for race condition where another thread creates the array while we are waiting to lock
+                                    lib[arrayOffset] = lightsInBlock = new LightInfo[maxLightsPerBlock];
+                            }
                         }
-
+                        
                         lock (lightsInBlock)
                         {
                             // Calculate lighting information
@@ -239,8 +236,9 @@ namespace ProdigalSoftware.TiVE.Renderer.Lighting
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private int GetBlockLightOffset(int blockX, int blockY, int blockZ)
         {
-            MiscUtils.CheckConstraints(blockX, blockY, blockZ, blockSize);
-            return (blockX * blockSize.Z + blockZ) * blockSize.Y + blockY;
+            Vector3i size = blockSize;
+            MiscUtils.CheckConstraints(blockX, blockY, blockZ, size);
+            return (blockX * size.Z + blockZ) * size.Y + blockY;
         }
         #endregion
 
