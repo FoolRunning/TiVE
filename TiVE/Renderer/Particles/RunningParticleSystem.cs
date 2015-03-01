@@ -1,10 +1,11 @@
-﻿using ProdigalSoftware.TiVEPluginFramework;
+﻿using System;
+using ProdigalSoftware.TiVEPluginFramework;
 using ProdigalSoftware.TiVEPluginFramework.Particles;
 using ProdigalSoftware.Utils;
 
 namespace ProdigalSoftware.TiVE.Renderer.Particles
 {
-    internal struct RunningParticleSystem
+    internal struct RunningParticleSystem : IEquatable<RunningParticleSystem>
     {
         public readonly ParticleSystemInformation SystemInfo;
 
@@ -37,6 +38,11 @@ namespace ProdigalSoftware.TiVE.Renderer.Particles
                     blockY * BlockInformation.VoxelSize + SystemInfo.Location.Y, 
                     blockZ * BlockInformation.VoxelSize + SystemInfo.Location.Z);
             }
+        }
+
+        public bool Equals(RunningParticleSystem other)
+        {
+            return other.blockX == blockX && other.blockY == blockY && other.blockZ == blockZ;
         }
 
         public override bool Equals(object obj)

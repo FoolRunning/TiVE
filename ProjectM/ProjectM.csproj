@@ -102,9 +102,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Plugins\DefaultBlockLoader.tive">
+    <Content Include="Plugins\DefaultBlockLoader.tive">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
+    </Content>
     <None Include="Plugins\TableDefinitionProvider.tive">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

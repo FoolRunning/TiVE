@@ -24,6 +24,7 @@ namespace ProdigalSoftware.ProjectM
             //TestStructClassAccess();
             //TestArrayMethods();
             //TestSingleItemVersusMultipleArray();
+            //TestArrayCreationSpeed();
 
             TiVEController.RunStarter();
         }
@@ -338,6 +339,64 @@ namespace ProdigalSoftware.ProjectM
             {
                 Bla = bla;
             }
+        }
+        #endregion
+
+        #region Test array creation speed
+        private static void TestArrayCreationSpeed()
+        {
+            Console.WriteLine();
+            TestValueType();
+            TestReferenceType();
+        }
+
+        private static void TestValueType()
+        {
+            double total = 0.0;
+            Stopwatch timer = new Stopwatch();
+            for (int passes = 0; passes < 10; passes++)
+            {
+                timer.Restart();
+                int[][] values = new int[TestSize][];
+                for (int i = 0; i < TestSize; i++)
+                    values[i] = new int[20];
+
+                timer.Stop();
+                total += timer.ElapsedTicks * 1000.0 / Stopwatch.Frequency;
+                values = null;
+                GC.Collect();
+                //Console.WriteLine("values: {0}, {1}, {2}, {3}, {4}, {5}, {6}", 
+                //    values[0].Item1, values[0].Item2, values[0].Item3, values[0].Item4, values[0].Item5, values[0].Item6, values[0].Item7);
+            }
+
+            Console.WriteLine(Format, "ValueType", total / 10);
+        }
+
+        private static void TestReferenceType()
+        {
+            double total = 0.0;
+            Stopwatch timer = new Stopwatch();
+            for (int passes = 0; passes < 10; passes++)
+            {
+                timer.Restart();
+                SmallClass[][] values = new SmallClass[TestSize][];
+                for (int i = 0; i < TestSize; i++)
+                    values[i] = new SmallClass[20];
+
+                timer.Stop();
+                total += timer.ElapsedTicks * 1000.0 / Stopwatch.Frequency;
+                values = null;
+                GC.Collect();
+                //Console.WriteLine("values: {0}, {1}, {2}, {3}, {4}, {5}, {6}", 
+                //    values[0].Item1, values[0].Item2, values[0].Item3, values[0].Item4, values[0].Item5, values[0].Item6, values[0].Item7);
+            }
+
+            Console.WriteLine(Format, "ReferenceType", total / 10);
+        }
+
+        private sealed class SmallClass
+        {
+            public int value;
         }
         #endregion
     }

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Threading;
 using ProdigalSoftware.TiVE.Renderer.Meshes;
 using ProdigalSoftware.TiVE.Settings;
@@ -181,7 +180,7 @@ namespace ProdigalSoftware.TiVE.Renderer.World
 
                 if (!hasItemToLoad)
                 {
-                    Thread.Sleep(5);
+                    Thread.Sleep(1);
                     continue;
                 }
 
@@ -194,10 +193,7 @@ namespace ProdigalSoftware.TiVE.Renderer.World
                 }
 
                 if (meshBuilder == null)
-                {
-                    Thread.Sleep(1);
                     continue; // No free meshbuilders to use
-                }
 
                 GameWorldVoxelChunk chunk;
                 int foundChunkDetailLevel;

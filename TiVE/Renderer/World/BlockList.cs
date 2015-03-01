@@ -5,7 +5,6 @@ using System.Linq;
 using System.Text;
 using Ionic.Zip;
 using JetBrains.Annotations;
-using OpenTK;
 using ProdigalSoftware.TiVE.Renderer.Voxels;
 using ProdigalSoftware.TiVEPluginFramework;
 using ProdigalSoftware.TiVEPluginFramework.Lighting;
@@ -13,7 +12,7 @@ using ProdigalSoftware.Utils;
 
 namespace ProdigalSoftware.TiVE.Renderer.World
 {
-    internal sealed class BlockList : IBlockList
+    internal sealed class BlockList : IBlockList, IBlockListInternal
     {
         public const string FileExtension = "TiVEb";
 
@@ -21,25 +20,43 @@ namespace ProdigalSoftware.TiVE.Renderer.World
         private const string BlockFileInternalInfoFile = "blocks.info";
         private const short FileVersion = 3;
 
-        private readonly Dictionary<string, BlockInformation> blockToIndexMap = new Dictionary<string, BlockInformation>();
+        private readonly List<BlockInformation> blocks = new List<BlockInformation>(500);
+        private readonly Dictionary<string, ushort> blockToIndexMap = new Dictionary<string, ushort>();
+
         private readonly List<AnimationInfo> animationsList = new List<AnimationInfo>();
-        private readonly Dictionary<BlockInformation, BlockInformation> blockAnimationMap = new Dictionary<BlockInformation, BlockInformation>();
-        private readonly Dictionary<BlockInformation, VoxelGroup> blockMeshes = new Dictionary<BlockInformation, VoxelGroup>();
+        private readonly Dictionary<ushort, ushort> blockAnimationMap = new Dictionary<ushort, ushort>();
+        private readonly Dictionary<ushort, VoxelGroup> blockMeshes = new Dictionary<ushort, VoxelGroup>();
 
         public void Dispose()
         {
             foreach (VoxelGroup voxelGroup in blockMeshes.Values)
                 voxelGroup.Dispose();
+
+            blocks.Clear();
+            blockToIndexMap.Clear();
+            animationsList.Clear();
+            blockAnimationMap.Clear();
+            blockMeshes.Clear();
         }
 
-        public IEnumerable<BlockInformation> AllBlocks
+        public IList<BlockInformation> AllBlocks
         {
-            get { return blockToIndexMap.Values; }
+            get { return blocks; }
         }
 
         public int BlockCount
         {
-            get { return blockToIndexMap.Count; }
+            get { return blocks.Count; }
+        }
+
+        public ushort this[string blockName]
+        {
+            get { return blockToIndexMap[blockName]; }
+        }
+
+        public BlockInformation this[int blockIndex]
+        {
+            get { return blocks[blockIndex]; }
         }
 
         [CanBeNull]
@@ -124,7 +141,7 @@ namespace ProdigalSoftware.TiVE.Renderer.World
             }
 
             // Add entries for each block
-            foreach (BlockInformation block in blockToIndexMap.Values)
+            foreach (BlockInformation block in blocks.Where(b => b != BlockInformation.Empty))
             {
                 using (MemoryStream memStream = new MemoryStream())
                 {
@@ -157,15 +174,20 @@ namespace ProdigalSoftware.TiVE.Renderer.World
             blockFile.Save(filePath);
         }
 
-        public void AddBlocks(IEnumerable<BlockInformation> blocks)
+        public void AddBlocks(IEnumerable<BlockInformation> blocksToAdd)
         {
-            foreach (BlockInformation block in blocks)
+            foreach (BlockInformation block in blocksToAdd)
                 AddBlock(block);
         }
 
         public void AddBlock(BlockInformation block)
         {
-            blockToIndexMap[block.BlockName] = block;
+            if (blocks.Count == 0)
+                blocks.Add(BlockInformation.Empty);
+
+            ushort index = (ushort)blocks.Count;
+            blocks.Add(block);
+            blockToIndexMap[block.BlockName] = index;
         }
 
         public void RemoveBlock(string blockName)
@@ -181,7 +203,7 @@ namespace ProdigalSoftware.TiVE.Renderer.World
             foreach (BlockAnimationDefinition animation in animations)
             {
                 AnimationInfo animationInfo = new AnimationInfo(animation.AnimationFrameTime,
-                    animation.AnimationSequence.Select(blockName => !string.IsNullOrEmpty(blockName) ? blockToIndexMap[blockName] : BlockInformation.Empty));
+                    animation.AnimationSequence.Select(blockName => !string.IsNullOrEmpty(blockName) ? blockToIndexMap[blockName] : (ushort)0));
 
                 if (animationsList.Exists(ani => animationInfo.AnimationSequence.Any(bl => ani.AnimationSequence.Contains(bl))))
                     throw new InvalidOperationException("Block is already used as an animation and can not belong to two animations");
@@ -206,55 +228,52 @@ namespace ProdigalSoftware.TiVE.Renderer.World
             }
         }
 
-        public RenderStatistics RenderAnimatedBlocks(GameWorld gameWorld, ShaderManager shaderManager, ref Matrix4 matrixMVP, 
-            int camMinX, int camMaxX, int camMinY, int camMaxY)
-        {
-            Matrix4 translationMatrix = Matrix4.Identity;
+        //public RenderStatistics RenderAnimatedBlocks(GameWorld gameWorld, ShaderManager shaderManager, ref Matrix4 matrixMVP, 
+        //    int camMinX, int camMaxX, int camMinY, int camMaxY)
+        //{
+        //    Matrix4 translationMatrix = Matrix4.Identity;
 
-            RenderStatistics stats = new RenderStatistics();
-            for (int z = gameWorld.BlockSize.Z - 1; z >= 0; z--)
-            {
-                translationMatrix.M43 = z * BlockInformation.VoxelSize;
-                for (int x = camMinX; x < camMaxX; x++)
-                {
-                    translationMatrix.M41 = x * BlockInformation.VoxelSize;
-                    for (int y = camMinY; y < camMaxY; y++)
-                    {
-                        BlockInformation block = gameWorld[x, y, z];
-                        if (block.NextBlock == null)
-                            continue;
+        //    RenderStatistics stats = new RenderStatistics();
+        //    for (int z = gameWorld.BlockSize.Z - 1; z >= 0; z--)
+        //    {
+        //        translationMatrix.M43 = z * BlockInformation.VoxelSize;
+        //        for (int x = camMinX; x < camMaxX; x++)
+        //        {
+        //            translationMatrix.M41 = x * BlockInformation.VoxelSize;
+        //            for (int y = camMinY; y < camMaxY; y++)
+        //            {
+        //                BlockInformation block = gameWorld[x, y, z];
+        //                if (block.NextBlock == null)
+        //                    continue;
 
-                        BlockInformation nextBlock;
-                        blockAnimationMap.TryGetValue(block, out nextBlock);
-                        if (nextBlock != null)
-                            gameWorld[x, y, z] = block = nextBlock;
+        //                BlockInformation nextBlock = block.NextBlock;
+        //                if (nextBlock != null)
+        //                    gameWorld[x, y, z] = block = nextBlock;
 
-                        VoxelGroup voxelGroup;
-                        if (!blockMeshes.TryGetValue(block, out voxelGroup))
-                            blockMeshes[block] = voxelGroup = new VoxelGroup(block);
+        //                VoxelGroup voxelGroup;
+        //                if (!blockMeshes.TryGetValue(block, out voxelGroup))
+        //                    blockMeshes[block] = voxelGroup = new VoxelGroup(block);
 
-                        translationMatrix.M42 = y * BlockInformation.VoxelSize;
-                        Matrix4 result;
-                        Matrix4.Mult(ref translationMatrix, ref matrixMVP, out result);
-                        stats += voxelGroup.Render(shaderManager, ref result);
-                    }
-                }
-            }
+        //                translationMatrix.M42 = y * BlockInformation.VoxelSize;
+        //                Matrix4 result;
+        //                Matrix4.Mult(ref translationMatrix, ref matrixMVP, out result);
+        //                stats += voxelGroup.Render(shaderManager, ref result);
+        //            }
+        //        }
+        //    }
 
-            return stats;
-        }
-
-        public BlockInformation this[string blockName]
-        {
-            get { return blockToIndexMap[blockName]; }
-        }
+        //    return stats;
+        //}
 
         internal void UpdateNameIndex()
         {
-            List<BlockInformation> blocks = blockToIndexMap.Values.ToList();
+            List<ushort> blocksInIndex = blockToIndexMap.Values.ToList();
             blockToIndexMap.Clear();
-            foreach (BlockInformation block in blocks)
-                blockToIndexMap[block.BlockName] = block;
+            foreach (ushort blockIndex in blocksInIndex)
+            {
+                BlockInformation block = blocks[blockIndex];
+                blockToIndexMap[block.BlockName] = blockIndex;
+            }
         }
     }
 }

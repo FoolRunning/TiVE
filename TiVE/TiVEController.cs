@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Runtime;
 using System.Threading;
 using System.Windows.Forms;
 using ProdigalSoftware.TiVE.Plugins;
@@ -37,11 +38,13 @@ namespace ProdigalSoftware.TiVE
 
         public static void RunStarter()
         {
+            GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
+
             Thread.CurrentThread.Name = "Main UI";
             starterForm = new StarterForm();
             starterForm.FormClosing += starterForm_FormClosing;
             starterForm.VisibleChanged += starterForm_VisibleChanged;
-
+            
             Application.Run(starterForm);
         }
 
