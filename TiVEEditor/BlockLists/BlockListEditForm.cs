@@ -86,11 +86,11 @@ namespace ProdigalSoftware.TiVEEditor.BlockLists
                 }
             }
             
-            for (int x = 0; x < gameWorld.BlockSize.X; x++)
-            {
-                for (int y = 0; y < gameWorld.BlockSize.Y; y++)
-                    gameWorld[x, y, 0] = floorBlocks[random.Next(floorBlocks.Length)];
-            }
+            //for (int x = 0; x < gameWorld.BlockSize.X; x++)
+            //{
+            //    for (int y = 0; y < gameWorld.BlockSize.Y; y++)
+            //        gameWorld[x, y, 0] = floorBlocks[random.Next(floorBlocks.Length)];
+            //}
 
             UpdateState();
         }
@@ -279,16 +279,13 @@ namespace ProdigalSoftware.TiVEEditor.BlockLists
 
         private void lstBxBlocks_SelectedIndexChanged(object sender, EventArgs e)
         {
-            BlockInformation previouseBlock = BlockInformation.Empty;
+            ushort index = (ushort)lstBxBlocks.SelectedIndex;
             BlockInformation newBlock = SelectedBlock;
             if (gameWorld != null)
-            {
-                previouseBlock = gameWorld[WorldCenter, WorldCenter, 1];
-                gameWorld[WorldCenter, WorldCenter, 1] = newBlock; // Put the block in the middle of the game world
-            }
+                gameWorld[WorldCenter, WorldCenter, 1] = index; // Put the block in the middle of the game world
 
             cntrlCurrentBlock.LightProvider.AmbientLight = newBlock.Light != null ? new Color3f(20, 20, 20) : new Color3f(230, 230, 230);
-            cntrlCurrentBlock.RefreshLevel(previouseBlock.Light != null || newBlock.Light != null);
+            cntrlCurrentBlock.RefreshLevel(true);
 
             UpdateState();
         }

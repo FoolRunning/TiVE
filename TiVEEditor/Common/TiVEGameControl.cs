@@ -57,11 +57,9 @@ namespace ProdigalSoftware.TiVEEditor.Common
 
         public void RefreshLevel(bool refreshStaticLighting)
         {
+            renderer.GameWorld.Initialize(renderer.BlockList);
             if (refreshStaticLighting)
-            {
-                renderer.LightProvider.Calculate(CalcOptions.ClearLights | CalcOptions.CalculateLights);
-                //lightingHelper.Calculate(CalcOptions.ClearSimpleLights | CalcOptions.CalculateSimpleLights);
-            }
+                renderer.LightProvider.Calculate(renderer.BlockList, true);
             renderer.RefreshLevel();
         }
 

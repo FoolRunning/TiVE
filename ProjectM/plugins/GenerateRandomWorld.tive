@@ -41,30 +41,34 @@ namespace ProdigalSoftware.ProjectM.Plugins
                 {
                     for (int y = 0; y < gameWorld.BlockSize.Y; y++)
                     {
-                        BlockInformation block = gameWorld[x, y, z];
+                        ushort blockIndex = gameWorld[x, y, z];
+                        if (blockIndex == 0)
+                            continue;
+
+                        BlockInformation block = blockList[blockIndex];
                         string blockNameKey = GetBlockSet(block);
 
-                        if (block == BlockInformation.Empty || (blockNameKey != "ston" && blockNameKey != "sand" && blockNameKey != "dirt"))
+                        if (blockNameKey != "ston" && blockNameKey != "sand" && blockNameKey != "lava")
                             continue;
 
                         int sides = 0;
 
-                        if (z == 0 || GetBlockSet(gameWorld[x, y, z - 1]) != blockNameKey)
+                        if (z == 0 || GetBlockSet(blockList[gameWorld[x, y, z - 1]]) != blockNameKey)
                             sides |= Back;
 
-                        if (z == gameWorld.BlockSize.Z - 1 || GetBlockSet(gameWorld[x, y, z + 1]) != blockNameKey)
+                        if (z == gameWorld.BlockSize.Z - 1 || GetBlockSet(blockList[gameWorld[x, y, z + 1]]) != blockNameKey)
                             sides |= Front;
 
-                        if (x == 0 || GetBlockSet(gameWorld[x - 1, y, z]) != blockNameKey)
+                        if (x == 0 || GetBlockSet(blockList[gameWorld[x - 1, y, z]]) != blockNameKey)
                             sides |= Left;
 
-                        if (x == gameWorld.BlockSize.X - 1 || GetBlockSet(gameWorld[x + 1, y, z]) != blockNameKey)
+                        if (x == gameWorld.BlockSize.X - 1 || GetBlockSet(blockList[gameWorld[x + 1, y, z]]) != blockNameKey)
                             sides |= Right;
 
-                        if (y == 0 || GetBlockSet(gameWorld[x, y - 1, z]) != blockNameKey)
+                        if (y == 0 || GetBlockSet(blockList[gameWorld[x, y - 1, z]]) != blockNameKey)
                             sides |= Bottom;
 
-                        if (y == gameWorld.BlockSize.Y - 1 || GetBlockSet(gameWorld[x, y + 1, z]) != blockNameKey)
+                        if (y == gameWorld.BlockSize.Y - 1 || GetBlockSet(blockList[gameWorld[x, y + 1, z]]) != blockNameKey)
                             sides |= Top;
 
                         gameWorld[x, y, z] = blockList[blockNameKey + sides];
@@ -78,11 +82,11 @@ namespace ProdigalSoftware.ProjectM.Plugins
             BlockRandomizer backWalls = new BlockRandomizer(blockList, "back", 5);
             BlockRandomizer lights = new BlockRandomizer(blockList, "light", 7);
 
-            BlockInformation sand = blockList["sand0"];
-            BlockInformation dirt = blockList["dirt0"];
-            BlockInformation stone = blockList["ston0"];
-            BlockInformation fire = blockList["fire"];
-            BlockInformation fountain = blockList["fountain"];
+            ushort sand = blockList["sand0"];
+            ushort lava = blockList["lava0"];
+            ushort stone = blockList["ston0"];
+            ushort fire = blockList["fire"];
+            ushort fountain = blockList["fountain"];
 
             Random random1 = new Random((int)((seed >> 11) & 0xFFFFFFFF));
             Random random2 = new Random((int)((seed >> 15) & 0xFFFFFFFF));
@@ -112,15 +116,16 @@ namespace ProdigalSoftware.ProjectM.Plugins
                     int depth = 1;
                     if (noiseVal > 0.2)
                     {
-                        Fill(gameWorld, x, y, ref depth, dirt);
-                        if (noiseVal > 0.4)
-                            Fill(gameWorld, x, y, ref depth, dirt);
-                        if (noiseVal > 0.6)
-                            Fill(gameWorld, x, y, ref depth, dirt);
-                        if (noiseVal > 0.8)
-                            Fill(gameWorld, x, y, ref depth, dirt);
-                        if (noiseVal > 0.85)
-                            gameWorld[x, y, depth] = fountain;
+                        gameWorld[x, y, 1] = lava;
+                        //Fill(gameWorld, x, y, ref depth, lava);
+                        //if (noiseVal > 0.4)
+                        //    Fill(gameWorld, x, y, ref depth, dirt);
+                        //if (noiseVal > 0.6)
+                        //    Fill(gameWorld, x, y, ref depth, dirt);
+                        //if (noiseVal > 0.8)
+                        //    Fill(gameWorld, x, y, ref depth, dirt);
+                        //if (noiseVal > 0.85)
+                        //    gameWorld[x, y, depth] = fountain;
                     }
                     else if (noiseVal < -0.3)
                     {
@@ -185,34 +190,34 @@ namespace ProdigalSoftware.ProjectM.Plugins
                             Noise.GetNoise((xOff3 + x) * scaleX3, (yOff3 + y) * scaleY3) * 0.2f;
                     if (noiseVal > 0.1)
                     {
-                        gameWorld[x, y, 1] = null;
-                        gameWorld[x, y, 2] = null;
-                        gameWorld[x, y, 3] = null;
+                        gameWorld[x, y, 1] = 0;
+                        gameWorld[x, y, 2] = 0;
+                        gameWorld[x, y, 3] = 0;
                     }
                     if (noiseVal > 0.2)
                     {
-                        gameWorld[x, y, 4] = null;
-                        gameWorld[x, y, 5] = null;
-                        gameWorld[x, y, 6] = null;
+                        gameWorld[x, y, 4] = 0;
+                        gameWorld[x, y, 5] = 0;
+                        gameWorld[x, y, 6] = 0;
                     }
                     if (noiseVal > 0.3)
                     {
-                        gameWorld[x, y, 7] = null;
-                        gameWorld[x, y, 8] = null;
-                        gameWorld[x, y, 9] = null;
+                        gameWorld[x, y, 7] = 0;
+                        gameWorld[x, y, 8] = 0;
+                        gameWorld[x, y, 9] = 0;
                     }
                     if (noiseVal > 0.4)
                     {
-                        gameWorld[x, y, 10] = null;
-                        gameWorld[x, y, 11] = null;
-                        gameWorld[x, y, 12] = null;
+                        gameWorld[x, y, 10] = 0;
+                        gameWorld[x, y, 11] = 0;
+                        gameWorld[x, y, 12] = 0;
                     }
                     if (noiseVal > 0.5)
                     {
-                        gameWorld[x, y, 13] = null;
-                        gameWorld[x, y, 14] = null;
-                        gameWorld[x, y, 15] = null;
-                        gameWorld[x, y, 16] = null;
+                        gameWorld[x, y, 13] = 0;
+                        gameWorld[x, y, 14] = 0;
+                        gameWorld[x, y, 15] = 0;
+                        gameWorld[x, y, 16] = 0;
                     }
                 }
             }
@@ -229,7 +234,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
                 gameWorld[x, y, depth++] = block.NextBlock();
         }
 
-        private static void Fill(GameWorld gameWorld, int x, int y, ref int depth, BlockInformation block)
+        private static void Fill(GameWorld gameWorld, int x, int y, ref int depth, ushort block)
         {
             for (int i = 0; i < 3; i++)
                 gameWorld[x, y, depth++] = block;
@@ -247,17 +252,17 @@ namespace ProdigalSoftware.ProjectM.Plugins
         #region BlockRandomizer class
         private sealed class BlockRandomizer
         {
-            public readonly BlockInformation[] Blocks;
+            public readonly ushort[] Blocks;
             private readonly Random random = new Random();
 
             public BlockRandomizer(IBlockList blockList, string blockname, int blockCount)
             {
-                Blocks = new BlockInformation[blockCount];
+                Blocks = new ushort[blockCount];
                 for (int i = 0; i < Blocks.Length; i++)
                     Blocks[i] = blockList[blockname + i];
             }
 
-            public BlockInformation NextBlock()
+            public ushort NextBlock()
             {
                 int blockNum = random.Next(Blocks.Length);
                 return Blocks[blockNum];

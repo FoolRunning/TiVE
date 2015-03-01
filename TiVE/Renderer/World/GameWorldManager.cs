@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using ProdigalSoftware.TiVE.Starter;
 using ProdigalSoftware.TiVEPluginFramework;
 
@@ -68,11 +67,11 @@ namespace ProdigalSoftware.TiVE.Renderer.World
                             {
                                 for (int wy = 0; wy < createdWorld.BlockSize.Y; wy++)
                                 {
-                                    BlockInformation block = createdWorld[wx, wy, wz];
-                                    if (block != BlockInformation.Empty)
+                                    ushort block = createdWorld[wx, wy, wz];
+                                    if (block != 0)
                                     {
                                         totalBlocks++;
-                                        totalVoxels += block.TotalVoxels;
+                                        totalVoxels += blockList[block].TotalVoxels;
                                     }
                                 }
                             }

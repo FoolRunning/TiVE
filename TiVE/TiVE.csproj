@@ -116,7 +116,6 @@
     <Compile Include="IKeyboard.cs" />
     <Compile Include="IMouse.cs" />
     <Compile Include="Keys.cs" />
-    <Compile Include="Renderer\Lighting\LightList.cs" />
     <Compile Include="Settings\DisplaySetting.cs" />
     <Compile Include="Renderer\Lighting\LightingModel.cs" />
     <Compile Include="Renderer\Lighting\LightProvider.cs" />

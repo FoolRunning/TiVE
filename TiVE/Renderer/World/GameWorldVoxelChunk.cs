@@ -137,6 +137,7 @@ namespace ProdigalSoftware.TiVE.Renderer.World
             //Debug.WriteLine("Started chunk ({0},{1},{2})", chunkStartX, chunkStartY, chunkStartZ);
 
             GameWorld gameWorld = renderer.GameWorld;
+            BlockList blockList = renderer.BlockList;
             LightProvider lightProvider = renderer.LightProvider;
             VoxelMeshHelper meshHelper = VoxelMeshHelper.Get(false);
 
@@ -170,8 +171,12 @@ namespace ProdigalSoftware.TiVE.Renderer.World
                 {
                     for (int blockY = blockStartY; blockY < blockEndY; blockY++)
                     {
-                        BlockInformation block = gameWorld[blockX, blockY, blockZ];
-                        if (block == BlockInformation.Empty || block.NextBlock != null)
+                        ushort blockIndex = gameWorld[blockX, blockY, blockZ];
+                        if (blockIndex == 0)
+                            continue;
+
+                        BlockInformation block = blockList[blockIndex];
+                        if (block.NextBlock != null)
                             continue;
 
                         bool blockIsLit = block.IsLIt;

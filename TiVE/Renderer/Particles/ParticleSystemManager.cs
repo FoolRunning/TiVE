@@ -57,6 +57,7 @@ namespace ProdigalSoftware.TiVE.Renderer.Particles
             Debug.Assert(Thread.CurrentThread.Name == "Main UI");
 
             GameWorld gameWorld = renderer.GameWorld;
+            BlockList blockList = renderer.BlockList;
             HashSet<RunningParticleSystem> toRenderList = systemsToRender;
             HashSet<RunningParticleSystem> runningList = runningSystems;
 
@@ -79,7 +80,7 @@ namespace ProdigalSoftware.TiVE.Renderer.Particles
                     {
                         for (int blockY = blockStartY; blockY < blockLimitY; blockY++)
                         {
-                            ParticleSystemInformation particleInfo = gameWorld[blockX, blockY, blockZ].ParticleSystem;
+                            ParticleSystemInformation particleInfo = blockList[gameWorld[blockX, blockY, blockZ]].ParticleSystem;
                             if (particleInfo != null)
                             {
                                 RunningParticleSystem runningParticleSystem = new RunningParticleSystem(blockX, blockY, blockZ);

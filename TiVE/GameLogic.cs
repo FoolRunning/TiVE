@@ -6,7 +6,6 @@ using Microsoft.CSharp.RuntimeBinder;
 using NLua.Exceptions;
 using ProdigalSoftware.TiVE.Debugging;
 using ProdigalSoftware.TiVE.Renderer;
-using ProdigalSoftware.TiVE.Renderer.Lighting;
 using ProdigalSoftware.TiVE.Renderer.World;
 using ProdigalSoftware.TiVE.Scripts;
 using ProdigalSoftware.TiVE.Settings;
@@ -57,11 +56,11 @@ namespace ProdigalSoftware.TiVE
             gameScript.GameWorld = new Func<GameWorld>(() => renderer.GameWorld);
             gameScript.ReloadLevel = new Action(() => renderer.RefreshLevel());
             gameScript.EmptyBlock = BlockInformation.Empty;
-            gameScript.BlockAt = new Func<int, int, int, BlockInformation>((blockX, blockY, blockZ) =>
+            gameScript.BlockAt = new Func<int, int, int, ushort>((blockX, blockY, blockZ) =>
             {
                 GameWorld gameWorld = renderer.GameWorld;
                 if (blockX < 0 || blockX >= gameWorld.BlockSize.X || blockY < 0 || blockY >= gameWorld.BlockSize.Y || blockZ < 0 || blockZ >= gameWorld.BlockSize.Z)
-                    return BlockInformation.Empty;
+                    return 0;
 
                 return gameWorld[blockX, blockY, blockZ];
             });
@@ -81,6 +80,7 @@ namespace ProdigalSoftware.TiVE
                 GameWorld newWorld = GameWorldManager.LoadGameWorld(worldName, out blockList);
                 if (newWorld == null)
                     throw new TiVEException("Failed to create game world");
+                newWorld.Initialize(blockList);
                 renderer.SetGameWorld(blockList, newWorld);
                 return newWorld;
             });
@@ -101,7 +101,7 @@ namespace ProdigalSoftware.TiVE
             }
 
             // Calculate static lighting
-            renderer.LightProvider.Calculate(CalcOptions.CalculateLights);
+            renderer.LightProvider.Calculate(renderer.BlockList, false);
 
             // This seems to be needed for the GC to realize that the light information and the game world are long-lived
             // to keep it from causing pauses shortly after starting the render loop.

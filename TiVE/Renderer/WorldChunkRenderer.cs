@@ -44,6 +44,8 @@ namespace ProdigalSoftware.TiVE.Renderer
                 BlockList.Dispose();
             if (shaderManager != null)
                 shaderManager.Dispose();
+            if (LightProvider != null)
+                LightProvider.Dispose();
 
             BlockList = null;
             GameWorld = null;
