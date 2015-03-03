@@ -34,24 +34,24 @@
             this.tbDisplay = new System.Windows.Forms.TabPage();
             this.panel1 = new System.Windows.Forms.Panel();
             this.pnlDisplayOptionsList = new System.Windows.Forms.TableLayoutPanel();
+            this.tbControls = new System.Windows.Forms.TabPage();
+            this.tbSound = new System.Windows.Forms.TabPage();
             this.tbAdvanced = new System.Windows.Forms.TabPage();
+            this.panel2 = new System.Windows.Forms.Panel();
+            this.pnlAdvancedOptionsList = new System.Windows.Forms.TableLayoutPanel();
             this.tableLayoutPanel2 = new System.Windows.Forms.TableLayoutPanel();
             this.label1 = new System.Windows.Forms.Label();
-            this.comboBox1 = new System.Windows.Forms.ComboBox();
+            this.cmbProject = new System.Windows.Forms.ComboBox();
             this.btnExit = new System.Windows.Forms.Button();
             this.btnCopyText = new System.Windows.Forms.Button();
             this.btnStart = new System.Windows.Forms.Button();
-            this.tbControls = new System.Windows.Forms.TabPage();
-            this.tbSound = new System.Windows.Forms.TabPage();
-            this.panel2 = new System.Windows.Forms.Panel();
-            this.pnlAdvancedOptionsList = new System.Windows.Forms.TableLayoutPanel();
             this.tableLayoutPanel1.SuspendLayout();
             this.tabControl1.SuspendLayout();
             this.tbDisplay.SuspendLayout();
             this.panel1.SuspendLayout();
             this.tbAdvanced.SuspendLayout();
-            this.tableLayoutPanel2.SuspendLayout();
             this.panel2.SuspendLayout();
+            this.tableLayoutPanel2.SuspendLayout();
             this.SuspendLayout();
             // 
             // tableLayoutPanel1
@@ -130,6 +130,22 @@
             this.pnlDisplayOptionsList.Size = new System.Drawing.Size(743, 116);
             this.pnlDisplayOptionsList.TabIndex = 0;
             // 
+            // tbControls
+            // 
+            this.tbControls.Location = new System.Drawing.Point(4, 22);
+            this.tbControls.Name = "tbControls";
+            this.tbControls.Size = new System.Drawing.Size(786, 421);
+            this.tbControls.TabIndex = 3;
+            this.tbControls.Text = "Controls";
+            // 
+            // tbSound
+            // 
+            this.tbSound.Location = new System.Drawing.Point(4, 22);
+            this.tbSound.Name = "tbSound";
+            this.tbSound.Size = new System.Drawing.Size(786, 421);
+            this.tbSound.TabIndex = 4;
+            this.tbSound.Text = "Sound";
+            // 
             // tbAdvanced
             // 
             this.tbAdvanced.Controls.Add(this.panel2);
@@ -138,6 +154,30 @@
             this.tbAdvanced.Size = new System.Drawing.Size(786, 421);
             this.tbAdvanced.TabIndex = 2;
             this.tbAdvanced.Text = "Advanced";
+            // 
+            // panel2
+            // 
+            this.panel2.AutoScroll = true;
+            this.panel2.Controls.Add(this.pnlAdvancedOptionsList);
+            this.panel2.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.panel2.Location = new System.Drawing.Point(0, 0);
+            this.panel2.Name = "panel2";
+            this.panel2.Size = new System.Drawing.Size(786, 421);
+            this.panel2.TabIndex = 0;
+            // 
+            // pnlAdvancedOptionsList
+            // 
+            this.pnlAdvancedOptionsList.AutoSize = true;
+            this.pnlAdvancedOptionsList.ColumnCount = 2;
+            this.pnlAdvancedOptionsList.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle());
+            this.pnlAdvancedOptionsList.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
+            this.pnlAdvancedOptionsList.Location = new System.Drawing.Point(3, 3);
+            this.pnlAdvancedOptionsList.Name = "pnlAdvancedOptionsList";
+            this.pnlAdvancedOptionsList.RowCount = 1;
+            this.pnlAdvancedOptionsList.RowStyles.Add(new System.Windows.Forms.RowStyle());
+            this.pnlAdvancedOptionsList.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 116F));
+            this.pnlAdvancedOptionsList.Size = new System.Drawing.Size(743, 116);
+            this.pnlAdvancedOptionsList.TabIndex = 1;
             // 
             // tableLayoutPanel2
             // 
@@ -152,7 +192,7 @@
             this.tableLayoutPanel2.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle());
             this.tableLayoutPanel2.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle());
             this.tableLayoutPanel2.Controls.Add(this.label1, 0, 0);
-            this.tableLayoutPanel2.Controls.Add(this.comboBox1, 1, 0);
+            this.tableLayoutPanel2.Controls.Add(this.cmbProject, 1, 0);
             this.tableLayoutPanel2.Controls.Add(this.btnExit, 5, 0);
             this.tableLayoutPanel2.Controls.Add(this.btnCopyText, 4, 0);
             this.tableLayoutPanel2.Controls.Add(this.btnStart, 2, 0);
@@ -175,15 +215,16 @@
             this.label1.TabIndex = 0;
             this.label1.Text = "Start Project:";
             // 
-            // comboBox1
+            // cmbProject
             // 
-            this.comboBox1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right)));
-            this.comboBox1.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.comboBox1.FormattingEnabled = true;
-            this.comboBox1.Location = new System.Drawing.Point(92, 10);
-            this.comboBox1.Name = "comboBox1";
-            this.comboBox1.Size = new System.Drawing.Size(244, 21);
-            this.comboBox1.TabIndex = 1;
+            this.cmbProject.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right)));
+            this.cmbProject.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cmbProject.FormattingEnabled = true;
+            this.cmbProject.Location = new System.Drawing.Point(92, 10);
+            this.cmbProject.Name = "cmbProject";
+            this.cmbProject.Size = new System.Drawing.Size(244, 21);
+            this.cmbProject.TabIndex = 1;
+            this.cmbProject.SelectedIndexChanged += new System.EventHandler(this.cmbProject_SelectedIndexChanged);
             // 
             // btnExit
             // 
@@ -221,46 +262,6 @@
             this.btnStart.UseVisualStyleBackColor = false;
             this.btnStart.Click += new System.EventHandler(this.btnStart_Click);
             // 
-            // tbControls
-            // 
-            this.tbControls.Location = new System.Drawing.Point(4, 22);
-            this.tbControls.Name = "tbControls";
-            this.tbControls.Size = new System.Drawing.Size(786, 421);
-            this.tbControls.TabIndex = 3;
-            this.tbControls.Text = "Controls";
-            // 
-            // tbSound
-            // 
-            this.tbSound.Location = new System.Drawing.Point(4, 22);
-            this.tbSound.Name = "tbSound";
-            this.tbSound.Size = new System.Drawing.Size(786, 421);
-            this.tbSound.TabIndex = 4;
-            this.tbSound.Text = "Sound";
-            // 
-            // panel2
-            // 
-            this.panel2.AutoScroll = true;
-            this.panel2.Controls.Add(this.pnlAdvancedOptionsList);
-            this.panel2.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.panel2.Location = new System.Drawing.Point(0, 0);
-            this.panel2.Name = "panel2";
-            this.panel2.Size = new System.Drawing.Size(786, 421);
-            this.panel2.TabIndex = 0;
-            // 
-            // pnlAdvancedOptionsList
-            // 
-            this.pnlAdvancedOptionsList.AutoSize = true;
-            this.pnlAdvancedOptionsList.ColumnCount = 2;
-            this.pnlAdvancedOptionsList.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle());
-            this.pnlAdvancedOptionsList.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
-            this.pnlAdvancedOptionsList.Location = new System.Drawing.Point(3, 3);
-            this.pnlAdvancedOptionsList.Name = "pnlAdvancedOptionsList";
-            this.pnlAdvancedOptionsList.RowCount = 1;
-            this.pnlAdvancedOptionsList.RowStyles.Add(new System.Windows.Forms.RowStyle());
-            this.pnlAdvancedOptionsList.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 116F));
-            this.pnlAdvancedOptionsList.Size = new System.Drawing.Size(743, 116);
-            this.pnlAdvancedOptionsList.TabIndex = 1;
-            // 
             // StarterForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -280,10 +281,10 @@
             this.panel1.ResumeLayout(false);
             this.panel1.PerformLayout();
             this.tbAdvanced.ResumeLayout(false);
-            this.tableLayoutPanel2.ResumeLayout(false);
-            this.tableLayoutPanel2.PerformLayout();
             this.panel2.ResumeLayout(false);
             this.panel2.PerformLayout();
+            this.tableLayoutPanel2.ResumeLayout(false);
+            this.tableLayoutPanel2.PerformLayout();
             this.ResumeLayout(false);
 
         }
@@ -297,7 +298,7 @@
         private System.Windows.Forms.TabPage tbAdvanced;
         private System.Windows.Forms.TableLayoutPanel tableLayoutPanel2;
         private System.Windows.Forms.Label label1;
-        private System.Windows.Forms.ComboBox comboBox1;
+        private System.Windows.Forms.ComboBox cmbProject;
         private System.Windows.Forms.Button btnExit;
         private System.Windows.Forms.Button btnCopyText;
         private System.Windows.Forms.Button btnStart;

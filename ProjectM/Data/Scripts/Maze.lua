@@ -3,14 +3,13 @@ WorldYSize = 0;
 WorldZSize = 0;
 
 function Initialize()
-    gameWorld = LoadWorld("bla")
+    gameWorld = LoadWorld("Maze")
     WorldXSize = gameWorld.BlockSize.X
     WorldYSize = gameWorld.BlockSize.Y
     WorldZSize = gameWorld.BlockSize.Z
-    Renderer().LightProvider.AmbientLight = Color(0.02, 0.02, 0.02)
+    Renderer().LightProvider.AmbientLight = Color(0.2, 0.2, 0.2)
 
-    Camera().FarDistance = 1000
-    Camera().FoV = PI / 4 --45 degrees
+    Camera().FoV = PI / 3 --60 degrees
     Camera().Location = Vector(WorldXSize * BlockSize / 2, WorldYSize * BlockSize / 2, 345)
     Camera().FarDistance = 1000
     Camera().UpVector = Vector(0, 0, 1)

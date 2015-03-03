@@ -17,11 +17,14 @@ namespace ProdigalSoftware.ProjectM.Plugins
 
         public string BlockListForWorld(string gameWorldName)
         {
-            return "bla";
+            return gameWorldName == "StressTest" ? "stress" : null;
         }
 
         public GameWorld CreateGameWorld(string gameWorldName, IBlockList blockList)
         {
+            if (gameWorldName != "StressTest")
+                return null;
+
             GameWorld gameWorld = new GameWorld(500, 500, 20);
             gameWorld.LightingModelType = LightingModelType.Fantasy2;
             long seed = LongRandom();
@@ -266,7 +269,6 @@ namespace ProdigalSoftware.ProjectM.Plugins
             {
                 int blockNum = random.Next(Blocks.Length);
                 return Blocks[blockNum];
-                //return Blocks[Blocks.Length - 1];
             }
         }
         #endregion

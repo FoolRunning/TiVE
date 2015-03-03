@@ -23,7 +23,7 @@ namespace ProdigalSoftware.TiVE.Renderer.World
         private const int BestVoxelDetailLevel = 0;
         private const int WorstVoxelDetailLevel = VoxelDetailLevelSections - 1;
         private const int TotalMeshBuilders = 20;
-        private const int MaxQueueSize = 1000;
+        private const int MaxQueueSize = 2000;
 
         private readonly List<GameWorldVoxelChunk> chunksToDelete = new List<GameWorldVoxelChunk>();
         private readonly HashSet<GameWorldVoxelChunk> loadedChunks = new HashSet<GameWorldVoxelChunk>();

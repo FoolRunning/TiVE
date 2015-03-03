@@ -33,16 +33,16 @@ namespace ProdigalSoftware.TiVE
         private IGameWorldRenderer renderer;
         private dynamic gameScript;
 
-        public bool Initialize()
+        public bool Initialize(string startScript)
         {
             // Creation of the renderer must be done before the call to Initialize on the script
             int numChunkCreationThreads = TiVEController.UserSettings.Get(UserSettings.ChunkCreationThreadsKey);
             renderer = new WorldChunkRenderer(numChunkCreationThreads);
 
-            gameScript = TiVEController.LuaScripts.GetScript("Game");
+            gameScript = TiVEController.LuaScripts.GetScript(startScript);
             if (gameScript == null)
             {
-                Messages.AddError("Failed to find Game script");
+                Messages.AddError(string.Format("Failed to find script '{0}' to start", startScript));
                 return false;
             }
 

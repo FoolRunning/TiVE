@@ -137,7 +137,7 @@ namespace ProdigalSoftware.TiVE.Renderer.Lighting
 
             Messages.AddDoneText();
 
-            Messages.AddDebug(string.Format("Lighting for {0} lights took {1}ms", lightInfoList.Length, sw.ElapsedMilliseconds));
+            Messages.AddDebug(string.Format("Lighting for {0} lights took {1}ms", lightInfoList.Length - 1, sw.ElapsedMilliseconds));
         }
         
         public void FillWorldWithLight(ILight light, List<LightInfo> lightInfos, int blockX, int blockY, int blockZ)

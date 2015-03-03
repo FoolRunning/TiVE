@@ -28,7 +28,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
             particleVoxels[0, 0, 0] = 0xFFFFFFFF;
             for (int i = 0; i < 64; i++)
             {
-                yield return CreateBlockInfo("lava" + i, new Color4f(150, 10, 5, 255), 1.0f, i,
+                yield return CreateBlockInfo("lava" + i, new Color4f(200, 15, 8, 255), 1.0f, i,
                     new PointLight(new Vector3b(blockCenter, blockCenter, blockCenter), new Color3f(0.2f, 0.01f, 0.001f), forFantasyLighting ? 4 : 6));
                 yield return CreateBlockInfo("ston" + i, new Color4f(120, 120, 120, 255), 1.0f, i);
                 yield return CreateBlockInfo("sand" + i, new Color4f(120, 100, 20, 255), 0.1f, i);
@@ -45,8 +45,8 @@ namespace ProdigalSoftware.ProjectM.Plugins
                 new PointLight(new Vector3b(blockCenter, blockCenter, 2), new Color3f(1.0f, 0.8f, 0.6f), forFantasyLighting ? 5 : 10));
             yield return fireBlock;
 
-            yield return CreateBlockInfo("light0", false, 2, new Color4f(255, 0, 0, 255), 1.0f, null,
-                new PointLight(blockCenterVector, new Color3f(1.0f, 0.0f, 0.0f), forFantasyLighting ? 10 : 20));
+            yield return CreateBlockInfo("light0", false, 2, new Color4f(255, 255, 255, 255), 1.0f, null,
+                new PointLight(blockCenterVector, new Color3f(1.0f, 1.0f, 1.0f), forFantasyLighting ? 10 : 20));
 
             yield return CreateBlockInfo("light1", false, 2, new Color4f(255, 255, 0, 255), 1.0f, null,
                 new PointLight(blockCenterVector, new Color3f(1.0f, 1.0f, 0.0f), forFantasyLighting ? 10 : 20));
