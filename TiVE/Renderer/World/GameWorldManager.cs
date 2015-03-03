@@ -35,7 +35,6 @@ namespace ProdigalSoftware.TiVE.Renderer.World
 
             // TODO: Implement saving/loading of game worlds
 
-            Messages.AddFailText();
             Messages.AddError("Could not find world " + gameWorldName);
             return null;
         }

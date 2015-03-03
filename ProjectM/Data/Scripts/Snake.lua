@@ -6,7 +6,7 @@ ambientLightUpdateTime = 0
 currentAmbientLight = 0.4
 
 function Initialize()
-    gameWorld = LoadWorld("Bla")
+    gameWorld = LoadWorld("Snake")
     WorldXSize = gameWorld.BlockSize.X
     WorldYSize = gameWorld.BlockSize.Y
     WorldZSize = gameWorld.BlockSize.Z

@@ -48,12 +48,12 @@ namespace ProdigalSoftware.TiVE
             Application.Run(starterForm);
         }
 
-        internal static void RunEngine()
+        internal static void RunEngine(string startScript)
         {
             Thread loadingThread = new Thread(() =>
             {
                 GameLogic gameLogic = new GameLogic();
-                if (!gameLogic.Initialize())
+                if (!gameLogic.Initialize(startScript))
                     return;
 
                 starterForm.BeginInvoke(new Action(() =>

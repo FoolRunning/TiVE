@@ -1,6 +1,6 @@
 ﻿using ProdigalSoftware.TiVEPluginFramework;
 
-namespace ProdigalSoftware.ProjectS.Controllers
+namespace ProdigalSoftware.ProjectM.Plugins
 {
     /// <summary>
     /// World generation stage to fill the game world with blocks.
@@ -10,23 +10,26 @@ namespace ProdigalSoftware.ProjectS.Controllers
         #region Implementation of IWorldGenerator
         public string BlockListForWorld(string gameWorldName)
         {
-            return "Snake16x16";
+            return gameWorldName == "Snake" ? "Snake16x16" : null;
         }
 
         public GameWorld CreateGameWorld(string gameWorldName, IBlockList blockList)
         {
+            if (gameWorldName != "Snake")
+                return null;
+
             GameWorld gameWorld = new GameWorld(41, 31, 4);
 
-            BlockInformation lightRed = blockList["Light_Red"];
-            BlockInformation lightGreen = blockList["Light_Green"];
-            BlockInformation lightBlue = blockList["Light_Blue"];
-            BlockInformation lightWhite = blockList["Light_White"];
-            BlockInformation wall = blockList["Wall_Bottom"];
-            BlockInformation wallCorner = blockList["Wall_Bottom_Corner"];
-            BlockInformation wallLight = blockList["Wall_Bottom_Light"];
-            BlockInformation floorBright = blockList["Floor_White"];
-            BlockInformation floorDark = blockList["Floor_Dark"];
-            //BlockInformation wallEnd = blockList["Wall_Bottom_End"];
+            ushort lightRed = blockList["Light_Red"];
+            ushort lightGreen = blockList["Light_Green"];
+            ushort lightBlue = blockList["Light_Blue"];
+            ushort lightWhite = blockList["Light_White"];
+            ushort wall = blockList["Wall_Bottom"];
+            ushort wallCorner = blockList["Wall_Bottom_Corner"];
+            ushort wallLight = blockList["Wall_Bottom_Light"];
+            ushort floorBright = blockList["Floor_White"];
+            ushort floorDark = blockList["Floor_Dark"];
+            //ushort wallEnd = blockList["Wall_Bottom_End"];
 
             for (int x = 0; x < gameWorld.BlockSize.X; x++)
             {
@@ -93,19 +96,19 @@ namespace ProdigalSoftware.ProjectS.Controllers
 
         private sealed class BlockIncrementer
         {
-            private readonly BlockInformation[] blocks;
+            private readonly ushort[] blocks;
             private readonly int blockCount;
             private int currentBlock;
 
             public BlockIncrementer(IBlockList blockList, string blockname, int blockCount)
             {
                 this.blockCount = blockCount;
-                blocks = new BlockInformation[blockCount];
+                blocks = new ushort[blockCount];
                 for (int i = 0; i < blockCount; i++)
                     blocks[i] = blockList[blockname + i];
             }
 
-            public BlockInformation NextBlock()
+            public ushort NextBlock()
             {
                 currentBlock = (currentBlock + 1) % blockCount;
                 return blocks[currentBlock];

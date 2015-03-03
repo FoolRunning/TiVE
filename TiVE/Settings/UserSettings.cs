@@ -66,7 +66,7 @@ namespace ProdigalSoftware.TiVE.Settings
                 new UserSettingOption("True", new BoolSetting(true)),
                 new UserSettingOption("False", new BoolSetting(false))));
 
-            settingOptions.Add(new UserSettingOptions(LightsPerBlockKey, "Max lights per block", UserOptionTab.Display, new IntSetting(5),
+            settingOptions.Add(new UserSettingOptions(LightsPerBlockKey, "Max lights per block", UserOptionTab.Display, new IntSetting(10),
                 new UserSettingOption(new IntSetting(2)),
                 new UserSettingOption(new IntSetting(5)),
                 new UserSettingOption(new IntSetting(10)),

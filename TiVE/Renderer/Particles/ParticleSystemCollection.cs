@@ -166,7 +166,7 @@ namespace ProdigalSoftware.TiVE.Renderer.Particles
                 ParticleSystem system = updateList[i];
                 if (system.IsAlive)
                 {
-                    lock (syncObj)
+                    //lock (syncObj)
                         system.Update(timeSinceLastFrame, locations, colors, renderer, ref dataIndex);
                 }
             }
@@ -207,7 +207,7 @@ namespace ProdigalSoftware.TiVE.Renderer.Particles
 
             // Put the data for the current particles into the graphics memory and draw them
             int totalParticles = totalAliveParticles;
-            lock (syncObj)
+            //lock (syncObj)
             {
                 locationData.UpdateData(locations, totalParticles);
                 colorData.UpdateData(colors, totalParticles);

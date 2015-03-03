@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Drawing;
+using System.IO;
 using System.Reflection;
 using System.Windows.Forms;
 using ProdigalSoftware.TiVE.Settings;
@@ -35,8 +36,26 @@ namespace ProdigalSoftware.TiVE.Starter
         {
             Invoke(new Action(() =>
                 {
+                    foreach (string filePath in Directory.EnumerateFiles(Path.Combine(Path.GetDirectoryName(Assembly.GetEntryAssembly().Location), "Data"), "*.xml"))
+                    {
+                        try
+                        {
+                            cmbProject.Items.Add(TiVEProject.FromFile(filePath));
+                        }
+                        catch (Exception e)
+                        {
+                            Messages.AddWarning("Unable to load project file " + Path.GetFileName(filePath));
+                            string message = e.Message;
+                            if (e.InnerException != null)
+                                message += " - " + e.InnerException.Message;
+                            Messages.AddWarning(message);
+                        }
+                    }
+
+                    if (cmbProject.Items.Count > 0)
+                        cmbProject.SelectedIndex = 0;
+
                     tbMessages.Enabled = true;
-                    btnStart.Enabled = true;
                     InitializeOptions();
                 }));
         }
@@ -118,7 +137,8 @@ namespace ProdigalSoftware.TiVE.Starter
         private void btnStart_Click(object sender, EventArgs e)
         {
             TiVEController.UserSettings.Save();
-            TiVEController.RunEngine();
+            string startScript = ((TiVEProject)cmbProject.SelectedItem).StartScript;
+            TiVEController.RunEngine(startScript);
         }
 
         private void btnCopyText_Click(object sender, EventArgs e)
@@ -131,6 +151,11 @@ namespace ProdigalSoftware.TiVE.Starter
             ComboBox comboBox = (ComboBox)sender;
             UserSettingOptions optionChanged = (UserSettingOptions)comboBox.Tag;
             TiVEController.UserSettings.Set(optionChanged.SettingKey, ((UserSettingOption)comboBox.SelectedItem).Value);
+        }
+
+        private void cmbProject_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            btnStart.Enabled = cmbProject.SelectedIndex >= 0;
         }
         #endregion
 
