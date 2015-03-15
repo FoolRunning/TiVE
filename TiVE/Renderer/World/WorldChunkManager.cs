@@ -22,8 +22,8 @@ namespace ProdigalSoftware.TiVE.Renderer.World
         private const int VoxelDetailLevelSections = 3; // 16x16x16 = 4096v, 8x8x8 = 512v, 4x4x4 = 64v, not worth going to 2x2x2 = 8v.
         private const int BestVoxelDetailLevel = 0;
         private const int WorstVoxelDetailLevel = VoxelDetailLevelSections - 1;
-        private const int TotalMeshBuilders = 20;
-        private const int MaxQueueSize = 2000;
+        private const int TotalMeshBuilders = 25;
+        private const int MaxQueueSize = 2500;
 
         private readonly List<GameWorldVoxelChunk> chunksToDelete = new List<GameWorldVoxelChunk>();
         private readonly HashSet<GameWorldVoxelChunk> loadedChunks = new HashSet<GameWorldVoxelChunk>();
@@ -180,7 +180,7 @@ namespace ProdigalSoftware.TiVE.Renderer.World
 
                 if (!hasItemToLoad)
                 {
-                    Thread.Sleep(1);
+                    Thread.Sleep(5);
                     continue;
                 }
 

@@ -11,9 +11,7 @@ namespace ProdigalSoftware.TiVE.Renderer.Meshes
 
         private readonly int[] indexData;
         private int indexCount;
-        private bool locked;
-
-        private readonly object syncRoot = new object();
+        private volatile bool locked;
 
         protected MeshBuilderBase(int initialItemSize, int initialIndexSize)
         {
@@ -23,30 +21,22 @@ namespace ProdigalSoftware.TiVE.Renderer.Meshes
 
         public bool IsLocked 
         {
-            get 
-            {
-                using (new PerformanceLock(syncRoot))
-                    return locked;
-            }
+            get { return locked; }
         }
 
         public void DropMesh()
         {
-            using (new PerformanceLock(syncRoot))
-                locked = false;
+            locked = false;
         }
 
         public void StartNewMesh()
         {
-            using (new PerformanceLock(syncRoot))
-            {
-                if (locked)
-                    throw new InvalidOperationException("New mesh can not be started when there is a mesh in progress");
+            if (locked)
+                throw new InvalidOperationException("New mesh can not be started when there is a mesh in progress");
 
-                locked = true;
-                vertexCount = 0;
-                indexCount = 0;
-            }
+            locked = true;
+            vertexCount = 0;
+            indexCount = 0;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

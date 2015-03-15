@@ -111,9 +111,12 @@
     <Content Include="Data\StressTest.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Plugins\DefaultBlockLoader.tive">
+    <Compile Include="Plugins\MazeBlockLoader.cs">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
+    </Compile>
+    <Compile Include="Plugins\StressTestBlockLoader.cs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Compile>
     <Content Include="Data\Blocks\Snake16x16.TiVEb">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
@@ -126,18 +129,18 @@
     <Content Include="Data\Scripts\Maze.lua">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <None Include="Plugins\MazeGenerateWorld.tive">
+    <Compile Include="Plugins\MazeGenerateWorld.cs">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <Content Include="Plugins\SnakeLevelCreator.tive">
+    </Compile>
+    <Compile Include="Plugins\SnakeLevelCreator.cs">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <None Include="Plugins\TableDefinitionProvider.tive">
+    </Compile>
+    <Compile Include="Plugins\TableDefinitionProvider.cs">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="Plugins\StressTestGenerateWorld.tive">
+    </Compile>
+    <Compile Include="Plugins\StressTestGenerateWorld.cs">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
+    </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

@@ -12,6 +12,7 @@ namespace ProdigalSoftware.TiVE.Plugins
 {
     internal sealed class PluginManager
     {
+        private readonly CSharpCodeProvider codeCompiler = new CSharpCodeProvider(); 
         private const string PluginDir = "Plugins";
 
         private readonly Dictionary<Type, List<Type>> pluginInterfaceMap = new Dictionary<Type, List<Type>>();
@@ -27,7 +28,7 @@ namespace ProdigalSoftware.TiVE.Plugins
             }
 
             string pluginPath = Path.Combine(path, PluginDir);
-            string[] pluginFiles = Directory.Exists(pluginPath) ? Directory.GetFiles(pluginPath, "*.tive", SearchOption.AllDirectories) : new string[0];
+            string[] pluginFiles = Directory.Exists(pluginPath) ? Directory.GetFiles(pluginPath, "*.cs", SearchOption.AllDirectories) : new string[0];
 
             List<string> warnings = new List<string>();
             foreach (string pluginFilePath in pluginFiles)
@@ -93,20 +94,10 @@ namespace ProdigalSoftware.TiVE.Plugins
                 yield break;
 
             foreach (Type type in typesFound)
-            {
-                ConstructorInfo constructor = type.GetConstructor(Type.EmptyTypes);
-                if (constructor == null)
-                    continue;
-
-                T newObject = constructor.Invoke(null) as T;
-                if (newObject == null)
-                    continue;
-
-                yield return newObject;
-            }
+                yield return (T)type.GetConstructor(Type.EmptyTypes).Invoke(null);
         }
 
-        private static Assembly LoadPlugin(string filePath, out List<string> errorMessages)
+        private Assembly LoadPlugin(string filePath, out List<string> errorMessages)
         {
             Debug.Assert(File.Exists(filePath));
 
@@ -125,25 +116,24 @@ namespace ProdigalSoftware.TiVE.Plugins
                 return null;
             }
 
-            CSharpCodeProvider provider = new CSharpCodeProvider();
             CompilerParameters parameters = new CompilerParameters();
             parameters.ReferencedAssemblies.Add("System.dll");
+            parameters.ReferencedAssemblies.Add("System.Core.dll");
             parameters.ReferencedAssemblies.Add("TiVEPluginFramework.dll");
             parameters.ReferencedAssemblies.Add("Utils.dll");
             parameters.CompilerOptions = "/optimize";
             parameters.GenerateInMemory = true;
             parameters.GenerateExecutable = false;
+            parameters.IncludeDebugInformation = true;
+            CompilerResults results = codeCompiler.CompileAssemblyFromSource(parameters, pluginCode);
 
-            CompilerResults results = provider.CompileAssemblyFromSource(parameters, pluginCode);
             if (results.Errors.HasErrors)
             {
                 errorMessages = new List<string>();
                 errorMessages.Add(string.Format("File {0}:", fileName));
-                foreach (CompilerError error in results.Errors)
-                {
-                    if (!error.IsWarning)
-                        errorMessages.Add(string.Format("   {0},{1}: {2}", error.Line, error.Column, error.ErrorText));
-                }
+                errorMessages.AddRange(results.Errors.Cast<CompilerError>()
+                    .Where(error => !error.IsWarning)
+                    .Select(error => string.Format("   {0},{1}: {2}", error.Line, error.Column, error.ErrorText)));
                 return null;
             }
 

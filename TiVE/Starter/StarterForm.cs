@@ -32,32 +32,35 @@ namespace ProdigalSoftware.TiVE.Starter
             tbMessages.Enabled = false;
         }
 
+        /// <summary>
+        /// Called by the loading thread when initial loading is finished
+        /// </summary>
         public void AfterInitialLoad()
         {
             Invoke(new Action(() =>
+            {
+                foreach (string filePath in Directory.EnumerateFiles(Path.Combine(Path.GetDirectoryName(Assembly.GetEntryAssembly().Location), "Data"), "*.xml"))
                 {
-                    foreach (string filePath in Directory.EnumerateFiles(Path.Combine(Path.GetDirectoryName(Assembly.GetEntryAssembly().Location), "Data"), "*.xml"))
+                    try
                     {
-                        try
-                        {
-                            cmbProject.Items.Add(TiVEProject.FromFile(filePath));
-                        }
-                        catch (Exception e)
-                        {
-                            Messages.AddWarning("Unable to load project file " + Path.GetFileName(filePath));
-                            string message = e.Message;
-                            if (e.InnerException != null)
-                                message += " - " + e.InnerException.Message;
-                            Messages.AddWarning(message);
-                        }
+                        cmbProject.Items.Add(TiVEProject.FromFile(filePath));
                     }
+                    catch (Exception e)
+                    {
+                        Messages.AddWarning("Unable to load project file " + Path.GetFileName(filePath));
+                        string message = e.Message;
+                        if (e.InnerException != null)
+                            message += " - " + e.InnerException.Message;
+                        Messages.AddWarning(message);
+                    }
+                }
 
-                    if (cmbProject.Items.Count > 0)
-                        cmbProject.SelectedIndex = 0;
+                if (cmbProject.Items.Count > 0)
+                    cmbProject.SelectedIndex = 0;
 
-                    tbMessages.Enabled = true;
-                    InitializeOptions();
-                }));
+                tbMessages.Enabled = true;
+                InitializeOptions();
+            }));
         }
 
         /// <summary>
@@ -88,7 +91,7 @@ namespace ProdigalSoftware.TiVE.Starter
                 tabControl1.SelectedTab = tbMessages;
         }
 
-        private void Messages_TextCleared()
+        private static void Messages_TextCleared()
         {
             Messages.AddFontSizeChange(50);
             Messages.AddFontStyleChange(FontStyle.Bold);

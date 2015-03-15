@@ -32,6 +32,7 @@ namespace ProdigalSoftware.TiVE.Starter
         internal MessageViewControl()
         {
             InitializeComponent();
+            SetStyle(ControlStyles.OptimizedDoubleBuffer | ControlStyles.AllPaintingInWmPaint | ControlStyles.UserPaint | ControlStyles.ResizeRedraw, true);
             BackColor = Color.Black;
         }
         #endregion
@@ -70,8 +71,11 @@ namespace ProdigalSoftware.TiVE.Starter
 
             Action updateView = () =>
             {
+                // Remove and add the item to recalculate it's size.
+                BeginUpdate();
                 Items.RemoveAt(Items.Count - 1);
                 Items.Add(currentLine);
+                EndUpdate();
                 TopIndex = Items.Count - 1;
             };
             
@@ -119,17 +123,33 @@ namespace ProdigalSoftware.TiVE.Starter
 
         #region Overridden methods
 
+        protected override void OnPaint(PaintEventArgs e)
+        {
+            e.Graphics.FillRectangle(s_backgroundBrush, e.ClipRectangle);
+            if (Items.Count > 0)
+            {
+                for (int i = 0; i < Items.Count; ++i)
+                {
+                    Rectangle irect = GetItemRectangle(i);
+                    if (e.ClipRectangle.IntersectsWith(irect))
+                        OnDrawItem(new DrawItemEventArgs(e.Graphics, Font, irect, i, DrawItemState.Default, ForeColor, BackColor));
+                }
+            }
+            base.OnPaint(e);
+        }
+
         protected override void OnDrawItem(DrawItemEventArgs e)
         {
-            e.Graphics.FillRectangle(s_backgroundBrush, e.Bounds);
             if (e.Index > 4)
             {
-                e.Graphics.DrawLine(s_baselinePen, TextState.MarginWidth, e.Bounds.Bottom - 1
-                    , e.Bounds.Width - TextState.MarginWidth, e.Bounds.Bottom - 1);
+                e.Graphics.DrawLine(s_baselinePen, TextState.MarginWidth, e.Bounds.Bottom - 1, 
+                    e.Bounds.Width - TextState.MarginWidth, e.Bounds.Bottom - 1);
             }
 
             TextState state = new TextState(e.Bounds.Width, DEFAULT_FONT, e.Bounds.X, e.Bounds.Y);
             ((MessageLine)Items[e.Index]).Draw(state, e.Graphics);
+
+            base.OnDrawItem(e);
         }
 
         protected override void OnMeasureItem(MeasureItemEventArgs e)
