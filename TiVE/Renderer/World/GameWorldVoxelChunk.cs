@@ -138,8 +138,6 @@ namespace ProdigalSoftware.TiVE.Renderer.World
 
             GameWorld gameWorld = renderer.GameWorld;
             BlockList blockList = renderer.BlockList;
-            LightProvider lightProvider = renderer.LightProvider;
-            VoxelMeshHelper meshHelper = VoxelMeshHelper.Get(false);
 
             int blockStartX = chunkLoc.X * BlockSize;
             int blockEndX = Math.Min((chunkLoc.X + 1) * BlockSize, gameWorld.BlockSize.X);
@@ -152,16 +150,9 @@ namespace ProdigalSoftware.TiVE.Renderer.World
             int voxelStartY = blockStartY * BlockInformation.VoxelSize;
             int voxelStartZ = blockStartZ * BlockInformation.VoxelSize;
 
-            int voxelSize = 1 << voxelDetailLevel;
-            int maxVoxelX = gameWorld.VoxelSize.X - 1 - voxelSize;
-            int maxVoxelY = gameWorld.VoxelSize.Y - 1 - voxelSize;
-            int maxVoxelZ = gameWorld.VoxelSize.Z - 1 - voxelSize;
-
             int voxelCount = 0;
             int renderedVoxelCount = 0;
             int polygonCount = 0;
-            int maxBlockVoxelSize = BlockInformation.VoxelSize - voxelSize;
-            
             for (int blockZ = blockEndZ - 1; blockZ >= blockStartZ; blockZ--)
             {
                 if (deleted)
@@ -176,102 +167,13 @@ namespace ProdigalSoftware.TiVE.Renderer.World
                             continue;
 
                         BlockInformation block = blockList[blockIndex];
-                        if (block.NextBlock != null)
-                            continue;
+                        //if (block.NextBlock != null)
+                        //    continue;
 
-                        bool blockIsLit = block.IsLIt;
                         voxelCount += block.TotalVoxels;
 
-                        //for (int bz = BlockInformation.VoxelSize - 1; bz >= 0; bz -= voxelSize)
-                        for (int bz = 0; bz < BlockInformation.VoxelSize; bz += voxelSize)
-                        {
-                            int voxelZ = blockZ * BlockInformation.VoxelSize + bz;
-                            byte chunkVoxelZ = (byte)(voxelZ - voxelStartZ);
-                            for (int bx = 0; bx < BlockInformation.VoxelSize; bx += voxelSize)
-                            {
-                                int voxelX = blockX * BlockInformation.VoxelSize + bx;
-                                byte chunkVoxelX = (byte)(voxelX - voxelStartX);
-                                for (int by = 0; by < BlockInformation.VoxelSize; by += voxelSize)
-                                {
-                                    uint color = block[bx, by, bz];
-                                    if (color == 0)
-                                        continue;
-                                    
-                                    int voxelY = blockY * BlockInformation.VoxelSize + by;
-
-                                    VoxelSides sides = VoxelSides.None;
-
-                                    // Check to see if the back side is visible
-                                    if (bz >= voxelSize)
-                                    {
-                                        if (block[bx, by, bz - voxelSize] == 0)
-                                            sides |= VoxelSides.Back;
-                                    }
-                                    else if (voxelZ >= voxelSize && gameWorld.GetVoxel(voxelX, voxelY, voxelZ - voxelSize) == 0)
-                                        sides |= VoxelSides.Back;
-
-                                    // Check to see if the front side is visible
-                                    if (bz < maxBlockVoxelSize)
-                                    {
-                                        if (block[bx, by, bz + voxelSize] == 0)
-                                            sides |= VoxelSides.Front;
-                                    }
-                                    else if (voxelZ <= maxVoxelZ && gameWorld.GetVoxel(voxelX, voxelY, voxelZ + voxelSize) == 0)
-                                        sides |= VoxelSides.Front;
-
-                                    // Check to see if the left side is visible
-                                    if (bx >= voxelSize)
-                                    {
-                                        if (block[bx - voxelSize, by, bz] == 0)
-                                            sides |= VoxelSides.Left;
-                                    }
-                                    else if (voxelX >= voxelSize && gameWorld.GetVoxel(voxelX - voxelSize, voxelY, voxelZ) == 0)
-                                        sides |= VoxelSides.Left;
-
-                                    // Check to see if the right side is visible
-                                    if (bx < maxBlockVoxelSize)
-                                    {
-                                        if (block[bx + voxelSize, by, bz] == 0)
-                                            sides |= VoxelSides.Right;
-                                    }
-                                    else if (voxelX <= maxVoxelX && gameWorld.GetVoxel(voxelX + voxelSize, voxelY, voxelZ) == 0)
-                                        sides |= VoxelSides.Right;
-
-                                    // Check to see if the bottom side is visible
-                                    if (by >= voxelSize)
-                                    {
-                                        if (block[bx, by - voxelSize, bz] == 0)
-                                            sides |= VoxelSides.Bottom;
-                                    }
-                                    else if (voxelY >= voxelSize && gameWorld.GetVoxel(voxelX, voxelY - voxelSize, voxelZ) == 0)
-                                        sides |= VoxelSides.Bottom;
-
-                                    // Check to see if the top side is visible
-                                    if (by < maxBlockVoxelSize)
-                                    {
-                                        if (block[bx, by + voxelSize, bz] == 0)
-                                            sides |= VoxelSides.Top;
-                                    }
-                                    else if (voxelY <= maxVoxelY && gameWorld.GetVoxel(voxelX, voxelY + voxelSize, voxelZ) == 0)
-                                        sides |= VoxelSides.Top;
-
-                                    if (sides != VoxelSides.None)
-                                    {
-                                        Color3f lightColor = blockIsLit ? 
-                                            lightProvider.GetLightAt(voxelX, voxelY, voxelZ, voxelSize, blockX, blockY, blockZ, sides) :
-                                            Color3f.White;
-                                        byte a = (byte)((color >> 24) & 0xFF);
-                                        byte r = (byte)Math.Min(255, (int)(((color >> 16) & 0xFF) * lightColor.R));
-                                        byte g = (byte)Math.Min(255, (int)(((color >> 8) & 0xFF) * lightColor.G));
-                                        byte b = (byte)Math.Min(255, (int)(((color >> 0) & 0xFF) * lightColor.B));
-
-                                        polygonCount += meshHelper.AddVoxel(newMeshBuilder, sides,
-                                            chunkVoxelX, (byte)(voxelY - voxelStartY), chunkVoxelZ, new Color4b(r, g, b, a), voxelSize);
-                                        renderedVoxelCount++;
-                                    }
-                                }
-                            }
-                        }
+                        CreateMeshForBlock(block, blockX, blockY, blockZ, voxelStartX, voxelStartY, voxelStartZ, voxelDetailLevel,
+                            renderer, newMeshBuilder, ref polygonCount, ref renderedVoxelCount);
                     }
                 }
             }
@@ -301,6 +203,157 @@ namespace ProdigalSoftware.TiVE.Renderer.World
                     chunkRenderedVoxelCount = renderedVoxelCount;
                 }
             }
+        }
+
+        private static void CreateMeshForBlock(BlockInformation block, int blockX, int blockY, int blockZ,
+            int voxelStartX, int voxelStartY, int voxelStartZ, int voxelDetailLevel, IGameWorldRenderer renderer, 
+            MeshBuilder newMeshBuilder, ref int polygonCount, ref int renderedVoxelCount)
+        {
+            GameWorld gameWorld = renderer.GameWorld;
+            LightProvider lightProvider = renderer.LightProvider;
+            VoxelMeshHelper meshHelper = VoxelMeshHelper.Get(false);
+
+            int voxelSize = 1 << voxelDetailLevel;
+            int maxVoxelX = gameWorld.VoxelSize.X - 1 - voxelSize;
+            int maxVoxelY = gameWorld.VoxelSize.Y - 1 - voxelSize;
+            int maxVoxelZ = gameWorld.VoxelSize.Z - 1 - voxelSize;
+            int maxBlockVoxelSize = BlockInformation.VoxelSize - voxelSize;
+
+            bool blockIsLit = block.IsLIt;
+            //for (int bz = BlockInformation.VoxelSize - 1; bz >= 0; bz -= voxelSize)
+            for (int bvz = 0; bvz < BlockInformation.VoxelSize; bvz += voxelSize)
+            {
+                int voxelZ = blockZ * BlockInformation.VoxelSize + bvz;
+                byte chunkVoxelZ = (byte)(voxelZ - voxelStartZ);
+                for (int bvx = 0; bvx < BlockInformation.VoxelSize; bvx += voxelSize)
+                {
+                    int voxelX = blockX * BlockInformation.VoxelSize + bvx;
+                    byte chunkVoxelX = (byte)(voxelX - voxelStartX);
+                    for (int bvy = 0; bvy < BlockInformation.VoxelSize; bvy += voxelSize)
+                    {
+                        uint color = voxelSize == 1 ? block[bvx, bvy, bvz] : GetLODVoxelColor(block, bvz, bvx, bvy, voxelSize);
+                        if (color == 0)
+                            continue;
+
+                        int voxelY = blockY * BlockInformation.VoxelSize + bvy;
+
+                        VoxelSides sides = VoxelSides.None;
+
+                        // Check to see if the back side is visible
+                        if (bvz >= voxelSize)
+                        {
+                            if (block[bvx, bvy, bvz - voxelSize] == 0)
+                                sides |= VoxelSides.Back;
+                        }
+                        else if (voxelZ >= voxelSize && gameWorld.GetVoxel(voxelX, voxelY, voxelZ - voxelSize) == 0)
+                            sides |= VoxelSides.Back;
+
+                        // Check to see if the front side is visible
+                        if (bvz < maxBlockVoxelSize)
+                        {
+                            if (block[bvx, bvy, bvz + voxelSize] == 0)
+                                sides |= VoxelSides.Front;
+                        }
+                        else if (voxelZ <= maxVoxelZ && gameWorld.GetVoxel(voxelX, voxelY, voxelZ + voxelSize) == 0)
+                            sides |= VoxelSides.Front;
+
+                        // Check to see if the left side is visible
+                        if (bvx >= voxelSize)
+                        {
+                            if (block[bvx - voxelSize, bvy, bvz] == 0)
+                                sides |= VoxelSides.Left;
+                        }
+                        else if (voxelX >= voxelSize && gameWorld.GetVoxel(voxelX - voxelSize, voxelY, voxelZ) == 0)
+                            sides |= VoxelSides.Left;
+
+                        // Check to see if the right side is visible
+                        if (bvx < maxBlockVoxelSize)
+                        {
+                            if (block[bvx + voxelSize, bvy, bvz] == 0)
+                                sides |= VoxelSides.Right;
+                        }
+                        else if (voxelX <= maxVoxelX && gameWorld.GetVoxel(voxelX + voxelSize, voxelY, voxelZ) == 0)
+                            sides |= VoxelSides.Right;
+
+                        // Check to see if the bottom side is visible
+                        if (bvy >= voxelSize)
+                        {
+                            if (block[bvx, bvy - voxelSize, bvz] == 0)
+                                sides |= VoxelSides.Bottom;
+                        }
+                        else if (voxelY >= voxelSize && gameWorld.GetVoxel(voxelX, voxelY - voxelSize, voxelZ) == 0)
+                            sides |= VoxelSides.Bottom;
+
+                        // Check to see if the top side is visible
+                        if (bvy < maxBlockVoxelSize)
+                        {
+                            if (block[bvx, bvy + voxelSize, bvz] == 0)
+                                sides |= VoxelSides.Top;
+                        }
+                        else if (voxelY <= maxVoxelY && gameWorld.GetVoxel(voxelX, voxelY + voxelSize, voxelZ) == 0)
+                            sides |= VoxelSides.Top;
+
+                        if (sides != VoxelSides.None)
+                        {
+                            Color3f lightColor = blockIsLit ?
+                                lightProvider.GetLightAt(voxelX, voxelY, voxelZ, voxelSize, blockX, blockY, blockZ, sides) : Color3f.White;
+                            byte a = (byte)((color >> 24) & 0xFF);
+                            byte r = (byte)Math.Min(255, (int)(((color >> 16) & 0xFF) * lightColor.R));
+                            byte g = (byte)Math.Min(255, (int)(((color >> 8) & 0xFF) * lightColor.G));
+                            byte b = (byte)Math.Min(255, (int)(((color >> 0) & 0xFF) * lightColor.B));
+
+                            polygonCount += meshHelper.AddVoxel(newMeshBuilder, sides,
+                                chunkVoxelX, (byte)(voxelY - voxelStartY), chunkVoxelZ, new Color4b(r, g, b, a), voxelSize);
+                            renderedVoxelCount++;
+                        }
+                    }
+                }
+            }
+        }
+
+        private static uint GetLODVoxelColor(BlockInformation block, int bvz, int bvx, int bvy, int voxelSize)
+        {
+            uint color;
+            int voxelsFound = 0;
+            int maxA = 0;
+            int totalR = 0;
+            int totalG = 0;
+            int totalB = 0;
+            int maxX = bvx + voxelSize;
+            int maxY = bvy + voxelSize;
+            int maxZ = bvz + voxelSize;
+            //for (int z = bz; z > bz - voxelSize; z--)
+            for (int z = bvz; z < maxZ; z++)
+            {
+                for (int x = bvx; x < maxX; x++)
+                {
+                    for (int y = bvy; y < maxY; y++)
+                    {
+                        uint otherColor = block[x, y, z];
+                        if (otherColor == 0)
+                            continue;
+
+                        voxelsFound++;
+                        int a = (int)((otherColor >> 24) & 0xFF);
+                        totalR += (int)((otherColor >> 16) & 0xFF);
+                        totalG += (int)((otherColor >> 8) & 0xFF);
+                        totalB += (int)((otherColor >> 0) & 0xFF);
+                        if (a > maxA)
+                            maxA = a;
+                    }
+                }
+            }
+
+            if (voxelsFound == 0) // Prevent divide-by-zero
+                color = 0;
+            else
+            {
+                color = (uint)((maxA & 0xFF) << 24 |
+                    ((totalR / voxelsFound) & 0xFF) << 16 |
+                    ((totalG / voxelsFound) & 0xFF) << 8 |
+                    ((totalB / voxelsFound) & 0xFF));
+            }
+            return color;
         }
 
         public override string ToString()

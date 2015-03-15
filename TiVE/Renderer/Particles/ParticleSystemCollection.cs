@@ -226,6 +226,10 @@ namespace ProdigalSoftware.TiVE.Renderer.Particles
         }
         #endregion
 
+        #region ParticleSystemSorter class
+        /// <summary>
+        /// Helper class for sorting particles by their distance from the camera
+        /// </summary>
         private sealed class ParticleSystemSorter : IComparer<ParticleSystem>
         {
             public Vector3i CameraLocation;
@@ -253,5 +257,6 @@ namespace ProdigalSoftware.TiVE.Renderer.Particles
                 return p2DistSquared - p1DistSquared;
             }
         }
+        #endregion
     }
 }

@@ -7,7 +7,7 @@ using ProdigalSoftware.Utils;
 
 namespace ProdigalSoftware.ProjectM.Plugins
 {
-    public class DefaultBlockLoader : IBlockGenerator
+    public class StressTestBlockLoader : IBlockGenerator
     {
         private static readonly Random random = new Random();
 
@@ -20,6 +20,9 @@ namespace ProdigalSoftware.ProjectM.Plugins
 
         public IEnumerable<BlockInformation> CreateBlocks(string blockListName)
         {
+            if (blockListName != "stress")
+                yield break;
+
             const bool forFantasyLighting = true;
 
             byte blockCenter = BlockInformation.VoxelSize / 2;
@@ -36,13 +39,13 @@ namespace ProdigalSoftware.ProjectM.Plugins
 
             for (int i = 0; i < 5; i++)
             {
-                yield return CreateBlockInfo("back" + i, false, 0, new Color4f(235, 235, 235, 255), 1.0f,
+                yield return CreateBlockInfo("back" + i, true, 0, new Color4f(235, 235, 235, 255), 1.0f,
                     new ParticleSystemInformation(particleVoxels, new SnowUpdater(), new Vector3b(0, 0, 0), 100, 1, TransparencyType.None, true));
             }
 
             BlockInformation fireBlock = new BlockInformation("fire", 
                 new ParticleSystemInformation(particleVoxels, new FireUpdater(), new Vector3b(blockCenter, blockCenter, 1), 300, 400, TransparencyType.Additive, false),
-                new PointLight(new Vector3b(blockCenter, blockCenter, 2), new Color3f(1.0f, 0.8f, 0.6f), forFantasyLighting ? 5 : 10));
+                new PointLight(new Vector3b(blockCenter, blockCenter, 4), new Color3f(1.0f, 0.8f, 0.6f), forFantasyLighting ? 5 : 10));
             yield return fireBlock;
 
             yield return CreateBlockInfo("light0", false, 2, new Color4f(255, 255, 255, 255), 1.0f, null,
@@ -80,6 +83,9 @@ namespace ProdigalSoftware.ProjectM.Plugins
 
         public IEnumerable<BlockAnimationDefinition> CreateAnimations(string blockListName)
         {
+            if (blockListName != "stress")
+                yield break;
+
             yield return new BlockAnimationDefinition(100, "sand0", "sand1", "sand2", "sand3", "sand0");
         }
 

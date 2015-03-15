@@ -34,7 +34,7 @@
             // 
             this.DrawMode = System.Windows.Forms.DrawMode.OwnerDrawVariable;
             this.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.IntegralHeight = true;
+            this.IntegralHeight = false;
             this.ScrollAlwaysVisible = true;
             this.SelectionMode = System.Windows.Forms.SelectionMode.None;
             this.Size = new System.Drawing.Size(600, 50);
