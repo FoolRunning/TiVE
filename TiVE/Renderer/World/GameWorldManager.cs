@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using ProdigalSoftware.TiVE.Starter;
 using ProdigalSoftware.TiVEPluginFramework;
 
@@ -49,38 +50,42 @@ namespace ProdigalSoftware.TiVE.Renderer.World
             }
 
             Messages.Print("Loading world " + gameWorldName + "...");
+            Stopwatch sw = Stopwatch.StartNew();
             try
             {
                 foreach (IWorldGenerator generator in TiVEController.PluginManager.GetPluginsOfType<IWorldGenerator>())
                 {
                     GameWorld createdWorld = generator.CreateGameWorld(gameWorldName, blockList);
-                    if (createdWorld != null)
+                    if (createdWorld == null)
+                        continue;
+
+                    sw.Stop();
+
+                    Messages.AddDoneText();
+
+                    long totalVoxels = 0;
+                    int totalBlocks = 0;
+                    for (int wz = 0; wz < createdWorld.BlockSize.Z; wz++)
                     {
-                        Messages.AddDoneText();
-                        
-                        long totalVoxels = 0;
-                        int totalBlocks = 0;
-                        for (int wz = 0; wz < createdWorld.BlockSize.Z; wz++)
+                        for (int wx = 0; wx < createdWorld.BlockSize.X; wx++)
                         {
-                            for (int wx = 0; wx < createdWorld.BlockSize.X; wx++)
+                            for (int wy = 0; wy < createdWorld.BlockSize.Y; wy++)
                             {
-                                for (int wy = 0; wy < createdWorld.BlockSize.Y; wy++)
+                                ushort block = createdWorld[wx, wy, wz];
+                                if (block != 0)
                                 {
-                                    ushort block = createdWorld[wx, wy, wz];
-                                    if (block != 0)
-                                    {
-                                        totalBlocks++;
-                                        totalVoxels += blockList[block].TotalVoxels;
-                                    }
+                                    totalBlocks++;
+                                    totalVoxels += blockList[block].TotalVoxels;
                                 }
                             }
                         }
-
-                        Messages.AddDebug(string.Format("Blocks in world: {0:N0}", totalBlocks));
-                        Messages.AddDebug(string.Format("Voxels in world: {0:N0}", totalVoxels));
-
-                        return createdWorld;
                     }
+
+                    Messages.AddDebug(string.Format("Loading world took {0}ms", sw.ElapsedMilliseconds));
+                    Messages.AddDebug(string.Format("Blocks in world: {0:N0}", totalBlocks));
+                    Messages.AddDebug(string.Format("Voxels in world: {0:N0}", totalVoxels));
+
+                    return createdWorld;
                 }
             }
             catch (Exception e)

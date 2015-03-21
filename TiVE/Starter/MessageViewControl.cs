@@ -125,7 +125,7 @@ namespace ProdigalSoftware.TiVE.Starter
 
         protected override void OnPaint(PaintEventArgs e)
         {
-            e.Graphics.FillRectangle(s_backgroundBrush, e.ClipRectangle);
+            //e.Graphics.FillRectangle(s_backgroundBrush, e.ClipRectangle);
             if (Items.Count > 0)
             {
                 for (int i = 0; i < Items.Count; ++i)
@@ -135,11 +135,12 @@ namespace ProdigalSoftware.TiVE.Starter
                         OnDrawItem(new DrawItemEventArgs(e.Graphics, Font, irect, i, DrawItemState.Default, ForeColor, BackColor));
                 }
             }
-            base.OnPaint(e);
+            //base.OnPaint(e);
         }
 
         protected override void OnDrawItem(DrawItemEventArgs e)
         {
+            e.Graphics.FillRectangle(s_backgroundBrush, e.Bounds);
             if (e.Index > 4)
             {
                 e.Graphics.DrawLine(s_baselinePen, TextState.MarginWidth, e.Bounds.Bottom - 1, 
@@ -149,7 +150,7 @@ namespace ProdigalSoftware.TiVE.Starter
             TextState state = new TextState(e.Bounds.Width, DEFAULT_FONT, e.Bounds.X, e.Bounds.Y);
             ((MessageLine)Items[e.Index]).Draw(state, e.Graphics);
 
-            base.OnDrawItem(e);
+            //base.OnDrawItem(e);
         }
 
         protected override void OnMeasureItem(MeasureItemEventArgs e)

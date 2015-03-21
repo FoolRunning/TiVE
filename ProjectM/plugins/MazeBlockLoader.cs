@@ -23,7 +23,10 @@ namespace ProdigalSoftware.ProjectM.Plugins
             if (blockListName != "maze")
                 yield break;
 
-            byte bc = BlockInformation.VoxelSize / 2;
+            const byte bc = BlockInformation.VoxelSize / 2;
+            const int mv = BlockInformation.VoxelSize - 1;
+            const uint mortarColor = 0xFFAFAFAF;
+
             Vector3b blockCenterVector = new Vector3b(bc, bc, bc);
             uint[, ,] particleVoxels = new uint[1, 1, 1];
             particleVoxels[0, 0, 0] = 0xFFFFFFFF;
@@ -31,13 +34,121 @@ namespace ProdigalSoftware.ProjectM.Plugins
             {
                 yield return CreateBlockInfo("lava" + i, new Color4f(200, 15, 8, 255), 1.0f, i,
                     new PointLight(new Vector3b(bc, bc, bc), new Color3f(0.2f, 0.01f, 0.001f), 4));
-                yield return CreateBlockInfo("ston" + i, new Color4f(220, 220, 220, 255), 1.0f, i);
+                BlockInformation stone = CreateBlockInfo("ston" + i, new Color4f(220, 220, 220, 255), 1.0f, i);
+                for (int x = 0; x <= mv; x++)
+                {
+                    for (int y = 0; y <= mv; y++)
+                    {
+                        if ((i & Bottom) != 0)
+                        {
+                            stone[x, 0, 0] = 0;
+                            stone[x, 0, 1] = 0;
+                            stone[x, 0, mv] = 0;
+
+                            stone[x, 0, bc] = 0;
+                            stone[x, 0, bc - 1] = 0;
+                            stone[x, 0, bc + 1] = 0;
+                        }
+
+                        if ((i & Top) != 0)
+                        {
+                            stone[x, mv, 0] = 0;
+                            stone[x, mv, 1] = 0;
+                            stone[x, mv, mv] = 0;
+
+                            stone[x, mv, bc] = 0;
+                            stone[x, mv, bc - 1] = 0;
+                            stone[x, mv, bc + 1] = 0;
+                        }
+
+                        if ((i & Left) != 0)
+                        {
+                            stone[0, y, 0] = 0;
+                            stone[0, y, 1] = 0;
+                            stone[0, y, mv] = 0;
+
+                            stone[0, y, bc] = 0;
+                            stone[0, y, bc - 1] = 0;
+                            stone[0, y, bc + 1] = 0;
+                        }
+
+                        if ((i & Right) != 0)
+                        {
+                            stone[mv, y, 0] = 0;
+                            stone[mv, y, 1] = 0;
+                            stone[mv, y, mv] = 0;
+
+                            stone[mv, y, bc] = 0;
+                            stone[mv, y, bc - 1] = 0;
+                            stone[mv, y, bc + 1] = 0;
+                        }
+
+                        ReplaceVoxel(stone, x, y, 0, mortarColor);
+                        ReplaceVoxel(stone, x, y, bc, mortarColor);
+                    }
+                }
+                for (int n = 0; n <= mv; n++)
+                {
+                    for (int z = 0; z < bc; z++)
+                    {
+                        if ((i & Bottom) != 0)
+                        {
+                            stone[bc - 5, 0, z] = 0;
+                            stone[bc - 4, 0, z] = 0;
+                            stone[bc - 3, 0, z] = 0;
+
+                            stone[bc + 3, 0, z + bc] = 0;
+                            stone[bc + 4, 0, z + bc] = 0;
+                            stone[bc + 5, 0, z + bc] = 0;
+                        }
+
+                        if ((i & Top) != 0)
+                        {
+                            stone[bc - 5, mv, z] = 0;
+                            stone[bc - 4, mv, z] = 0;
+                            stone[bc - 3, mv, z] = 0;
+
+                            stone[bc + 3, mv, z + bc] = 0;
+                            stone[bc + 4, mv, z + bc] = 0;
+                            stone[bc + 5, mv, z + bc] = 0;
+                        }
+
+                        if ((i & Left) != 0)
+                        {
+                            stone[0, bc - 5, z] = 0;
+                            stone[0, bc - 4, z] = 0;
+                            stone[0, bc - 3, z] = 0;
+
+                            stone[0, bc + 3, z + bc] = 0;
+                            stone[0, bc + 4, z + bc] = 0;
+                            stone[0, bc + 5, z + bc] = 0;
+                        }
+
+                        if ((i & Right) != 0)
+                        {
+                            stone[mv, bc - 5, z] = 0;
+                            stone[mv, bc - 4, z] = 0;
+                            stone[mv, bc - 3, z] = 0;
+
+                            stone[mv, bc + 3, z + bc] = 0;
+                            stone[mv, bc + 4, z + bc] = 0;
+                            stone[mv, bc + 5, z + bc] = 0;
+                        }
+
+                        ReplaceVoxel(stone, bc - 4, n, z, mortarColor);
+                        ReplaceVoxel(stone, bc + 4, n, z + bc, mortarColor);
+
+                        ReplaceVoxel(stone, n, bc - 4, z, mortarColor);
+                        ReplaceVoxel(stone, n, bc + 4, z + bc, mortarColor);
+                    }
+                }
+                yield return stone;
                 //yield return CreateBlockInfo("sand" + i, new Color4f(120, 100, 20, 255), 0.1f, i);
             }
 
             for (int i = 0; i < 6; i++)
             {
-                yield return CreateBlockInfo("back" + i, 0, new Color4f(20, 200, 20, 255), 1.0f, null, null, BlockInformation.VoxelSize - 2);
+                yield return CreateBlockInfo("back" + i, 0, new Color4f(20, 200, 20, 255), 1.0f, null, null, mv - 1);
                 yield return CreateBlockInfo("grass" + i, 0, new Color4f(20, 200, 20, 255), 0.2f, null, null, 0, 3);
             }
 
@@ -48,7 +159,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
 
             yield return CreateBlockInfo("light0", 3, new Color4f(230, 179, 255, 255), 1.0f, 
                 new ParticleSystemInformation(particleVoxels, new LightBugsUpdater(), new Vector3b(bc, bc, bc), 15, 10, TransparencyType.Realistic, true),
-                new PointLight(blockCenterVector, new Color3f(0.9f, 0.7f, 1.0f), 6));
+                new PointLight(blockCenterVector, new Color3f(0.9f, 0.7f, 1.0f), 7));
 
             yield return CreateBlockInfo("light1", 2, new Color4f(255, 255, 0, 255), 1.0f, null,
                 new PointLight(blockCenterVector, new Color3f(1.0f, 1.0f, 0.0f), 15));
@@ -76,13 +187,19 @@ namespace ProdigalSoftware.ProjectM.Plugins
             particleVoxels[1, 2, 1] = 0xFFFFFFFF;
             particleVoxels[1, 1, 0] = 0xFFFFFFFF;
             particleVoxels[1, 1, 2] = 0xFFFFFFFF;
-            yield return CreateBlockInfo("fountain", BlockInformation.VoxelSize / 2, new Color4f(20, 20, 150, 255), 1.0f,
+            yield return CreateBlockInfo("fountain", bc, new Color4f(20, 20, 150, 255), 1.0f,
                 new ParticleSystemInformation(particleVoxels, new FountainUpdater(), new Vector3b(bc, bc, 13), 100, 300, TransparencyType.Realistic, true));
         }
 
         public IEnumerable<BlockAnimationDefinition> CreateAnimations(string blockListName)
         {
             yield break;
+        }
+
+        private static void ReplaceVoxel(BlockInformation block, int x, int y, int z, uint newVoxel)
+        {
+            if (block[x, y, z] != 0)
+                block[x, y, z] = newVoxel;
         }
 
         private static BlockInformation CreateBlockInfo(string name, Color4f color, float voxelDensity, int sides, ILight light = null)

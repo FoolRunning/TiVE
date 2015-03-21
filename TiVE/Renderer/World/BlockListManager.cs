@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System.Diagnostics;
+using System.IO;
 using System.Reflection;
 using ProdigalSoftware.TiVE.Starter;
 using ProdigalSoftware.TiVEPluginFramework;
@@ -13,6 +14,7 @@ namespace ProdigalSoftware.TiVE.Renderer.World
         {
             Messages.Print(string.Format("Loading block list {0}...", blockListName));
 
+            Stopwatch sw = Stopwatch.StartNew();
             string blockFilePath = Path.Combine(Path.GetDirectoryName(Assembly.GetEntryAssembly().Location), 
                 "Data", BlockDirName, blockListName + "." + BlockList.FileExtension);
 
@@ -31,7 +33,9 @@ namespace ProdigalSoftware.TiVE.Renderer.World
                 return null;
             }
 
+            sw.Stop();
             Messages.AddDoneText();
+            Messages.AddDebug(string.Format("Loading {0} blocks took {1}ms", blockList.BlockCount, sw.ElapsedMilliseconds));
             return blockList;
         }
     }
