@@ -273,7 +273,7 @@ namespace ProdigalSoftware.TiVE.Renderer.Lighting
                         break;
                     LightInfo lightInfo = lights[lightIndex];
 
-                    if (NoVoxelInLine(lightInfo.VoxelLocX, lightInfo.VoxelLocY, lightInfo.VoxelLocZ, world, voxelX, voxelY, voxelZ))
+                    if (world.NoVoxelInLine(lightInfo.VoxelLocX, lightInfo.VoxelLocY, lightInfo.VoxelLocZ, voxelX, voxelY, voxelZ))
                         color += lightInfo.LightColor * lightModel.GetLightPercentage(lightInfo, voxelX, voxelY, voxelZ);
                     else
                     {
@@ -306,15 +306,15 @@ namespace ProdigalSoftware.TiVE.Renderer.Lighting
                         break;
 
                     LightInfo lightInfo = lights[lightIndex];
-                    int x = lightInfo.VoxelLocX;
-                    int y = lightInfo.VoxelLocY;
-                    int z = lightInfo.VoxelLocZ;
-                    if ((availableMinusX && lightInfo.VoxelLocX <= voxelX && NoVoxelInLine(x, y, z, world, voxelX - 1, voxelY, voxelZ)) ||
-                        (availableMinusY && lightInfo.VoxelLocY <= voxelY && NoVoxelInLine(x, y, z, world, voxelX, voxelY - 1, voxelZ)) ||
-                        (availableMinusZ && lightInfo.VoxelLocZ <= voxelZ && NoVoxelInLine(x, y, z, world, voxelX, voxelY, voxelZ - 1)) ||
-                        (availablePlusX && lightInfo.VoxelLocX >= voxelX && NoVoxelInLine(x, y, z, world, voxelX + voxelSize, voxelY, voxelZ)) ||
-                        (availablePlusY && lightInfo.VoxelLocY >= voxelY && NoVoxelInLine(x, y, z, world, voxelX, voxelY + voxelSize, voxelZ)) ||
-                        (availablePlusZ && lightInfo.VoxelLocZ >= voxelZ && NoVoxelInLine(x, y, z, world, voxelX, voxelY, voxelZ + voxelSize)))
+                    int lx = lightInfo.VoxelLocX;
+                    int ly = lightInfo.VoxelLocY;
+                    int lz = lightInfo.VoxelLocZ;
+                    if ((availableMinusX && lightInfo.VoxelLocX <= voxelX && world.NoVoxelInLine(lx, ly, lz, voxelX - 1, voxelY, voxelZ)) ||
+                        (availableMinusY && lightInfo.VoxelLocY <= voxelY && world.NoVoxelInLine(lx, ly, lz, voxelX, voxelY - 1, voxelZ)) ||
+                        (availableMinusZ && lightInfo.VoxelLocZ <= voxelZ && world.NoVoxelInLine(lx, ly, lz, voxelX, voxelY, voxelZ - 1)) ||
+                        (availablePlusX && lightInfo.VoxelLocX >= voxelX && world.NoVoxelInLine(lx, ly, lz, voxelX + voxelSize, voxelY, voxelZ)) ||
+                        (availablePlusY && lightInfo.VoxelLocY >= voxelY && world.NoVoxelInLine(lx, ly, lz, voxelX, voxelY + voxelSize, voxelZ)) ||
+                        (availablePlusZ && lightInfo.VoxelLocZ >= voxelZ && world.NoVoxelInLine(lx, ly, lz, voxelX, voxelY, voxelZ + voxelSize)))
                     {
                         color += lightInfo.LightColor * lightModel.GetLightPercentage(lightInfo, voxelX, voxelY, voxelZ);
                     }
@@ -326,64 +326,6 @@ namespace ProdigalSoftware.TiVE.Renderer.Lighting
                     }
                 }
                 return color;
-            }
-
-            /// <summary>
-            /// Voxel transversal algorithm taken from: http://www.cse.chalmers.se/edu/year/2011/course/TDA361_Computer_Graphics/grid.pdf
-            /// Modified with small optimizations for TiVE.
-            /// </summary>
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            private static bool NoVoxelInLine(int x, int y, int z, GameWorld gameWorld, int voxelX, int voxelY, int voxelZ)
-            {
-                if (x == voxelX && y == voxelY && z == voxelZ)
-                    return true;
-
-                int stepX = x < voxelX ? 1 : -1;
-                int stepY = y < voxelY ? 1 : -1;
-                int stepZ = z < voxelZ ? 1 : -1;
-
-                // Because all voxels in TiVE have a size of 1.0, this simplifies the calculation of the delta considerably.
-                // We also don't have to worry about specifically handling a divide-by-zero as .Net makes the result Infinity
-                // which works just fine for this algorithm.
-                float tDeltaX = 1.0f / Math.Abs(voxelX - x);
-                float tDeltaY = 1.0f / Math.Abs(voxelY - y);
-                float tDeltaZ = 1.0f / Math.Abs(voxelZ - z);
-                float tMaxX = tDeltaX;
-                float tMaxY = tDeltaY;
-                float tMaxZ = tDeltaZ;
-
-                do
-                {
-                    if (tMaxX < tMaxY)
-                    {
-                        if (tMaxX < tMaxZ)
-                        {
-                            x = x + stepX;
-                            tMaxX = tMaxX + tDeltaX;
-                        }
-                        else
-                        {
-                            z = z + stepZ;
-                            tMaxZ = tMaxZ + tDeltaZ;
-                        }
-                    }
-                    else if (tMaxY < tMaxZ)
-                    {
-                        y = y + stepY;
-                        tMaxY = tMaxY + tDeltaY;
-                    }
-                    else
-                    {
-                        z = z + stepZ;
-                        tMaxZ = tMaxZ + tDeltaZ;
-                    }
-
-                    if (x == voxelX && y == voxelY && z == voxelZ)
-                        return true;
-                }
-                while (gameWorld.VoxelEmptyForLighting(x, y, z));
-
-                return false;
             }
         }
         #endregion

@@ -27,7 +27,7 @@ namespace ProdigalSoftware.TiVEPluginFramework
         private readonly BlockState[] blockStates;
 
         private uint[] blockVoxels;
-        private bool[] blocksWithLights;
+        private uint[] blockVoxelsForLighting;
 
         public GameWorld(int blockSizeX, int blockSizeY, int blockSizeZ)
         {
@@ -70,13 +70,14 @@ namespace ProdigalSoftware.TiVEPluginFramework
 
         internal void Initialize(IBlockListInternal blockList)
         {
-            blocksWithLights = new bool[blockList.BlockCount];
+            blockVoxelsForLighting = new uint[blockList.BlockCount * BlockTotalVoxelCount];
             blockVoxels = new uint[blockList.BlockCount * BlockTotalVoxelCount];
             for (int i = 0; i < blockList.BlockCount; i++)
             {
                 BlockInformation block = blockList.AllBlocks[i];
-                blocksWithLights[i] = block.Light != null;
                 Array.Copy(block.VoxelsArray, 0, blockVoxels, i * BlockTotalVoxelCount, BlockTotalVoxelCount);
+                if (block.Light == null)
+                    Array.Copy(block.VoxelsArray, 0, blockVoxelsForLighting, i * BlockTotalVoxelCount, BlockTotalVoxelCount);
             }
         }
 
@@ -117,7 +118,7 @@ namespace ProdigalSoftware.TiVEPluginFramework
         /// </summary>
         /// <remarks>Very performance-critical method</remarks>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool VoxelEmptyForLighting(int voxelX, int voxelY, int voxelZ)
+        private bool VoxelEmptyForLighting(int voxelX, int voxelY, int voxelZ)
         {
             MiscUtils.CheckConstraints(voxelX, voxelY, voxelZ, voxelSize);
 
@@ -131,7 +132,68 @@ namespace ProdigalSoftware.TiVEPluginFramework
             int blockVoxelX = voxelX % BlockInformation.VoxelSize;
             int blockVoxelY = voxelY % BlockInformation.VoxelSize;
             int blockVoxelZ = voxelZ % BlockInformation.VoxelSize;
-            return blockVoxels[GetBlockOffset(block, blockVoxelX, blockVoxelY, blockVoxelZ)] == 0 || blocksWithLights[block]; // block having light is rare, so check that last
+            return blockVoxelsForLighting[GetBlockOffset(block, blockVoxelX, blockVoxelY, blockVoxelZ)] == 0;
+        }
+
+        /// <summary>
+        /// Voxel transversal algorithm taken from: http://www.cse.chalmers.se/edu/year/2011/course/TDA361_Computer_Graphics/grid.pdf
+        /// Modified with small optimizations for TiVE.
+        /// </summary>
+        internal bool NoVoxelInLine(int x, int y, int z, int endX, int endY, int endZ)
+        {
+            if (x == endX && y == endY && z == endZ)
+                return true;
+
+            int stepX = x > endX ? -1 : 1;
+            int stepY = y > endY ? -1 : 1;
+            int stepZ = z > endZ ? -1 : 1;
+
+            // Because all voxels in TiVE have a size of 1.0, this simplifies the calculation of the delta considerably.
+            // We also don't have to worry about specifically handling a divide-by-zero as .Net makes the result Infinity
+            // which works just fine for this algorithm.
+            float tStepX = (float)stepX / (endX - x);
+            float tStepY = (float)stepY / (endY - y);
+            float tStepZ = (float)stepZ / (endZ - z);
+            float tMaxX = tStepX;
+            float tMaxY = tStepY;
+            float tMaxZ = tStepZ;
+
+            //int blockX = x / BlockInformation.VoxelSize;
+            //int blockY = y / BlockInformation.VoxelSize;
+            //int blockZ = z / BlockInformation.VoxelSize;
+
+            do
+            {
+                if (tMaxX < tMaxY)
+                {
+                    if (tMaxX < tMaxZ)
+                    {
+                        x = x + stepX;
+                        tMaxX = tMaxX + tStepX;
+                    }
+                    else
+                    {
+                        z = z + stepZ;
+                        tMaxZ = tMaxZ + tStepZ;
+                    }
+                }
+                else if (tMaxY < tMaxZ)
+                {
+                    y = y + stepY;
+                    tMaxY = tMaxY + tStepY;
+                }
+                else
+                {
+                    z = z + stepZ;
+                    tMaxZ = tMaxZ + tStepZ;
+                }
+
+                if (x == endX && y == endY && z == endZ)
+                    return true;
+            }
+            while (VoxelEmptyForLighting(x, y, z));
+
+            return false;
         }
 
         #region Private helper methods

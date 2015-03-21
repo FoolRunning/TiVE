@@ -9,6 +9,7 @@ using ProdigalSoftware.TiVE.Resources;
 using ProdigalSoftware.TiVE.Scripts;
 using ProdigalSoftware.TiVE.Settings;
 using ProdigalSoftware.TiVE.Starter;
+using ProdigalSoftware.TiVEPluginFramework;
 
 namespace ProdigalSoftware.TiVE
 {
@@ -82,6 +83,8 @@ namespace ProdigalSoftware.TiVE
             initialLoadThread.IsBackground = true;
             initialLoadThread.Name = "InitialLoad";
             initialLoadThread.Start();
+
+            DoTest();
         }
 
         private static void starterForm_FormClosing(object sender, FormClosingEventArgs e)
@@ -90,6 +93,25 @@ namespace ProdigalSoftware.TiVE
             TableDefinitions.Dispose();
             PluginManager.Dispose();
             UserSettings.Save();
+        }
+
+        private static void DoTest()
+        {
+            GameWorld gameWorld = new GameWorld(100, 100, 100);
+            int center = gameWorld.VoxelSize.X / 2;
+
+            long totalMs = 0;
+            Stopwatch sw = new Stopwatch();
+            for (int t = 0; t < 10; t++)
+            {
+                sw.Restart();
+                for (int i = 0; i < 10000; i++)
+                    gameWorld.NoVoxelInLine(center, center, center, i % center + 200, i % center + 200, i % center + 200);
+                sw.Stop();
+                totalMs += sw.ElapsedMilliseconds;
+            }
+
+            Console.WriteLine("Took average of {0}ms", totalMs / 10.0f);
         }
     }
 }

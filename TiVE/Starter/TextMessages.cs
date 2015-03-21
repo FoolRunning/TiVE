@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Drawing;
+using System.Windows.Forms;
 
 namespace ProdigalSoftware.TiVE.Starter
 {
@@ -60,13 +61,13 @@ namespace ProdigalSoftware.TiVE.Starter
         /// </summary>
         public Size GetSize(TextState state, Graphics g)
         {
-            return g.MeasureString(!string.IsNullOrEmpty(text) ? text : " ", state.Font).ToSize();
+            return TextRenderer.MeasureText(g, !string.IsNullOrEmpty(text) ? text : " ", state.Font);
         }
 
         public override void DrawText(TextState state, Graphics g)
         {
             stringBrush.Color = color;
-            g.DrawString(text, state.Font, stringBrush, state.X, state.Y);
+            TextRenderer.DrawText(g, text, state.Font, new Point(state.X, state.Y), color);
         }
 
         /// <summary>

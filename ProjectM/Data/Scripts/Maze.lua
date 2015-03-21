@@ -7,7 +7,7 @@ function Initialize()
     WorldXSize = gameWorld.BlockSize.X
     WorldYSize = gameWorld.BlockSize.Y
     WorldZSize = gameWorld.BlockSize.Z
-    Renderer().LightProvider.AmbientLight = Color(0.05, 0.05, 0.05)
+    Renderer().LightProvider.AmbientLight = Color(0.02, 0.02, 0.02)
 
     Camera().FoV = PI / 3 --60 degrees
     Camera().Location = Vector(WorldXSize * BlockSize / 2, WorldYSize * BlockSize / 2, 345)

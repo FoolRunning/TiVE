@@ -207,35 +207,34 @@ namespace ProdigalSoftware.ProjectM.Plugins
 
         private static Direction ChooseRandomDirection(MazeCellLocation cell, MazeCell[,] dungeonMap, Random random)
         {
-            const int maxTries = 10000;
-
             int maxWidth = dungeonMap.GetLength(0);
             int maxHeight = dungeonMap.GetLength(1);
+            bool availableUp = (cell.Y < maxHeight - 3 && dungeonMap[cell.X, cell.Y + 2].AreaId == 0);
+            bool availableDown = (cell.Y >= 3 && dungeonMap[cell.X, cell.Y - 2].AreaId == 0);
+            bool availableLeft = (cell.X >= 3 && dungeonMap[cell.X - 2, cell.Y].AreaId == 0);
+            bool availableRight = (cell.X < maxWidth - 3 && dungeonMap[cell.X + 2, cell.Y].AreaId == 0);
 
-            for (int tries = 0; tries < maxTries; tries++)
+            if (!availableLeft && !availableRight && !availableUp && !availableDown)
+                return Direction.None;
+
+            while(true)
             {
                 switch (random.Next(4))
                 {
                     case 0:
-                        if (cell.Y < maxHeight - 3 && dungeonMap[cell.X, cell.Y + 2].AreaId == 0)
-                            return Direction.Up;
+                        if (availableUp) return Direction.Up;
                         break;
                     case 1:
-                        if (cell.Y >= 3 && dungeonMap[cell.X, cell.Y - 2].AreaId == 0)
-                            return Direction.Down;
+                        if (availableDown) return Direction.Down;
                         break;
                     case 2:
-                        if (cell.X >= 3 && dungeonMap[cell.X - 2, cell.Y].AreaId == 0)
-                            return Direction.Left;
+                        if (availableLeft) return Direction.Left;
                         break;
                     case 3:
-                        if (cell.X < maxWidth - 3 && dungeonMap[cell.X + 2, cell.Y].AreaId == 0)
-                            return Direction.Right;
+                        if (availableRight) return Direction.Right;
                         break;
                 }
             }
-
-            return Direction.None;
         }
         
         private static void PrintDungeon(int[,] dungeonMap)
@@ -283,7 +282,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
                     }
                     else
                     {
-                        gameWorld[x, y, 4] = lava;
+                        gameWorld[x, y, 4] = stone;
                     }
 
                     if (x % 3 == 1 && y % 3 == 1 && dungeonMap[mazeLocX, mazeLocY].LightId != 0)
@@ -315,6 +314,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
             blocksToConsiderEmpty.Add(0);
             for (int i = 0; i < 6; i++)
                 blocksToConsiderEmpty.Add(blockList["grass" + i]);
+            blocksToConsiderEmpty.Add(blockList["light0"]);
 
             for (int z = 0; z < gameWorld.BlockSize.Z; z++)
             {
@@ -393,25 +393,26 @@ namespace ProdigalSoftware.ProjectM.Plugins
         {
             public int AreaId;
             public int LightId;
+            public bool PossibleDoorPoint;
         }
 
         #region BlockRandomizer class
         private sealed class BlockRandomizer
         {
-            public readonly ushort[] Blocks;
+            private readonly ushort[] blocks;
             private readonly Random random = new Random();
 
             public BlockRandomizer(IBlockList blockList, string blockname, int blockCount)
             {
-                Blocks = new ushort[blockCount];
-                for (int i = 0; i < Blocks.Length; i++)
-                    Blocks[i] = blockList[blockname + i];
+                blocks = new ushort[blockCount];
+                for (int i = 0; i < blocks.Length; i++)
+                    blocks[i] = blockList[blockname + i];
             }
 
             public ushort NextBlock()
             {
-                int blockNum = random.Next(Blocks.Length);
-                return Blocks[blockNum];
+                int blockNum = random.Next(blocks.Length);
+                return blocks[blockNum];
                 //return Blocks[Blocks.Length - 1];
             }
         }
