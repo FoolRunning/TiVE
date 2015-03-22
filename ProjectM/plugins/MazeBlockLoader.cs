@@ -136,20 +136,40 @@ namespace ProdigalSoftware.ProjectM.Plugins
                         }
 
                         ReplaceVoxel(stone, bc - 4, n, z, mortarColor);
-                        ReplaceVoxel(stone, bc + 4, n, z + bc, mortarColor);
+                        if (z < bc - 1 || (i & Front) == 0)
+                            ReplaceVoxel(stone, bc + 4, n, z + bc, mortarColor);
 
                         ReplaceVoxel(stone, n, bc - 4, z, mortarColor);
-                        ReplaceVoxel(stone, n, bc + 4, z + bc, mortarColor);
+                        if (z < bc - 1 || (i & Front) == 0)
+                            ReplaceVoxel(stone, n, bc + 4, z + bc, mortarColor);
                     }
                 }
                 yield return stone;
-                //yield return CreateBlockInfo("sand" + i, new Color4f(120, 100, 20, 255), 0.1f, i);
+            }
+
+            for (int i = 0; i < 20; i++)
+            {
+                BlockInformation grass = new BlockInformation("grass" + i);
+                Color4f grassColor = new Color4f(50, 230, 50, 255);
+                for (int z = 0; z < BlockInformation.VoxelSize; z++)
+                {
+                    for (int x = 0; x < BlockInformation.VoxelSize; x++)
+                    {
+                        for (int y = 0; y < BlockInformation.VoxelSize; y++)
+                        {
+                            if (random.NextDouble() < 0.25 && (z == 0 || GrassVoxelUnder(grass, x, y, z)))
+                                grass[x, y, z] = CreateColorFromColor(grassColor).ToArgb();
+                        }
+                    }
+                }
+
+                yield return grass;
             }
 
             for (int i = 0; i < 6; i++)
             {
-                yield return CreateBlockInfo("back" + i, 0, new Color4f(20, 200, 20, 255), 1.0f, null, null, mv - 1);
-                yield return CreateBlockInfo("grass" + i, 0, new Color4f(20, 200, 20, 255), 0.2f, null, null, 0, 3);
+                yield return CreateBlockInfo("backStone" + i, 0, new Color4f(240, 240, 240, 255), 1.0f);
+                yield return CreateBlockInfo("back" + i, 0, new Color4f(50, 230, 50, 255), 1.0f);
             }
 
             BlockInformation fireBlock = new BlockInformation("fire", 
@@ -157,27 +177,31 @@ namespace ProdigalSoftware.ProjectM.Plugins
                 new PointLight(new Vector3b(bc, bc, 4), new Color3f(1.0f, 0.8f, 0.6f), 5));
             yield return fireBlock;
 
-            yield return CreateBlockInfo("light0", 2, new Color4f(230, 179, 255, 255), 1.0f, 
-                new ParticleSystemInformation(particleVoxels, new LightBugsUpdater(), new Vector3b(bc, bc, bc), 15, 10, TransparencyType.Realistic, true),
-                new PointLight(blockCenterVector, new Color3f(0.9f, 0.7f, 1.0f), 7));
+            yield return CreateBlockInfo("roomLight", 5, new Color4f(1.0f, 1.0f, 1.0f, 1.0f), 1.0f, null,
+                new PointLight(blockCenterVector, new Color3f(1.0f, 1.0f, 1.0f), 30));
 
-            yield return CreateBlockInfo("light1", 2, new Color4f(255, 255, 0, 255), 1.0f, null,
-                new PointLight(blockCenterVector, new Color3f(1.0f, 1.0f, 0.0f), 15));
+            const int lightDist = 20;
+            ParticleSystemInformation bugInformation = new ParticleSystemInformation(particleVoxels,
+                new LightBugsUpdater(), new Vector3b(bc, bc, bc), 15, 10, TransparencyType.Realistic, true);
 
-            yield return CreateBlockInfo("light2", 2, new Color4f(0, 255, 0, 255), 1.0f, null,
-                new PointLight(blockCenterVector, new Color3f(0.0f, 1.0f, 0.0f), 15));
+            yield return CreateBlockInfo("light0", 2, new Color4f(0.5f, 0.8f, 1.0f, 1.0f), 1.0f, bugInformation,
+                new PointLight(blockCenterVector, new Color3f(0.5f, 0.8f, 1.0f), lightDist));
 
-            yield return CreateBlockInfo("light3", 2, new Color4f(0, 255, 255, 255), 1.0f, null,
-                new PointLight(blockCenterVector, new Color3f(0.0f, 1.0f, 1.0f), 15));
+            yield return CreateBlockInfo("light1", 2, new Color4f(0.8f, 0.5f, 1.0f, 1.0f), 1.0f, bugInformation,
+                new PointLight(blockCenterVector, new Color3f(0.8f, 0.5f, 1.0f), lightDist));
 
-            yield return CreateBlockInfo("light4", 2, new Color4f(0, 0, 255, 255), 1.0f, null,
-                new PointLight(blockCenterVector, new Color3f(0.0f, 0.0f, 1.0f), 15));
+            yield return CreateBlockInfo("light2", 2, new Color4f(1.0f, 0.5f, 0.8f, 1.0f), 1.0f, bugInformation,
+                new PointLight(blockCenterVector, new Color3f(1.0f, 0.5f, 0.8f), lightDist));
 
-            yield return CreateBlockInfo("light5", 2, new Color4f(255, 0, 255, 255), 1.0f, null,
-                new PointLight(blockCenterVector, new Color3f(1.0f, 0.0f, 1.0f), 15));
+            yield return CreateBlockInfo("light3", 2, new Color4f(1.0f, 0.8f, 0.5f, 1.0f), 1.0f, bugInformation,
+                new PointLight(blockCenterVector, new Color3f(1.0f, 0.8f, 0.5f), lightDist));
 
-            yield return CreateBlockInfo("light6", 2, new Color4f(255, 255, 255, 255), 1.0f, null,
-                new PointLight(blockCenterVector, new Color3f(1.0f, 1.0f, 1.0f), 15));
+            yield return CreateBlockInfo("light4", 2, new Color4f(0.5f, 1.0f, 0.8f, 1.0f), 1.0f, bugInformation,
+                new PointLight(blockCenterVector, new Color3f(0.5f, 1.0f, 0.8f), lightDist));
+
+            yield return CreateBlockInfo("light5", 2, new Color4f(0.8f, 1.0f, 0.5f, 1.0f), 1.0f, bugInformation,
+                new PointLight(blockCenterVector, new Color3f(0.8f, 1.0f, 0.5f), lightDist));
+
 
             particleVoxels = new uint[3, 3, 3];
             particleVoxels[1, 1, 1] = 0xFFFFFFFF;
@@ -200,6 +224,24 @@ namespace ProdigalSoftware.ProjectM.Plugins
         {
             if (block[x, y, z] != 0)
                 block[x, y, z] = newVoxel;
+        }
+
+        private static bool GrassVoxelUnder(BlockInformation block, int x, int y, int z)
+        {
+            int startX = Math.Max(x - 1, 0);
+            int endX = Math.Min(x + 1, BlockInformation.VoxelSize - 1);
+            int startY = Math.Max(y - 1, 0);
+            int endY = Math.Min(y + 1, BlockInformation.VoxelSize - 1);
+            int countUnder = 0;
+            for (int xCheck = startX; xCheck <= endX; xCheck++)
+            {
+                for (int yCheck = startY; yCheck <= endY; yCheck++)
+                {
+                    if (block[xCheck, yCheck, z - 1] != 0)
+                        countUnder++;
+                }
+            }
+            return countUnder == 1;
         }
 
         private static BlockInformation CreateBlockInfo(string name, Color4f color, float voxelDensity, int sides, ILight light = null)
@@ -298,7 +340,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
 
         private static Color4b CreateColorFromColor(Color4f seed)
         {
-            float scale = (float)(random.NextDouble() * 0.1 + 0.95);
+            float scale = (float)(random.NextDouble() * 0.2 + 0.9);
             return new Color4b(Math.Min(seed.R * scale, 1.0f), Math.Min(seed.G * scale, 1.0f), 
                 Math.Min(seed.B * scale, 1.0f), seed.A);
         }

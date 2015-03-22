@@ -12,6 +12,8 @@ namespace ProdigalSoftware.TiVE.Settings
 {
     internal sealed class UserSettings
     {
+        public event Action<string> SettingChanged;
+
         public const string FullScreenModeKey = "fullScreenMode";
         public const string LightingComplexityKey = "lightingComplexity";
         public const string ShadedVoxelsKey = "shadedVoxels";
@@ -99,7 +101,7 @@ namespace ProdigalSoftware.TiVE.Settings
             }
         }
 
-        public IEnumerable<UserSettingOptions> AllUserSettingOptions
+        public static IEnumerable<UserSettingOptions> AllUserSettingOptions
         {
             get { return settingOptions; }
         }
@@ -107,6 +109,9 @@ namespace ProdigalSoftware.TiVE.Settings
         public void Set(string name, Setting newValue)
         {
             settings[name] = newValue;
+            
+            if (SettingChanged != null)
+                SettingChanged(name);
         }
 
         public Setting Get(string name)

@@ -168,7 +168,7 @@ namespace ProdigalSoftware.TiVE.Starter
             ClearOptionsOnPanel(pnlAdvancedOptionsList);
 
             int row = 0;
-            foreach (UserSettingOptions options in TiVEController.UserSettings.AllUserSettingOptions)
+            foreach (UserSettingOptions options in UserSettings.AllUserSettingOptions)
             {
                 TableLayoutPanel panelToAddTo;
                 switch (options.OptionTab)
