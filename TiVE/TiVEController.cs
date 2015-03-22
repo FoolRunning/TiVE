@@ -5,6 +5,7 @@ using System.Threading;
 using System.Windows.Forms;
 using ProdigalSoftware.TiVE.Plugins;
 using ProdigalSoftware.TiVE.Renderer.OpenTKImpl;
+using ProdigalSoftware.TiVE.Renderer.World;
 using ProdigalSoftware.TiVE.Resources;
 using ProdigalSoftware.TiVE.Scripts;
 using ProdigalSoftware.TiVE.Settings;
@@ -84,7 +85,7 @@ namespace ProdigalSoftware.TiVE
             initialLoadThread.Name = "InitialLoad";
             initialLoadThread.Start();
 
-            DoTest();
+            //DoTest();
         }
 
         private static void starterForm_FormClosing(object sender, FormClosingEventArgs e)
@@ -98,6 +99,19 @@ namespace ProdigalSoftware.TiVE
         private static void DoTest()
         {
             GameWorld gameWorld = new GameWorld(100, 100, 100);
+            BlockList blockList = new BlockList();
+            blockList.AddBlock(new BlockInformation("dummy"));
+            ushort block = blockList["dummy"];
+            for (int x = 0; x < 100; x++)
+            {
+                for (int z = 0; z < 100; z++)
+                {
+                    for (int y = 0; y < 100; y++)
+                        gameWorld[x, y, z] = block;
+                }
+            }
+
+            gameWorld.Initialize(blockList);
             int center = gameWorld.VoxelSize.X / 2;
 
             long totalMs = 0;

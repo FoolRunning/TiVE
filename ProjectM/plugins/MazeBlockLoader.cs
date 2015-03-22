@@ -157,7 +157,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
                 new PointLight(new Vector3b(bc, bc, 4), new Color3f(1.0f, 0.8f, 0.6f), 5));
             yield return fireBlock;
 
-            yield return CreateBlockInfo("light0", 3, new Color4f(230, 179, 255, 255), 1.0f, 
+            yield return CreateBlockInfo("light0", 2, new Color4f(230, 179, 255, 255), 1.0f, 
                 new ParticleSystemInformation(particleVoxels, new LightBugsUpdater(), new Vector3b(bc, bc, bc), 15, 10, TransparencyType.Realistic, true),
                 new PointLight(blockCenterVector, new Color3f(0.9f, 0.7f, 1.0f), 7));
 

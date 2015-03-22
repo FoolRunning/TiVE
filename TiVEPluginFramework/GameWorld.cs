@@ -114,30 +114,8 @@ namespace ProdigalSoftware.TiVEPluginFramework
         }
 
         /// <summary>
-        /// 
-        /// </summary>
-        /// <remarks>Very performance-critical method</remarks>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private bool VoxelEmptyForLighting(int voxelX, int voxelY, int voxelZ)
-        {
-            MiscUtils.CheckConstraints(voxelX, voxelY, voxelZ, voxelSize);
-
-            int blockX = voxelX / BlockInformation.VoxelSize;
-            int blockY = voxelY / BlockInformation.VoxelSize;
-            int blockZ = voxelZ / BlockInformation.VoxelSize;
-            ushort block = blocks[GetBlockOffset(blockX, blockY, blockZ)];
-            if (block == 0)
-                return true;
-
-            int blockVoxelX = voxelX % BlockInformation.VoxelSize;
-            int blockVoxelY = voxelY % BlockInformation.VoxelSize;
-            int blockVoxelZ = voxelZ % BlockInformation.VoxelSize;
-            return blockVoxelsForLighting[GetBlockOffset(block, blockVoxelX, blockVoxelY, blockVoxelZ)] == 0;
-        }
-
-        /// <summary>
         /// Voxel transversal algorithm taken from: http://www.cse.chalmers.se/edu/year/2011/course/TDA361_Computer_Graphics/grid.pdf
-        /// Modified with small optimizations for TiVE.
+        /// Modified with optimizations for TiVE.
         /// </summary>
         internal bool NoVoxelInLine(int x, int y, int z, int endX, int endY, int endZ)
         {
@@ -157,11 +135,17 @@ namespace ProdigalSoftware.TiVEPluginFramework
             float tMaxX = tStepX;
             float tMaxY = tStepY;
             float tMaxZ = tStepZ;
+            int blockX = x / BlockInformation.VoxelSize;
+            int blockY = y / BlockInformation.VoxelSize;
+            int blockZ = z / BlockInformation.VoxelSize;
+            int blockVoxelX = x % BlockInformation.VoxelSize;
+            int blockVoxelY = y % BlockInformation.VoxelSize;
+            int blockVoxelZ = z % BlockInformation.VoxelSize;
+            int prevBlockX = 0;
+            int prevBlockY = 0;
+            int prevBlockZ = 0;
 
-            //int blockX = x / BlockInformation.VoxelSize;
-            //int blockY = y / BlockInformation.VoxelSize;
-            //int blockZ = z / BlockInformation.VoxelSize;
-
+            ushort block = blocks[GetBlockOffset(blockX, blockY, blockZ)]; 
             do
             {
                 if (tMaxX < tMaxY)
@@ -170,32 +154,52 @@ namespace ProdigalSoftware.TiVEPluginFramework
                     {
                         x = x + stepX;
                         tMaxX = tMaxX + tStepX;
+                        blockX = x / BlockInformation.VoxelSize;
+                        blockVoxelX = x % BlockInformation.VoxelSize;
+                        if (blockX != prevBlockX)
+                            block = blocks[GetBlockOffset(blockX, blockY, blockZ)];
+                        prevBlockX = blockX;
                     }
                     else
                     {
                         z = z + stepZ;
                         tMaxZ = tMaxZ + tStepZ;
+                        blockZ = z / BlockInformation.VoxelSize;
+                        blockVoxelZ = z % BlockInformation.VoxelSize;
+                        if (blockZ != prevBlockZ)
+                            block = blocks[GetBlockOffset(blockX, blockY, blockZ)];
+                        prevBlockZ = blockZ;
                     }
                 }
                 else if (tMaxY < tMaxZ)
                 {
                     y = y + stepY;
                     tMaxY = tMaxY + tStepY;
+                    blockY = y / BlockInformation.VoxelSize;
+                    blockVoxelY = y % BlockInformation.VoxelSize;
+                    if (blockY != prevBlockY)
+                        block = blocks[GetBlockOffset(blockX, blockY, blockZ)];
+                    prevBlockY = blockY;
                 }
                 else
                 {
                     z = z + stepZ;
                     tMaxZ = tMaxZ + tStepZ;
+                    blockZ = z / BlockInformation.VoxelSize;
+                    blockVoxelZ = z % BlockInformation.VoxelSize;
+                    if (blockZ != prevBlockZ)
+                        block = blocks[GetBlockOffset(blockX, blockY, blockZ)];
+                    prevBlockZ = blockZ;
                 }
 
                 if (x == endX && y == endY && z == endZ)
                     return true;
             }
-            while (VoxelEmptyForLighting(x, y, z));
+            while (block == 0 || blockVoxelsForLighting[GetBlockOffset(block, blockVoxelX, blockVoxelY, blockVoxelZ)] == 0);
 
             return false;
         }
-
+        
         #region Private helper methods
         /// <summary>
         /// Gets the offset into the game world blocks array for the block at the specified location
