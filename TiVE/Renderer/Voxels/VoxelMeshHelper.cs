@@ -13,11 +13,18 @@ namespace ProdigalSoftware.TiVE.Renderer.Voxels
         private static readonly VoxelMeshHelper shadedInstanced = new ShadedInstancedVoxelMeshHelper();
         private static readonly VoxelMeshHelper nonShadedNonInstanced = new NonShadedNonInstancedVoxelMeshHelper();
         private static readonly VoxelMeshHelper nonShadedInstanced = new NonShadedInstancedVoxelMeshHelper();
-        private static readonly bool useShadedVoxels;
+        private static bool useShadedVoxels;
 
         static VoxelMeshHelper()
         {
             useShadedVoxels = TiVEController.UserSettings.Get(UserSettings.ShadedVoxelsKey);
+            TiVEController.UserSettings.SettingChanged += UserSettings_SettingChanged;
+        }
+
+        static void UserSettings_SettingChanged(string settingName)
+        {
+            if (settingName == UserSettings.ShadedVoxelsKey)
+                useShadedVoxels = TiVEController.UserSettings.Get(UserSettings.ShadedVoxelsKey);
         }
 
         /// <summary>

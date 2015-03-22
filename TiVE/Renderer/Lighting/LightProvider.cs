@@ -154,7 +154,6 @@ namespace ProdigalSoftware.TiVE.Renderer.Lighting
                 lightIndex = (ushort)lightCount;
                 lightInfos.Add(lightInfo);
             }
-            ushort[][] lib = lightsInBlocks;
 
             for (int bz = startZ; bz < endZ; bz++)
             {
@@ -171,7 +170,7 @@ namespace ProdigalSoftware.TiVE.Renderer.Lighting
 
                         int arrayOffset = GetBlockLightOffset(bx, by, bz);
 
-                        ushort[] lightsInBlock = lib[arrayOffset];
+                        ushort[] lightsInBlock = lightsInBlocks[arrayOffset];
                         lock (lightsInBlock)
                         {
                             // Calculate lighting information
@@ -252,6 +251,7 @@ namespace ProdigalSoftware.TiVE.Renderer.Lighting
         #region RealisticLightProvider class
         private sealed class RealisticLightProvider : LightProvider
         {
+            private const float ReflectiveLightingFactor = 0.3f;
             public RealisticLightProvider(GameWorld gameWorld) : base(gameWorld)
             {
             }
@@ -277,9 +277,9 @@ namespace ProdigalSoftware.TiVE.Renderer.Lighting
                         color += lightInfo.LightColor * lightModel.GetLightPercentage(lightInfo, voxelX, voxelY, voxelZ);
                     else
                     {
-                        // Simulate a very crude and simple reflective ambient lighting model by using the light reduced by 70% for
-                        // voxels in a "shadow".
-                        color += lightInfo.LightColor * (lightModel.GetLightPercentage(lightInfo, voxelX, voxelY, voxelZ) * 0.3f);
+                        // Simulate a very crude and simple reflective ambient lighting model by using the light reduced by a small 
+                        // amount for voxels in a "shadow".
+                        color += lightInfo.LightColor * (lightModel.GetLightPercentage(lightInfo, voxelX, voxelY, voxelZ) * ReflectiveLightingFactor);
                     }
                 }
                 return color;
@@ -320,9 +320,9 @@ namespace ProdigalSoftware.TiVE.Renderer.Lighting
                     }
                     else
                     {
-                        // Simulate a very crude and simple reflective ambient lighting model by using the light reduced by 70% for
-                        // voxels in a "shadow".
-                        color += lightInfo.LightColor * (lightModel.GetLightPercentage(lightInfo, voxelX, voxelY, voxelZ) * 0.3f);
+                        // Simulate a very crude and simple reflective ambient lighting model by using the light reduced by a small 
+                        // amount for voxels in a "shadow".
+                        color += lightInfo.LightColor * (lightModel.GetLightPercentage(lightInfo, voxelX, voxelY, voxelZ) * ReflectiveLightingFactor);
                     }
                 }
                 return color;

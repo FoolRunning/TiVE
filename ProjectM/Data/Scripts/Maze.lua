@@ -48,6 +48,6 @@ function Update()
     end
 
     Camera().Location = camLoc
-    Camera().LookAtLocation = Vector(camLoc.X, camLoc.Y + 150, 50)
+    Camera().LookAtLocation = Vector(camLoc.X, camLoc.Y + 50, camLoc.Z - 150)
 end
 
