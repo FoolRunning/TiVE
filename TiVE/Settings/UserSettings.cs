@@ -85,7 +85,7 @@ namespace ProdigalSoftware.TiVE.Settings
             for (int i = 0; i < numThreadOptions; i++)
                 threadOptions[i] = new UserSettingOption(new IntSetting(i + 1));
             settingOptions.Add(new UserSettingOptions(ChunkCreationThreadsKey, "Chunk creation threads", UserOptionTab.Advanced,
-                new IntSetting(totalCores > 3 ? 3 : 1), threadOptions));
+                new IntSetting(totalCores > 3 ? totalCores / 2 : 1), threadOptions));
 
             settingOptions.Add(new UserSettingOptions(UseThreadedParticlesKey, "Threaded particles", UserOptionTab.Advanced, new BoolSetting(totalCores > 3),
                 new UserSettingOption("True", new BoolSetting(true)),

@@ -46,11 +46,21 @@ namespace ProdigalSoftware.TiVE.Renderer.World
 
             for (int i = 0; i < maxThreads; i++)
                 chunkCreationThreads.Add(StartChunkCreateThread(i + 1));
+
+            TiVEController.UserSettings.SettingChanged += UserSettings_SettingChanged;
+        }
+
+        void UserSettings_SettingChanged(string settingName)
+        {
+            if (settingName == UserSettings.LightingComplexityKey)
+                ReloadAllChunks();
         }
 
         public void Dispose()
         {
             Debug.Assert(Thread.CurrentThread.Name == "Main UI");
+
+            TiVEController.UserSettings.SettingChanged -= UserSettings_SettingChanged;
 
             endCreationThreads = true;
             foreach (Thread thread in chunkCreationThreads)
