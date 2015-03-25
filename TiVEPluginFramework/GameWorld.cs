@@ -199,6 +199,65 @@ namespace ProdigalSoftware.TiVEPluginFramework
 
             return false;
         }
+
+        /// <summary>
+        /// Voxel transversal algorithm taken from: http://www.cse.chalmers.se/edu/year/2011/course/TDA361_Computer_Graphics/grid.pdf
+        /// Modified with optimizations for TiVE.
+        /// </summary>
+        internal bool LessThanBlockCountInLine(int x, int y, int z, int endX, int endY, int endZ, int maxBlocks, IBlockList blockList)
+        {
+            if (x == endX && y == endY && z == endZ)
+                return true;
+
+            int stepX = x > endX ? -1 : 1;
+            int stepY = y > endY ? -1 : 1;
+            int stepZ = z > endZ ? -1 : 1;
+            float tStepX = (float)stepX / (endX - x);
+            float tStepY = (float)stepY / (endY - y);
+            float tStepZ = (float)stepZ / (endZ - z);
+            float tMaxX = tStepX;
+            float tMaxY = tStepY;
+            float tMaxZ = tStepZ;
+            int blockCount = 0;
+            do
+            {
+                if (tMaxX < tMaxY)
+                {
+                    if (tMaxX < tMaxZ)
+                    {
+                        x = x + stepX;
+                        tMaxX = tMaxX + tStepX;
+                    }
+                    else
+                    {
+                        z = z + stepZ;
+                        tMaxZ = tMaxZ + tStepZ;
+                    }
+                }
+                else if (tMaxY < tMaxZ)
+                {
+                    y = y + stepY;
+                    tMaxY = tMaxY + tStepY;
+                }
+                else
+                {
+                    z = z + stepZ;
+                    tMaxZ = tMaxZ + tStepZ;
+                }
+
+                if (x == endX && y == endY && z == endZ)
+                    return true;
+
+                ushort block = blocks[GetBlockOffset(x, y, z)];
+                if (block != 0)
+                {
+                    BlockInformation blockInfo = blockList[block];
+                    if (!blockInfo.AllowLightToPassThrough && ++blockCount >= maxBlocks) 
+                        return false;
+                }
+            }
+            while (true);
+        }
         
         #region Private helper methods
         /// <summary>

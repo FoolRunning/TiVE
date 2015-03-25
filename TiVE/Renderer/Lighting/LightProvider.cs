@@ -24,6 +24,8 @@ namespace ProdigalSoftware.TiVE.Renderer.Lighting
     internal abstract class LightProvider : IDisposable
     {
         #region Constants
+        private const float ReflectiveLightingFactor = 0.3f;
+
         private const int HalfBlockVoxelSize = BlockInformation.VoxelSize / 2;
         #endregion
 
@@ -130,7 +132,7 @@ namespace ProdigalSoftware.TiVE.Renderer.Lighting
             Messages.AddDebug(string.Format("Lighting for {0} lights took {1}ms", lightInfoList.Length - 1, sw.ElapsedMilliseconds));
         }
         
-        public void FillWorldWithLight(ILight light, List<LightInfo> lightInfos, int blockX, int blockY, int blockZ)
+        public void FillWorldWithLight(ILight light, List<LightInfo> lightInfos, int blockX, int blockY, int blockZ, BlockList blockList)
         {
             int sizeX = blockSize.X;
             int sizeY = blockSize.Y;
@@ -161,6 +163,12 @@ namespace ProdigalSoftware.TiVE.Renderer.Lighting
                 {
                     for (int by = startY; by < endY; by++)
                     {
+                        if (!gameWorld.LessThanBlockCountInLine(blockX, blockY, blockZ, bx, by, bz, 2, blockList) &&
+                            !gameWorld.LessThanBlockCountInLine(bx, by, bz, blockX, blockY, blockZ, 2, blockList))
+                        {
+                            continue; // Unlikely the light will actually hit the block at all
+                        }
+
                         int vx = bx * BlockInformation.VoxelSize + HalfBlockVoxelSize;
                         int vy = by * BlockInformation.VoxelSize + HalfBlockVoxelSize;
                         int vz = bz * BlockInformation.VoxelSize + HalfBlockVoxelSize;
@@ -224,7 +232,7 @@ namespace ProdigalSoftware.TiVE.Renderer.Lighting
                         {
                             ILight light = blockList[gameWorld[x, y, z]].Light;
                             if (light != null)
-                                FillWorldWithLight(light, lightInfos, x, y, z);
+                                FillWorldWithLight(light, lightInfos, x, y, z, blockList);
                         }
                     }
                     totalComplete++;
@@ -251,7 +259,6 @@ namespace ProdigalSoftware.TiVE.Renderer.Lighting
         #region RealisticLightProvider class
         private sealed class RealisticLightProvider : LightProvider
         {
-            private const float ReflectiveLightingFactor = 0.3f;
             public RealisticLightProvider(GameWorld gameWorld) : base(gameWorld)
             {
             }
@@ -309,16 +316,21 @@ namespace ProdigalSoftware.TiVE.Renderer.Lighting
                     int lx = lightInfo.VoxelLocX;
                     int ly = lightInfo.VoxelLocY;
                     int lz = lightInfo.VoxelLocZ;
-                    if ((availableMinusX && lightInfo.VoxelLocX <= voxelX && world.NoVoxelInLine(lx, ly, lz, voxelX - 1, voxelY, voxelZ)) ||
-                        (availableMinusY && lightInfo.VoxelLocY <= voxelY && world.NoVoxelInLine(lx, ly, lz, voxelX, voxelY - 1, voxelZ)) ||
-                        (availableMinusZ && lightInfo.VoxelLocZ <= voxelZ && world.NoVoxelInLine(lx, ly, lz, voxelX, voxelY, voxelZ - 1)) ||
-                        (availablePlusX && lightInfo.VoxelLocX >= voxelX && world.NoVoxelInLine(lx, ly, lz, voxelX + voxelSize, voxelY, voxelZ)) ||
-                        (availablePlusY && lightInfo.VoxelLocY >= voxelY && world.NoVoxelInLine(lx, ly, lz, voxelX, voxelY + voxelSize, voxelZ)) ||
-                        (availablePlusZ && lightInfo.VoxelLocZ >= voxelZ && world.NoVoxelInLine(lx, ly, lz, voxelX, voxelY, voxelZ + voxelSize)))
+                    if ((availableMinusX && lx <= voxelX && world.NoVoxelInLine(lx, ly, lz, voxelX - 1, voxelY, voxelZ)) ||
+                        (availableMinusY && ly <= voxelY && world.NoVoxelInLine(lx, ly, lz, voxelX, voxelY - 1, voxelZ)) ||
+                        (availableMinusZ && lz <= voxelZ && world.NoVoxelInLine(lx, ly, lz, voxelX, voxelY, voxelZ - 1)) ||
+                        (availablePlusX && lx >= voxelX && world.NoVoxelInLine(lx, ly, lz, voxelX + voxelSize, voxelY, voxelZ)) ||
+                        (availablePlusY && ly >= voxelY && world.NoVoxelInLine(lx, ly, lz, voxelX, voxelY + voxelSize, voxelZ)) ||
+                        (availablePlusZ && lz >= voxelZ && world.NoVoxelInLine(lx, ly, lz, voxelX, voxelY, voxelZ + voxelSize)))
                     {
                         color += lightInfo.LightColor * lightModel.GetLightPercentage(lightInfo, voxelX, voxelY, voxelZ);
                     }
-                    else
+                    else if ((availableMinusX && lx <= voxelX) ||
+                        (availableMinusY && ly <= voxelY) ||
+                        (availableMinusZ && lz <= voxelZ) ||
+                        (availablePlusX && lx >= voxelX) ||
+                        (availablePlusY && ly >= voxelY) ||
+                        (availablePlusZ && lz >= voxelZ))
                     {
                         // Simulate a very crude and simple reflective ambient lighting model by using the light reduced by a small 
                         // amount for voxels in a "shadow".
@@ -347,6 +359,13 @@ namespace ProdigalSoftware.TiVE.Renderer.Lighting
 
             public override Color3f GetLightAt(int voxelX, int voxelY, int voxelZ, int voxelSize, int blockX, int blockY, int blockZ, VoxelSides visibleSides)
             {
+                bool availableMinusX = (visibleSides & VoxelSides.Left) != 0;
+                bool availableMinusY = (visibleSides & VoxelSides.Bottom) != 0;
+                bool availableMinusZ = (visibleSides & VoxelSides.Back) != 0;
+                bool availablePlusX = (visibleSides & VoxelSides.Right) != 0;
+                bool availablePlusY = (visibleSides & VoxelSides.Top) != 0;
+                bool availablePlusZ = (visibleSides & VoxelSides.Front) != 0;
+
                 ushort[] lightsInBlock = lightsInBlocks[GetBlockLightOffset(blockX, blockY, blockZ)];
                 LightingModel lightModel = lightingModel;
                 Color3f color = AmbientLight;
@@ -358,7 +377,19 @@ namespace ProdigalSoftware.TiVE.Renderer.Lighting
                         break;
 
                     LightInfo lightInfo = lights[lightIndex];
-                    color += lightInfo.LightColor * lightModel.GetLightPercentage(lightInfo, voxelX, voxelY, voxelZ);
+
+                    int lx = lightInfo.VoxelLocX;
+                    int ly = lightInfo.VoxelLocY;
+                    int lz = lightInfo.VoxelLocZ;
+                    if ((availableMinusX && lx <= voxelX) ||
+                        (availableMinusY && ly <= voxelY) ||
+                        (availableMinusZ && lz <= voxelZ) ||
+                        (availablePlusX && lx >= voxelX) ||
+                        (availablePlusY && ly >= voxelY) ||
+                        (availablePlusZ && lz >= voxelZ))
+                    {
+                        color += lightInfo.LightColor * lightModel.GetLightPercentage(lightInfo, voxelX, voxelY, voxelZ);
+                    }
                 }
                 return color;
             }

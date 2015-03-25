@@ -33,7 +33,8 @@ namespace ProdigalSoftware.ProjectM.Plugins
             for (int i = 0; i < 64; i++)
             {
                 yield return CreateBlockInfo("lava" + i, new Color4f(200, 15, 8, 255), 1.0f, i,
-                    new PointLight(new Vector3b(bc, bc, bc), new Color3f(0.2f, 0.01f, 0.001f), 4));
+                    new PointLight(new Vector3b(bc, bc, bc), new Color3f(0.2f, 0.01f, 0.005f), 4));
+                
                 BlockInformation stone = CreateBlockInfo("ston" + i, new Color4f(220, 220, 220, 255), 1.0f, i);
                 for (int x = 0; x <= mv; x++)
                 {
@@ -147,9 +148,9 @@ namespace ProdigalSoftware.ProjectM.Plugins
                 yield return stone;
             }
 
-            for (int i = 0; i < 20; i++)
+            for (int i = 0; i < 50; i++)
             {
-                BlockInformation grass = new BlockInformation("grass" + i);
+                BlockInformation grass = new BlockInformation("grass" + i, null, null, null, true, true);
                 Color4f grassColor = new Color4f(50, 230, 50, 255);
                 for (int z = 0; z < BlockInformation.VoxelSize; z++)
                 {
@@ -157,8 +158,21 @@ namespace ProdigalSoftware.ProjectM.Plugins
                     {
                         for (int y = 0; y < BlockInformation.VoxelSize; y++)
                         {
-                            if (random.NextDouble() < 0.25 && (z == 0 || GrassVoxelUnder(grass, x, y, z)))
+                            if (random.NextDouble() < 0.5 - z / 50.0 && (z == 0 || GrassVoxelUnder(grass, x, y, z)))
+                            {
                                 grass[x, y, z] = CreateColorFromColor(grassColor).ToArgb();
+                                if (z == BlockInformation.VoxelSize - 1 && random.NextDouble() < 0.2 &&
+                                    x > 0 && x < BlockInformation.VoxelSize - 1 && y > 0 && y < BlockInformation.VoxelSize - 1)
+                                {
+                                    // Make a flower
+                                    Color4f flowerColor = CreateRandomFlowerColor(random);
+                                    grass[x, y, z] = CreateColorFromColor(flowerColor).ToArgb();
+                                    grass[x - 1, y, z - 1] = CreateColorFromColor(flowerColor).ToArgb();
+                                    grass[x + 1, y, z - 1] = CreateColorFromColor(flowerColor).ToArgb();
+                                    grass[x, y - 1, z - 1] = CreateColorFromColor(flowerColor).ToArgb();
+                                    grass[x, y + 1, z - 1] = CreateColorFromColor(flowerColor).ToArgb();
+                                }
+                            }
                         }
                     }
                 }
@@ -168,13 +182,13 @@ namespace ProdigalSoftware.ProjectM.Plugins
 
             for (int i = 0; i < 6; i++)
             {
-                yield return CreateBlockInfo("backStone" + i, 0, new Color4f(240, 240, 240, 255), 1.0f);
-                yield return CreateBlockInfo("back" + i, 0, new Color4f(50, 230, 50, 255), 1.0f);
+                yield return CreateBlockInfo("backStone" + i, 0, new Color4f(240, 240, 240, 255), 1.0f, allowLightPassthrough: true);
+                yield return CreateBlockInfo("back" + i, 0, new Color4f(0.6f, 0.45f, 0.25f, 1.0f), 1.0f, allowLightPassthrough: true);
             }
 
             BlockInformation fireBlock = new BlockInformation("fire", 
                 new ParticleSystemInformation(particleVoxels, new FireUpdater(), new Vector3b(bc, bc, 1), 300, 400, TransparencyType.Additive, false),
-                new PointLight(new Vector3b(bc, bc, 4), new Color3f(1.0f, 0.8f, 0.6f), 5));
+                new PointLight(new Vector3b(bc, bc, 4), new Color3f(1.0f, 0.8f, 0.6f), 15));
             yield return fireBlock;
 
             yield return CreateBlockInfo("roomLight", 5, new Color4f(1.0f, 1.0f, 1.0f, 1.0f), 1.0f, null,
@@ -202,7 +216,6 @@ namespace ProdigalSoftware.ProjectM.Plugins
             yield return CreateBlockInfo("light5", 2, new Color4f(0.8f, 1.0f, 0.5f, 1.0f), 1.0f, bugInformation,
                 new PointLight(blockCenterVector, new Color3f(0.8f, 1.0f, 0.5f), lightDist));
 
-
             particleVoxels = new uint[3, 3, 3];
             particleVoxels[1, 1, 1] = 0xFFFFFFFF;
             particleVoxels[0, 1, 1] = 0xFFFFFFFF;
@@ -226,22 +239,33 @@ namespace ProdigalSoftware.ProjectM.Plugins
                 block[x, y, z] = newVoxel;
         }
 
+        private static Color4f CreateRandomFlowerColor(Random random)
+        {
+            switch (random.Next(6))
+            {
+                case 1: return new Color4f(1.0f, 0.0f, 0.0f, 1.0f);
+                case 2: return new Color4f(0.0f, 0.0f, 1.0f, 1.0f);
+                case 3: return new Color4f(1.0f, 0.0f, 1.0f, 1.0f);
+                case 4: return new Color4f(1.0f, 1.0f, 0.0f, 1.0f);
+                case 5: return new Color4f(0.0f, 1.0f, 1.0f, 1.0f);
+                default: return new Color4f(1.0f, 1.0f, 1.0f, 1.0f);
+            }
+        }
+
         private static bool GrassVoxelUnder(BlockInformation block, int x, int y, int z)
         {
-            int startX = Math.Max(x - 1, 0);
-            int endX = Math.Min(x + 1, BlockInformation.VoxelSize - 1);
-            int startY = Math.Max(y - 1, 0);
-            int endY = Math.Min(y + 1, BlockInformation.VoxelSize - 1);
             int countUnder = 0;
-            for (int xCheck = startX; xCheck <= endX; xCheck++)
-            {
-                for (int yCheck = startY; yCheck <= endY; yCheck++)
-                {
-                    if (block[xCheck, yCheck, z - 1] != 0)
-                        countUnder++;
-                }
-            }
-            return countUnder == 1;
+            if (block[x, y, z - 1] != 0)
+                countUnder++;
+            if (x > 0 && block[x - 1, y, z - 1] != 0)
+                countUnder++;
+            if (x < BlockInformation.VoxelSize - 1 && block[x + 1, y, z - 1] != 0)
+                countUnder++;
+            if (y > 0 && block[x, y - 1, z - 1] != 0)
+                countUnder++;
+            if (y < BlockInformation.VoxelSize - 1 && block[x, y + 1, z - 1] != 0)
+                countUnder++;
+            return countUnder > 0 && countUnder <= 1;
         }
 
         private static BlockInformation CreateBlockInfo(string name, Color4f color, float voxelDensity, int sides, ILight light = null)
@@ -311,11 +335,12 @@ namespace ProdigalSoftware.ProjectM.Plugins
         }
 
         private static BlockInformation CreateBlockInfo(string name, float sphereSize, Color4f color, float voxelDensity,
-            ParticleSystemInformation particleSystem = null, ILight light = null, int zStart = 0, int zLimit = BlockInformation.VoxelSize)
+            ParticleSystemInformation particleSystem = null, ILight light = null, int zStart = 0, int zLimit = BlockInformation.VoxelSize,
+            bool allowLightPassthrough = false)
         {
             const int mid = BlockInformation.VoxelSize / 2;
 
-            BlockInformation block = new BlockInformation(name, particleSystem, light, null, light == null);
+            BlockInformation block = new BlockInformation(name, particleSystem, light, null, light == null, allowLightPassthrough || light != null);
             for (int x = 0; x < BlockInformation.VoxelSize; x++)
             {
                 for (int y = 0; y < BlockInformation.VoxelSize; y++)

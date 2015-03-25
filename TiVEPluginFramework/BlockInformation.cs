@@ -25,7 +25,7 @@ namespace ProdigalSoftware.TiVEPluginFramework
         }
 
         public BlockInformation(string blockName, ParticleSystemInformation particleSystem = null, ILight light = null, BlockInformation nextBlock = null, 
-            bool isLit = true)
+            bool isLit = true, bool allowLightToPassThrough = false)
         {
             if (blockName == null)
                 throw new ArgumentNullException("blockName");
@@ -35,6 +35,7 @@ namespace ProdigalSoftware.TiVEPluginFramework
             Light = light;
             NextBlock = nextBlock;
             IsLIt = isLit;
+            AllowLightToPassThrough = allowLightToPassThrough;
         }
 
         internal uint[] VoxelsArray
@@ -43,6 +44,7 @@ namespace ProdigalSoftware.TiVEPluginFramework
         }
 
         public bool IsLIt { get; internal set; }
+        public bool AllowLightToPassThrough { get; internal set; }
         public BlockInformation NextBlock { get; internal set; }
         public string BlockName  { get; internal set; }
         public ParticleSystemInformation ParticleSystem { get; internal set; }

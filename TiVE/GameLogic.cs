@@ -53,6 +53,7 @@ namespace ProdigalSoftware.TiVE
             gameScript.Color = new Func<float, float, float, Color3f>((r, g, b) => new Color3f(r, g, b));
             gameScript.Renderer = new Func<IGameWorldRenderer>(() => renderer);
             gameScript.Camera = new Func<Camera>(() => renderer.Camera);
+            gameScript.UserSettings = new Func<UserSettings>(() => TiVEController.UserSettings);
             gameScript.GameWorld = new Func<GameWorld>(() => renderer.GameWorld);
             gameScript.ReloadLevel = new Action(() => renderer.RefreshLevel());
             gameScript.EmptyBlock = BlockInformation.Empty;

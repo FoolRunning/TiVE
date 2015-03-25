@@ -32,15 +32,15 @@ namespace ProdigalSoftware.ProjectM.Plugins
             for (int i = 0; i < 64; i++)
             {
                 yield return CreateBlockInfo("lava" + i, new Color4f(200, 15, 8, 255), 1.0f, i,
-                    new PointLight(new Vector3b(blockCenter, blockCenter, blockCenter), new Color3f(0.2f, 0.01f, 0.001f), forFantasyLighting ? 4 : 6));
+                    new PointLight(new Vector3b(blockCenter, blockCenter, blockCenter), new Color3f(0.2f, 0.01f, 0.001f), forFantasyLighting ? 4 : 6), true);
                 yield return CreateBlockInfo("ston" + i, new Color4f(120, 120, 120, 255), 1.0f, i);
-                yield return CreateBlockInfo("sand" + i, new Color4f(120, 100, 20, 255), 0.1f, i);
+                yield return CreateBlockInfo("sand" + i, new Color4f(120, 100, 20, 255), 0.1f, i, null, true);
             }
 
             for (int i = 0; i < 5; i++)
             {
                 yield return CreateBlockInfo("back" + i, true, 0, new Color4f(235, 235, 235, 255), 1.0f,
-                    new ParticleSystemInformation(particleVoxels, new SnowUpdater(), new Vector3b(0, 0, 0), 100, 1, TransparencyType.None, true));
+                    new ParticleSystemInformation(particleVoxels, new SnowUpdater(), new Vector3b(0, 0, 0), 100, 1, TransparencyType.None, true), null, true);
             }
 
             BlockInformation fireBlock = new BlockInformation("fire", 
@@ -89,12 +89,13 @@ namespace ProdigalSoftware.ProjectM.Plugins
             yield return new BlockAnimationDefinition(100, "sand0", "sand1", "sand2", "sand3", "sand0");
         }
 
-        private static BlockInformation CreateBlockInfo(string name, Color4f color, float voxelDensity, int sides, ILight light = null)
+        private static BlockInformation CreateBlockInfo(string name, Color4f color, float voxelDensity, int sides, 
+            ILight light = null, bool allowLightPassthrough = false)
         {
             const float mid = BlockInformation.VoxelSize / 2.0f - 0.5f;
             float sphereSize = BlockInformation.VoxelSize / 2.0f;
 
-            BlockInformation block = new BlockInformation(name, null, light, null, light == null);
+            BlockInformation block = new BlockInformation(name, null, light, null, light == null, allowLightPassthrough || light != null);
             for (int x = 0; x < BlockInformation.VoxelSize; x++)
             {
                 for (int y = 0; y < BlockInformation.VoxelSize; y++)
@@ -156,11 +157,11 @@ namespace ProdigalSoftware.ProjectM.Plugins
         }
 
         private static BlockInformation CreateBlockInfo(string name, bool frontOnly, float sphereSize, Color4f color, float voxelDensity,
-            ParticleSystemInformation particleSystem = null, ILight light = null)
+            ParticleSystemInformation particleSystem = null, ILight light = null, bool allowLightPassthrough = false)
         {
             const int mid = BlockInformation.VoxelSize / 2;
 
-            BlockInformation block = new BlockInformation(name, particleSystem, light, null, light == null);
+            BlockInformation block = new BlockInformation(name, particleSystem, light, null, light == null, allowLightPassthrough || light != null);
             for (int x = 0; x < BlockInformation.VoxelSize; x++)
             {
                 for (int y = 0; y < BlockInformation.VoxelSize; y++)
