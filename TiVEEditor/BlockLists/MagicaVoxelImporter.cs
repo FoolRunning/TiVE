@@ -47,9 +47,9 @@ namespace ProdigalSoftware.TiVEEditor.BlockLists
         /// <summary>
         /// Load a MagicaVoxel .vox format file.
         /// </summary>
-        public static BlockInformation CreateBlock(BinaryReader stream, string blockName)
+        public static Block CreateBlock(BinaryReader stream, string blockName)
         {
-            BlockInformation block = new BlockInformation(blockName);
+            Block block = new Block(blockName);
 
             // check out http://voxel.codeplex.com/wikipage?title=VOX%20Format&referringTitle=Home for the file format used below
             // we're going to return a voxel chunk worth of data
@@ -117,8 +117,8 @@ namespace ProdigalSoftware.TiVEEditor.BlockLists
             // now push the voxel data into our voxel chunk structure
             for (int i = 0; i < voxelData.Length; i++)
             {
-                if (voxelData[i].x >= BlockInformation.VoxelSize || voxelData[i].y >= BlockInformation.VoxelSize ||
-                    voxelData[i].z >= BlockInformation.VoxelSize)
+                if (voxelData[i].x >= Block.VoxelSize || voxelData[i].y >= Block.VoxelSize ||
+                    voxelData[i].z >= Block.VoxelSize)
                 {
                     // do not store this voxel if it lies out of range of the block voxels
                     continue;

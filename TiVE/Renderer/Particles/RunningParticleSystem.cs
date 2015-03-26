@@ -1,13 +1,12 @@
 ﻿using System;
 using ProdigalSoftware.TiVEPluginFramework;
-using ProdigalSoftware.TiVEPluginFramework.Particles;
 using ProdigalSoftware.Utils;
 
 namespace ProdigalSoftware.TiVE.Renderer.Particles
 {
     internal struct RunningParticleSystem : IEquatable<RunningParticleSystem>
     {
-        public readonly ParticleSystemInformation SystemInfo;
+        public readonly ParticleSystemComponent SystemInfo;
 
         private readonly int blockX;
         private readonly int blockY;
@@ -21,7 +20,7 @@ namespace ProdigalSoftware.TiVE.Renderer.Particles
             SystemInfo = null;
         }
 
-        public RunningParticleSystem(int blockX, int blockY, int blockZ, ParticleSystemInformation systemInfo)
+        public RunningParticleSystem(int blockX, int blockY, int blockZ, ParticleSystemComponent systemInfo)
         {
             this.blockX = blockX;
             this.blockY = blockY;
@@ -34,9 +33,9 @@ namespace ProdigalSoftware.TiVE.Renderer.Particles
             get
             {
                 return new Vector3i(
-                    blockX * BlockInformation.VoxelSize + SystemInfo.Location.X,
-                    blockY * BlockInformation.VoxelSize + SystemInfo.Location.Y, 
-                    blockZ * BlockInformation.VoxelSize + SystemInfo.Location.Z);
+                    blockX * Block.VoxelSize + SystemInfo.Location.X,
+                    blockY * Block.VoxelSize + SystemInfo.Location.Y, 
+                    blockZ * Block.VoxelSize + SystemInfo.Location.Z);
             }
         }
 

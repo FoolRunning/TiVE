@@ -14,7 +14,7 @@ namespace ProdigalSoftware.TiVEEditor.BlockLists
         //private const int PreviewImageSize = 44;
         public const int PreviewImageSize = 60;
 
-        private readonly Dictionary<BlockInformation, Image> previewCache = new Dictionary<BlockInformation, Image>();
+        private readonly Dictionary<Block, Image> previewCache = new Dictionary<Block, Image>();
 
         public void Dispose()
         {
@@ -24,7 +24,7 @@ namespace ProdigalSoftware.TiVEEditor.BlockLists
         /// <summary>
         /// Gets the 2D preview for the specified block
         /// </summary>
-        public Image GetPreview(BlockInformation block)
+        public Image GetPreview(Block block)
         {
             Image preview;
             if (!previewCache.TryGetValue(block, out preview))
@@ -39,7 +39,7 @@ namespace ProdigalSoftware.TiVEEditor.BlockLists
             previewCache.Clear();
         }
 
-        private static Image CreatePreviewForBlock(BlockInformation block)
+        private static Image CreatePreviewForBlock(Block block)
         {
             Bitmap bitmap = new Bitmap(PreviewImageSize, PreviewImageSize, PixelFormat.Format24bppRgb);
             using (Graphics g = Graphics.FromImage(bitmap))
@@ -47,11 +47,11 @@ namespace ProdigalSoftware.TiVEEditor.BlockLists
             {
                 g.FillRectangle(brush, 0, 0, PreviewImageSize, PreviewImageSize);
 
-                for (int y = BlockInformation.VoxelSize - 1; y >= 0; y--)
+                for (int y = Block.VoxelSize - 1; y >= 0; y--)
                 {
-                    for (int x = 0; x < BlockInformation.VoxelSize; x++)
+                    for (int x = 0; x < Block.VoxelSize; x++)
                     {
-                        for (int z = 0; z < BlockInformation.VoxelSize; z++)
+                        for (int z = 0; z < Block.VoxelSize; z++)
                         {
                             int color = (int)block[x, y, z];
                             if (color == 0)
@@ -59,7 +59,7 @@ namespace ProdigalSoftware.TiVEEditor.BlockLists
 
                             brush.Color = Color.FromArgb(color);
                             //g.FillRectangle(brush, x * 2 + 18 - BlockInformation.VoxelSize + y, 28 - y - z * 2 + x, 3, 3);
-                            g.FillRectangle(brush, x * 2 + 24 - BlockInformation.VoxelSize + y, 42 - y - z * 2 + x, 3, 3);
+                            g.FillRectangle(brush, x * 2 + 24 - Block.VoxelSize + y, 42 - y - z * 2 + x, 3, 3);
                         }
                     }
                 }

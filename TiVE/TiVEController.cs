@@ -100,7 +100,7 @@ namespace ProdigalSoftware.TiVE
         {
             GameWorld gameWorld = new GameWorld(100, 100, 100);
             BlockList blockList = new BlockList();
-            blockList.AddBlock(new BlockInformation("dummy"));
+            blockList.AddBlock(new Block("dummy"));
             ushort block = blockList["dummy"];
             for (int x = 0; x < 100; x++)
             {

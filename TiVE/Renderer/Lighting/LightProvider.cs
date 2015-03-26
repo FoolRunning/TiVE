@@ -8,7 +8,6 @@ using ProdigalSoftware.TiVE.Renderer.World;
 using ProdigalSoftware.TiVE.Settings;
 using ProdigalSoftware.TiVE.Starter;
 using ProdigalSoftware.TiVEPluginFramework;
-using ProdigalSoftware.TiVEPluginFramework.Lighting;
 using ProdigalSoftware.Utils;
 
 namespace ProdigalSoftware.TiVE.Renderer.Lighting
@@ -26,7 +25,7 @@ namespace ProdigalSoftware.TiVE.Renderer.Lighting
         #region Constants
         private const float ReflectiveLightingFactor = 0.3f;
 
-        private const int HalfBlockVoxelSize = BlockInformation.VoxelSize / 2;
+        private const int HalfBlockVoxelSize = Block.VoxelSize / 2;
         #endregion
 
         #region Member variables
@@ -132,7 +131,7 @@ namespace ProdigalSoftware.TiVE.Renderer.Lighting
             Messages.AddDebug(string.Format("Lighting for {0} lights took {1}ms", lightInfoList.Length - 1, sw.ElapsedMilliseconds));
         }
         
-        public void FillWorldWithLight(ILight light, List<LightInfo> lightInfos, int blockX, int blockY, int blockZ, BlockList blockList)
+        public void FillWorldWithLight(LightComponent light, List<LightInfo> lightInfos, int blockX, int blockY, int blockZ, BlockList blockList)
         {
             int sizeX = blockSize.X;
             int sizeY = blockSize.Y;
@@ -169,9 +168,9 @@ namespace ProdigalSoftware.TiVE.Renderer.Lighting
                             continue; // Unlikely the light will actually hit the block at all
                         }
 
-                        int vx = bx * BlockInformation.VoxelSize + HalfBlockVoxelSize;
-                        int vy = by * BlockInformation.VoxelSize + HalfBlockVoxelSize;
-                        int vz = bz * BlockInformation.VoxelSize + HalfBlockVoxelSize;
+                        int vx = bx * Block.VoxelSize + HalfBlockVoxelSize;
+                        int vy = by * Block.VoxelSize + HalfBlockVoxelSize;
+                        int vz = bz * Block.VoxelSize + HalfBlockVoxelSize;
                         float newLightPercentage = lm.GetLightPercentage(lightInfo, vx, vy, vz);
                         if (newLightPercentage < 0.001f)
                             continue; // doesn't affect the block enough to talk about
@@ -230,7 +229,7 @@ namespace ProdigalSoftware.TiVE.Renderer.Lighting
                     {
                         for (int y = 0; y < sizeY; y++)
                         {
-                            ILight light = blockList[gameWorld[x, y, z]].Light;
+                            LightComponent light = blockList[gameWorld[x, y, z]].GetComponent<LightComponent>();
                             if (light != null)
                                 FillWorldWithLight(light, lightInfos, x, y, z, blockList);
                         }
@@ -265,9 +264,9 @@ namespace ProdigalSoftware.TiVE.Renderer.Lighting
 
             public override Color3f GetLightAtFast(int voxelX, int voxelY, int voxelZ)
             {
-                int blockX = voxelX / BlockInformation.VoxelSize;
-                int blockY = voxelY / BlockInformation.VoxelSize;
-                int blockZ = voxelZ / BlockInformation.VoxelSize;
+                int blockX = voxelX / Block.VoxelSize;
+                int blockY = voxelY / Block.VoxelSize;
+                int blockZ = voxelZ / Block.VoxelSize;
                 ushort[] lightsInBlock = lightsInBlocks[GetBlockLightOffset(blockX, blockY, blockZ)];
                 LightingModel lightModel = lightingModel;
                 GameWorld world = gameWorld;
@@ -351,9 +350,9 @@ namespace ProdigalSoftware.TiVE.Renderer.Lighting
 
             public override Color3f GetLightAtFast(int voxelX, int voxelY, int voxelZ)
             {
-                int blockX = voxelX / BlockInformation.VoxelSize;
-                int blockY = voxelY / BlockInformation.VoxelSize;
-                int blockZ = voxelZ / BlockInformation.VoxelSize;
+                int blockX = voxelX / Block.VoxelSize;
+                int blockY = voxelY / Block.VoxelSize;
+                int blockZ = voxelZ / Block.VoxelSize;
                 return GetLightAt(voxelX, voxelY, voxelZ, 1, blockX, blockY, blockZ, VoxelSides.None);
             }
 

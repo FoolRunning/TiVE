@@ -10,7 +10,6 @@ using JetBrains.Annotations;
 using OpenTK;
 using ProdigalSoftware.TiVE.Renderer.World;
 using ProdigalSoftware.TiVEPluginFramework;
-using ProdigalSoftware.TiVEPluginFramework.Lighting;
 using ProdigalSoftware.Utils;
 
 namespace ProdigalSoftware.TiVEEditor.BlockLists
@@ -24,18 +23,18 @@ namespace ProdigalSoftware.TiVEEditor.BlockLists
         private const float CameraMaxDist = 50;
         private const float CameraMinDist = 10;
         private const float CameraZoomSpeed = 0.04f;
-        private const float CenterZ = BlockInformation.VoxelSize + (BlockInformation.VoxelSize + 1) / 2;
+        private const float CenterZ = Block.VoxelSize + (Block.VoxelSize + 1) / 2;
         #endregion
 
         #region Member variables
         private static readonly Properties.Settings settings = Properties.Settings.Default;
         private readonly string messageBoxCaption = "Block List Editor";
         private readonly BlockPreviewCache blockPreviewCache = new BlockPreviewCache();
-        private readonly List<BlockInformation> blocksInList = new List<BlockInformation>();
+        private readonly List<Block> blocksInList = new List<Block>();
         private readonly GameWorld gameWorld;
         private readonly BlockList blockList;
         private readonly string titleFormatString;
-        private readonly BlockInformation[] floorBlocks = new BlockInformation[10];
+        private readonly Block[] floorBlocks = new Block[10];
 
         private Point prevMouseLocation;
         private bool draggingMouse;
@@ -60,9 +59,9 @@ namespace ProdigalSoftware.TiVEEditor.BlockLists
             titleFormatString = Text;
 
             lstBxBlocks.ItemHeight = BlockPreviewCache.PreviewImageSize + 6;
-            spnLightLocX.Maximum = BlockInformation.VoxelSize - 1;
-            spnLightLocY.Maximum = BlockInformation.VoxelSize - 1;
-            spnLightLocZ.Maximum = BlockInformation.VoxelSize - 1;
+            spnLightLocX.Maximum = Block.VoxelSize - 1;
+            spnLightLocY.Maximum = Block.VoxelSize - 1;
+            spnLightLocZ.Maximum = Block.VoxelSize - 1;
 
             blockList = BlockList.FromFile(filePath) ?? new BlockList();
             gameWorld = new GameWorld(WorldSize, WorldSize, 5);
@@ -70,19 +69,19 @@ namespace ProdigalSoftware.TiVEEditor.BlockLists
             Random random = new Random();
             for (int i = 0; i < floorBlocks.Length; i++)
             {
-                floorBlocks[i] = new BlockInformation("Floor" + i);
-                for (int x = 0; x < BlockInformation.VoxelSize; x++)
+                floorBlocks[i] = new Block("Floor" + i);
+                for (int x = 0; x < Block.VoxelSize; x++)
                 {
-                    for (int y = 0; y < BlockInformation.VoxelSize; y++)
-                        floorBlocks[i][x, y, BlockInformation.VoxelSize - 1] = ((uint)random.Next(0xFFFFFF) | 0xFF000000);
+                    for (int y = 0; y < Block.VoxelSize; y++)
+                        floorBlocks[i][x, y, Block.VoxelSize - 1] = ((uint)random.Next(0xFFFFFF) | 0xFF000000);
                 }
 
-                for (int s = 0; s < BlockInformation.VoxelSize; s++)
+                for (int s = 0; s < Block.VoxelSize; s++)
                 {
-                    floorBlocks[i][s, 0, BlockInformation.VoxelSize - 1] = 0xFFFFFFFF;
-                    floorBlocks[i][s, BlockInformation.VoxelSize - 1, BlockInformation.VoxelSize - 1] = 0xFFFFFFFF;
-                    floorBlocks[i][0, s, BlockInformation.VoxelSize - 1] = 0xFFFFFFFF;
-                    floorBlocks[i][BlockInformation.VoxelSize - 1, s, BlockInformation.VoxelSize - 1] = 0xFFFFFFFF;
+                    floorBlocks[i][s, 0, Block.VoxelSize - 1] = 0xFFFFFFFF;
+                    floorBlocks[i][s, Block.VoxelSize - 1, Block.VoxelSize - 1] = 0xFFFFFFFF;
+                    floorBlocks[i][0, s, Block.VoxelSize - 1] = 0xFFFFFFFF;
+                    floorBlocks[i][Block.VoxelSize - 1, s, Block.VoxelSize - 1] = 0xFFFFFFFF;
                 }
             }
             
@@ -101,9 +100,9 @@ namespace ProdigalSoftware.TiVEEditor.BlockLists
         /// Gets the currently selected block or the empty block if there is no selected block.
         /// </summary>
         [NotNull]
-        private BlockInformation SelectedBlock
+        private Block SelectedBlock
         {
-            get { return (BlockInformation)lstBxBlocks.SelectedItem ?? BlockInformation.Empty; }
+            get { return (Block)lstBxBlocks.SelectedItem ?? Block.Empty; }
         }
         #endregion
 
@@ -196,7 +195,7 @@ namespace ProdigalSoftware.TiVEEditor.BlockLists
                 if (dialog.ShowDialog() == DialogResult.OK)
                 {
                     string[] files = dialog.FileNames;
-                    List<BlockInformation> blocks = new List<BlockInformation>();
+                    List<Block> blocks = new List<Block>();
                     foreach (string file in files)
                     {
                         using (BinaryReader reader = new BinaryReader(new FileStream(file, FileMode.Open)))
@@ -215,7 +214,7 @@ namespace ProdigalSoftware.TiVEEditor.BlockLists
                                         blockName = blockName.Substring(0, blockName.Length - 1) + (num++);
                                 }
                             }
-                            BlockInformation block = MagicaVoxelImporter.CreateBlock(reader, blockName);
+                            Block block = MagicaVoxelImporter.CreateBlock(reader, blockName);
                             blocks.Add(block);
                         }
                     }
@@ -232,7 +231,7 @@ namespace ProdigalSoftware.TiVEEditor.BlockLists
 
         private void btnDeleteBlock_Click(object sender, EventArgs e)
         {
-            BlockInformation block = SelectedBlock;
+            Block block = SelectedBlock;
             DialogResult result = MessageBox.Show(this, string.Format("Are you sure you want to delete the block: {0}?", block.BlockName), 
                 messageBoxCaption, MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
             if (result == DialogResult.Yes)
@@ -280,11 +279,11 @@ namespace ProdigalSoftware.TiVEEditor.BlockLists
         private void lstBxBlocks_SelectedIndexChanged(object sender, EventArgs e)
         {
             ushort index = (ushort)lstBxBlocks.SelectedIndex;
-            BlockInformation newBlock = SelectedBlock;
+            Block newBlock = SelectedBlock;
             if (gameWorld != null)
                 gameWorld[WorldCenter, WorldCenter, 1] = index; // Put the block in the middle of the game world
 
-            cntrlCurrentBlock.LightProvider.AmbientLight = newBlock.Light != null ? new Color3f(20, 20, 20) : new Color3f(230, 230, 230);
+            cntrlCurrentBlock.LightProvider.AmbientLight = newBlock.HasComponent<LightComponent>() ? new Color3f(20, 20, 20) : new Color3f(230, 230, 230);
             cntrlCurrentBlock.RefreshLevel(true);
 
             UpdateState();
@@ -296,7 +295,7 @@ namespace ProdigalSoftware.TiVEEditor.BlockLists
             if (e.Index == -1 || e.Index >= blocksInList.Count)
                 return;
 
-            BlockInformation block = blocksInList[e.Index];
+            Block block = blocksInList[e.Index];
 
             e.Graphics.DrawImageUnscaled(blockPreviewCache.GetPreview(block), e.Bounds.X + 3, e.Bounds.Y + 3);
 
@@ -312,7 +311,7 @@ namespace ProdigalSoftware.TiVEEditor.BlockLists
                 return;
 
             int prevBlockIndex = lstBxBlocks.SelectedIndex;
-            BlockInformation block = SelectedBlock;
+            Block block = SelectedBlock;
             block.BlockName = txtBlockName.Text;
             blockList.UpdateNameIndex();
             hasUnsavedChanges = true;
@@ -332,18 +331,19 @@ namespace ProdigalSoftware.TiVEEditor.BlockLists
         {
             using (ColorPickerDialog dialog = new ColorPickerDialog())
             {
-                BlockInformation block = SelectedBlock;
-                dialog.Color = block.Light != null ? (Color)block.Light.Color : Color.Black;
+                Block block = SelectedBlock;
+                LightComponent light = block.GetComponent<LightComponent>();
+                dialog.Color = light != null ? (Color)light.Color : Color.Black;
                 dialog.ShowAlphaChannel = false;
 
                 if (dialog.ShowDialog(this) == DialogResult.OK)
                 {
                     if (dialog.Color.ToArgb() == Color.Black.ToArgb())
-                        block.Light = null;
+                        block.RemoveComponent<LightComponent>();
                     else
                     {
-                        block.Light = new PointLight(new Vector3b((byte)spnLightLocX.Value, (byte)spnLightLocY.Value, (byte)spnLightLocZ.Value),
-                            (Color3f)dialog.Color, 10);
+                        block.AddComponent(new LightComponent(new Vector3b((byte)spnLightLocX.Value, (byte)spnLightLocY.Value, (byte)spnLightLocZ.Value),
+                            (Color3f)dialog.Color, 10));
                     }
 
                     hasUnsavedChanges = true;
@@ -358,9 +358,10 @@ namespace ProdigalSoftware.TiVEEditor.BlockLists
             if (ignoreValueChange)
                 return;
 
-            BlockInformation block = SelectedBlock;
-            block.Light = new PointLight(new Vector3b((byte)spnLightLocX.Value, (byte)spnLightLocY.Value, (byte)spnLightLocZ.Value),
-                (Color3f)btnLightColor.BackColor, 10);
+            Block block = SelectedBlock;
+            block.RemoveComponent<LightComponent>();
+            block.AddComponent(new LightComponent(new Vector3b((byte)spnLightLocX.Value, (byte)spnLightLocY.Value, (byte)spnLightLocZ.Value),
+                (Color3f)btnLightColor.BackColor, 10));;
 
             hasUnsavedChanges = true;
             UpdateState();
@@ -379,9 +380,10 @@ namespace ProdigalSoftware.TiVEEditor.BlockLists
         #region Private helper methods
         private void UpdateState()
         {
-            BlockInformation block = SelectedBlock;
-            bool hasSelectedItem = (block != BlockInformation.Empty);
-            bool hasLight = (block.Light != null);
+            Block block = SelectedBlock;
+            bool hasSelectedItem = (block != Block.Empty);
+            LightComponent light = block.GetComponent<LightComponent>();
+            bool hasLight = light != null;
 
             btnSaveBlockList.Enabled = hasUnsavedChanges;
             picName.Enabled = hasSelectedItem;
@@ -396,10 +398,10 @@ namespace ProdigalSoftware.TiVEEditor.BlockLists
 
             ignoreValueChange = true;
             txtBlockName.Text = hasSelectedItem ? block.BlockName : "";
-            btnLightColor.BackColor = hasLight ? Color.FromArgb((int)((Color4b)block.Light.Color).ToArgb()) : Color.Black;
-            spnLightLocX.Value = hasLight ? block.Light.Location.X : BlockInformation.VoxelSize / 2;
-            spnLightLocY.Value = hasLight ? block.Light.Location.Y : BlockInformation.VoxelSize / 2;
-            spnLightLocZ.Value = hasLight ? block.Light.Location.Z : BlockInformation.VoxelSize / 2;
+            btnLightColor.BackColor = hasLight ? Color.FromArgb((int)((Color4b)light.Color).ToArgb()) : Color.Black;
+            spnLightLocX.Value = hasLight ? light.Location.X : Block.VoxelSize / 2;
+            spnLightLocY.Value = hasLight ? light.Location.Y : Block.VoxelSize / 2;
+            spnLightLocZ.Value = hasLight ? light.Location.Z : Block.VoxelSize / 2;
             ignoreValueChange = false;
 
             btnDeleteBlock.Enabled = hasSelectedItem;
@@ -432,14 +434,14 @@ namespace ProdigalSoftware.TiVEEditor.BlockLists
 
         private void UpdateBlocksInList()
         {
-            BlockInformation prevSelectedBlock = SelectedBlock;
+            Block prevSelectedBlock = SelectedBlock;
             int prevSelectedIndex = lstBxBlocks.SelectedIndex;
 
             lstBxBlocks.BeginUpdate();
             lstBxBlocks.Items.Clear();
 
             blocksInList.Clear();
-            foreach (BlockInformation block in blockList.AllBlocks.OrderBy(b => b.BlockName))
+            foreach (Block block in blockList.AllBlocks.OrderBy(b => b.BlockName))
             {
                 blocksInList.Add(block);
                 lstBxBlocks.Items.Add(block);
@@ -449,7 +451,7 @@ namespace ProdigalSoftware.TiVEEditor.BlockLists
             if (blocksInList.Count > 0)
             {
                 // Look for the same block to re-select
-                if (prevSelectedBlock != BlockInformation.Empty)
+                if (prevSelectedBlock != Block.Empty)
                     lstBxBlocks.SelectedItem = prevSelectedBlock;
 
                 if (lstBxBlocks.SelectedIndex == -1)

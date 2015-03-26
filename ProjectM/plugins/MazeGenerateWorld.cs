@@ -490,7 +490,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
                         if (blockIndex == 0)
                             continue;
 
-                        BlockInformation block = blockList[blockIndex];
+                        Block block = blockList[blockIndex];
                         string blockNameKey = GetBlockSet(block);
 
                         if (blockNameKey != "ston" && blockNameKey != "sand" && blockNameKey != "lava")
@@ -522,7 +522,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
             }
         }
 
-        private static string GetBlockSet(BlockInformation block)
+        private static string GetBlockSet(Block block)
         {
             return block.BlockName.Substring(0, 4);
         }

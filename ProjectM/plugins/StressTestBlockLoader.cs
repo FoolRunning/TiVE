@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using ProdigalSoftware.TiVEPluginFramework;
-using ProdigalSoftware.TiVEPluginFramework.Lighting;
 using ProdigalSoftware.TiVEPluginFramework.Particles;
 using ProdigalSoftware.Utils;
 
@@ -18,21 +17,21 @@ namespace ProdigalSoftware.ProjectM.Plugins
         private const int Top = 16;
         private const int Bottom = 32;
 
-        public IEnumerable<BlockInformation> CreateBlocks(string blockListName)
+        public IEnumerable<Block> CreateBlocks(string blockListName)
         {
             if (blockListName != "stress")
                 yield break;
 
             const bool forFantasyLighting = true;
 
-            byte blockCenter = BlockInformation.VoxelSize / 2;
+            byte blockCenter = Block.VoxelSize / 2;
             Vector3b blockCenterVector = new Vector3b(blockCenter, blockCenter, blockCenter);
             uint[, ,] particleVoxels = new uint[1, 1, 1];
             particleVoxels[0, 0, 0] = 0xFFFFFFFF;
             for (int i = 0; i < 64; i++)
             {
                 yield return CreateBlockInfo("lava" + i, new Color4f(200, 15, 8, 255), 1.0f, i,
-                    new PointLight(new Vector3b(blockCenter, blockCenter, blockCenter), new Color3f(0.2f, 0.01f, 0.001f), forFantasyLighting ? 4 : 6), true);
+                    new LightComponent(new Vector3b(blockCenter, blockCenter, blockCenter), new Color3f(0.2f, 0.01f, 0.001f), forFantasyLighting ? 4 : 6), true);
                 yield return CreateBlockInfo("ston" + i, new Color4f(120, 120, 120, 255), 1.0f, i);
                 yield return CreateBlockInfo("sand" + i, new Color4f(120, 100, 20, 255), 0.1f, i, null, true);
             }
@@ -40,34 +39,34 @@ namespace ProdigalSoftware.ProjectM.Plugins
             for (int i = 0; i < 5; i++)
             {
                 yield return CreateBlockInfo("back" + i, true, 0, new Color4f(235, 235, 235, 255), 1.0f,
-                    new ParticleSystemInformation(particleVoxels, new SnowUpdater(), new Vector3b(0, 0, 0), 100, 1, TransparencyType.None, true), null, true);
+                    new ParticleSystemComponent(particleVoxels, new SnowUpdater(), new Vector3b(0, 0, 0), 100, 1, TransparencyType.None, true), null, true);
             }
 
-            BlockInformation fireBlock = new BlockInformation("fire", 
-                new ParticleSystemInformation(particleVoxels, new FireUpdater(), new Vector3b(blockCenter, blockCenter, 1), 300, 400, TransparencyType.Additive, false),
-                new PointLight(new Vector3b(blockCenter, blockCenter, 4), new Color3f(1.0f, 0.8f, 0.6f), forFantasyLighting ? 5 : 10));
+            Block fireBlock = new Block("fire");
+            fireBlock.AddComponent(new ParticleSystemComponent(particleVoxels, new FireUpdater(), new Vector3b(blockCenter, blockCenter, 1), 300, 400, TransparencyType.Additive, false));
+            fireBlock.AddComponent(new LightComponent(new Vector3b(blockCenter, blockCenter, 4), new Color3f(1.0f, 0.8f, 0.6f), forFantasyLighting ? 5 : 10));
             yield return fireBlock;
 
             yield return CreateBlockInfo("light0", false, 2, new Color4f(255, 255, 255, 255), 1.0f, null,
-                new PointLight(blockCenterVector, new Color3f(1.0f, 1.0f, 1.0f), forFantasyLighting ? 10 : 20));
+                new LightComponent(blockCenterVector, new Color3f(1.0f, 1.0f, 1.0f), forFantasyLighting ? 10 : 20));
 
             yield return CreateBlockInfo("light1", false, 2, new Color4f(255, 255, 0, 255), 1.0f, null,
-                new PointLight(blockCenterVector, new Color3f(1.0f, 1.0f, 0.0f), forFantasyLighting ? 10 : 20));
+                new LightComponent(blockCenterVector, new Color3f(1.0f, 1.0f, 0.0f), forFantasyLighting ? 10 : 20));
 
             yield return CreateBlockInfo("light2", false, 2, new Color4f(0, 255, 0, 255), 1.0f, null,
-                new PointLight(blockCenterVector, new Color3f(0.0f, 1.0f, 0.0f), forFantasyLighting ? 10 : 20));
+                new LightComponent(blockCenterVector, new Color3f(0.0f, 1.0f, 0.0f), forFantasyLighting ? 10 : 20));
 
             yield return CreateBlockInfo("light3", false, 2, new Color4f(0, 255, 255, 255), 1.0f, null,
-                new PointLight(blockCenterVector, new Color3f(0.0f, 1.0f, 1.0f), forFantasyLighting ? 10 : 20));
+                new LightComponent(blockCenterVector, new Color3f(0.0f, 1.0f, 1.0f), forFantasyLighting ? 10 : 20));
 
             yield return CreateBlockInfo("light4", false, 2, new Color4f(0, 0, 255, 255), 1.0f, null,
-                new PointLight(blockCenterVector, new Color3f(0.0f, 0.0f, 1.0f), forFantasyLighting ? 10 : 20));
+                new LightComponent(blockCenterVector, new Color3f(0.0f, 0.0f, 1.0f), forFantasyLighting ? 10 : 20));
 
             yield return CreateBlockInfo("light5", false, 2, new Color4f(255, 0, 255, 255), 1.0f, null,
-                new PointLight(blockCenterVector, new Color3f(1.0f, 0.0f, 1.0f), forFantasyLighting ? 10 : 20));
+                new LightComponent(blockCenterVector, new Color3f(1.0f, 0.0f, 1.0f), forFantasyLighting ? 10 : 20));
 
             yield return CreateBlockInfo("light6", false, 2, new Color4f(255, 255, 255, 255), 1.0f, null,
-                new PointLight(blockCenterVector, new Color3f(1.0f, 1.0f, 1.0f), forFantasyLighting ? 10 : 20));
+                new LightComponent(blockCenterVector, new Color3f(1.0f, 1.0f, 1.0f), forFantasyLighting ? 10 : 20));
 
             particleVoxels = new uint[3, 3, 3];
             particleVoxels[1, 1, 1] = 0xFFFFFFFF;
@@ -77,34 +76,34 @@ namespace ProdigalSoftware.ProjectM.Plugins
             particleVoxels[1, 2, 1] = 0xFFFFFFFF;
             particleVoxels[1, 1, 0] = 0xFFFFFFFF;
             particleVoxels[1, 1, 2] = 0xFFFFFFFF;
-            yield return CreateBlockInfo("fountain", false, BlockInformation.VoxelSize / 2, new Color4f(20, 20, 150, 255), 1.0f,
-                new ParticleSystemInformation(particleVoxels, new FountainUpdater(), new Vector3b(blockCenter, blockCenter, 13), 100, 300, TransparencyType.Realistic, true));
+            yield return CreateBlockInfo("fountain", false, Block.VoxelSize / 2, new Color4f(20, 20, 150, 255), 1.0f,
+                new ParticleSystemComponent(particleVoxels, new FountainUpdater(), new Vector3b(blockCenter, blockCenter, 13), 100, 300, TransparencyType.Realistic, true));
         }
 
-        public IEnumerable<BlockAnimationDefinition> CreateAnimations(string blockListName)
+        private static Block CreateBlockInfo(string name, Color4f color, float voxelDensity, int sides, 
+            LightComponent light = null, bool allowLightPassthrough = false)
         {
-            if (blockListName != "stress")
-                yield break;
+            const float mid = Block.VoxelSize / 2.0f - 0.5f;
+            float sphereSize = Block.VoxelSize / 2.0f;
 
-            yield return new BlockAnimationDefinition(100, "sand0", "sand1", "sand2", "sand3", "sand0");
-        }
-
-        private static BlockInformation CreateBlockInfo(string name, Color4f color, float voxelDensity, int sides, 
-            ILight light = null, bool allowLightPassthrough = false)
-        {
-            const float mid = BlockInformation.VoxelSize / 2.0f - 0.5f;
-            float sphereSize = BlockInformation.VoxelSize / 2.0f;
-
-            BlockInformation block = new BlockInformation(name, null, light, null, light == null, allowLightPassthrough || light != null);
-            for (int x = 0; x < BlockInformation.VoxelSize; x++)
+            Block block = new Block(name);
+            if (light != null)
             {
-                for (int y = 0; y < BlockInformation.VoxelSize; y++)
+                block.AddComponent(light);
+                block.AddComponent(new UnlitComponent());
+            }
+            if (allowLightPassthrough || light != null)
+                block.AddComponent(new TransparentComponent());
+
+            for (int x = 0; x < Block.VoxelSize; x++)
+            {
+                for (int y = 0; y < Block.VoxelSize; y++)
                 {
-                    for (int z = 0; z < BlockInformation.VoxelSize; z++)
+                    for (int z = 0; z < Block.VoxelSize; z++)
                     {
-                        if (((sides & Top) != 0 && (sides & Front) != 0 && y - (int)mid > BlockInformation.VoxelSize - z) ||   // rounded Top-Front
+                        if (((sides & Top) != 0 && (sides & Front) != 0 && y - (int)mid > Block.VoxelSize - z) ||   // rounded Top-Front
                             ((sides & Front) != 0 && (sides & Bottom) != 0 && y + (int)mid < z) ||                             // rounded Front-Bottom
-                            ((sides & Bottom) != 0 && (sides & Back) != 0 && y + (int)mid < BlockInformation.VoxelSize - z) || // rounded Bottom-Back
+                            ((sides & Bottom) != 0 && (sides & Back) != 0 && y + (int)mid < Block.VoxelSize - z) || // rounded Bottom-Back
                             ((sides & Back) != 0 && (sides & Top) != 0 && y - (int)mid > z))                                   // rounded Back-Top
                         {
                             // Cylinder around the x-axis
@@ -113,9 +112,9 @@ namespace ProdigalSoftware.ProjectM.Plugins
                                 continue;
                         }
 
-                        if (((sides & Right) != 0 && (sides & Front) != 0 && x - (int)mid > BlockInformation.VoxelSize - z) || // rounded Right-Front
+                        if (((sides & Right) != 0 && (sides & Front) != 0 && x - (int)mid > Block.VoxelSize - z) || // rounded Right-Front
                             ((sides & Front) != 0 && (sides & Left) != 0 && x + (int)mid < z) ||                               // rounded Front-Left
-                            ((sides & Left) != 0 && (sides & Back) != 0 && x + (int)mid < BlockInformation.VoxelSize - z) ||   // rounded Left-Back
+                            ((sides & Left) != 0 && (sides & Back) != 0 && x + (int)mid < Block.VoxelSize - z) ||   // rounded Left-Back
                             ((sides & Back) != 0 && (sides & Right) != 0 && x - (int)mid > z))                                 // rounded Back-Right
                         {
                             // Cylinder around the y-axis
@@ -124,9 +123,9 @@ namespace ProdigalSoftware.ProjectM.Plugins
                                 continue;
                         }
 
-                        if (((sides & Right) != 0 && (sides & Top) != 0 && x - (int)mid > BlockInformation.VoxelSize - y) ||   // rounded Right-Top
+                        if (((sides & Right) != 0 && (sides & Top) != 0 && x - (int)mid > Block.VoxelSize - y) ||   // rounded Right-Top
                             ((sides & Top) != 0 && (sides & Left) != 0 && x + (int)mid < y) ||                                 // rounded Top-Left
-                            ((sides & Left) != 0 && (sides & Bottom) != 0 && x + (int)mid < BlockInformation.VoxelSize - y) || // rounded Left-Bottom
+                            ((sides & Left) != 0 && (sides & Bottom) != 0 && x + (int)mid < Block.VoxelSize - y) || // rounded Left-Bottom
                             ((sides & Bottom) != 0 && (sides & Right) != 0 && x - (int)mid > y))                               // rounded Bottom-Right
                         {
                             // Cylinder around the z-axis
@@ -156,17 +155,27 @@ namespace ProdigalSoftware.ProjectM.Plugins
             return block;
         }
 
-        private static BlockInformation CreateBlockInfo(string name, bool frontOnly, float sphereSize, Color4f color, float voxelDensity,
-            ParticleSystemInformation particleSystem = null, ILight light = null, bool allowLightPassthrough = false)
+        private static Block CreateBlockInfo(string name, bool frontOnly, float sphereSize, Color4f color, float voxelDensity,
+            ParticleSystemComponent particleSystem = null, LightComponent light = null, bool allowLightPassthrough = false)
         {
-            const int mid = BlockInformation.VoxelSize / 2;
+            const int mid = Block.VoxelSize / 2;
 
-            BlockInformation block = new BlockInformation(name, particleSystem, light, null, light == null, allowLightPassthrough || light != null);
-            for (int x = 0; x < BlockInformation.VoxelSize; x++)
+            Block block = new Block(name);
+            if (particleSystem != null)
+                block.AddComponent(particleSystem);
+            if (light != null)
             {
-                for (int y = 0; y < BlockInformation.VoxelSize; y++)
+                block.AddComponent(light);
+                block.AddComponent(new UnlitComponent());
+            }
+            if (allowLightPassthrough || light != null)
+                block.AddComponent(new TransparentComponent());
+
+            for (int x = 0; x < Block.VoxelSize; x++)
+            {
+                for (int y = 0; y < Block.VoxelSize; y++)
                 {
-                    for (int z = frontOnly ? BlockInformation.VoxelSize - 2 : 0; z < BlockInformation.VoxelSize; z++)
+                    for (int z = frontOnly ? Block.VoxelSize - 2 : 0; z < Block.VoxelSize; z++)
                     {
                         if (sphereSize > 0)
                         {
@@ -209,11 +218,11 @@ namespace ProdigalSoftware.ProjectM.Plugins
             {
                 ApplyVelocity(particle, timeSinceLastFrame);
 
-                if (particle.X > systemX + BlockInformation.VoxelSize)
+                if (particle.X > systemX + Block.VoxelSize)
                     particle.VelX -= SnowDeacceleration * timeSinceLastFrame;
                 if (particle.X < systemX)
                     particle.VelX += SnowDeacceleration * timeSinceLastFrame;
-                if (particle.Y > systemY + BlockInformation.VoxelSize)
+                if (particle.Y > systemY + Block.VoxelSize)
                     particle.VelY -= SnowDeacceleration * timeSinceLastFrame;
                 if (particle.Y < systemY)
                     particle.VelY += SnowDeacceleration * timeSinceLastFrame;
@@ -236,12 +245,12 @@ namespace ProdigalSoftware.ProjectM.Plugins
                 particle.VelZ = (float)random.NextDouble() * -30.0f - 20.0f;
                 particle.VelY = (float)random.NextDouble() * 48.0f - 24.0f;
 
-                particle.X = startX + random.Next(BlockInformation.VoxelSize);
-                particle.Y = startY + random.Next(BlockInformation.VoxelSize);
+                particle.X = startX + random.Next(Block.VoxelSize);
+                particle.Y = startY + random.Next(Block.VoxelSize);
                 if (startAtTop)
-                    particle.Z = 59 * BlockInformation.VoxelSize;
+                    particle.Z = 59 * Block.VoxelSize;
                 else
-                    particle.Z = random.Next(56 * BlockInformation.VoxelSize) + 3 * BlockInformation.VoxelSize;
+                    particle.Z = random.Next(56 * Block.VoxelSize) + 3 * Block.VoxelSize;
 
                 particle.Color = new Color4b(255, 255, 255, 255);
                 particle.Time = (float)random.NextDouble() * AliveTime / 2.0f + AliveTime / 2.0f;

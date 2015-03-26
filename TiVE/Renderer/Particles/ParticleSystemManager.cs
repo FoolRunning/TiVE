@@ -7,7 +7,6 @@ using OpenTK;
 using ProdigalSoftware.TiVE.Renderer.World;
 using ProdigalSoftware.TiVE.Settings;
 using ProdigalSoftware.TiVEPluginFramework;
-using ProdigalSoftware.TiVEPluginFramework.Particles;
 using ProdigalSoftware.Utils;
 
 namespace ProdigalSoftware.TiVE.Renderer.Particles
@@ -18,8 +17,8 @@ namespace ProdigalSoftware.TiVE.Renderer.Particles
 
         private readonly List<ParticleSystemCollection> renderList = new List<ParticleSystemCollection>();
         private readonly List<ParticleSystemCollection> updateList = new List<ParticleSystemCollection>();
-        private readonly Dictionary<ParticleSystemInformation, ParticleSystemCollection> particleSystemCollections =
-            new Dictionary<ParticleSystemInformation, ParticleSystemCollection>();
+        private readonly Dictionary<ParticleSystemComponent, ParticleSystemCollection> particleSystemCollections =
+            new Dictionary<ParticleSystemComponent, ParticleSystemCollection>();
 
         private readonly HashSet<RunningParticleSystem> systemsToRender = new HashSet<RunningParticleSystem>();
         private readonly HashSet<RunningParticleSystem> runningSystems = new HashSet<RunningParticleSystem>();
@@ -80,7 +79,7 @@ namespace ProdigalSoftware.TiVE.Renderer.Particles
                     {
                         for (int blockY = blockStartY; blockY < blockLimitY; blockY++)
                         {
-                            ParticleSystemInformation particleInfo = blockList[gameWorld[blockX, blockY, blockZ]].ParticleSystem;
+                            ParticleSystemComponent particleInfo = blockList[gameWorld[blockX, blockY, blockZ]].GetComponent<ParticleSystemComponent>();
                             if (particleInfo != null)
                             {
                                 RunningParticleSystem runningParticleSystem = new RunningParticleSystem(blockX, blockY, blockZ);

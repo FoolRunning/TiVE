@@ -6,7 +6,7 @@ using ProdigalSoftware.Utils;
 
 namespace ProdigalSoftware.ProjectM.Plugins
 {
-    public class MazeBlockLoader : IBlockGenerator
+    public class LiquidTestBlockLoader : IBlockGenerator
     {
         private static readonly Random random = new Random();
 
@@ -19,203 +19,49 @@ namespace ProdigalSoftware.ProjectM.Plugins
 
         public IEnumerable<Block> CreateBlocks(string blockListName)
         {
-            if (blockListName != "maze")
+            if (blockListName != "liquid")
                 yield break;
 
-            const byte bc = Block.VoxelSize / 2;
-            const int mv = Block.VoxelSize - 1;
-            const uint mortarColor = 0xFFAFAFAF;
+            const bool forFantasyLighting = true;
 
-            Vector3b blockCenterVector = new Vector3b(bc, bc, bc);
+            byte blockCenter = Block.VoxelSize / 2;
+            Vector3b blockCenterVector = new Vector3b(blockCenter, blockCenter, blockCenter);
             uint[, ,] particleVoxels = new uint[1, 1, 1];
             particleVoxels[0, 0, 0] = 0xFFFFFFFF;
             for (int i = 0; i < 64; i++)
             {
                 yield return CreateBlockInfo("lava" + i, new Color4f(200, 15, 8, 255), 1.0f, i,
-                    new LightComponent(new Vector3b(bc, bc, bc), new Color3f(0.2f, 0.01f, 0.005f), 4));
-                
-                Block stone = CreateBlockInfo("ston" + i, new Color4f(220, 220, 220, 255), 1.0f, i);
-                for (int x = 0; x <= mv; x++)
-                {
-                    for (int y = 0; y <= mv; y++)
-                    {
-                        if ((i & Bottom) != 0)
-                        {
-                            stone[x, 0, 0] = 0;
-                            stone[x, 0, 1] = 0;
-                            stone[x, 0, mv] = 0;
-
-                            stone[x, 0, bc] = 0;
-                            stone[x, 0, bc - 1] = 0;
-                            stone[x, 0, bc + 1] = 0;
-                        }
-
-                        if ((i & Top) != 0)
-                        {
-                            stone[x, mv, 0] = 0;
-                            stone[x, mv, 1] = 0;
-                            stone[x, mv, mv] = 0;
-
-                            stone[x, mv, bc] = 0;
-                            stone[x, mv, bc - 1] = 0;
-                            stone[x, mv, bc + 1] = 0;
-                        }
-
-                        if ((i & Left) != 0)
-                        {
-                            stone[0, y, 0] = 0;
-                            stone[0, y, 1] = 0;
-                            stone[0, y, mv] = 0;
-
-                            stone[0, y, bc] = 0;
-                            stone[0, y, bc - 1] = 0;
-                            stone[0, y, bc + 1] = 0;
-                        }
-
-                        if ((i & Right) != 0)
-                        {
-                            stone[mv, y, 0] = 0;
-                            stone[mv, y, 1] = 0;
-                            stone[mv, y, mv] = 0;
-
-                            stone[mv, y, bc] = 0;
-                            stone[mv, y, bc - 1] = 0;
-                            stone[mv, y, bc + 1] = 0;
-                        }
-
-                        ReplaceVoxel(stone, x, y, 0, mortarColor);
-                        ReplaceVoxel(stone, x, y, bc, mortarColor);
-                    }
-                }
-                for (int n = 0; n <= mv; n++)
-                {
-                    for (int z = 0; z < bc; z++)
-                    {
-                        if ((i & Bottom) != 0)
-                        {
-                            stone[bc - 5, 0, z] = 0;
-                            stone[bc - 4, 0, z] = 0;
-                            stone[bc - 3, 0, z] = 0;
-
-                            stone[bc + 3, 0, z + bc] = 0;
-                            stone[bc + 4, 0, z + bc] = 0;
-                            stone[bc + 5, 0, z + bc] = 0;
-                        }
-
-                        if ((i & Top) != 0)
-                        {
-                            stone[bc - 5, mv, z] = 0;
-                            stone[bc - 4, mv, z] = 0;
-                            stone[bc - 3, mv, z] = 0;
-
-                            stone[bc + 3, mv, z + bc] = 0;
-                            stone[bc + 4, mv, z + bc] = 0;
-                            stone[bc + 5, mv, z + bc] = 0;
-                        }
-
-                        if ((i & Left) != 0)
-                        {
-                            stone[0, bc - 5, z] = 0;
-                            stone[0, bc - 4, z] = 0;
-                            stone[0, bc - 3, z] = 0;
-
-                            stone[0, bc + 3, z + bc] = 0;
-                            stone[0, bc + 4, z + bc] = 0;
-                            stone[0, bc + 5, z + bc] = 0;
-                        }
-
-                        if ((i & Right) != 0)
-                        {
-                            stone[mv, bc - 5, z] = 0;
-                            stone[mv, bc - 4, z] = 0;
-                            stone[mv, bc - 3, z] = 0;
-
-                            stone[mv, bc + 3, z + bc] = 0;
-                            stone[mv, bc + 4, z + bc] = 0;
-                            stone[mv, bc + 5, z + bc] = 0;
-                        }
-
-                        ReplaceVoxel(stone, bc - 4, n, z, mortarColor);
-                        if (z < bc - 1 || (i & Front) == 0)
-                            ReplaceVoxel(stone, bc + 4, n, z + bc, mortarColor);
-
-                        ReplaceVoxel(stone, n, bc - 4, z, mortarColor);
-                        if (z < bc - 1 || (i & Front) == 0)
-                            ReplaceVoxel(stone, n, bc + 4, z + bc, mortarColor);
-                    }
-                }
-                yield return stone;
+                    new LightComponent(new Vector3b(blockCenter, blockCenter, blockCenter), new Color3f(0.2f, 0.01f, 0.001f), forFantasyLighting ? 4 : 6), true);
+                yield return CreateBlockInfo("ston" + i, new Color4f(120, 120, 120, 255), 1.0f, i);
+                yield return CreateBlockInfo("sand" + i, new Color4f(120, 100, 20, 255), 0.1f, i, null, true);
             }
 
-            for (int i = 0; i < 50; i++)
+            for (int i = 0; i < 5; i++)
             {
-                Block grass = new Block("grass" + i);
-                grass.AddComponent(new TransparentComponent());
-
-                Color4f grassColor = new Color4f(50, 230, 50, 255);
-                for (int z = 0; z < Block.VoxelSize; z++)
-                {
-                    for (int x = 0; x < Block.VoxelSize; x++)
-                    {
-                        for (int y = 0; y < Block.VoxelSize; y++)
-                        {
-                            if (random.NextDouble() < 0.5 - z / 50.0 && (z == 0 || GrassVoxelUnder(grass, x, y, z)))
-                            {
-                                grass[x, y, z] = CreateColorFromColor(grassColor).ToArgb();
-                                if (z == Block.VoxelSize - 1 && random.NextDouble() < 0.2 &&
-                                    x > 0 && x < Block.VoxelSize - 1 && y > 0 && y < Block.VoxelSize - 1)
-                                {
-                                    // Make a flower
-                                    Color4f flowerColor = CreateRandomFlowerColor(random);
-                                    grass[x, y, z] = CreateColorFromColor(flowerColor).ToArgb();
-                                    grass[x - 1, y, z - 1] = CreateColorFromColor(flowerColor).ToArgb();
-                                    grass[x + 1, y, z - 1] = CreateColorFromColor(flowerColor).ToArgb();
-                                    grass[x, y - 1, z - 1] = CreateColorFromColor(flowerColor).ToArgb();
-                                    grass[x, y + 1, z - 1] = CreateColorFromColor(flowerColor).ToArgb();
-                                }
-                            }
-                        }
-                    }
-                }
-
-                yield return grass;
+                yield return CreateBlockInfo("back" + i, true, 0, new Color4f(235, 235, 235, 255), 1.0f,
+                    new ParticleSystemComponent(particleVoxels, new SnowUpdater(), new Vector3b(0, 0, 0), 100, 1, TransparencyType.None, true), null, true);
             }
 
-            for (int i = 0; i < 6; i++)
-            {
-                yield return CreateBlockInfo("backStone" + i, 0, new Color4f(240, 240, 240, 255), 1.0f, allowLightPassthrough: true);
-                yield return CreateBlockInfo("back" + i, 0, new Color4f(0.6f, 0.45f, 0.25f, 1.0f), 1.0f, allowLightPassthrough: true);
-            }
+            yield return CreateBlockInfo("light0", false, 2, new Color4f(255, 255, 255, 255), 1.0f, null,
+                new LightComponent(blockCenterVector, new Color3f(1.0f, 1.0f, 1.0f), forFantasyLighting ? 10 : 20));
 
-            Block fireBlock = new Block("fire");
-            fireBlock.AddComponent(new ParticleSystemComponent(particleVoxels, new FireUpdater(), new Vector3b(bc, bc, 1), 300, 400, TransparencyType.Additive, false));
-            fireBlock.AddComponent(new LightComponent(new Vector3b(bc, bc, 4), new Color3f(1.0f, 0.8f, 0.6f), 15));
-            yield return fireBlock;
+            yield return CreateBlockInfo("light1", false, 2, new Color4f(255, 255, 0, 255), 1.0f, null,
+                new LightComponent(blockCenterVector, new Color3f(1.0f, 1.0f, 0.0f), forFantasyLighting ? 10 : 20));
 
-            yield return CreateBlockInfo("roomLight", 5, new Color4f(1.0f, 1.0f, 1.0f, 1.0f), 1.0f, null,
-                new LightComponent(blockCenterVector, new Color3f(1.0f, 1.0f, 1.0f), 30));
+            yield return CreateBlockInfo("light2", false, 2, new Color4f(0, 255, 0, 255), 1.0f, null,
+                new LightComponent(blockCenterVector, new Color3f(0.0f, 1.0f, 0.0f), forFantasyLighting ? 10 : 20));
 
-            const int lightDist = 20;
-            ParticleSystemComponent bugInformation = new ParticleSystemComponent(particleVoxels,
-                new LightBugsUpdater(), new Vector3b(bc, bc, bc), 15, 10, TransparencyType.Realistic, true);
+            yield return CreateBlockInfo("light3", false, 2, new Color4f(0, 255, 255, 255), 1.0f, null,
+                new LightComponent(blockCenterVector, new Color3f(0.0f, 1.0f, 1.0f), forFantasyLighting ? 10 : 20));
 
-            yield return CreateBlockInfo("light0", 2, new Color4f(0.5f, 0.8f, 1.0f, 1.0f), 1.0f, bugInformation,
-                new LightComponent(blockCenterVector, new Color3f(0.5f, 0.8f, 1.0f), lightDist));
+            yield return CreateBlockInfo("light4", false, 2, new Color4f(0, 0, 255, 255), 1.0f, null,
+                new LightComponent(blockCenterVector, new Color3f(0.0f, 0.0f, 1.0f), forFantasyLighting ? 10 : 20));
 
-            yield return CreateBlockInfo("light1", 2, new Color4f(0.8f, 0.5f, 1.0f, 1.0f), 1.0f, bugInformation,
-                new LightComponent(blockCenterVector, new Color3f(0.8f, 0.5f, 1.0f), lightDist));
+            yield return CreateBlockInfo("light5", false, 2, new Color4f(255, 0, 255, 255), 1.0f, null,
+                new LightComponent(blockCenterVector, new Color3f(1.0f, 0.0f, 1.0f), forFantasyLighting ? 10 : 20));
 
-            yield return CreateBlockInfo("light2", 2, new Color4f(1.0f, 0.5f, 0.8f, 1.0f), 1.0f, bugInformation,
-                new LightComponent(blockCenterVector, new Color3f(1.0f, 0.5f, 0.8f), lightDist));
-
-            yield return CreateBlockInfo("light3", 2, new Color4f(1.0f, 0.8f, 0.5f, 1.0f), 1.0f, bugInformation,
-                new LightComponent(blockCenterVector, new Color3f(1.0f, 0.8f, 0.5f), lightDist));
-
-            yield return CreateBlockInfo("light4", 2, new Color4f(0.5f, 1.0f, 0.8f, 1.0f), 1.0f, bugInformation,
-                new LightComponent(blockCenterVector, new Color3f(0.5f, 1.0f, 0.8f), lightDist));
-
-            yield return CreateBlockInfo("light5", 2, new Color4f(0.8f, 1.0f, 0.5f, 1.0f), 1.0f, bugInformation,
-                new LightComponent(blockCenterVector, new Color3f(0.8f, 1.0f, 0.5f), lightDist));
+            yield return CreateBlockInfo("light6", false, 2, new Color4f(255, 255, 255, 255), 1.0f, null,
+                new LightComponent(blockCenterVector, new Color3f(1.0f, 1.0f, 1.0f), forFantasyLighting ? 10 : 20));
 
             particleVoxels = new uint[3, 3, 3];
             particleVoxels[1, 1, 1] = 0xFFFFFFFF;
@@ -225,47 +71,12 @@ namespace ProdigalSoftware.ProjectM.Plugins
             particleVoxels[1, 2, 1] = 0xFFFFFFFF;
             particleVoxels[1, 1, 0] = 0xFFFFFFFF;
             particleVoxels[1, 1, 2] = 0xFFFFFFFF;
-            yield return CreateBlockInfo("fountain", bc, new Color4f(20, 20, 150, 255), 1.0f,
-                new ParticleSystemComponent(particleVoxels, new FountainUpdater(), new Vector3b(bc, bc, 13), 100, 300, TransparencyType.Realistic, true));
+            yield return CreateBlockInfo("fountain", false, Block.VoxelSize / 2, new Color4f(20, 20, 150, 255), 1.0f,
+                new ParticleSystemComponent(particleVoxels, new FountainUpdater(), new Vector3b(blockCenter, blockCenter, 13), 100, 300, TransparencyType.Realistic, true));
         }
 
-
-        private static void ReplaceVoxel(Block block, int x, int y, int z, uint newVoxel)
-        {
-            if (block[x, y, z] != 0)
-                block[x, y, z] = newVoxel;
-        }
-
-        private static Color4f CreateRandomFlowerColor(Random random)
-        {
-            switch (random.Next(6))
-            {
-                case 1: return new Color4f(1.0f, 0.0f, 0.0f, 1.0f);
-                case 2: return new Color4f(0.0f, 0.0f, 1.0f, 1.0f);
-                case 3: return new Color4f(1.0f, 0.0f, 1.0f, 1.0f);
-                case 4: return new Color4f(1.0f, 1.0f, 0.0f, 1.0f);
-                case 5: return new Color4f(0.0f, 1.0f, 1.0f, 1.0f);
-                default: return new Color4f(1.0f, 1.0f, 1.0f, 1.0f);
-            }
-        }
-
-        private static bool GrassVoxelUnder(Block block, int x, int y, int z)
-        {
-            int countUnder = 0;
-            if (block[x, y, z - 1] != 0)
-                countUnder++;
-            if (x > 0 && block[x - 1, y, z - 1] != 0)
-                countUnder++;
-            if (x < Block.VoxelSize - 1 && block[x + 1, y, z - 1] != 0)
-                countUnder++;
-            if (y > 0 && block[x, y - 1, z - 1] != 0)
-                countUnder++;
-            if (y < Block.VoxelSize - 1 && block[x, y + 1, z - 1] != 0)
-                countUnder++;
-            return countUnder > 0 && countUnder <= 1;
-        }
-
-        private static Block CreateBlockInfo(string name, Color4f color, float voxelDensity, int sides, LightComponent light = null)
+        private static Block CreateBlockInfo(string name, Color4f color, float voxelDensity, int sides, 
+            LightComponent light = null, bool allowLightPassthrough = false)
         {
             const float mid = Block.VoxelSize / 2.0f - 0.5f;
             float sphereSize = Block.VoxelSize / 2.0f;
@@ -276,6 +87,8 @@ namespace ProdigalSoftware.ProjectM.Plugins
                 block.AddComponent(light);
                 block.AddComponent(new UnlitComponent());
             }
+            if (allowLightPassthrough || light != null)
+                block.AddComponent(new TransparentComponent());
 
             for (int x = 0; x < Block.VoxelSize; x++)
             {
@@ -337,9 +150,8 @@ namespace ProdigalSoftware.ProjectM.Plugins
             return block;
         }
 
-        private static Block CreateBlockInfo(string name, float sphereSize, Color4f color, float voxelDensity,
-            ParticleSystemComponent particleSystem = null, LightComponent light = null, int zStart = 0, int zLimit = Block.VoxelSize,
-            bool allowLightPassthrough = false)
+        private static Block CreateBlockInfo(string name, bool frontOnly, float sphereSize, Color4f color, float voxelDensity,
+            ParticleSystemComponent particleSystem = null, LightComponent light = null, bool allowLightPassthrough = false)
         {
             const int mid = Block.VoxelSize / 2;
 
@@ -358,7 +170,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
             {
                 for (int y = 0; y < Block.VoxelSize; y++)
                 {
-                    for (int z = zStart; z < zLimit; z++)
+                    for (int z = frontOnly ? Block.VoxelSize - 2 : 0; z < Block.VoxelSize; z++)
                     {
                         if (sphereSize > 0)
                         {
@@ -378,7 +190,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
 
         private static Color4b CreateColorFromColor(Color4f seed)
         {
-            float scale = (float)(random.NextDouble() * 0.2 + 0.9);
+            float scale = (float)(random.NextDouble() * 0.1 + 0.95);
             return new Color4b(Math.Min(seed.R * scale, 1.0f), Math.Min(seed.G * scale, 1.0f), 
                 Math.Min(seed.B * scale, 1.0f), seed.A);
         }
@@ -447,7 +259,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
             private const float FlameDeacceleration = 35.0f;
             private const float AliveTime = 1.0f;
 
-            private static readonly Random random = new Random();
+            private readonly Random random = new Random();
             private static readonly Color4b[] colorList = new Color4b[256];
 
             static FireUpdater()
@@ -519,8 +331,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
         #region FountainUpdater class
         private class FountainUpdater : ParticleController
         {
-            private const float AliveTime = 2.0f;
-            private static readonly Random random = new Random();
+            private readonly Random random = new Random();
             private static readonly Color4b[] colorList = new Color4b[256];
 
             static FountainUpdater()
@@ -529,10 +340,13 @@ namespace ProdigalSoftware.ProjectM.Plugins
                     colorList[i] = new Color4b((byte)(55 - (int)((255 - i) / 5.0f)), (byte)(150 - (int)((255 - i) / 2.0f)), 255, (byte)(100 - i / 3));
             }
 
+            #region Implementation of ParticleController
             public override bool BeginUpdate(IParticleSystem particleSystem, float timeSinceLastFrame)
             {
                 return true;
             }
+
+            private const float AliveTime = 2.0f;
 
             public override void Update(Particle particle, float timeSinceLastFrame, float systemX, float systemY, float systemZ)
             {
@@ -563,58 +377,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
                 particle.Color = colorList[0];
                 particle.Time = AliveTime;
             }
-        }
-        #endregion
-
-        #region LightBugsUpdater class
-        private class LightBugsUpdater : ParticleController
-        {
-            private const float BugDeacceleration = 15.0f;
-            private static readonly Random random = new Random();
-
-            public override bool BeginUpdate(IParticleSystem particleSystem, float timeSinceLastFrame)
-            {
-                return true;
-            }
-
-            public override void Update(Particle particle, float timeSinceLastFrame, float systemX, float systemY, float systemZ)
-            {
-                if (particle.X > systemX)
-                    particle.VelX -= BugDeacceleration * timeSinceLastFrame;
-                if (particle.X < systemX)
-                    particle.VelX += BugDeacceleration * timeSinceLastFrame;
-                if (particle.Y > systemY)
-                    particle.VelY -= BugDeacceleration * timeSinceLastFrame;
-                if (particle.Y < systemY)
-                    particle.VelY += BugDeacceleration * timeSinceLastFrame;
-                if (particle.Z > systemZ)
-                    particle.VelZ -= BugDeacceleration * timeSinceLastFrame;
-                if (particle.Z < systemZ)
-                    particle.VelZ += BugDeacceleration * timeSinceLastFrame;
-
-                ApplyVelocity(particle, timeSinceLastFrame);
-                particle.Color = CreateColor();
-            }
-
-            public override void InitializeNew(Particle particle, float startX, float startY, float startZ)
-            {
-                particle.VelX = (float)random.NextDouble() * 20.0f - 10.0f;
-                particle.VelZ = (float)random.NextDouble() * 20.0f - 10.0f;
-                particle.VelY = (float)random.NextDouble() * 20.0f - 10.0f;
-
-                particle.X = (float)random.NextDouble() * 20.0f + startX - 10.0f;
-                particle.Y = (float)random.NextDouble() * 20.0f + startY - 10.0f;
-                particle.Z = (float)random.NextDouble() * 20.0f + startZ - 10.0f;
-
-                particle.Color = CreateColor();
-                particle.Time = 1.0f;
-            }
-
-            private static Color4b CreateColor()
-            {
-                byte intensity = (byte)(150 + random.Next(100));
-                return new Color4b(intensity, intensity, intensity, 155);
-            }
+            #endregion
         }
         #endregion
     }

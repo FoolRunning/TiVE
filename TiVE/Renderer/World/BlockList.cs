@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -7,7 +6,6 @@ using Ionic.Zip;
 using JetBrains.Annotations;
 using ProdigalSoftware.TiVE.Renderer.Voxels;
 using ProdigalSoftware.TiVEPluginFramework;
-using ProdigalSoftware.TiVEPluginFramework.Lighting;
 using ProdigalSoftware.Utils;
 
 namespace ProdigalSoftware.TiVE.Renderer.World
@@ -20,7 +18,7 @@ namespace ProdigalSoftware.TiVE.Renderer.World
         private const string BlockFileInternalInfoFile = "blocks.info";
         private const short FileVersion = 3;
 
-        private readonly List<BlockInformation> blocks = new List<BlockInformation>(500);
+        private readonly List<Block> blocks = new List<Block>(500);
         private readonly Dictionary<string, ushort> blockToIndexMap = new Dictionary<string, ushort>();
 
         private readonly List<AnimationInfo> animationsList = new List<AnimationInfo>();
@@ -39,7 +37,7 @@ namespace ProdigalSoftware.TiVE.Renderer.World
             blockMeshes.Clear();
         }
 
-        public IList<BlockInformation> AllBlocks
+        public IList<Block> AllBlocks
         {
             get { return blocks; }
         }
@@ -54,7 +52,7 @@ namespace ProdigalSoftware.TiVE.Renderer.World
             get { return blockToIndexMap[blockName]; }
         }
 
-        public BlockInformation this[int blockIndex]
+        public Block this[int blockIndex]
         {
             get { return blocks[blockIndex]; }
         }
@@ -85,7 +83,7 @@ namespace ProdigalSoftware.TiVE.Renderer.World
                     if (fileVersion > FileVersion)
                         return null;
 
-                    if (reader.ReadByte() != BlockInformation.VoxelSize)
+                    if (reader.ReadByte() != Block.VoxelSize)
                         return null;
                 }
 
@@ -96,7 +94,7 @@ namespace ProdigalSoftware.TiVE.Renderer.World
 
                     using (BinaryReader reader = new BinaryReader(entry.OpenReader(), Encoding.ASCII))
                     {
-                        BlockInformation block = new BlockInformation(blockName);
+                        Block block = new Block(blockName);
                         for (int i = 0; i < block.VoxelsArray.Length; i++)
                             block.VoxelsArray[i] = reader.ReadUInt32();
                         
@@ -114,7 +112,7 @@ namespace ProdigalSoftware.TiVE.Renderer.World
                                 maxBlocks = reader.ReadInt16();
                             else
                                 maxBlocks = (int)reader.ReadSingle();
-                            block.Light = new PointLight(new Vector3b(locX, locY, locZ), new Color3f(colR, colG, colB), maxBlocks);
+                            block.AddComponent(new LightComponent(new Vector3b(locX, locY, locZ), new Color3f(colR, colG, colB), maxBlocks));
                         }
                         newBlockList.AddBlock(block);
                     }
@@ -135,13 +133,13 @@ namespace ProdigalSoftware.TiVE.Renderer.World
                 {
                     writer.Write(InfoFileHeader);
                     writer.Write(FileVersion);
-                    writer.Write((byte)BlockInformation.VoxelSize);
+                    writer.Write((byte)Block.VoxelSize);
                 }
                 blockFile.AddEntry(BlockFileInternalInfoFile, memStream.ToArray());
             }
 
             // Add entries for each block
-            foreach (BlockInformation block in blocks.Where(b => b != BlockInformation.Empty))
+            foreach (Block block in blocks.Where(b => b != Block.Empty))
             {
                 using (MemoryStream memStream = new MemoryStream())
                 {
@@ -151,20 +149,21 @@ namespace ProdigalSoftware.TiVE.Renderer.World
                             writer.Write(block.VoxelsArray[i]);
 
                         // Write out the information about the light (added in version 2)
-                        if (block.Light == null)
+                        LightComponent light = block.GetComponent<LightComponent>();
+                        if (light == null)
                             writer.Write(false);
                         else
                         {
                             writer.Write(true);
-                            writer.Write(block.Light.Location.X);
-                            writer.Write(block.Light.Location.Y);
-                            writer.Write(block.Light.Location.Z);
+                            writer.Write(light.Location.X);
+                            writer.Write(light.Location.Y);
+                            writer.Write(light.Location.Z);
 
-                            writer.Write(block.Light.Color.R);
-                            writer.Write(block.Light.Color.G);
-                            writer.Write(block.Light.Color.B);
+                            writer.Write(light.Color.R);
+                            writer.Write(light.Color.G);
+                            writer.Write(light.Color.B);
 
-                            writer.Write((short)block.Light.LightBlockDist);
+                            writer.Write((short)light.LightBlockDist);
                         }
                     }
                     blockFile.AddEntry(block.BlockName + "." + FileExtension, memStream.ToArray());
@@ -174,16 +173,16 @@ namespace ProdigalSoftware.TiVE.Renderer.World
             blockFile.Save(filePath);
         }
 
-        public void AddBlocks(IEnumerable<BlockInformation> blocksToAdd)
+        public void AddBlocks(IEnumerable<Block> blocksToAdd)
         {
-            foreach (BlockInformation block in blocksToAdd)
+            foreach (Block block in blocksToAdd)
                 AddBlock(block);
         }
 
-        public void AddBlock(BlockInformation block)
+        public void AddBlock(Block block)
         {
             if (blocks.Count == 0)
-                blocks.Add(BlockInformation.Empty);
+                blocks.Add(Block.Empty);
 
             ushort index = (ushort)blocks.Count;
             blocks.Add(block);
@@ -193,23 +192,6 @@ namespace ProdigalSoftware.TiVE.Renderer.World
         public void RemoveBlock(string blockName)
         {
             blockToIndexMap.Remove(blockName);
-        }
-
-        public void AddAnimations(IEnumerable<BlockAnimationDefinition> animations)
-        {
-            if (animations == null)
-                return;
-
-            foreach (BlockAnimationDefinition animation in animations)
-            {
-                AnimationInfo animationInfo = new AnimationInfo(animation.AnimationFrameTime,
-                    animation.AnimationSequence.Select(blockName => !string.IsNullOrEmpty(blockName) ? blockToIndexMap[blockName] : (ushort)0));
-
-                if (animationsList.Exists(ani => animationInfo.AnimationSequence.Any(bl => ani.AnimationSequence.Contains(bl))))
-                    throw new InvalidOperationException("Block is already used as an animation and can not belong to two animations");
-
-                animationsList.Add(animationInfo);
-            }
         }
 
         public void UpdateAnimations(float timeSinceLastUpdate)
@@ -271,7 +253,7 @@ namespace ProdigalSoftware.TiVE.Renderer.World
             blockToIndexMap.Clear();
             foreach (ushort blockIndex in blocksInIndex)
             {
-                BlockInformation block = blocks[blockIndex];
+                Block block = blocks[blockIndex];
                 blockToIndexMap[block.BlockName] = blockIndex;
             }
         }
