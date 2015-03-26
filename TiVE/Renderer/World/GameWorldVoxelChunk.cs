@@ -13,7 +13,7 @@ namespace ProdigalSoftware.TiVE.Renderer.World
     {
         #region Constants
         public const int BlockSize = 4;
-        public const int VoxelSize = BlockSize * BlockInformation.VoxelSize;
+        public const int VoxelSize = BlockSize * Block.VoxelSize;
         #endregion
 
         #region Member variables
@@ -36,8 +36,8 @@ namespace ProdigalSoftware.TiVE.Renderer.World
         {
             chunkLoc = new Vector3i(chunkX, chunkY, chunkZ);
             chunkBlockLoc = new Vector3i(chunkX * BlockSize, chunkY * BlockSize, chunkZ * BlockSize);
-            chunkVoxelLoc = new Vector3i(chunkBlockLoc.X * BlockInformation.VoxelSize, 
-                chunkBlockLoc.Y * BlockInformation.VoxelSize, chunkBlockLoc.Z * BlockInformation.VoxelSize);
+            chunkVoxelLoc = new Vector3i(chunkBlockLoc.X * Block.VoxelSize, 
+                chunkBlockLoc.Y * Block.VoxelSize, chunkBlockLoc.Z * Block.VoxelSize);
             translationMatrix = Matrix4.CreateTranslation(chunkX * VoxelSize, chunkY * VoxelSize, chunkZ * VoxelSize);
         }
 
@@ -146,9 +146,9 @@ namespace ProdigalSoftware.TiVE.Renderer.World
             int blockStartZ = chunkLoc.Z * BlockSize;
             int blockEndZ = Math.Min((chunkLoc.Z + 1) * BlockSize, gameWorld.BlockSize.Z);
 
-            int voxelStartX = blockStartX * BlockInformation.VoxelSize;
-            int voxelStartY = blockStartY * BlockInformation.VoxelSize;
-            int voxelStartZ = blockStartZ * BlockInformation.VoxelSize;
+            int voxelStartX = blockStartX * Block.VoxelSize;
+            int voxelStartY = blockStartY * Block.VoxelSize;
+            int voxelStartZ = blockStartZ * Block.VoxelSize;
 
             int voxelCount = 0;
             int renderedVoxelCount = 0;
@@ -166,7 +166,7 @@ namespace ProdigalSoftware.TiVE.Renderer.World
                         if (blockIndex == 0)
                             continue;
 
-                        BlockInformation block = blockList[blockIndex];
+                        Block block = blockList[blockIndex];
                         //if (block.NextBlock != null)
                         //    continue;
 
@@ -205,7 +205,7 @@ namespace ProdigalSoftware.TiVE.Renderer.World
             }
         }
 
-        private static void CreateMeshForBlock(BlockInformation block, int blockX, int blockY, int blockZ,
+        private static void CreateMeshForBlock(Block block, int blockX, int blockY, int blockZ,
             int voxelStartX, int voxelStartY, int voxelStartZ, int voxelDetailLevel, IGameWorldRenderer renderer, 
             MeshBuilder newMeshBuilder, ref int polygonCount, ref int renderedVoxelCount)
         {
@@ -217,25 +217,25 @@ namespace ProdigalSoftware.TiVE.Renderer.World
             int maxVoxelX = gameWorld.VoxelSize.X - 1 - voxelSize;
             int maxVoxelY = gameWorld.VoxelSize.Y - 1 - voxelSize;
             int maxVoxelZ = gameWorld.VoxelSize.Z - 1 - voxelSize;
-            int maxBlockVoxelSize = BlockInformation.VoxelSize - voxelSize;
+            int maxBlockVoxelSize = Block.VoxelSize - voxelSize;
 
-            bool blockIsLit = block.IsLIt;
+            bool blockIsLit = !block.HasComponent<UnlitComponent>();
             //for (int bz = BlockInformation.VoxelSize - 1; bz >= 0; bz -= voxelSize)
-            for (int bvz = 0; bvz < BlockInformation.VoxelSize; bvz += voxelSize)
+            for (int bvz = 0; bvz < Block.VoxelSize; bvz += voxelSize)
             {
-                int voxelZ = blockZ * BlockInformation.VoxelSize + bvz;
+                int voxelZ = blockZ * Block.VoxelSize + bvz;
                 byte chunkVoxelZ = (byte)(voxelZ - voxelStartZ);
-                for (int bvx = 0; bvx < BlockInformation.VoxelSize; bvx += voxelSize)
+                for (int bvx = 0; bvx < Block.VoxelSize; bvx += voxelSize)
                 {
-                    int voxelX = blockX * BlockInformation.VoxelSize + bvx;
+                    int voxelX = blockX * Block.VoxelSize + bvx;
                     byte chunkVoxelX = (byte)(voxelX - voxelStartX);
-                    for (int bvy = 0; bvy < BlockInformation.VoxelSize; bvy += voxelSize)
+                    for (int bvy = 0; bvy < Block.VoxelSize; bvy += voxelSize)
                     {
                         uint color = voxelSize == 1 ? block[bvx, bvy, bvz] : GetLODVoxelColor(block, bvz, bvx, bvy, voxelSize);
                         if (color == 0)
                             continue;
 
-                        int voxelY = blockY * BlockInformation.VoxelSize + bvy;
+                        int voxelY = blockY * Block.VoxelSize + bvy;
 
                         VoxelSides sides = VoxelSides.None;
 
@@ -311,7 +311,7 @@ namespace ProdigalSoftware.TiVE.Renderer.World
             }
         }
 
-        private static uint GetLODVoxelColor(BlockInformation block, int bvz, int bvx, int bvy, int voxelSize)
+        private static uint GetLODVoxelColor(Block block, int bvz, int bvx, int bvy, int voxelSize)
         {
             uint color;
             int voxelsFound = 0;

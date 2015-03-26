@@ -5,7 +5,7 @@ using OpenTK;
 using ProdigalSoftware.TiVE.Renderer.Meshes;
 using ProdigalSoftware.TiVE.Renderer.Voxels;
 using ProdigalSoftware.TiVE.Settings;
-using ProdigalSoftware.TiVEPluginFramework.Particles;
+using ProdigalSoftware.TiVEPluginFramework;
 using ProdigalSoftware.Utils;
 
 namespace ProdigalSoftware.TiVE.Renderer.Particles
@@ -24,7 +24,7 @@ namespace ProdigalSoftware.TiVE.Renderer.Particles
         /// <summary>Quick lookup for the index of a system</summary>
         private readonly Dictionary<RunningParticleSystem, int> particleSystemIndex = new Dictionary<RunningParticleSystem, int>();
 
-        private readonly ParticleSystemInformation systemInfo;
+        private readonly ParticleSystemComponent systemInfo;
 
         private readonly IRendererData voxelInstanceLocationData;
         private readonly IRendererData voxelInstanceColorData;
@@ -48,7 +48,7 @@ namespace ProdigalSoftware.TiVE.Renderer.Particles
         /// <summary>
         /// Creates a new ParticleSystemCollection to hold particle systems of the specified type
         /// </summary>
-        public ParticleSystemCollection(ParticleSystemInformation systemInfo)
+        public ParticleSystemCollection(ParticleSystemComponent systemInfo)
         {
             this.systemInfo = systemInfo;
 

@@ -19,7 +19,7 @@ namespace ProdigalSoftware.TiVEPluginFramework
     /// </summary>
     public sealed class GameWorld
     {
-        private const int BlockTotalVoxelCount = BlockInformation.VoxelSize * BlockInformation.VoxelSize * BlockInformation.VoxelSize;
+        private const int BlockTotalVoxelCount = Block.VoxelSize * Block.VoxelSize * Block.VoxelSize;
 
         private readonly Vector3i voxelSize;
         private readonly Vector3i blockSize;
@@ -28,13 +28,14 @@ namespace ProdigalSoftware.TiVEPluginFramework
 
         private uint[] blockVoxels;
         private uint[] blockVoxelsForLighting;
+        private bool[] blockLightPassThrough;
 
         public GameWorld(int blockSizeX, int blockSizeY, int blockSizeZ)
         {
             LightingModelType = LightingModelType.Realistic;
 
             blockSize = new Vector3i(blockSizeX, blockSizeY, blockSizeZ);
-            voxelSize = new Vector3i(blockSizeX * BlockInformation.VoxelSize, blockSizeY * BlockInformation.VoxelSize, blockSizeZ * BlockInformation.VoxelSize);
+            voxelSize = new Vector3i(blockSizeX * Block.VoxelSize, blockSizeY * Block.VoxelSize, blockSizeZ * Block.VoxelSize);
 
             blockStates = new BlockState[blockSizeX * blockSizeY * blockSizeZ];
             blocks = new ushort[blockSizeX * blockSizeY * blockSizeZ];
@@ -72,11 +73,13 @@ namespace ProdigalSoftware.TiVEPluginFramework
         {
             blockVoxelsForLighting = new uint[blockList.BlockCount * BlockTotalVoxelCount];
             blockVoxels = new uint[blockList.BlockCount * BlockTotalVoxelCount];
+            blockLightPassThrough = new bool[blockList.BlockCount];
             for (int i = 0; i < blockList.BlockCount; i++)
             {
-                BlockInformation block = blockList.AllBlocks[i];
+                Block block = blockList.AllBlocks[i];
+                blockLightPassThrough[i] = block.HasComponent<TransparentComponent>();
                 Array.Copy(block.VoxelsArray, 0, blockVoxels, i * BlockTotalVoxelCount, BlockTotalVoxelCount);
-                if (block.Light == null)
+                if (!block.HasComponent<LightComponent>())
                     Array.Copy(block.VoxelsArray, 0, blockVoxelsForLighting, i * BlockTotalVoxelCount, BlockTotalVoxelCount);
             }
         }
@@ -100,16 +103,16 @@ namespace ProdigalSoftware.TiVEPluginFramework
         {
             MiscUtils.CheckConstraints(voxelX, voxelY, voxelZ, voxelSize);
 
-            int blockX = voxelX / BlockInformation.VoxelSize;
-            int blockY = voxelY / BlockInformation.VoxelSize;
-            int blockZ = voxelZ / BlockInformation.VoxelSize;
+            int blockX = voxelX / Block.VoxelSize;
+            int blockY = voxelY / Block.VoxelSize;
+            int blockZ = voxelZ / Block.VoxelSize;
             ushort block = blocks[GetBlockOffset(blockX, blockY, blockZ)];
             if (block == 0)
                 return 0;
 
-            int blockVoxelX = voxelX % BlockInformation.VoxelSize;
-            int blockVoxelY = voxelY % BlockInformation.VoxelSize;
-            int blockVoxelZ = voxelZ % BlockInformation.VoxelSize;
+            int blockVoxelX = voxelX % Block.VoxelSize;
+            int blockVoxelY = voxelY % Block.VoxelSize;
+            int blockVoxelZ = voxelZ % Block.VoxelSize;
             return blockVoxels[GetBlockOffset(block, blockVoxelX, blockVoxelY, blockVoxelZ)];
         }
 
@@ -135,12 +138,12 @@ namespace ProdigalSoftware.TiVEPluginFramework
             float tMaxX = tStepX;
             float tMaxY = tStepY;
             float tMaxZ = tStepZ;
-            int blockX = x / BlockInformation.VoxelSize;
-            int blockY = y / BlockInformation.VoxelSize;
-            int blockZ = z / BlockInformation.VoxelSize;
-            int blockVoxelX = x % BlockInformation.VoxelSize;
-            int blockVoxelY = y % BlockInformation.VoxelSize;
-            int blockVoxelZ = z % BlockInformation.VoxelSize;
+            int blockX = x / Block.VoxelSize;
+            int blockY = y / Block.VoxelSize;
+            int blockZ = z / Block.VoxelSize;
+            int blockVoxelX = x % Block.VoxelSize;
+            int blockVoxelY = y % Block.VoxelSize;
+            int blockVoxelZ = z % Block.VoxelSize;
             int prevBlockX = 0;
             int prevBlockY = 0;
             int prevBlockZ = 0;
@@ -154,8 +157,8 @@ namespace ProdigalSoftware.TiVEPluginFramework
                     {
                         x = x + stepX;
                         tMaxX = tMaxX + tStepX;
-                        blockX = x / BlockInformation.VoxelSize;
-                        blockVoxelX = x % BlockInformation.VoxelSize;
+                        blockX = x / Block.VoxelSize;
+                        blockVoxelX = x % Block.VoxelSize;
                         if (blockX != prevBlockX)
                             block = blocks[GetBlockOffset(blockX, blockY, blockZ)];
                         prevBlockX = blockX;
@@ -164,8 +167,8 @@ namespace ProdigalSoftware.TiVEPluginFramework
                     {
                         z = z + stepZ;
                         tMaxZ = tMaxZ + tStepZ;
-                        blockZ = z / BlockInformation.VoxelSize;
-                        blockVoxelZ = z % BlockInformation.VoxelSize;
+                        blockZ = z / Block.VoxelSize;
+                        blockVoxelZ = z % Block.VoxelSize;
                         if (blockZ != prevBlockZ)
                             block = blocks[GetBlockOffset(blockX, blockY, blockZ)];
                         prevBlockZ = blockZ;
@@ -175,8 +178,8 @@ namespace ProdigalSoftware.TiVEPluginFramework
                 {
                     y = y + stepY;
                     tMaxY = tMaxY + tStepY;
-                    blockY = y / BlockInformation.VoxelSize;
-                    blockVoxelY = y % BlockInformation.VoxelSize;
+                    blockY = y / Block.VoxelSize;
+                    blockVoxelY = y % Block.VoxelSize;
                     if (blockY != prevBlockY)
                         block = blocks[GetBlockOffset(blockX, blockY, blockZ)];
                     prevBlockY = blockY;
@@ -185,8 +188,8 @@ namespace ProdigalSoftware.TiVEPluginFramework
                 {
                     z = z + stepZ;
                     tMaxZ = tMaxZ + tStepZ;
-                    blockZ = z / BlockInformation.VoxelSize;
-                    blockVoxelZ = z % BlockInformation.VoxelSize;
+                    blockZ = z / Block.VoxelSize;
+                    blockVoxelZ = z % Block.VoxelSize;
                     if (blockZ != prevBlockZ)
                         block = blocks[GetBlockOffset(blockX, blockY, blockZ)];
                     prevBlockZ = blockZ;
@@ -249,12 +252,8 @@ namespace ProdigalSoftware.TiVEPluginFramework
                     return true;
 
                 ushort block = blocks[GetBlockOffset(x, y, z)];
-                if (block != 0)
-                {
-                    BlockInformation blockInfo = blockList[block];
-                    if (!blockInfo.AllowLightToPassThrough && ++blockCount >= maxBlocks) 
-                        return false;
-                }
+                if (block != 0 && !blockLightPassThrough[block] && ++blockCount >= maxBlocks) 
+                    return false;
             }
             while (true);
         }
@@ -277,11 +276,11 @@ namespace ProdigalSoftware.TiVEPluginFramework
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static int GetBlockOffset(ushort blockIndex, int x, int y, int z)
         {
-            Debug.Assert(x >= 0 && x < BlockInformation.VoxelSize);
-            Debug.Assert(y >= 0 && y < BlockInformation.VoxelSize);
-            Debug.Assert(z >= 0 && z < BlockInformation.VoxelSize);
+            Debug.Assert(x >= 0 && x < Block.VoxelSize);
+            Debug.Assert(y >= 0 && y < Block.VoxelSize);
+            Debug.Assert(z >= 0 && z < Block.VoxelSize);
 
-            return blockIndex * BlockTotalVoxelCount + (z * BlockInformation.VoxelSize + x) * BlockInformation.VoxelSize + y; // y-axis major for speed
+            return blockIndex * BlockTotalVoxelCount + (z * Block.VoxelSize + x) * Block.VoxelSize + y; // y-axis major for speed
         }
         #endregion
     }

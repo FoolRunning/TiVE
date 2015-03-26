@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
-using OpenTK;
 using ProdigalSoftware.TiVE.Renderer.Lighting;
+using ProdigalSoftware.TiVEPluginFramework;
 using ProdigalSoftware.TiVEPluginFramework.Particles;
 using ProdigalSoftware.Utils;
 
@@ -15,11 +15,11 @@ namespace ProdigalSoftware.TiVE.Renderer.Particles
     internal sealed class ParticleSystem : IParticleSystem
     {
         private static readonly ParticleSorter sorter = new ParticleSorter();
-        private readonly ParticleSystemInformation systemInfo;
+        private readonly ParticleSystemComponent systemInfo;
         private readonly Particle[] particles;
         private float numOfParticlesNeeded;
 
-        public ParticleSystem(ParticleSystemInformation systemInfo)
+        public ParticleSystem(ParticleSystemComponent systemInfo)
         {
             this.systemInfo = systemInfo;
             ParticlesPerSecond = systemInfo.ParticlesPerSecond;
@@ -48,7 +48,7 @@ namespace ProdigalSoftware.TiVE.Renderer.Particles
         {
             Debug.Assert(IsAlive);
 
-            ParticleSystemInformation sysInfo = systemInfo;
+            ParticleSystemComponent sysInfo = systemInfo;
             ParticleController upd = sysInfo.Controller;
             upd.BeginUpdate(this, timeSinceLastFrame);
 

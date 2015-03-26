@@ -1,5 +1,4 @@
 ﻿using ProdigalSoftware.TiVEPluginFramework;
-using ProdigalSoftware.TiVEPluginFramework.Lighting;
 using ProdigalSoftware.Utils;
 
 namespace ProdigalSoftware.TiVE.Renderer.Lighting
@@ -28,11 +27,11 @@ namespace ProdigalSoftware.TiVE.Renderer.Lighting
         /// <param name="blockZ">The block location of the light on the z-axis</param>
         /// <param name="light">The light</param>
         /// <param name="cachedLightCalc">Cached lighting calculation needed by the current light model</param>
-        public LightInfo(int blockX, int blockY, int blockZ, ILight light, float cachedLightCalc)
+        public LightInfo(int blockX, int blockY, int blockZ, LightComponent light, float cachedLightCalc)
         {
-            VoxelLocX = (ushort)(light.Location.X + blockX * BlockInformation.VoxelSize);
-            VoxelLocY = (ushort)(light.Location.Y + blockY * BlockInformation.VoxelSize);
-            VoxelLocZ = (ushort)(light.Location.Z + blockZ * BlockInformation.VoxelSize);
+            VoxelLocX = (ushort)(light.Location.X + blockX * Block.VoxelSize);
+            VoxelLocY = (ushort)(light.Location.Y + blockY * Block.VoxelSize);
+            VoxelLocZ = (ushort)(light.Location.Z + blockZ * Block.VoxelSize);
             LightColor = light.Color;
             CachedLightCalc = cachedLightCalc;
         }

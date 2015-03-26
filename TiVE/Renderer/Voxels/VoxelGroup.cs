@@ -39,7 +39,7 @@ namespace ProdigalSoftware.TiVE.Renderer.Voxels
             voxels = new uint[sizeX * sizeY * sizeZ];
         }
 
-        public VoxelGroup(BlockInformation block) : this(BlockInformation.VoxelSize, BlockInformation.VoxelSize, BlockInformation.VoxelSize)
+        public VoxelGroup(Block block) : this(Block.VoxelSize, Block.VoxelSize, Block.VoxelSize)
         {
             Array.Copy(block.VoxelsArray, voxels, voxels.Length);
         }

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
 using ProdigalSoftware.TiVEPluginFramework;
-using ProdigalSoftware.TiVEPluginFramework.Lighting;
 
 namespace ProdigalSoftware.TiVE.Renderer.Lighting
 {
@@ -41,16 +40,16 @@ namespace ProdigalSoftware.TiVE.Renderer.Lighting
         /// <summary>
         /// Gets a value to cache for the specified light that will make the lighting calculations faster
         /// </summary>
-        public abstract float GetCacheLightCalculation(ILight light);
+        public abstract float GetCacheLightCalculation(LightComponent light);
 
         protected abstract float GetLightPercentageInternal(float distSquared, float cachedLightCalc);
 
         #region RealisticLightingModel class
         private sealed class RealisticLightingModel : LightingModel
         {
-            public override float GetCacheLightCalculation(ILight light)
+            public override float GetCacheLightCalculation(LightComponent light)
             {
-                float dist = light.LightBlockDist * BlockInformation.VoxelSize;
+                float dist = light.LightBlockDist * Block.VoxelSize;
                 return 1.0f / (dist * dist * MinRealisticLightPercent); // Light attentuation
             }
 
@@ -64,9 +63,9 @@ namespace ProdigalSoftware.TiVE.Renderer.Lighting
         #region BrightRealisticLightingModel class
         private sealed class BrightRealisticLightingModel : LightingModel
         {
-            public override float GetCacheLightCalculation(ILight light)
+            public override float GetCacheLightCalculation(LightComponent light)
             {
-                float dist = light.LightBlockDist * BlockInformation.VoxelSize;
+                float dist = light.LightBlockDist * Block.VoxelSize;
                 return 1.0f / (dist * dist * dist * dist * MinRealisticLightPercent); // Light attentuation
             }
 
@@ -80,9 +79,9 @@ namespace ProdigalSoftware.TiVE.Renderer.Lighting
         #region Fantasy1LightingModel class
         private sealed class Fantasy1LightingModel : LightingModel
         {
-            public override float GetCacheLightCalculation(ILight light)
+            public override float GetCacheLightCalculation(LightComponent light)
             {
-                float dist = light.LightBlockDist * BlockInformation.VoxelSize;
+                float dist = light.LightBlockDist * Block.VoxelSize;
                 return dist * dist; // Max light distance squared
             }
 
@@ -97,9 +96,9 @@ namespace ProdigalSoftware.TiVE.Renderer.Lighting
         #region Fantasy2LightingModel class
         private sealed class Fantasy2LightingModel : LightingModel
         {
-            public override float GetCacheLightCalculation(ILight light)
+            public override float GetCacheLightCalculation(LightComponent light)
             {
-                float dist = light.LightBlockDist * BlockInformation.VoxelSize;
+                float dist = light.LightBlockDist * Block.VoxelSize;
                 return dist * dist; // Max light distance squared
             }
 

@@ -82,7 +82,7 @@ namespace ProdigalSoftware.TiVE.Scripts
         private static void AddGlobalLuaMethods(dynamic lua)
         {
             lua.Log = new Action<object>(obj => Messages.Println(obj.ToString(), Color.CadetBlue));
-            lua.BlockSize = BlockInformation.VoxelSize;
+            lua.BlockSize = Block.VoxelSize;
             lua.PI = (float)Math.PI;
             lua.Max = new Func<float, float, float>(Math.Max);
             lua.Min = new Func<float, float, float>(Math.Min);

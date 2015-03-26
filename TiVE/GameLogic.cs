@@ -56,7 +56,7 @@ namespace ProdigalSoftware.TiVE
             gameScript.UserSettings = new Func<UserSettings>(() => TiVEController.UserSettings);
             gameScript.GameWorld = new Func<GameWorld>(() => renderer.GameWorld);
             gameScript.ReloadLevel = new Action(() => renderer.RefreshLevel());
-            gameScript.EmptyBlock = BlockInformation.Empty;
+            gameScript.EmptyBlock = Block.Empty;
             gameScript.BlockAt = new Func<int, int, int, ushort>((blockX, blockY, blockZ) =>
             {
                 GameWorld gameWorld = renderer.GameWorld;

@@ -21,10 +21,7 @@ namespace ProdigalSoftware.TiVE.Renderer.World
             BlockList blockList = BlockList.FromFile(blockFilePath) ?? new BlockList();
 
             foreach (IBlockGenerator generator in TiVEController.PluginManager.GetPluginsOfType<IBlockGenerator>())
-            {
                 blockList.AddBlocks(generator.CreateBlocks(blockListName));
-                blockList.AddAnimations(generator.CreateAnimations(blockListName));
-            }
 
             if (blockList.BlockCount == 0)
             {

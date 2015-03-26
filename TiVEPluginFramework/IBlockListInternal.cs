@@ -10,6 +10,6 @@ namespace ProdigalSoftware.TiVEPluginFramework
     {
         int BlockCount { get; }
 
-        IList<BlockInformation> AllBlocks { get; }
+        IList<Block> AllBlocks { get; }
     }
 }
