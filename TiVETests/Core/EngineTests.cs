@@ -15,49 +15,53 @@ namespace TiVETests.Core
             Engine engine = new Engine();
             
             engine.AddSystem(system1);
-            engine.UpdateSystems(1.2f);
-            VerifySystem(system1, 1, 1.2f);
-            VerifySystem(system2, 0, 0.0f);
-            VerifySystem(system3, 0, 0.0f);
+            engine.UpdateSystems(12);
+            VerifySystem(system1, 1, 12);
+            VerifySystem(system2, 0, 0);
+            VerifySystem(system3, 0, 0);
 
             engine.AddSystem(system2);
-            engine.UpdateSystems(1.2f);
-            VerifySystem(system1, 2, 2.4f);
-            VerifySystem(system2, 1, 1.2f);
-            VerifySystem(system3, 0, 0.0f);
+            engine.UpdateSystems(12);
+            VerifySystem(system1, 2, 24);
+            VerifySystem(system2, 1, 12);
+            VerifySystem(system3, 0, 00);
 
             engine.AddSystem(system3);
-            engine.UpdateSystems(1.2f);
-            VerifySystem(system1, 3, 3.6f);
-            VerifySystem(system2, 2, 2.4f);
-            VerifySystem(system3, 1, 1.2f);
+            engine.UpdateSystems(12);
+            VerifySystem(system1, 3, 36);
+            VerifySystem(system2, 2, 24);
+            VerifySystem(system3, 1, 12);
         }
 
-        private static void VerifySystem(TestSystem system, int expectedUpdateCount, float expectedTotalTime)
+        private static void VerifySystem(TestSystem system, int expectedUpdateCount, int expectedTotalTicks)
         {
             Assert.That(system.UpdateCount, Is.EqualTo(expectedUpdateCount));
-            Assert.That(system.TotalTime, Is.InRange(expectedTotalTime - 0.00001f, expectedTotalTime + 0.00001f));
+            Assert.That(system.TotalTicks, Is.EqualTo(expectedTotalTicks));
         }
 
         private sealed class TestSystem : EngineSystem
         {
             public int UpdateCount;
-            public float TotalTime;
+            public int TotalTicks;
 
-            public override string DebuggingName
+            public TestSystem() : base("TestSystem")
             {
-                get { return "TestSystem"; }
             }
 
-            public override void Initialize()
+            public override void Dispose()
             {
                 
             }
 
-            protected override void UpdateInternal(float timeDelta)
+            public override bool Initialize()
+            {
+                return true;
+            }
+
+            protected override void UpdateInternal(int ticksSinceLastUpdate, Scene currentScene)
             {
                 UpdateCount++;
-                TotalTime += timeDelta;
+                TotalTicks += ticksSinceLastUpdate;
             }
         }
     }

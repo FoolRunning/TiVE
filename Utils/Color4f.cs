@@ -1,11 +1,14 @@
-﻿namespace ProdigalSoftware.Utils
+﻿using System.Runtime.InteropServices;
+
+namespace ProdigalSoftware.Utils
 {
+    [StructLayout(LayoutKind.Sequential)]
     public struct Color4f
     {
-        public readonly float R;
-        public readonly float G;
-        public readonly float B;
-        public readonly float A;
+        public float R;
+        public float G;
+        public float B;
+        public float A;
         
         public Color4f(byte r, byte g, byte b, byte a)
         {
@@ -36,6 +39,16 @@
         public static Color4f operator *(Color4f c, float value)
         {
             return new Color4f(c.R * value, c.G * value, c.B * value, c.A);
+        }
+
+        /// <summary>
+        /// Returns a pointer to the first element of the specified instance.
+        /// </summary>
+        /// <param name="c">The instance.</param>
+        /// <returns>A pointer to the first element of v.</returns>
+        unsafe public static explicit operator float*(Color4f c)
+        {
+            return &c.R;
         }
     }
 }

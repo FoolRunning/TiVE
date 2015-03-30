@@ -3,12 +3,13 @@ using System.ComponentModel;
 using System.Drawing;
 using System.Windows.Forms;
 using ProdigalSoftware.TiVEEditor.BlockLists;
+using ProdigalSoftware.TiVEEditor.Properties;
 
 namespace ProdigalSoftware.TiVEEditor
 {
     public partial class TiVEEditorForm : Form
     {
-        private readonly Properties.Settings settings = Properties.Settings.Default;
+        private readonly Settings settings = Settings.Default;
 
         public TiVEEditorForm()
         {

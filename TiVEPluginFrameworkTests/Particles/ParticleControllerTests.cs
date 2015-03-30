@@ -1,4 +1,5 @@
-﻿using NUnit.Framework;
+﻿using System;
+using NUnit.Framework;
 using ProdigalSoftware.TiVEPluginFramework.Particles;
 
 namespace TiVEPluginFrameworkTests.Particles
@@ -66,7 +67,7 @@ namespace TiVEPluginFrameworkTests.Particles
         {
             public override bool BeginUpdate(IParticleSystem particleSystem, float timeSinceLastUpdate)
             {
-                throw new System.NotImplementedException();
+                throw new NotImplementedException();
             }
 
             public override void Update(Particle particle, float timeSinceLastUpdate, float systemX, float systemY, float systemZ)
@@ -76,7 +77,7 @@ namespace TiVEPluginFrameworkTests.Particles
 
             public override void InitializeNew(Particle particle, float systemX, float systemY, float systemZ)
             {
-                throw new System.NotImplementedException();
+                throw new NotImplementedException();
             }
         }
         #endregion

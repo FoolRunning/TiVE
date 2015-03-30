@@ -1,21 +1,21 @@
-﻿using OpenTK;
+﻿using ProdigalSoftware.Utils;
 
 namespace ProdigalSoftware.TiVE.Utils
 {
     internal struct Plane
     {
-        public readonly Vector3 PlaneNormal;
+        public readonly Vector3f PlaneNormal;
         public readonly float PlaneD;
 
-        public Plane(Vector3 newPlaneNormal, Vector3 newPlanePoint)
+        public Plane(Vector3f newPlaneNormal, Vector3f newPlanePoint)
         {
             PlaneNormal = newPlaneNormal;
-            PlaneD = -Vector3.Dot(newPlaneNormal, newPlanePoint);
+            PlaneD = -Vector3f.Dot(newPlaneNormal, newPlanePoint);
         }
 
-        public float DistanceFromPoint(Vector3 point)
+        public float DistanceFromPoint(Vector3f point)
         {
-            return Vector3.Dot(PlaneNormal, point) + PlaneD;
+            return Vector3f.Dot(PlaneNormal, point) + PlaneD;
         }
     }
 }

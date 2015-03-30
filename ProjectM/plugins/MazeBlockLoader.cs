@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using ProdigalSoftware.TiVEPluginFramework;
+using ProdigalSoftware.TiVEPluginFramework.Generators;
 using ProdigalSoftware.TiVEPluginFramework.Particles;
 using ProdigalSoftware.Utils;
 
@@ -149,7 +150,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
 
             for (int i = 0; i < 50; i++)
             {
-                Block grass = new Block("grass" + i);
+                Block grass = Factory.CreateBlock("grass" + i);
                 grass.AddComponent(new TransparentComponent());
 
                 Color4f grassColor = new Color4f(50, 230, 50, 255);
@@ -187,7 +188,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
                 yield return CreateBlockInfo("back" + i, 0, new Color4f(0.6f, 0.45f, 0.25f, 1.0f), 1.0f, allowLightPassthrough: true);
             }
 
-            Block fireBlock = new Block("fire");
+            Block fireBlock = Factory.CreateBlock("fire");
             fireBlock.AddComponent(new ParticleSystemComponent(particleVoxels, new FireUpdater(), new Vector3b(bc, bc, 1), 300, 400, TransparencyType.Additive, false));
             fireBlock.AddComponent(new LightComponent(new Vector3b(bc, bc, 4), new Color3f(1.0f, 0.8f, 0.6f), 15));
             yield return fireBlock;
@@ -270,7 +271,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
             const float mid = Block.VoxelSize / 2.0f - 0.5f;
             float sphereSize = Block.VoxelSize / 2.0f;
 
-            Block block = new Block(name);
+            Block block = Factory.CreateBlock(name);
             if (light != null)
             {
                 block.AddComponent(light);
@@ -343,7 +344,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
         {
             const int mid = Block.VoxelSize / 2;
 
-            Block block = new Block(name);
+            Block block = Factory.CreateBlock(name);
             if (particleSystem != null)
                 block.AddComponent(particleSystem);
             if (light != null)

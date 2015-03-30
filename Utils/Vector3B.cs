@@ -1,5 +1,8 @@
-﻿namespace ProdigalSoftware.Utils
+﻿using System.Runtime.InteropServices;
+
+namespace ProdigalSoftware.Utils
 {
+    [StructLayout(LayoutKind.Sequential)]
     public struct Vector3b
     {
         public readonly byte X;

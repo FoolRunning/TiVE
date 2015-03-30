@@ -1,8 +1,7 @@
 ﻿using System;
-using ProdigalSoftware.TiVE.Renderer;
-using ProdigalSoftware.TiVE.Renderer.Lighting;
-using ProdigalSoftware.TiVE.Renderer.World;
-using ProdigalSoftware.TiVEPluginFramework;
+using ProdigalSoftware.TiVE.RenderSystem;
+using ProdigalSoftware.TiVE.RenderSystem.Lighting;
+using ProdigalSoftware.TiVE.RenderSystem.World;
 
 namespace ProdigalSoftware.TiVE
 {

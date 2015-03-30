@@ -1,5 +1,5 @@
 ﻿using NUnit.Framework;
-using ProdigalSoftware.TiVE.Scripts;
+using ProdigalSoftware.TiVE.ScriptSystem;
 
 namespace TiVETests.Scripts
 {
@@ -10,7 +10,7 @@ namespace TiVETests.Scripts
         public void AddLuaTableForEnum()
         {
             dynamic lua = new DynamicLua.DynamicLua();
-            LuaScripts.AddLuaTableForEnum<TestEnum>(lua);
+            ScriptSystem.AddLuaTableForEnum<TestEnum>(lua);
 
             Assert.That(lua.TestEnum.One, Is.EqualTo(TestEnum.One));
             Assert.That(lua.TestEnum.Five, Is.EqualTo(TestEnum.Five));

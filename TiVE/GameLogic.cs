@@ -4,13 +4,13 @@ using System.Drawing;
 using System.Threading;
 using Microsoft.CSharp.RuntimeBinder;
 using NLua.Exceptions;
+using OpenTK;
+using ProdigalSoftware.TiVE.Core.Backend;
 using ProdigalSoftware.TiVE.Debugging;
-using ProdigalSoftware.TiVE.Renderer;
-using ProdigalSoftware.TiVE.Renderer.World;
-using ProdigalSoftware.TiVE.Scripts;
+using ProdigalSoftware.TiVE.RenderSystem;
+using ProdigalSoftware.TiVE.RenderSystem.World;
 using ProdigalSoftware.TiVE.Settings;
 using ProdigalSoftware.TiVE.Starter;
-using ProdigalSoftware.TiVEPluginFramework;
 using ProdigalSoftware.Utils;
 
 namespace ProdigalSoftware.TiVE
@@ -39,24 +39,24 @@ namespace ProdigalSoftware.TiVE
             int numChunkCreationThreads = TiVEController.UserSettings.Get(UserSettings.ChunkCreationThreadsKey);
             renderer = new WorldChunkRenderer(numChunkCreationThreads);
 
-            gameScript = TiVEController.LuaScripts.GetScript(startScript);
+            gameScript = TiVEController.Scripts.GetScript(startScript);
             if (gameScript == null)
             {
                 Messages.AddError(string.Format("Failed to find script '{0}' to start", startScript));
                 return false;
             }
 
-            LuaScripts.AddLuaTableForEnum<Keys>(gameScript);
+            ScriptSystem.ScriptSystem.AddLuaTableForEnum<Keys>(gameScript);
             
             gameScript.KeyPressed = new Func<Keys, bool>(k => keyboard.IsKeyPressed(k));
-            gameScript.Vector = new Func<float, float, float, OpenTK.Vector3>((x, y, z) => new OpenTK.Vector3(x, y, z));
+            gameScript.Vector = new Func<float, float, float, Vector3>((x, y, z) => new Vector3(x, y, z));
             gameScript.Color = new Func<float, float, float, Color3f>((r, g, b) => new Color3f(r, g, b));
             gameScript.Renderer = new Func<IGameWorldRenderer>(() => renderer);
             gameScript.Camera = new Func<Camera>(() => renderer.Camera);
             gameScript.UserSettings = new Func<UserSettings>(() => TiVEController.UserSettings);
             gameScript.GameWorld = new Func<GameWorld>(() => renderer.GameWorld);
             gameScript.ReloadLevel = new Action(() => renderer.RefreshLevel());
-            gameScript.EmptyBlock = Block.Empty;
+            gameScript.EmptyBlock = BlockImpl.Empty;
             gameScript.BlockAt = new Func<int, int, int, ushort>((blockX, blockY, blockZ) =>
             {
                 GameWorld gameWorld = renderer.GameWorld;

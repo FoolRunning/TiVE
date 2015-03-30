@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Runtime.InteropServices;
 
 namespace ProdigalSoftware.Utils
 {
+    [StructLayout(LayoutKind.Sequential)]
     public struct Vector3us
     {
         public readonly ushort X;

@@ -1,11 +1,14 @@
-﻿namespace ProdigalSoftware.TiVEEditor
+﻿using System.ComponentModel;
+using System.Windows.Forms;
+
+namespace ProdigalSoftware.TiVEEditor
 {
     partial class MapListEditForm
     {
         /// <summary>
         /// Required designer variable.
         /// </summary>
-        private System.ComponentModel.IContainer components = null;
+        private IContainer components = null;
 
         /// <summary>
         /// Clean up any resources being used.
@@ -116,10 +119,10 @@
 
         #endregion
 
-        private System.Windows.Forms.ToolStrip toolStrip1;
-        private System.Windows.Forms.ToolStripButton btnAddMap;
-        private System.Windows.Forms.ToolStripButton btnDeleteMap;
-        private System.Windows.Forms.ToolStripButton btnResizeMap;
-        private System.Windows.Forms.ToolStripButton btnSaveMap;
+        private ToolStrip toolStrip1;
+        private ToolStripButton btnAddMap;
+        private ToolStripButton btnDeleteMap;
+        private ToolStripButton btnResizeMap;
+        private ToolStripButton btnSaveMap;
     }
 }
