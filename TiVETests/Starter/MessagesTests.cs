@@ -14,7 +14,7 @@ namespace TiVETests.Starter
             Messages.Println("a");
             Messages.Println("test.");
 
-            Assert.AreEqual("Thisisa\ntest.\n", Messages.AllText);
+            Assert.AreEqual("Thisisa\ntest.\n\n", Messages.AllText); // Extra newline is from empty line ready to be filled at end of view
         }
     }
 }

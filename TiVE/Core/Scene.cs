@@ -7,8 +7,7 @@ namespace ProdigalSoftware.TiVE.Core
 {
     internal sealed class Scene : IScene, IDisposable
     {
-        private const int InitialEntityArraySize = 10;
-        public const int EnityTypeKey = 2047;
+        private const int InitialEntityListSize = 10;
 
         private readonly Dictionary<Type, List<IEntity>> entityComponentTypeMap = new Dictionary<Type, List<IEntity>>(50);
         private readonly List<IEntity> entities = new List<IEntity>(50);
@@ -40,6 +39,10 @@ namespace ProdigalSoftware.TiVE.Core
         
         public void DeleteEntity(IEntity entity)
         {
+            entities.Remove(entity);
+            foreach (List<IEntity> entitiesWithType in entityComponentTypeMap.Values)
+                entitiesWithType.Remove(entity);
+            ((Entity)entity).ClearComponents();
         }
 
         private void AddEntityToTypeMap(IEntity entity, IComponent component)
@@ -47,7 +50,7 @@ namespace ProdigalSoftware.TiVE.Core
             Type componentType = component.GetType();
             List<IEntity> entitiesWithType;
             if (!entityComponentTypeMap.TryGetValue(componentType, out entitiesWithType))
-                entityComponentTypeMap[componentType] = entitiesWithType = new List<IEntity>(InitialEntityArraySize);
+                entityComponentTypeMap[componentType] = entitiesWithType = new List<IEntity>(InitialEntityListSize);
 
             entitiesWithType.Add(entity);
         }
@@ -95,6 +98,11 @@ namespace ProdigalSoftware.TiVE.Core
 
                 components[components.Length - 1] = component;
                 owningScene.AddEntityToTypeMap(this, component);
+            }
+
+            public void ClearComponents()
+            {
+                components = null;
             }
         }
     }

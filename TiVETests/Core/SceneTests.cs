@@ -115,7 +115,10 @@ namespace TiVETests.Core
 
         private static void VerifyEntity(IEntity entity, params IComponent[] expectedComponents)
         {
-            Assert.That(entity.Components, Is.EqualTo(expectedComponents));
+            if (expectedComponents.Length == 0)
+                Assert.That(entity.Components, Is.Null);
+            else
+                Assert.That(entity.Components, Is.EqualTo(expectedComponents));
         }
 
         private class DummyComponent1 : IComponent
