@@ -1,11 +1,14 @@
-﻿namespace ProdigalSoftware.TiVE.Starter
+﻿using System.ComponentModel;
+using System.Windows.Forms;
+
+namespace ProdigalSoftware.TiVE.Starter
 {
     partial class StarterForm
     {
         /// <summary>
         /// Required designer variable.
         /// </summary>
-        private System.ComponentModel.IContainer components = null;
+        private IContainer components = null;
 
         /// <summary>
         /// Clean up any resources being used.
@@ -28,6 +31,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(StarterForm));
             this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.tbMessages = new System.Windows.Forms.TabPage();
@@ -269,10 +273,10 @@
             this.ClientSize = new System.Drawing.Size(800, 500);
             this.Controls.Add(this.tableLayoutPanel1);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MaximizeBox = false;
             this.MinimizeBox = false;
             this.Name = "StarterForm";
-            this.ShowIcon = false;
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "TiVE Launcher";
             this.tableLayoutPanel1.ResumeLayout(false);
@@ -291,22 +295,22 @@
 
         #endregion
 
-        private System.Windows.Forms.TableLayoutPanel tableLayoutPanel1;
-        private System.Windows.Forms.TabControl tabControl1;
-        private System.Windows.Forms.TabPage tbMessages;
-        private System.Windows.Forms.TabPage tbDisplay;
-        private System.Windows.Forms.TabPage tbAdvanced;
-        private System.Windows.Forms.TableLayoutPanel tableLayoutPanel2;
-        private System.Windows.Forms.Label label1;
-        private System.Windows.Forms.ComboBox cmbProject;
-        private System.Windows.Forms.Button btnExit;
-        private System.Windows.Forms.Button btnCopyText;
-        private System.Windows.Forms.Button btnStart;
-        private System.Windows.Forms.Panel panel1;
-        private System.Windows.Forms.TableLayoutPanel pnlDisplayOptionsList;
-        private System.Windows.Forms.TabPage tbControls;
-        private System.Windows.Forms.TabPage tbSound;
-        private System.Windows.Forms.Panel panel2;
-        private System.Windows.Forms.TableLayoutPanel pnlAdvancedOptionsList;
+        private TableLayoutPanel tableLayoutPanel1;
+        private TabControl tabControl1;
+        private TabPage tbMessages;
+        private TabPage tbDisplay;
+        private TabPage tbAdvanced;
+        private TableLayoutPanel tableLayoutPanel2;
+        private Label label1;
+        private ComboBox cmbProject;
+        private Button btnExit;
+        private Button btnCopyText;
+        private Button btnStart;
+        private Panel panel1;
+        private TableLayoutPanel pnlDisplayOptionsList;
+        private TabPage tbControls;
+        private TabPage tbSound;
+        private Panel panel2;
+        private TableLayoutPanel pnlAdvancedOptionsList;
     }
 }

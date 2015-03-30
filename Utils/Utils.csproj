@@ -55,6 +55,7 @@
     <PlatformTarget>x86</PlatformTarget>
     <ErrorReport>prompt</ErrorReport>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'">
     <OutputPath>bin\x86\Release\</OutputPath>
@@ -80,6 +81,9 @@
     <Compile Include="Color4b.cs" />
     <Compile Include="Color3f.cs" />
     <Compile Include="Color4f.cs" />
+    <Compile Include="MathHelper.cs" />
+    <Compile Include="Matrix4f.cs" />
+    <Compile Include="Vector3f.cs" />
     <Compile Include="Vector3us.cs" />
     <Compile Include="MathUtils.cs" />
     <Compile Include="MiscUtils.cs" />
@@ -89,6 +93,7 @@
     <Compile Include="Vector3i.cs" />
     <Compile Include="Vector3b.cs" />
     <Compile Include="Vector3s.cs" />
+    <Compile Include="Vector4f.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

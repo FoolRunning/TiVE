@@ -5,7 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using ProdigalSoftware.TiVE.Starter;
-using ProdigalSoftware.TiVEPluginFramework;
+using ProdigalSoftware.TiVEPluginFramework.Generators;
 using ProdigalSoftware.Utils;
 
 namespace ProdigalSoftware.TiVE.Resources

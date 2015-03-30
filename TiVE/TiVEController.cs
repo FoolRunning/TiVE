@@ -3,14 +3,15 @@ using System.Diagnostics;
 using System.Runtime;
 using System.Threading;
 using System.Windows.Forms;
+using ProdigalSoftware.TiVE.Core;
+using ProdigalSoftware.TiVE.Core.Backend;
+using ProdigalSoftware.TiVE.Core.Backend.OpenTKImpl;
 using ProdigalSoftware.TiVE.Plugins;
-using ProdigalSoftware.TiVE.Renderer.OpenTKImpl;
-using ProdigalSoftware.TiVE.Renderer.World;
-using ProdigalSoftware.TiVE.Resources;
-using ProdigalSoftware.TiVE.Scripts;
+using ProdigalSoftware.TiVE.RenderSystem.World;
 using ProdigalSoftware.TiVE.Settings;
 using ProdigalSoftware.TiVE.Starter;
 using ProdigalSoftware.TiVEPluginFramework;
+//using ProdigalSoftware.TiVE.Resources;
 
 namespace ProdigalSoftware.TiVE
 {
@@ -18,10 +19,11 @@ namespace ProdigalSoftware.TiVE
     {
         internal static readonly long MaxTicksForSleep;
         internal static readonly PluginManager PluginManager = new PluginManager();
-        internal static readonly ResourceTableDefinitionManager TableDefinitions = new ResourceTableDefinitionManager();
-        internal static readonly LuaScripts LuaScripts = new LuaScripts();
+        //internal static readonly ResourceTableDefinitionManager TableDefinitions = new ResourceTableDefinitionManager();
+        internal static readonly ScriptSystem.ScriptSystem Scripts = new ScriptSystem.ScriptSystem();
         internal static readonly IControllerBackend Backend = new OpenTKBackend();
         internal static readonly UserSettings UserSettings = new UserSettings();
+        internal static Engine Engine;
 
         private static StarterForm starterForm;
 
@@ -36,6 +38,8 @@ namespace ProdigalSoftware.TiVE
                     MaxTicksForSleep = totalTime;
             }
             Console.WriteLine("Sleeping for 1ms can be " + MaxTicksForSleep * 1000.0f / Stopwatch.Frequency + "ms long");
+
+            Factory.Implementation = new FactoryImpl();
         }
 
         public static void RunStarter()
@@ -50,22 +54,13 @@ namespace ProdigalSoftware.TiVE
             Application.Run(starterForm);
         }
 
-        internal static void RunEngine(string startScript)
+        internal static void RunEngine(string sceneToLoad)
         {
-            Thread loadingThread = new Thread(() =>
-            {
-                GameLogic gameLogic = new GameLogic();
-                if (!gameLogic.Initialize(startScript))
-                    return;
+            Engine = new Engine();
+            Engine.AddSystem(new ScriptSystem.ScriptSystem());
+            Engine.AddSystem(new RenderSystem.RenderSystem());
 
-                starterForm.BeginInvoke(new Action(() =>
-                {
-                    gameLogic.RunMainLoop();
-                }));
-            });
-            loadingThread.IsBackground = false;
-            loadingThread.Name = "Loading";
-            loadingThread.Start();
+            Engine.MainLoop(sceneToLoad);
         }
 
         static void starterForm_VisibleChanged(object sender, EventArgs e)
@@ -75,9 +70,8 @@ namespace ProdigalSoftware.TiVE
                 bool success = PluginManager.LoadPlugins();
                 if (success)
                     UserSettings.Load();
-                if (success)
-                    success = LuaScripts.Initialize();
-
+                //if (success)
+                //    success = Scripts.Initialize();
                 if (success)
                     starterForm.AfterInitialLoad();
             });
@@ -90,8 +84,8 @@ namespace ProdigalSoftware.TiVE
 
         private static void starterForm_FormClosing(object sender, FormClosingEventArgs e)
         {
-            LuaScripts.Dispose();
-            TableDefinitions.Dispose();
+            Scripts.Dispose();
+            //TableDefinitions.Dispose();
             PluginManager.Dispose();
             UserSettings.Save();
         }
@@ -100,7 +94,7 @@ namespace ProdigalSoftware.TiVE
         {
             GameWorld gameWorld = new GameWorld(100, 100, 100);
             BlockList blockList = new BlockList();
-            blockList.AddBlock(new Block("dummy"));
+            blockList.AddBlock(new BlockImpl("dummy"));
             ushort block = blockList["dummy"];
             for (int x = 0; x < 100; x++)
             {

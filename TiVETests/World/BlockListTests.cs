@@ -1,10 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using NUnit.Framework;
-using ProdigalSoftware.TiVE.Renderer.World;
+﻿using NUnit.Framework;
+using ProdigalSoftware.TiVE.RenderSystem.World;
 
 namespace TiVETests.World
 {

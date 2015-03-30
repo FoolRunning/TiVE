@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Drawing;
+using System.Runtime.InteropServices;
 
 namespace ProdigalSoftware.Utils
 {
+    [StructLayout(LayoutKind.Sequential)]
     public struct Color3f
     {
         public static readonly Color3f White = new Color3f(1.0f, 1.0f, 1.0f);

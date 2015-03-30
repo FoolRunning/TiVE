@@ -75,16 +75,23 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Block.cs" />
-    <Compile Include="BlockAnimationDefinition.cs" />
     <Compile Include="BlockComponents.cs" />
     <Compile Include="BlockState.cs" />
-    <Compile Include="GameWorld.cs" />
-    <Compile Include="IBlockGenerator.cs" />
+    <Compile Include="Block.cs" />
+    <Compile Include="BoundingBox.cs" />
+    <Compile Include="Components\CameraComponent.cs" />
+    <Compile Include="Components\RenderComponent.cs" />
+    <Compile Include="Generators\IBlockGenerator.cs" />
     <Compile Include="IBlockList.cs" />
-    <Compile Include="IBlockListInternal.cs" />
-    <Compile Include="ITableDefinitionProvider.cs" />
-    <Compile Include="IWorldGenerator.cs" />
+    <Compile Include="IComponent.cs" />
+    <Compile Include="IEntity.cs" />
+    <Compile Include="Factory.cs" />
+    <Compile Include="IGameWorld.cs" />
+    <Compile Include="Generators\ISceneGenerator.cs" />
+    <Compile Include="Generators\ITableDefinitionProvider.cs" />
+    <Compile Include="Generators\IWorldGenerator.cs" />
+    <Compile Include="IScene.cs" />
+    <Compile Include="IVertexDataInfo.cs" />
     <Compile Include="Noise.cs" />
     <Compile Include="Particles\IParticleSystem.cs" />
     <Compile Include="Particles\Particle.cs" />

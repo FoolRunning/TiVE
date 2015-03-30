@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using ProdigalSoftware.TiVE.RenderSystem.World;
 using ProdigalSoftware.TiVEPluginFramework;
 
 namespace ProdigalSoftware.TiVEEditor.BlockLists
@@ -49,7 +50,7 @@ namespace ProdigalSoftware.TiVEEditor.BlockLists
         /// </summary>
         public static Block CreateBlock(BinaryReader stream, string blockName)
         {
-            Block block = new Block(blockName);
+            Block block = new BlockImpl(blockName);
 
             // check out http://voxel.codeplex.com/wikipage?title=VOX%20Format&referringTitle=Home for the file format used below
             // we're going to return a voxel chunk worth of data

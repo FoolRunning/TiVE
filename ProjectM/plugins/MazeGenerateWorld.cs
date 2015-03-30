@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using JetBrains.Annotations;
 using ProdigalSoftware.TiVEPluginFramework;
+using ProdigalSoftware.TiVEPluginFramework.Generators;
 using ProdigalSoftware.Utils;
 
 namespace ProdigalSoftware.ProjectM.Plugins
@@ -27,12 +28,12 @@ namespace ProdigalSoftware.ProjectM.Plugins
             return gameWorldName == "Maze" ? "maze" : null;
         }
         
-        public GameWorld CreateGameWorld(string gameWorldName, IBlockList blockList)
+        public IGameWorld CreateGameWorld(string gameWorldName, IBlockList blockList)
         {
             if (gameWorldName != "Maze")
                 return null;
 
-            GameWorld gameWorld = new GameWorld(513, 513, 12); // Width and height must be divisible by 3
+            IGameWorld gameWorld = Factory.CreateGameWorld(513, 513, 12); // Width and height must be divisible by 3
             gameWorld.LightingModelType = LightingModelType.Realistic;
 
             Random random = new Random();
@@ -397,7 +398,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
         }
 
         #region 3D world creation methods
-        private static void FillWorld(GameWorld gameWorld, IBlockList blockList, MazeCell[,] dungeonMap, int mazeStartAreaId)
+        private static void FillWorld(IGameWorld gameWorld, IBlockList blockList, MazeCell[,] dungeonMap, int mazeStartAreaId)
         {
             BlockRandomizer backWalls = new BlockRandomizer(blockList, "back", 6);
             BlockRandomizer grasses = new BlockRandomizer(blockList, "grass", 50);
@@ -471,7 +472,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
             }
         }
 
-        private static void SmoothWorld(GameWorld gameWorld, IBlockList blockList)
+        private static void SmoothWorld(IGameWorld gameWorld, IBlockList blockList)
         {
             HashSet<int> blocksToConsiderEmpty = new HashSet<int>();
             blocksToConsiderEmpty.Add(0);

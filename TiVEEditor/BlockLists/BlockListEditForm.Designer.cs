@@ -1,11 +1,15 @@
-﻿namespace ProdigalSoftware.TiVEEditor.BlockLists
+﻿using System.ComponentModel;
+using System.Windows.Forms;
+using ProdigalSoftware.TiVEEditor.Common;
+
+namespace ProdigalSoftware.TiVEEditor.BlockLists
 {
     partial class BlockListEditForm
     {
         /// <summary>
         /// Required designer variable.
         /// </summary>
-        private System.ComponentModel.IContainer components = null;
+        private IContainer components = null;
 
         /// <summary>
         /// Clean up any resources being used.
@@ -333,21 +337,21 @@
 
         #endregion
 
-        private System.Windows.Forms.ToolStrip toolStrip1;
-        private System.Windows.Forms.ToolStripButton btnImportBlock;
-        private System.Windows.Forms.ToolStripButton btnDeleteBlock;
-        private System.Windows.Forms.ToolStripButton btnSaveBlockList;
-        private Common.TiVEGameControl cntrlCurrentBlock;
-        private System.Windows.Forms.TableLayoutPanel tableLayoutPanel1;
-        private System.Windows.Forms.ListBox lstBxBlocks;
-        private System.Windows.Forms.Button btnLightColor;
-        private System.Windows.Forms.NumericUpDown spnLightLocX;
-        private System.Windows.Forms.NumericUpDown spnLightLocY;
-        private System.Windows.Forms.NumericUpDown spnLightLocZ;
-        private System.Windows.Forms.PictureBox picName;
-        private System.Windows.Forms.TextBox txtBlockName;
-        private System.Windows.Forms.PictureBox picEffect;
-        private System.Windows.Forms.ComboBox cmbEffect;
-        private System.Windows.Forms.PictureBox picLight;
+        private ToolStrip toolStrip1;
+        private ToolStripButton btnImportBlock;
+        private ToolStripButton btnDeleteBlock;
+        private ToolStripButton btnSaveBlockList;
+        private TiVEGameControl cntrlCurrentBlock;
+        private TableLayoutPanel tableLayoutPanel1;
+        private ListBox lstBxBlocks;
+        private Button btnLightColor;
+        private NumericUpDown spnLightLocX;
+        private NumericUpDown spnLightLocY;
+        private NumericUpDown spnLightLocZ;
+        private PictureBox picName;
+        private TextBox txtBlockName;
+        private PictureBox picEffect;
+        private ComboBox cmbEffect;
+        private PictureBox picLight;
     }
 }

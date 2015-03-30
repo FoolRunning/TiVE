@@ -1,6 +1,6 @@
 ﻿using System;
 using NUnit.Framework;
-using ProdigalSoftware.TiVE.Renderer.World;
+using ProdigalSoftware.TiVE.RenderSystem.World;
 
 namespace TiVETests.World
 {

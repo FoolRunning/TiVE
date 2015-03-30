@@ -1,5 +1,6 @@
 ﻿using System;
 using ProdigalSoftware.TiVEPluginFramework;
+using ProdigalSoftware.TiVEPluginFramework.Generators;
 
 namespace ProdigalSoftware.ProjectM.Plugins
 {
@@ -20,12 +21,12 @@ namespace ProdigalSoftware.ProjectM.Plugins
             return gameWorldName == "LiquidTest" ? "liquid" : null;
         }
 
-        public GameWorld CreateGameWorld(string gameWorldName, IBlockList blockList)
+        public IGameWorld CreateGameWorld(string gameWorldName, IBlockList blockList)
         {
             if (gameWorldName != "LiquidTest")
                 return null;
 
-            GameWorld gameWorld = new GameWorld(50, 50, 20);
+            IGameWorld gameWorld = Factory.CreateGameWorld(50, 50, 20);
             gameWorld.LightingModelType = LightingModelType.Fantasy2;
             FillWorld(gameWorld, blockList);
             SmoothWorld(gameWorld, blockList);
@@ -34,7 +35,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
         }
 
         #region Private helper methods
-        private static void FillWorld(GameWorld gameWorld, IBlockList blockList)
+        private static void FillWorld(IGameWorld gameWorld, IBlockList blockList)
         {
             BlockRandomizer backWalls = new BlockRandomizer(blockList, "back", 5);
             BlockRandomizer lights = new BlockRandomizer(blockList, "light", 7);
@@ -66,7 +67,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
             }
         }
 
-        private static void SmoothWorld(GameWorld gameWorld, IBlockList blockList)
+        private static void SmoothWorld(IGameWorld gameWorld, IBlockList blockList)
         {
             for (int z = 0; z < gameWorld.BlockSize.Z; z++)
             {

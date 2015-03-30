@@ -7,8 +7,8 @@ using System.Linq;
 using System.Windows.Forms;
 using Cyotek.Windows.Forms;
 using JetBrains.Annotations;
-using OpenTK;
-using ProdigalSoftware.TiVE.Renderer.World;
+using ProdigalSoftware.TiVE.RenderSystem.World;
+using ProdigalSoftware.TiVEEditor.Properties;
 using ProdigalSoftware.TiVEPluginFramework;
 using ProdigalSoftware.Utils;
 
@@ -27,7 +27,7 @@ namespace ProdigalSoftware.TiVEEditor.BlockLists
         #endregion
 
         #region Member variables
-        private static readonly Properties.Settings settings = Properties.Settings.Default;
+        private static readonly Settings settings = Settings.Default;
         private readonly string messageBoxCaption = "Block List Editor";
         private readonly BlockPreviewCache blockPreviewCache = new BlockPreviewCache();
         private readonly List<Block> blocksInList = new List<Block>();
@@ -69,7 +69,7 @@ namespace ProdigalSoftware.TiVEEditor.BlockLists
             Random random = new Random();
             for (int i = 0; i < floorBlocks.Length; i++)
             {
-                floorBlocks[i] = new Block("Floor" + i);
+                floorBlocks[i] = new BlockImpl("Floor" + i);
                 for (int x = 0; x < Block.VoxelSize; x++)
                 {
                     for (int y = 0; y < Block.VoxelSize; y++)
@@ -102,7 +102,7 @@ namespace ProdigalSoftware.TiVEEditor.BlockLists
         [NotNull]
         private Block SelectedBlock
         {
-            get { return (Block)lstBxBlocks.SelectedItem ?? Block.Empty; }
+            get { return (Block)lstBxBlocks.SelectedItem ?? BlockImpl.Empty; }
         }
         #endregion
 
@@ -152,11 +152,11 @@ namespace ProdigalSoftware.TiVEEditor.BlockLists
             
             cntrlCurrentBlock.SetGameWorld(blockList, gameWorld);
             cntrlCurrentBlock.LightProvider.AmbientLight = new Color3f(230, 230, 230);
-            cntrlCurrentBlock.Camera.UpVector = Vector3.UnitZ;
+            cntrlCurrentBlock.Camera.UpVector = Vector3f.UnitZ;
             float centerX = cntrlCurrentBlock.GameWorld.VoxelSize.X / 2.0f;
             float centerY = cntrlCurrentBlock.GameWorld.VoxelSize.Y / 2.0f;
             cntrlCurrentBlock.Camera.FoV = (float)Math.PI / 4; // 45 degrees
-            cntrlCurrentBlock.Camera.LookAtLocation = new Vector3(centerX, centerY, CenterZ);
+            cntrlCurrentBlock.Camera.LookAtLocation = new Vector3f(centerX, centerY, CenterZ);
             UpdateCameraPos();
             UpdateBlocksInList();
         }
@@ -312,7 +312,7 @@ namespace ProdigalSoftware.TiVEEditor.BlockLists
 
             int prevBlockIndex = lstBxBlocks.SelectedIndex;
             Block block = SelectedBlock;
-            block.BlockName = txtBlockName.Text;
+            ((BlockImpl)block).SetName(txtBlockName.Text);
             blockList.UpdateNameIndex();
             hasUnsavedChanges = true;
 
@@ -381,7 +381,7 @@ namespace ProdigalSoftware.TiVEEditor.BlockLists
         private void UpdateState()
         {
             Block block = SelectedBlock;
-            bool hasSelectedItem = (block != Block.Empty);
+            bool hasSelectedItem = (block != BlockImpl.Empty);
             LightComponent light = block.GetComponent<LightComponent>();
             bool hasLight = light != null;
 
@@ -415,7 +415,7 @@ namespace ProdigalSoftware.TiVEEditor.BlockLists
             float centerY = cntrlCurrentBlock.GameWorld.VoxelSize.Y / 2.0f;
             float circleX = (float)(Math.Sin(camAngleAxisY) * camDist);
             float circleY = (float)(Math.Cos(camAngleAxisY) * camDist);
-            cntrlCurrentBlock.Camera.Location = new Vector3(centerX + circleX, centerY + circleY, CenterZ + 30);
+            cntrlCurrentBlock.Camera.Location = new Vector3f(centerX + circleX, centerY + circleY, CenterZ + 30);
             cntrlCurrentBlock.Invalidate();
         }
 
@@ -441,7 +441,7 @@ namespace ProdigalSoftware.TiVEEditor.BlockLists
             lstBxBlocks.Items.Clear();
 
             blocksInList.Clear();
-            foreach (Block block in blockList.AllBlocks.OrderBy(b => b.BlockName))
+            foreach (BlockImpl block in blockList.AllBlocks.OrderBy(b => b.BlockName))
             {
                 blocksInList.Add(block);
                 lstBxBlocks.Items.Add(block);
@@ -451,7 +451,7 @@ namespace ProdigalSoftware.TiVEEditor.BlockLists
             if (blocksInList.Count > 0)
             {
                 // Look for the same block to re-select
-                if (prevSelectedBlock != Block.Empty)
+                if (prevSelectedBlock != BlockImpl.Empty)
                     lstBxBlocks.SelectedItem = prevSelectedBlock;
 
                 if (lstBxBlocks.SelectedIndex == -1)

@@ -1,11 +1,14 @@
-﻿namespace ProdigalSoftware.TiVEEditor
+﻿using System.ComponentModel;
+using System.Windows.Forms;
+
+namespace ProdigalSoftware.TiVEEditor
 {
     partial class TiVEEditorForm
     {
         /// <summary>
         /// Required designer variable.
         /// </summary>
-        private System.ComponentModel.IContainer components = null;
+        private IContainer components = null;
 
         /// <summary>
         /// Clean up any resources being used.
@@ -221,24 +224,24 @@
 
         #endregion
 
-        private System.Windows.Forms.MenuStrip mainMenu;
-        private System.Windows.Forms.ToolStripMenuItem fileToolStripMenuItem;
-        private System.Windows.Forms.ToolStripSeparator toolStripMenuItem1;
-        private System.Windows.Forms.ToolStripMenuItem exitToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem editToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem undoToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem redoToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem helpToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem aboutToolStripMenuItem;
-        private System.Windows.Forms.StatusStrip status;
-        private System.Windows.Forms.ToolStripMenuItem newToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem newMapToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem newScriptToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem newBlockListToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem openToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem openMapListMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem openScriptListMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem openBlockListMenuItem;
+        private MenuStrip mainMenu;
+        private ToolStripMenuItem fileToolStripMenuItem;
+        private ToolStripSeparator toolStripMenuItem1;
+        private ToolStripMenuItem exitToolStripMenuItem;
+        private ToolStripMenuItem editToolStripMenuItem;
+        private ToolStripMenuItem undoToolStripMenuItem;
+        private ToolStripMenuItem redoToolStripMenuItem;
+        private ToolStripMenuItem helpToolStripMenuItem;
+        private ToolStripMenuItem aboutToolStripMenuItem;
+        private StatusStrip status;
+        private ToolStripMenuItem newToolStripMenuItem;
+        private ToolStripMenuItem newMapToolStripMenuItem;
+        private ToolStripMenuItem newScriptToolStripMenuItem;
+        private ToolStripMenuItem newBlockListToolStripMenuItem;
+        private ToolStripMenuItem openToolStripMenuItem;
+        private ToolStripMenuItem openMapListMenuItem;
+        private ToolStripMenuItem openScriptListMenuItem;
+        private ToolStripMenuItem openBlockListMenuItem;
     }
 }
 

@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Runtime.InteropServices;
 
 namespace ProdigalSoftware.Utils
 {
+    [StructLayout(LayoutKind.Sequential)]
     public struct Color4b
     {
         public readonly byte R;

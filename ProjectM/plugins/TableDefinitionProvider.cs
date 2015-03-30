@@ -1,6 +1,6 @@
 ﻿using System.IO;
 using System.Reflection;
-using ProdigalSoftware.TiVEPluginFramework;
+using ProdigalSoftware.TiVEPluginFramework.Generators;
 
 namespace ProdigalSoftware.ProjectM.Plugins
 {

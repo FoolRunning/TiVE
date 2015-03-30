@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using ProdigalSoftware.TiVEPluginFramework;
+using ProdigalSoftware.TiVEPluginFramework.Generators;
 using ProdigalSoftware.TiVEPluginFramework.Particles;
 using ProdigalSoftware.Utils;
 
@@ -81,7 +82,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
             const float mid = Block.VoxelSize / 2.0f - 0.5f;
             float sphereSize = Block.VoxelSize / 2.0f;
 
-            Block block = new Block(name);
+            Block block = Factory.CreateBlock(name);
             if (light != null)
             {
                 block.AddComponent(light);
@@ -155,7 +156,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
         {
             const int mid = Block.VoxelSize / 2;
 
-            Block block = new Block(name);
+            Block block = Factory.CreateBlock(name);
             if (particleSystem != null)
                 block.AddComponent(particleSystem);
             if (light != null)

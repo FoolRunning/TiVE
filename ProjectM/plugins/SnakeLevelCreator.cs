@@ -1,4 +1,5 @@
 ﻿using ProdigalSoftware.TiVEPluginFramework;
+using ProdigalSoftware.TiVEPluginFramework.Generators;
 
 namespace ProdigalSoftware.ProjectM.Plugins
 {
@@ -13,12 +14,12 @@ namespace ProdigalSoftware.ProjectM.Plugins
             return gameWorldName == "Snake" ? "Snake16x16" : null;
         }
 
-        public GameWorld CreateGameWorld(string gameWorldName, IBlockList blockList)
+        public IGameWorld CreateGameWorld(string gameWorldName, IBlockList blockList)
         {
             if (gameWorldName != "Snake")
                 return null;
 
-            GameWorld gameWorld = new GameWorld(41, 31, 4);
+            IGameWorld gameWorld = Factory.CreateGameWorld(41, 31, 4);
 
             ushort lightRed = blockList["Light_Red"];
             ushort lightGreen = blockList["Light_Green"];

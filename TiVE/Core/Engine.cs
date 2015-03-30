@@ -2,74 +2,118 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
+using System.Threading;
+using ProdigalSoftware.TiVE.Core.Backend;
 using ProdigalSoftware.TiVE.Settings;
 using ProdigalSoftware.TiVE.Starter;
+using ProdigalSoftware.TiVEPluginFramework.Generators;
 
 namespace ProdigalSoftware.TiVE.Core
 {
     internal sealed class Engine
     {
-        private const int UpdateFPS = 60;
         private readonly List<EngineSystem> systems = new List<EngineSystem>();
         private bool continueMainLoop = true;
+        private Scene currentScene;
 
         public void AddSystem(EngineSystem system)
         {
             systems.Add(system);
         }
 
-        public void MainLoop()
+        public void LoadScene(string sceneName, bool useSeparateThread)
+        {
+            ThreadStart loadSceneAction = () =>
+            {
+                foreach (ISceneGenerator generator in TiVEController.PluginManager.GetPluginsOfType<ISceneGenerator>())
+                {
+                    Scene scene = (Scene)generator.CreateScene(sceneName);
+                    if (scene != null)
+                    {
+                        SetScene(scene);
+                        break;
+                    }
+                }
+            };
+
+            if (!useSeparateThread)
+                loadSceneAction();
+            else
+            {
+                Thread sceneLoadThread = new Thread(loadSceneAction);
+                sceneLoadThread.Name = "Scene Load";
+                sceneLoadThread.IsBackground = true;
+                sceneLoadThread.Start();
+            }
+        }
+
+        public void SetScene(Scene newScene)
+        {
+            Debug.Assert(currentScene == null, "previous scene was not properly disposed");
+            currentScene = newScene;
+        }
+
+        public void DeleteCurrentScene()
+        {
+            if (currentScene != null)
+                currentScene.Dispose();
+            currentScene = null;
+        }
+
+        public void MainLoop(string sceneToLoad)
         {
             INativeDisplay nativeDisplay = InitializeWindow();
             nativeDisplay.DisplayClosing += (s, e) => continueMainLoop = false;
 
-            for (int i = 0; i < systems.Count; i++)
-            {
-                try
-                {
-                    systems[i].Initialize();
-                }
-                catch (Exception e)
-                {
-                    Messages.AddError("Unable to initialize " + systems[i].DebuggingName + ":");
-                    Messages.AddStackTrace(e);
-                    continueMainLoop = false;
-                }
-            }
+            continueMainLoop = InitializeSystems();
 
-            long ticksPerUpdate = Stopwatch.Frequency / UpdateFPS;
-            float timeDelta = ticksPerUpdate / (float)Stopwatch.Frequency;
+            LoadScene("Loading", false);
+            LoadScene(sceneToLoad, true);
+
             long previousTime = Stopwatch.GetTimestamp();
-            long ticksSinceLastUpdate = 0;
-
             while (continueMainLoop)
             {
                 long currentTime = Stopwatch.GetTimestamp();
-                ticksSinceLastUpdate += (previousTime - currentTime);
+                int ticksSinceLastFrame = (int)(previousTime - currentTime);
                 previousTime = currentTime;
 
-                nativeDisplay.ProcessNativeEvents(); 
-                
-                while (ticksSinceLastUpdate >= ticksPerUpdate)
-                {
-                    UpdateSystems(timeDelta);
-                    ticksSinceLastUpdate -= ticksPerUpdate;
-                }
-
+                nativeDisplay.ProcessNativeEvents();
+                UpdateSystems(ticksSinceLastFrame);
                 nativeDisplay.UpdateDisplayContents();
             }
+
+            DisposeSystems();
 
             nativeDisplay.CloseWindow();
             nativeDisplay.Dispose();
         }
 
-        public void UpdateSystems(float timeDelta)
+        public bool InitializeSystems()
         {
             for (int i = 0; i < systems.Count; i++)
             {
                 try
                 {
-                    systems[i].Update(timeDelta);
+                    if (!systems[i].Initialize())
+                        return false;
+                }
+                catch (Exception e)
+                {
+                    Messages.AddError("Unable to initialize " + systems[i].DebuggingName + ":");
+                    Messages.AddStackTrace(e);
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        public void UpdateSystems(int ticksSinceLastFrame)
+        {
+            for (int i = 0; i < systems.Count; i++)
+            {
+                try
+                {
+                    systems[i].Update(ticksSinceLastFrame, currentScene);
                 }
                 catch (Exception e)
                 {
@@ -78,6 +122,25 @@ namespace ProdigalSoftware.TiVE.Core
                     continueMainLoop = false;
                 }
             }
+        }
+
+        public void DisposeSystems()
+        {
+            for (int i = 0; i < systems.Count; i++)
+            {
+                try
+                {
+                    systems[i].Dispose();
+                }
+                catch (Exception e)
+                {
+                    Messages.AddError("Exception when deleting " + systems[i].DebuggingName + ":");
+                    Messages.AddStackTrace(e);
+                }
+            }
+
+            GC.Collect();
+            Messages.Println("Done cleaning up");
         }
 
         private INativeDisplay InitializeWindow()
