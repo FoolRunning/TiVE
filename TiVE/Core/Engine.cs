@@ -15,6 +15,7 @@ namespace ProdigalSoftware.TiVE.Core
         private readonly List<EngineSystem> systems = new List<EngineSystem>();
         private bool continueMainLoop = true;
         private Scene currentScene;
+        private readonly object syncLock = new object();
 
         public void AddSystem(EngineSystem system)
         {
@@ -49,15 +50,21 @@ namespace ProdigalSoftware.TiVE.Core
 
         public void SetScene(Scene newScene)
         {
-            Debug.Assert(currentScene == null, "previous scene was not properly disposed");
-            currentScene = newScene;
+            lock (syncLock)
+            {
+                DeleteCurrentScene();
+                currentScene = newScene;
+            }
         }
 
         public void DeleteCurrentScene()
         {
-            if (currentScene != null)
-                currentScene.Dispose();
-            currentScene = null;
+            lock (syncLock)
+            {
+                if (currentScene != null)
+                    currentScene.Dispose();
+                currentScene = null;
+            }
         }
 
         public void MainLoop(string sceneToLoad)
@@ -109,17 +116,20 @@ namespace ProdigalSoftware.TiVE.Core
 
         public void UpdateSystems(int ticksSinceLastFrame)
         {
-            for (int i = 0; i < systems.Count; i++)
+            lock (syncLock) // Don't let the scene change while updating
             {
-                try
+                for (int i = 0; i < systems.Count; i++)
                 {
-                    systems[i].Update(ticksSinceLastFrame, currentScene);
-                }
-                catch (Exception e)
-                {
-                    Messages.AddError("Exception when updating " + systems[i].DebuggingName + ":");
-                    Messages.AddStackTrace(e);
-                    continueMainLoop = false;
+                    try
+                    {
+                        systems[i].Update(ticksSinceLastFrame, currentScene);
+                    }
+                    catch (Exception e)
+                    {
+                        Messages.AddError("Exception when updating " + systems[i].DebuggingName + ":");
+                        Messages.AddStackTrace(e);
+                        continueMainLoop = false;
+                    }
                 }
             }
         }
