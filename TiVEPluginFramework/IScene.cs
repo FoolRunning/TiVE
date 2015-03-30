@@ -9,5 +9,7 @@ namespace ProdigalSoftware.TiVEPluginFramework
         IEnumerable<IEntity> GetEntitiesWithComponent<T>() where T : class, IComponent;
 
         void DeleteEntity(IEntity entity);
+
+        void SetGameWorld(string worldName);
     }
 }

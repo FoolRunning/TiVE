@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using ProdigalSoftware.TiVE.RenderSystem.Lighting;
+using ProdigalSoftware.TiVE.RenderSystem.World;
 using ProdigalSoftware.TiVEPluginFramework;
 
 namespace ProdigalSoftware.TiVE.Core
@@ -11,6 +13,10 @@ namespace ProdigalSoftware.TiVE.Core
 
         private readonly Dictionary<Type, List<IEntity>> entityComponentTypeMap = new Dictionary<Type, List<IEntity>>(50);
         private readonly List<IEntity> entities = new List<IEntity>(50);
+
+        private GameWorld gameWorld;
+        private BlockList blockList;
+        private LightProvider lightProvider;
 
         public IEnumerable<IEntity> AllEntities
         {
@@ -43,6 +49,16 @@ namespace ProdigalSoftware.TiVE.Core
             foreach (List<IEntity> entitiesWithType in entityComponentTypeMap.Values)
                 entitiesWithType.Remove(entity);
             ((Entity)entity).ClearComponents();
+        }
+
+        public void SetGameWorld(string worldName)
+        {
+            gameWorld = GameWorldManager.LoadGameWorld(worldName, out blockList);
+            gameWorld.Initialize(blockList);
+
+            // Calculate static lighting
+            lightProvider = LightProvider.Get(gameWorld);
+            lightProvider.Calculate(blockList, false);
         }
 
         private void AddEntityToTypeMap(IEntity entity, IComponent component)
