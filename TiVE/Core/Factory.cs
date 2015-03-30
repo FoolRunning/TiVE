@@ -12,7 +12,8 @@ namespace ProdigalSoftware.TiVE.Core
 
         public FactoryImpl()
         {
-            typeCreators.Add(typeof(IBlockList), new Func<IBlockList>(() => new BlockList()));
+            //typeCreators.Add(typeof(IBlockList), new Func<IBlockList>(() => new BlockList()));
+            typeCreators.Add(typeof(IScene), new Func<IScene>(() => new Scene()));
         }
 
         #region Implementation of IFactoryImpl

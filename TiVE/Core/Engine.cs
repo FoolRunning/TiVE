@@ -15,6 +15,7 @@ namespace ProdigalSoftware.TiVE.Core
         private readonly List<EngineSystem> systems = new List<EngineSystem>();
         private bool continueMainLoop = true;
         private Scene currentScene;
+        private string currentSceneName;
         private readonly object syncLock = new object();
 
         public void AddSystem(EngineSystem system)
@@ -24,12 +25,15 @@ namespace ProdigalSoftware.TiVE.Core
 
         public void LoadScene(string sceneName, bool useSeparateThread)
         {
+            currentSceneName = sceneName;
             ThreadStart loadSceneAction = () =>
             {
                 foreach (ISceneGenerator generator in TiVEController.PluginManager.GetPluginsOfType<ISceneGenerator>())
                 {
                     Scene scene = (Scene)generator.CreateScene(sceneName);
-                    if (scene != null)
+                    if (scene == null)
+                        Messages.AddWarning("Failed to find scene: " + sceneName);
+                    else
                     {
                         SetScene(scene);
                         break;
@@ -55,6 +59,7 @@ namespace ProdigalSoftware.TiVE.Core
                 DeleteCurrentScene();
                 currentScene = newScene;
             }
+            Messages.AddDebug("Running scene: " + currentSceneName);
         }
 
         public void DeleteCurrentScene()
@@ -148,6 +153,8 @@ namespace ProdigalSoftware.TiVE.Core
                     Messages.AddStackTrace(e);
                 }
             }
+
+            DeleteCurrentScene();
 
             GC.Collect();
             Messages.Println("Done cleaning up");

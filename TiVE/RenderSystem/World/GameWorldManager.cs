@@ -59,12 +59,14 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
                     if (createdWorld == null)
                         continue;
 
+                    createdWorld.Initialize(blockList);
+
                     sw.Stop();
 
                     Messages.AddDoneText();
 
                     long totalVoxels = 0;
-                    int totalBlocks = 0;
+                    long totalBlocks = 0;
                     for (int wz = 0; wz < createdWorld.BlockSize.Z; wz++)
                     {
                         for (int wx = 0; wx < createdWorld.BlockSize.X; wx++)
