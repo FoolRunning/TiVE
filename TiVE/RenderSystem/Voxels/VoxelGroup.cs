@@ -104,17 +104,17 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Voxels
                         voxelCount++;
 
                         VoxelSides sides = 0;
-                        if (z == 0 || this[x, y, z - 1] == 0) // The back face is never shown to the camera, so there is no need to create it
+                        if (z == 0 || voxels[GetBlockOffset(x, y, z - 1)] == 0)
                             sides |= VoxelSides.Back;
-                        if (z == size.Z - 1 || this[x, y, z + 1] == 0)
+                        if (z == size.Z - 1 || voxels[GetBlockOffset(x, y, z + 1)] == 0)
                             sides |= VoxelSides.Front;
-                        if (x == 0 || this[x - 1, y, z] == 0)
+                        if (x == 0 || voxels[GetBlockOffset(x - 1, y, z)] == 0)
                             sides |= VoxelSides.Left;
-                        if (x == size.X - 1 || this[x + 1, y, z] == 0)
+                        if (x == size.X - 1 || voxels[GetBlockOffset(x + 1, y, z)] == 0)
                             sides |= VoxelSides.Right;
-                        if (y == 0 || this[x, y - 1, z] == 0)
+                        if (y == 0 || voxels[GetBlockOffset(x, y - 1, z)] == 0)
                             sides |= VoxelSides.Bottom;
-                        if (y == size.Y - 1 || this[x, y + 1, z] == 0)
+                        if (y == size.Y - 1 || voxels[GetBlockOffset(x, y + 1, z)] == 0)
                             sides |= VoxelSides.Top;
 
                         if (sides != VoxelSides.None)
@@ -137,8 +137,9 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Voxels
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private int GetBlockOffset(int x, int y, int z)
         {
-            TiVEUtils.CheckConstraints(x, y, z, size);
-            return (x * size.Z + z) * size.Y + y; // y-axis major for speed
+            Vector3i voxelSize = size;
+            TiVEUtils.CheckConstraints(x, y, z, voxelSize);
+            return (x * voxelSize.Z + z) * voxelSize.Y + y; // y-axis major for speed
         }
     }
 }

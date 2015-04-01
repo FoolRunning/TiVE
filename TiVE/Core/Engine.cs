@@ -86,7 +86,7 @@ namespace ProdigalSoftware.TiVE.Core
             while (continueMainLoop)
             {
                 long currentTime = Stopwatch.GetTimestamp();
-                int ticksSinceLastFrame = (int)(previousTime - currentTime);
+                int ticksSinceLastFrame = (int)(currentTime - previousTime);
                 previousTime = currentTime;
 
                 nativeDisplay.ProcessNativeEvents();

@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using ProdigalSoftware.TiVE.Core;
 using ProdigalSoftware.TiVE.Core.Backend;
 using ProdigalSoftware.TiVE.RenderSystem.Voxels;
+using ProdigalSoftware.TiVE.Settings;
 using ProdigalSoftware.TiVE.Utils;
 using ProdigalSoftware.TiVEPluginFramework;
 using ProdigalSoftware.TiVEPluginFramework.Components;
@@ -23,8 +25,10 @@ namespace ProdigalSoftware.TiVE.RenderSystem
         private const int Far = 5;
         #endregion
 
+        private readonly HashSet<IEntity> entitiesToRender = new HashSet<IEntity>();
         private readonly Plane[] frustrumPlanes = new Plane[6];
         private readonly ShaderManager shaderManager = new ShaderManager();
+        private VoxelMeshManager meshManager;
 
         public RenderSystem() : base("Renderer")
         {
@@ -33,10 +37,14 @@ namespace ProdigalSoftware.TiVE.RenderSystem
         #region Implementation of EngineSystem
         public override void Dispose()
         {
+            meshManager.Dispose();
         }
 
         public override bool Initialize()
         {
+            int maxThreads = TiVEController.UserSettings.Get(UserSettings.ChunkCreationThreadsKey);
+            meshManager = new VoxelMeshManager(maxThreads);
+            
             return shaderManager.Initialize();
         }
 
@@ -56,14 +64,15 @@ namespace ProdigalSoftware.TiVE.RenderSystem
             Matrix4f viewProjectionMatrix;
             CalculateViewProjectionMatrix(cameraData, out viewProjectionMatrix);
 
-            foreach (IEntity renderEntity in currentScene.GetEntitiesWithComponent<RenderComponent>())
+            entitiesToRender.Clear();
+            FillEntitiesToRender(currentScene.RenderNode);
+            meshManager.Update(entitiesToRender, cameraData, currentScene);
+
+            foreach (IEntity renderEntity in entitiesToRender)
             {
                 RenderComponent render = renderEntity.GetComponent<RenderComponent>();
                 Debug.Assert(render != null);
-
-                if (!BoxInView(render.BoundingBox, true))
-                    continue; // Outside the view frustrum so don't bother rendering it
-
+                
                 IVertexDataCollection meshData;
                 using (new PerformanceLock(render.SyncLock))
                     meshData = (IVertexDataCollection)render.MeshData;
@@ -71,19 +80,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem
                 if (meshData == null)
                     continue;
 
-                Debug.Assert(meshData.IsInitialized);
-
-                IShaderProgram shader = shaderManager.GetShaderProgram(VoxelMeshHelper.Get(false).ShaderName);
-                shader.Bind();
-
-                Matrix4f translationMatrix = Matrix4f.CreateTranslation((int)render.Location.X, (int)render.Location.Y, (int)render.Location.Z);
-
-                Matrix4f viewProjectionModelMatrix;
-                Matrix4f.Mult(ref translationMatrix, ref viewProjectionMatrix, out viewProjectionModelMatrix);
-                shader.SetUniform("matrix_ModelViewProjection", ref viewProjectionModelMatrix);
-
-                TiVEController.Backend.Draw(PrimitiveType.Triangles, meshData);
-                stats += new RenderStatistics(1, render.PolygonCount, render.VoxelCount, render.RenderedVoxelCount);
+                stats += RenderEntityMesh(render, meshData, ref viewProjectionMatrix);
             }
         }
         #endregion
@@ -144,6 +141,29 @@ namespace ProdigalSoftware.TiVE.RenderSystem
             frustrumPlanes[Right] = new Plane(Vector3f.Cross(yAxis, normal), nearCenter + xAxis * nearWidth);
         }
 
+        /// <summary>
+        /// Fills the specified HashSet with entities that should be rendered based on the current location and orientation of the camera
+        /// </summary>
+        private void FillEntitiesToRender(RenderNode node)
+        {
+            if (node.Entities != null)
+            {
+                entitiesToRender.UnionWith(node.Entities);
+                return;
+            }
+
+            RenderNode[] childrenLocal = node.ChildNodes;
+            for (int i = 0; i < childrenLocal.Length; i++)
+            {
+                RenderNode childNode = childrenLocal[i];
+                if (childNode != null)
+                {
+                    if (BoxInView(childNode.BoundingBox, true))
+                        FillEntitiesToRender(childNode);
+                }
+            }
+        }
+
         private bool BoxInView(BoundingBox box, bool allowIntersecting)
         {
             for (int i = 0; i < frustrumPlanes.Length; i++)
@@ -154,6 +174,23 @@ namespace ProdigalSoftware.TiVE.RenderSystem
                     return false;
             }
             return true;
+        }
+
+        private RenderStatistics RenderEntityMesh(RenderComponent render, IVertexDataCollection meshData, ref Matrix4f viewProjectionMatrix)
+        {
+            Debug.Assert(meshData.IsInitialized);
+
+            IShaderProgram shader = shaderManager.GetShaderProgram(VoxelMeshHelper.Get(false).ShaderName);
+            shader.Bind();
+
+            Matrix4f translationMatrix = Matrix4f.CreateTranslation((int)render.Location.X, (int)render.Location.Y, (int)render.Location.Z);
+
+            Matrix4f viewProjectionModelMatrix;
+            Matrix4f.Mult(ref translationMatrix, ref viewProjectionMatrix, out viewProjectionModelMatrix);
+            shader.SetUniform("matrix_ModelViewProjection", ref viewProjectionModelMatrix);
+
+            TiVEController.Backend.Draw(PrimitiveType.Triangles, meshData);
+            return new RenderStatistics(1, render.PolygonCount, render.VoxelCount, render.RenderedVoxelCount);
         }
         #endregion
     }

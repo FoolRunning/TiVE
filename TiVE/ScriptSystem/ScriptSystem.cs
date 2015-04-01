@@ -8,14 +8,15 @@ using NLua.Exceptions;
 using ProdigalSoftware.TiVE.Core;
 using ProdigalSoftware.TiVE.Starter;
 using ProdigalSoftware.TiVEPluginFramework;
+using ProdigalSoftware.TiVEPluginFramework.Components;
 
 namespace ProdigalSoftware.TiVE.ScriptSystem
 {
-    internal sealed class ScriptSystem : EngineSystem
+    internal sealed class ScriptSystem : TimeSlicedEngineSystem
     {
         private readonly Dictionary<string, dynamic> scripts = new Dictionary<string, dynamic>();
 
-        public ScriptSystem() : base("Script System")
+        public ScriptSystem() : base("Script System", 60)
         {
         }
 
@@ -64,9 +65,25 @@ namespace ProdigalSoftware.TiVE.ScriptSystem
                 script.Dispose();
         }
 
-        protected override void UpdateInternal(int ticksSinceLastFrame, Scene currentScene)
+        protected override void Update(float timeSinceLastUpdate, Scene currentScene)
         {
-            
+            foreach (IEntity entity in currentScene.GetEntitiesWithComponent<ScriptComponent>())
+            {
+                ScriptComponent scriptData = entity.GetComponent<ScriptComponent>();
+                dynamic dynamicEntity = entity;
+                if (!scriptData.Loaded)
+                {
+                    scriptData.Script = GetScript(scriptData.ScriptName);
+                    if (scriptData.Script == null)
+                        Messages.AddWarning("Unable to find script " + scriptData.ScriptName + " needed by entity " + entity.Name);
+                    else
+                        scriptData.Script.initialize(dynamicEntity);
+                    scriptData.Loaded = true;
+                }
+
+                if (scriptData.Script != null)
+                    scriptData.Script.update(dynamicEntity, timeSinceLastUpdate);
+            }
         }
 
         public dynamic GetScript(string name)

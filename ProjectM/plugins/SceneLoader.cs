@@ -1,5 +1,6 @@
 ﻿using JetBrains.Annotations;
 using ProdigalSoftware.TiVEPluginFramework;
+using ProdigalSoftware.TiVEPluginFramework.Components;
 using ProdigalSoftware.TiVEPluginFramework.Generators;
 
 namespace ProdigalSoftware.ProjectM.Plugins
@@ -19,6 +20,14 @@ namespace ProdigalSoftware.ProjectM.Plugins
             {
                 scene = Factory.Create<IScene>();
                 scene.SetGameWorld("Maze");
+            }
+            else if (sceneName == "LiquidTest")
+            {
+                scene = Factory.Create<IScene>();
+                scene.SetGameWorld("LiquidTest");
+                IEntity entity = scene.CreateNewEntity("Camera");
+                entity.AddComponent(new CameraComponent());
+                entity.AddComponent(new ScriptComponent("LiquidTest"));
             }
 
             return scene;

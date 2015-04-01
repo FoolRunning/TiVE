@@ -43,7 +43,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
             ushort sand = blockList["sand0"];
             ushort lava = blockList["lava0"];
             ushort stone = blockList["ston0"];
-            ushort fire = blockList["fire"];
+            //ushort fire = blockList["fire"];
             ushort fountain = blockList["fountain"];
             for (int x = 20; x < 30; x++)
             {

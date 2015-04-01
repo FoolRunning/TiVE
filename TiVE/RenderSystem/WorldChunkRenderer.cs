@@ -19,7 +19,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem
         private ParticleSystemManager particleManager;
         private ShaderManager shaderManager;
         private Matrix4f viewProjectionMatrix;
-        private ChunkRenderTree renderTree;
+        private RenderNode renderTree;
 
         public WorldChunkRenderer(int maxChunkCreationThreads)
         {
@@ -90,7 +90,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem
             GameWorld = newGameWorld;
             LightProvider = LightProvider.Get(newGameWorld);
 
-            renderTree = new ChunkRenderTree(newGameWorld);
+            //renderTree = new RenderNode(newGameWorld);
             chunkManager = new WorldChunkManager(this, maxChunkCreationThreads);
             particleManager = new ParticleSystemManager(this);
         }
@@ -108,7 +108,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem
             viewProjectionMatrix = Matrix4f.Mult(camera.ViewMatrix, camera.ProjectionMatrix);
 
             chunksToRender.Clear();
-            renderTree.FillChunksToRender(chunksToRender, camera);
+            //renderTree.FillEntitiesToRender(chunksToRender, camera);
 
             particleManager.UpdateCameraPos(chunksToRender);
             if (!TiVEController.UserSettings.Get(UserSettings.UseThreadedParticlesKey))

@@ -3,12 +3,14 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using ProdigalSoftware.TiVE.Core.Backend;
 using ProdigalSoftware.TiVE.RenderSystem.Meshes;
+using ProdigalSoftware.TiVE.RenderSystem.World;
 using ProdigalSoftware.TiVEPluginFramework;
+using ProdigalSoftware.TiVEPluginFramework.Components;
 using ProdigalSoftware.Utils;
 
-namespace ProdigalSoftware.TiVE.RenderSystem.World
+namespace ProdigalSoftware.TiVE.RenderSystem
 {
-    internal sealed class ChunkRenderTree : IDisposable
+    internal sealed class RenderNode : IDisposable
     {
         #region Constants
         private const int ChunkVoxelSize = GameWorldVoxelChunk.VoxelSize;
@@ -25,26 +27,26 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
         #region Member variables
         private static readonly LargeMeshBuilder debugBoxOutlineBuilder = new LargeMeshBuilder(8, 24);
 
-        private readonly ChunkRenderTree[] children = new ChunkRenderTree[8];
-        private readonly GameWorldVoxelChunk chunk;
-        private readonly BoundingBox boundingBox;
-        private readonly int depth;
+        public readonly RenderNode[] ChildNodes = new RenderNode[8];
+        public readonly BoundingBox BoundingBox;
 
+        private readonly int depth;
+        private readonly List<IEntity> entities;
         private IVertexDataCollection debugBoxOutLine;
         #endregion
 
         #region Constructors
-        public ChunkRenderTree(GameWorld gameWorld) :
+        public RenderNode(GameWorld gameWorld, IScene scene) :
             this(Vector3f.Zero, new Vector3f(
                 (int)Math.Ceiling(gameWorld.BlockSize.X / (float)GameWorldVoxelChunk.BlockSize) * ChunkVoxelSize,
                 (int)Math.Ceiling(gameWorld.BlockSize.Y / (float)GameWorldVoxelChunk.BlockSize) * ChunkVoxelSize,
-                (int)Math.Ceiling(gameWorld.BlockSize.Z / (float)GameWorldVoxelChunk.BlockSize) * ChunkVoxelSize), 0)
+                (int)Math.Ceiling(gameWorld.BlockSize.Z / (float)GameWorldVoxelChunk.BlockSize) * ChunkVoxelSize), 0, scene)
         {
         }
 
-        private ChunkRenderTree(Vector3f minPoint, Vector3f maxPoint, int depth)
+        private RenderNode(Vector3f minPoint, Vector3f maxPoint, int depth, IScene scene)
         {
-            boundingBox = new BoundingBox(minPoint, maxPoint);
+            BoundingBox = new BoundingBox(minPoint, maxPoint);
 
             this.depth = depth;
             Debug.Assert((int)(maxPoint.X - minPoint.X) % ChunkVoxelSize == 0, "Game world box should fit an even number of chunks inside on the x-axis");
@@ -61,7 +63,12 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
             if (boxSizeX <= ChunkVoxelSize && boxSizeY <= ChunkVoxelSize && boxSizeZ <= ChunkVoxelSize)
             {
                 // Box size is the size of a chunk, so create a chunk for this leaf node
-                chunk = new GameWorldVoxelChunk((int)(minPoint.X / ChunkVoxelSize), (int)(minPoint.Y / ChunkVoxelSize), (int)(minPoint.Z / ChunkVoxelSize));
+                Vector3i chunkLoc = new Vector3i((int)(minPoint.X / ChunkVoxelSize), (int)(minPoint.Y / ChunkVoxelSize), (int)(minPoint.Z / ChunkVoxelSize));
+                IEntity entity = scene.CreateNewEntity(string.Format("Chunk ({0}, {1}, {2})", chunkLoc.X, chunkLoc.Y, chunkLoc.Z));
+                entity.AddComponent(new ChunkComponent(chunkLoc));
+                entity.AddComponent(new RenderComponent(new Vector3f(chunkLoc.X, chunkLoc.Y, chunkLoc.Y)));
+                entities = new List<IEntity>(2);
+                entities.Add(entity);
                 return;
             }
 
@@ -92,23 +99,23 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
             }
 
             int childDepth = depth + 1;
-            children[FarBottomLeft] = new ChunkRenderTree(minPoint, boxCenter, childDepth);
+            ChildNodes[FarBottomLeft] = new RenderNode(minPoint, boxCenter, childDepth, scene);
             if (hasAvailableX)
-                children[FarBottomRight] = new ChunkRenderTree(new Vector3f(boxCenter.X, minPoint.Y, minPoint.Z), new Vector3f(maxPoint.X, boxCenter.Y, boxCenter.Z), childDepth);
+                ChildNodes[FarBottomRight] = new RenderNode(new Vector3f(boxCenter.X, minPoint.Y, minPoint.Z), new Vector3f(maxPoint.X, boxCenter.Y, boxCenter.Z), childDepth, scene);
             if (hasAvailableY)
-                children[FarTopLeft] = new ChunkRenderTree(new Vector3f(minPoint.X, boxCenter.Y, minPoint.Z), new Vector3f(boxCenter.X, maxPoint.Y, boxCenter.Z), childDepth);
+                ChildNodes[FarTopLeft] = new RenderNode(new Vector3f(minPoint.X, boxCenter.Y, minPoint.Z), new Vector3f(boxCenter.X, maxPoint.Y, boxCenter.Z), childDepth, scene);
             if (hasAvailableX && hasAvailableY)
-                children[FarTopRight] = new ChunkRenderTree(new Vector3f(boxCenter.X, boxCenter.Y, minPoint.Z), new Vector3f(maxPoint.X, maxPoint.Y, boxCenter.Z), childDepth);
+                ChildNodes[FarTopRight] = new RenderNode(new Vector3f(boxCenter.X, boxCenter.Y, minPoint.Z), new Vector3f(maxPoint.X, maxPoint.Y, boxCenter.Z), childDepth, scene);
 
             if (hasAvailableZ)
             {
-                children[NearBottomLeft] = new ChunkRenderTree(new Vector3f(minPoint.X, minPoint.Y, boxCenter.Z), new Vector3f(boxCenter.X, boxCenter.Y, maxPoint.Z), childDepth);
+                ChildNodes[NearBottomLeft] = new RenderNode(new Vector3f(minPoint.X, minPoint.Y, boxCenter.Z), new Vector3f(boxCenter.X, boxCenter.Y, maxPoint.Z), childDepth, scene);
                 if (hasAvailableX)
-                    children[NearBottomRight] = new ChunkRenderTree(new Vector3f(boxCenter.X, minPoint.Y, boxCenter.Z), new Vector3f(maxPoint.X, boxCenter.Y, maxPoint.Z), childDepth);
+                    ChildNodes[NearBottomRight] = new RenderNode(new Vector3f(boxCenter.X, minPoint.Y, boxCenter.Z), new Vector3f(maxPoint.X, boxCenter.Y, maxPoint.Z), childDepth, scene);
                 if (hasAvailableY)
-                    children[NearTopLeft] = new ChunkRenderTree(new Vector3f(minPoint.X, boxCenter.Y, boxCenter.Z), new Vector3f(boxCenter.X, maxPoint.Y, maxPoint.Z), childDepth);
+                    ChildNodes[NearTopLeft] = new RenderNode(new Vector3f(minPoint.X, boxCenter.Y, boxCenter.Z), new Vector3f(boxCenter.X, maxPoint.Y, maxPoint.Z), childDepth, scene);
                 if (hasAvailableX && hasAvailableY)
-                    children[NearTopRight] = new ChunkRenderTree(boxCenter, maxPoint, depth + 1);
+                    ChildNodes[NearTopRight] = new RenderNode(boxCenter, maxPoint, depth + 1, scene);
             }
         }
         #endregion
@@ -119,38 +126,20 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
             if (debugBoxOutLine != null)
                 debugBoxOutLine.Dispose();
 
-            if (chunk != null)
-                chunk.Dispose();
-
-            ChunkRenderTree[] childrenLocal = children;
+            RenderNode[] childrenLocal = ChildNodes;
             for (int i = 0; i < childrenLocal.Length; i++)
             {
-                ChunkRenderTree childBox = childrenLocal[i];
+                RenderNode childBox = childrenLocal[i];
                 if (childBox != null)
                     childBox.Dispose();
             }
         }
         #endregion
 
-        #region Public methods
-        /// <summary>
-        /// Fills the specified HashSet with chunks that should be rendered based on the current location and orientation of the specified camera
-        /// </summary>
-        public void FillChunksToRender(HashSet<GameWorldVoxelChunk> chunksToRender, Camera camera)
+        #region Properties
+        public IEnumerable<IEntity> Entities
         {
-            if (chunk != null)
-                chunksToRender.Add(chunk);
-
-            ChunkRenderTree[] childrenLocal = children;
-            for (int i = 0; i < childrenLocal.Length; i++)
-            {
-                ChunkRenderTree childBox = childrenLocal[i];
-                if (childBox != null)
-                {
-                    if (camera.BoxInView(childBox.boundingBox, depth <= 10))
-                        childBox.FillChunksToRender(chunksToRender, camera);
-                }
-            }
+            get { return entities; }
         }
         #endregion
 
@@ -165,11 +154,11 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
             RenderDebugOutline(shaderManager, ref viewProjectionMatrix, locationInParent);
 
             RenderStatistics stats = new RenderStatistics(1, 12, 0, 0);
-            ChunkRenderTree[] childrenLocal = children;
+            RenderNode[] childrenLocal = ChildNodes;
             for (int i = 0; i < childrenLocal.Length; i++)
             {
-                ChunkRenderTree childBox = childrenLocal[i];
-                if (childBox != null && camera.BoxInView(childBox.boundingBox, depth <= 10))
+                RenderNode childBox = childrenLocal[i];
+                if (childBox != null && camera.BoxInView(childBox.BoundingBox, depth <= 10))
                     stats += childBox.Render(shaderManager, ref viewProjectionMatrix, camera, i);
             }
 
@@ -182,14 +171,14 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
             {
                 Color4b color = GetColorForLocation(locationInParent);
                 debugBoxOutlineBuilder.StartNewMesh();
-                int v1 = debugBoxOutlineBuilder.Add((short)(boundingBox.MinPoint.X + depth), (short)(boundingBox.MinPoint.Y + depth), (short)(boundingBox.MinPoint.Z + depth), color);
-                int v2 = debugBoxOutlineBuilder.Add((short)(boundingBox.MaxPoint.X - depth), (short)(boundingBox.MinPoint.Y + depth), (short)(boundingBox.MinPoint.Z + depth), color);
-                int v3 = debugBoxOutlineBuilder.Add((short)(boundingBox.MaxPoint.X - depth), (short)(boundingBox.MaxPoint.Y - depth), (short)(boundingBox.MinPoint.Z + depth), color);
-                int v4 = debugBoxOutlineBuilder.Add((short)(boundingBox.MinPoint.X + depth), (short)(boundingBox.MaxPoint.Y - depth), (short)(boundingBox.MinPoint.Z + depth), color);
-                int v5 = debugBoxOutlineBuilder.Add((short)(boundingBox.MinPoint.X + depth), (short)(boundingBox.MinPoint.Y + depth), (short)(boundingBox.MaxPoint.Z - depth), color);
-                int v6 = debugBoxOutlineBuilder.Add((short)(boundingBox.MaxPoint.X - depth), (short)(boundingBox.MinPoint.Y + depth), (short)(boundingBox.MaxPoint.Z - depth), color);
-                int v7 = debugBoxOutlineBuilder.Add((short)(boundingBox.MaxPoint.X - depth), (short)(boundingBox.MaxPoint.Y - depth), (short)(boundingBox.MaxPoint.Z - depth), color);
-                int v8 = debugBoxOutlineBuilder.Add((short)(boundingBox.MinPoint.X + depth), (short)(boundingBox.MaxPoint.Y - depth), (short)(boundingBox.MaxPoint.Z - depth), color);
+                int v1 = debugBoxOutlineBuilder.Add((short)(BoundingBox.MinPoint.X + depth), (short)(BoundingBox.MinPoint.Y + depth), (short)(BoundingBox.MinPoint.Z + depth), color);
+                int v2 = debugBoxOutlineBuilder.Add((short)(BoundingBox.MaxPoint.X - depth), (short)(BoundingBox.MinPoint.Y + depth), (short)(BoundingBox.MinPoint.Z + depth), color);
+                int v3 = debugBoxOutlineBuilder.Add((short)(BoundingBox.MaxPoint.X - depth), (short)(BoundingBox.MaxPoint.Y - depth), (short)(BoundingBox.MinPoint.Z + depth), color);
+                int v4 = debugBoxOutlineBuilder.Add((short)(BoundingBox.MinPoint.X + depth), (short)(BoundingBox.MaxPoint.Y - depth), (short)(BoundingBox.MinPoint.Z + depth), color);
+                int v5 = debugBoxOutlineBuilder.Add((short)(BoundingBox.MinPoint.X + depth), (short)(BoundingBox.MinPoint.Y + depth), (short)(BoundingBox.MaxPoint.Z - depth), color);
+                int v6 = debugBoxOutlineBuilder.Add((short)(BoundingBox.MaxPoint.X - depth), (short)(BoundingBox.MinPoint.Y + depth), (short)(BoundingBox.MaxPoint.Z - depth), color);
+                int v7 = debugBoxOutlineBuilder.Add((short)(BoundingBox.MaxPoint.X - depth), (short)(BoundingBox.MaxPoint.Y - depth), (short)(BoundingBox.MaxPoint.Z - depth), color);
+                int v8 = debugBoxOutlineBuilder.Add((short)(BoundingBox.MinPoint.X + depth), (short)(BoundingBox.MaxPoint.Y - depth), (short)(BoundingBox.MaxPoint.Z - depth), color);
 
                 // far plane outline
                 debugBoxOutlineBuilder.AddIndex(v1);

@@ -62,7 +62,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
             set { blocks[GetBlockOffset(blockX, blockY, blockZ)] = value; }
         }
 
-        internal void Initialize(BlockList blockList)
+        public void Initialize(BlockList blockList)
         {
             blockVoxelsForLighting = new uint[blockList.BlockCount * BlockTotalVoxelCount];
             blockVoxels = new uint[blockList.BlockCount * BlockTotalVoxelCount];
