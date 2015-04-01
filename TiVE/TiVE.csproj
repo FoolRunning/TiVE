@@ -130,6 +130,7 @@
     <Compile Include="Core\TimeSlicedEngineSystem.cs" />
     <Compile Include="Debugging\SystemTimingHelper.cs" />
     <Compile Include="RenderSystem\Camera.cs" />
+    <Compile Include="RenderSystem\EntityLoadQueue.cs" />
     <Compile Include="RenderSystem\Lighting\LightInfo.cs" />
     <Compile Include="RenderSystem\Lighting\LightingModel.cs" />
     <Compile Include="RenderSystem\Lighting\LightProvider.cs" />
@@ -147,13 +148,15 @@
     <Compile Include="RenderSystem\Voxels\VoxelGroup.cs" />
     <Compile Include="RenderSystem\Voxels\VoxelMeshHelper.cs" />
     <Compile Include="RenderSystem\Voxels\VoxelMeshUtils.cs" />
+    <Compile Include="RenderSystem\VoxelMeshManager.cs" />
     <Compile Include="RenderSystem\WorldChunkRenderer.cs" />
     <Compile Include="RenderSystem\World\AnimationInfo.cs" />
     <Compile Include="RenderSystem\World\Block.cs" />
     <Compile Include="RenderSystem\World\BlockList.cs" />
     <Compile Include="RenderSystem\World\BlockListManager.cs" />
+    <Compile Include="RenderSystem\World\ChunkComponent.cs" />
     <Compile Include="RenderSystem\World\ChunkLoadQueue.cs" />
-    <Compile Include="RenderSystem\World\ChunkRenderTree.cs" />
+    <Compile Include="RenderSystem\RenderNode.cs" />
     <Compile Include="RenderSystem\World\GameWorld.cs" />
     <Compile Include="RenderSystem\World\GameWorldManager.cs" />
     <Compile Include="RenderSystem\World\GameWorldVoxelChunk.cs" />
@@ -234,9 +237,7 @@
       <Name>Utils</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Bla\" />
-  </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <EmbeddedResource Include="Resources\defaultTables.def" />
   </ItemGroup>

@@ -23,6 +23,13 @@ namespace ProdigalSoftware.TiVEPluginFramework
             get { return maxPoint; }
         }
 
+        public bool IntersectsWith(BoundingBox other)
+        {
+            return minPoint.X <= other.maxPoint.X && maxPoint.X >= other.minPoint.X &&
+                minPoint.Y <= other.maxPoint.Y && maxPoint.Y >= other.minPoint.Y &&
+                minPoint.Z <= other.maxPoint.Z && maxPoint.Z >= other.minPoint.Z;
+        }
+
         internal Vector3f GetPositivePoint(Vector3f planeNormal)
         {
             Vector3f posPoint = minPoint; // Make copy

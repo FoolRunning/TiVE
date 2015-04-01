@@ -1,22 +1,25 @@
-﻿WorldXSize = 0;
-WorldYSize = 0;
-WorldZSize = 0;
+﻿--WorldXSize = 0;
+--WorldYSize = 0;
+--WorldZSize = 0;
 
-function Initialize()
-    gameWorld = LoadWorld("LiquidTest")
-    WorldXSize = gameWorld.BlockSize.X
-    WorldYSize = gameWorld.BlockSize.Y
-    WorldZSize = gameWorld.BlockSize.Z
-    Renderer().LightProvider.AmbientLight = Color(0.1, 0.1, 0.1)
+function initialize(entity)
+    camera = entity.GetComponent("CameraComponent")
 
-    Camera().FoV = PI / 3 --60 degrees
-    Camera().Location = Vector(WorldXSize * BlockSize / 2, WorldYSize * BlockSize / 2, 345)
-    Camera().FarDistance = 1000
-    Camera().UpVector = Vector(0, 0, 1)
+    --gameWorld = LoadWorld("LiquidTest")
+    --WorldXSize = gameWorld.BlockSize.X
+    --WorldYSize = gameWorld.BlockSize.Y
+    --WorldZSize = gameWorld.BlockSize.Z
+    --Renderer().LightProvider.AmbientLight = Color(0.1, 0.1, 0.1)
+
+    camera.FieldOfView = PI / 3 --60 degrees
+    --camera.Location = Vector(WorldXSize * BlockSize / 2, WorldYSize * BlockSize / 2, 345)
+    camera.FarDistance = 1000
+    camera.UpVector = Vector(0, 0, 1)
 end
 
-function Update()
-    camLoc = Camera().Location
+function update(entity, timeSinceLastFrame)
+    camera = entity.GetComponent("CameraComponent")
+    camLoc = camera.Location
 
     speed = 2
     if (KeyPressed(Keys.LShift)) then --Speed up
@@ -47,7 +50,7 @@ function Update()
         camLoc.Z = Min(camLoc.Z + 2, 55 * BlockSize)
     end
 
-    Camera().Location = camLoc
-    Camera().LookAtLocation = Vector(camLoc.X, camLoc.Y + 150, 50)
+    camera.Location = camLoc
+    camera.LookAtLocation = Vector(camLoc.X, camLoc.Y + 150, 50)
 end
 

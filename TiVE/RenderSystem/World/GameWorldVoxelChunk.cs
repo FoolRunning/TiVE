@@ -321,7 +321,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
             int maxX = bvx + voxelSize;
             int maxY = bvy + voxelSize;
             int maxZ = bvz + voxelSize;
-            //for (int z = bz; z > bz - voxelSize; z--)
+            //for (int z = bvz; z > bvz - voxelSize; z--)
             for (int z = bvz; z < maxZ; z++)
             {
                 for (int x = bvx; x < maxX; x++)

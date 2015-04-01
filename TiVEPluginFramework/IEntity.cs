@@ -11,5 +11,7 @@ namespace ProdigalSoftware.TiVEPluginFramework
         void AddComponent(IComponent component);
 
         T GetComponent<T>() where T : class, IComponent;
+
+        IComponent GetComponent(string componentName);
     }
 }
