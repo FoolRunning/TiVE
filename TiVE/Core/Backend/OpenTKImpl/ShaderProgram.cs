@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using OpenTK;
 using OpenTK.Graphics.OpenGL4;
 using ProdigalSoftware.TiVE.Starter;
 using ProdigalSoftware.Utils;
@@ -104,7 +105,10 @@ namespace ProdigalSoftware.TiVE.Core.Backend.OpenTKImpl
         {
             unsafe
             {
-                GL.UniformMatrix4(uniformLocations[name], 1, false, (float*)value);
+                fixed (float* ptr = &value.Row0X)
+                {
+                    GL.UniformMatrix4(uniformLocations[name], 1, false, ptr);
+                }
             }
         }
 
@@ -112,7 +116,10 @@ namespace ProdigalSoftware.TiVE.Core.Backend.OpenTKImpl
         {
             unsafe
             {
-                GL.Uniform3(uniformLocations[name], 1, (float*)value);
+                fixed (float* ptr = &value.X)
+                {
+                    GL.Uniform3(uniformLocations[name], 1, ptr);
+                }
             }
         }
 
@@ -120,7 +127,10 @@ namespace ProdigalSoftware.TiVE.Core.Backend.OpenTKImpl
         {
             unsafe
             {
-                GL.Uniform4(uniformLocations[name], 1, (float*)value);
+                fixed (float* ptr = &value.R)
+                {
+                    GL.Uniform4(uniformLocations[name], 1, ptr);
+                }
             }
         }
     }

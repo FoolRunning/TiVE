@@ -10,6 +10,7 @@ using ProdigalSoftware.Utils;
 
 namespace ProdigalSoftware.TiVE.RenderSystem
 {
+    [Obsolete("Use the new RenderSystem")]
     internal sealed class WorldChunkRenderer : IGameWorldRenderer
     {
         private readonly HashSet<GameWorldVoxelChunk> chunksToRender = new HashSet<GameWorldVoxelChunk>();

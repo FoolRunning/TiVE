@@ -6,6 +6,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
     /// <summary>
     /// Manages a queue of chunks that are waiting to be loaded. Automatically sorts them by highest-priority.
     /// </summary>
+    [Obsolete("Use the new EntityLoadQueue")]
     internal sealed class ChunkLoadQueue
     {
         #region Member variables

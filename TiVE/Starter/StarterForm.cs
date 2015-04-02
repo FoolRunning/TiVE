@@ -140,7 +140,7 @@ namespace ProdigalSoftware.TiVE.Starter
         private void btnStart_Click(object sender, EventArgs e)
         {
             TiVEController.UserSettings.Save();
-            string startScript = ((TiVEProject)cmbProject.SelectedItem).StartScript;
+            string startScript = ((TiVEProject)cmbProject.SelectedItem).StartScene;
             TiVEController.RunEngine(startScript);
         }
 

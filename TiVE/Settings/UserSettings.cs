@@ -5,8 +5,8 @@ using System.Linq;
 using System.Text;
 using System.Xml;
 using ProdigalSoftware.TiVE.Core.Backend;
+using ProdigalSoftware.TiVE.RenderSystem;
 using ProdigalSoftware.TiVE.RenderSystem.Lighting;
-using ProdigalSoftware.TiVE.RenderSystem.World;
 using ProdigalSoftware.TiVE.Starter;
 
 namespace ProdigalSoftware.TiVE.Settings

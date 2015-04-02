@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using ProdigalSoftware.TiVE.Core.Backend;
 using ProdigalSoftware.TiVE.RenderSystem.Meshes;
-using ProdigalSoftware.TiVE.RenderSystem.Voxels;
 using ProdigalSoftware.TiVE.RenderSystem.World;
 using ProdigalSoftware.TiVEPluginFramework;
 using ProdigalSoftware.TiVEPluginFramework.Components;
@@ -14,7 +13,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem
     internal sealed class RenderNode : IDisposable
     {
         #region Constants
-        private const int ChunkVoxelSize = GameWorldVoxelChunk.VoxelSize;
+        private const int ChunkVoxelSize = ChunkComponent.VoxelSize;
         private const int NearTopLeft = 0;
         private const int NearTopRight = 1;
         private const int NearBottomLeft = 2;
@@ -39,9 +38,9 @@ namespace ProdigalSoftware.TiVE.RenderSystem
         #region Constructors
         public RenderNode(GameWorld gameWorld, IScene scene) :
             this(Vector3f.Zero, new Vector3f(
-                (int)Math.Ceiling(gameWorld.BlockSize.X / (float)GameWorldVoxelChunk.BlockSize) * ChunkVoxelSize,
-                (int)Math.Ceiling(gameWorld.BlockSize.Y / (float)GameWorldVoxelChunk.BlockSize) * ChunkVoxelSize,
-                (int)Math.Ceiling(gameWorld.BlockSize.Z / (float)GameWorldVoxelChunk.BlockSize) * ChunkVoxelSize), 0, scene)
+                (int)Math.Ceiling(gameWorld.BlockSize.X / (float)ChunkComponent.BlockSize) * ChunkVoxelSize,
+                (int)Math.Ceiling(gameWorld.BlockSize.Y / (float)ChunkComponent.BlockSize) * ChunkVoxelSize,
+                (int)Math.Ceiling(gameWorld.BlockSize.Z / (float)ChunkComponent.BlockSize) * ChunkVoxelSize), 0, scene)
         {
         }
 
@@ -146,27 +145,6 @@ namespace ProdigalSoftware.TiVE.RenderSystem
         #endregion
 
         #region Debug code
-        public RenderStatistics Render(ShaderManager shaderManager, ref Matrix4f viewProjectionMatrix, Camera camera)
-        {
-            return Render(shaderManager, ref viewProjectionMatrix, camera, -1);
-        }
-
-        private RenderStatistics Render(ShaderManager shaderManager, ref Matrix4f viewProjectionMatrix, Camera camera, int locationInParent)
-        {
-            RenderDebugOutline(shaderManager, ref viewProjectionMatrix, locationInParent);
-
-            RenderStatistics stats = new RenderStatistics(1, 12, 0, 0);
-            RenderNode[] childrenLocal = ChildNodes;
-            for (int i = 0; i < childrenLocal.Length; i++)
-            {
-                RenderNode childBox = childrenLocal[i];
-                if (childBox != null && camera.BoxInView(childBox.BoundingBox, depth <= 10))
-                    stats += childBox.Render(shaderManager, ref viewProjectionMatrix, camera, i);
-            }
-
-            return stats;
-        }
-
         public void RenderDebugOutline(ShaderManager shaderManager, ref Matrix4f viewProjectionMatrix, int locationInParent)
         {
             if (debugBoxOutLine == null)

@@ -13,13 +13,16 @@ using ProdigalSoftware.Utils;
 
 namespace ProdigalSoftware.TiVE.ScriptSystem
 {
+    /// <summary>
+    /// Engine system for handling entities that contain a script component
+    /// </summary>
     internal sealed class ScriptSystem : TimeSlicedEngineSystem
     {
         private readonly Dictionary<string, Script> scripts = new Dictionary<string, Script>();
         private readonly IKeyboard keyboard;
         private readonly IMouse mouse;
 
-        public ScriptSystem(IKeyboard keyboard, IMouse mouse) : base("Script System", 60)
+        public ScriptSystem(IKeyboard keyboard, IMouse mouse) : base("Scripts", 60)
         {
             this.keyboard = keyboard;
             this.mouse = mouse;
@@ -78,23 +81,26 @@ namespace ProdigalSoftware.TiVE.ScriptSystem
         {
             keyboard.Update();
 
+            DynValue tsluValue = DynValue.NewNumber(timeSinceLastUpdate);
+
             foreach (IEntity entity in currentScene.GetEntitiesWithComponent<ScriptComponent>())
             {
                 ScriptComponent scriptData = entity.GetComponent<ScriptComponent>();
                 if (!scriptData.Loaded)
                 {
-                    scriptData.Script = GetScript(scriptData.ScriptName);
+                    scripts.TryGetValue(scriptData.ScriptName, out scriptData.Script);
                     if (scriptData.Script == null)
                         Messages.AddWarning("Unable to find script " + scriptData.ScriptName + " needed by entity " + entity.Name);
                     else
                     {
+                        DynValue entityValue = DynValue.FromObject(scriptData.Script, entity);
                         scriptData.UpdateFunctionCached = scriptData.Script.Globals.Get("update");
                         if (scriptData.UpdateFunctionCached == null)
                             Messages.AddWarning("Unable to find update method for " + scriptData.ScriptName);
                         
                         DynValue initFunction = scriptData.Script.Globals.Get("initialize");
                         if (initFunction != null)
-                            CallLuaFunction(scriptData.Script, initFunction, entity, entity);
+                            CallLuaFunction(scriptData.Script, initFunction, entity, entityValue);
                         else
                             Messages.AddWarning("Unable to find initialize method for " + scriptData.ScriptName);
                     }
@@ -102,15 +108,11 @@ namespace ProdigalSoftware.TiVE.ScriptSystem
                 }
 
                 if (scriptData.Script != null && scriptData.UpdateFunctionCached != null)
-                    CallLuaFunction(scriptData.Script, scriptData.UpdateFunctionCached, entity, entity, timeSinceLastUpdate);
+                {
+                    DynValue entityValue = DynValue.FromObject(scriptData.Script, entity);
+                    CallLuaFunction(scriptData.Script, scriptData.UpdateFunctionCached, entity, entityValue, tsluValue);
+                }
             }
-        }
-
-        public Script GetScript(string name)
-        {
-            Script script;
-            scripts.TryGetValue(name, out script);
-            return script;
         }
 
         public static void AddLuaTableForEnum<T>(Script lua)
@@ -127,7 +129,7 @@ namespace ProdigalSoftware.TiVE.ScriptSystem
             lua.Globals[tableName] = keyTable;
         }
 
-        private static void CallLuaFunction(Script script, DynValue function, IEntity entity, params object[] args)
+        private static void CallLuaFunction(Script script, DynValue function, IEntity entity, params DynValue[] args)
         {
             try
             {
@@ -165,7 +167,6 @@ namespace ProdigalSoftware.TiVE.ScriptSystem
             //gameScript.GameWorld = new Func<GameWorld>(() => renderer.GameWorld);
             //gameScript.ReloadLevel = new Action(() => renderer.RefreshLevel());
             //gameScript.EmptyBlock = BlockImpl.Empty;
-
         }
 
         private static class LuaGlobalHelper

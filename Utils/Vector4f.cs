@@ -845,10 +845,10 @@ namespace ProdigalSoftware.Utils
         public static void Transform(ref Vector4f vec, ref Matrix4f mat, out Vector4f result)
         {
             result = new Vector4f(
-                vec.X * mat.Row0.X + vec.Y * mat.Row1.X + vec.Z * mat.Row2.X + vec.W * mat.Row3.X,
-                vec.X * mat.Row0.Y + vec.Y * mat.Row1.Y + vec.Z * mat.Row2.Y + vec.W * mat.Row3.Y,
-                vec.X * mat.Row0.Z + vec.Y * mat.Row1.Z + vec.Z * mat.Row2.Z + vec.W * mat.Row3.Z,
-                vec.X * mat.Row0.W + vec.Y * mat.Row1.W + vec.Z * mat.Row2.W + vec.W * mat.Row3.W);
+                vec.X * mat.Row0X + vec.Y * mat.Row1X + vec.Z * mat.Row2X + vec.W * mat.Row3X,
+                vec.X * mat.Row0Y + vec.Y * mat.Row1Y + vec.Z * mat.Row2Y + vec.W * mat.Row3Y,
+                vec.X * mat.Row0Z + vec.Y * mat.Row1Z + vec.Z * mat.Row2Z + vec.W * mat.Row3Z,
+                vec.X * mat.Row0W + vec.Y * mat.Row1W + vec.Z * mat.Row2W + vec.W * mat.Row3W);
         }
 
         #endregion

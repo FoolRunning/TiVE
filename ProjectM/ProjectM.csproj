@@ -86,10 +86,6 @@
     <ApplicationIcon>p button.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="DynamicLua, Version=1.1.2.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\DynamicLua.1.1.2.0\lib\net40-Client\DynamicLua.dll</HintPath>
-    </Reference>
     <Reference Include="MoonSharp.Interpreter">
       <HintPath>..\packages\MoonSharp.0.9.2.0\lib\net40-client\MoonSharp.Interpreter.dll</HintPath>
     </Reference>

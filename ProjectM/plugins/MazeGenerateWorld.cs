@@ -563,6 +563,17 @@ namespace ProdigalSoftware.ProjectM.Plugins
                 Y = y;
             }
 
+            public override bool Equals(object obj)
+            {
+                MazeCellLocation other = (MazeCellLocation)obj;
+                return other.X == X && other.Y == Y;
+            }
+
+            public override int GetHashCode()
+            {
+                return X ^ Y;
+            }
+
             public static bool operator ==(MazeCellLocation c1, MazeCellLocation c2)
             {
                 return c1.X == c2.X && c1.Y == c2.Y;
