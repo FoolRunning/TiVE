@@ -40,7 +40,8 @@ namespace ProdigalSoftware.TiVE.Core.Backend.OpenTKImpl
         
         public void Initialize()
         {
-            GL.ClearColor(0, 0, 0, 1);
+            GL.ClearColor(1.0f, 0.5f, 0.0f, 1.0f);
+            //GL.ClearColor(0, 0, 0, 1);
 
             GL.Enable(EnableCap.DepthTest);
             GL.DepthFunc(DepthFunction.Less);

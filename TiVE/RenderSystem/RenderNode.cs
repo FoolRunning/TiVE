@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using ProdigalSoftware.TiVE.Core.Backend;
 using ProdigalSoftware.TiVE.RenderSystem.Meshes;
+using ProdigalSoftware.TiVE.RenderSystem.Voxels;
 using ProdigalSoftware.TiVE.RenderSystem.World;
 using ProdigalSoftware.TiVEPluginFramework;
 using ProdigalSoftware.TiVEPluginFramework.Components;
@@ -65,8 +66,9 @@ namespace ProdigalSoftware.TiVE.RenderSystem
                 // Box size is the size of a chunk, so create a chunk for this leaf node
                 Vector3i chunkLoc = new Vector3i((int)(minPoint.X / ChunkVoxelSize), (int)(minPoint.Y / ChunkVoxelSize), (int)(minPoint.Z / ChunkVoxelSize));
                 IEntity entity = scene.CreateNewEntity(string.Format("Chunk ({0}, {1}, {2})", chunkLoc.X, chunkLoc.Y, chunkLoc.Z));
-                entity.AddComponent(new ChunkComponent(chunkLoc));
-                entity.AddComponent(new RenderComponent(new Vector3f(chunkLoc.X, chunkLoc.Y, chunkLoc.Y)));
+                ChunkComponent chunkData = new ChunkComponent(chunkLoc);
+                entity.AddComponent(chunkData);
+                entity.AddComponent(new RenderComponent(new Vector3f(chunkData.ChunkVoxelLoc.X, chunkData.ChunkVoxelLoc.Y, chunkData.ChunkVoxelLoc.Z)));
                 entities = new List<IEntity>(2);
                 entities.Add(entity);
                 return;
@@ -165,7 +167,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem
             return stats;
         }
 
-        private void RenderDebugOutline(ShaderManager shaderManager, ref Matrix4f viewProjectionMatrix, int locationInParent)
+        public void RenderDebugOutline(ShaderManager shaderManager, ref Matrix4f viewProjectionMatrix, int locationInParent)
         {
             if (debugBoxOutLine == null)
             {
@@ -215,7 +217,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem
                 debugBoxOutLine.Initialize();
             }
 
-            IShaderProgram shader = shaderManager.GetShaderProgram("MainWorld");
+            IShaderProgram shader = shaderManager.GetShaderProgram("NonShadedNonInstanced");
             shader.Bind();
 
             shader.SetUniform("matrix_ModelViewProjection", ref viewProjectionMatrix);

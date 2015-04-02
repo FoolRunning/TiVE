@@ -112,14 +112,8 @@ namespace ProdigalSoftware.TiVE.RenderSystem
             using (new PerformanceLock(entityLoadQueue))
             {
                 foreach (IEntity entity in loadedEntities)
-                {
-                    loadedEntities.Remove(entity);
                     entityLoadQueue.Remove(entity);
-                    DeleteEntity(entity);
-                }
             }
-
-            entitiesToDelete.Clear();
             loadedScene = newScene;
         }
 
@@ -135,7 +129,6 @@ namespace ProdigalSoftware.TiVE.RenderSystem
                 if (!entitiesToRender.Contains(entity))
                 {
                     entitiesToDelete.Add(entity);
-                    loadedEntities.Remove(entity);
                     DeleteEntity(entity);
                 }
             }
@@ -159,7 +152,10 @@ namespace ProdigalSoftware.TiVE.RenderSystem
             using (new PerformanceLock(entityLoadQueue))
             {
                 for (int i = 0; i < entitiesToDelete.Count; i++)
+                {
                     entityLoadQueue.Remove(entitiesToDelete[i]);
+                    loadedEntities.Remove(entitiesToDelete[i]);
+                }
             }
 
             entitiesToDelete.Clear();

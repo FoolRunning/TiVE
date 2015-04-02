@@ -1,6 +1,6 @@
-﻿--WorldXSize = 0;
---WorldYSize = 0;
---WorldZSize = 0;
+﻿WorldXSize = 0;
+WorldYSize = 0;
+WorldZSize = 0;
 
 function initialize(entity)
     camera = entity.GetComponent("CameraComponent")
@@ -12,9 +12,9 @@ function initialize(entity)
     --Renderer().LightProvider.AmbientLight = Color(0.1, 0.1, 0.1)
 
     camera.FieldOfView = PI / 3 --60 degrees
-    --camera.Location = Vector(WorldXSize * BlockSize / 2, WorldYSize * BlockSize / 2, 345)
+    camera.Location = vector(WorldXSize * BlockSize / 2, WorldYSize * BlockSize / 2, 345)
     camera.FarDistance = 1000
-    camera.UpVector = Vector(0, 0, 1)
+    camera.UpVector = vector(0, 0, 1)
 end
 
 function update(entity, timeSinceLastFrame)
@@ -22,35 +22,35 @@ function update(entity, timeSinceLastFrame)
     camLoc = camera.Location
 
     speed = 2
-    if (KeyPressed(Keys.LShift)) then --Speed up
+    if (keyPressed(Keys.LShift)) then --Speed up
         speed = 10
-    elseif (KeyPressed(Keys.LControl)) then --Slow down
+    elseif (keyPressed(Keys.LControl)) then --Slow down
         speed = 0.2
     end
 
-    if (KeyPressed(Keys.A) and VoxelAt((camLoc.X - speed), camLoc.Y, camLoc.Z) == 0) then --Move left
+    if (keyPressed(Keys.A) and voxelAt((camLoc.X - speed), camLoc.Y, camLoc.Z) == 0) then --Move left
         camLoc.X = camLoc.X - speed
     end
 
-    if (KeyPressed(Keys.D) and VoxelAt((camLoc.X + speed), camLoc.Y, camLoc.Z) == 0) then --Move right
+    if (keyPressed(Keys.D) and voxelAt((camLoc.X + speed), camLoc.Y, camLoc.Z) == 0) then --Move right
         camLoc.X = camLoc.X + speed
     end
 
-    if (KeyPressed(Keys.W) and VoxelAt(camLoc.X, camLoc.Y + speed, camLoc.Z) == 0) then --Move up
+    if (keyPressed(Keys.W) and voxelAt(camLoc.X, camLoc.Y + speed, camLoc.Z) == 0) then --Move up
         camLoc.Y = camLoc.Y + speed
     end
 
-    if (KeyPressed(Keys.S) and VoxelAt(camLoc.X, camLoc.Y - speed, camLoc.Z) == 0) then --Move down
+    if (keyPressed(Keys.S) and voxelAt(camLoc.X, camLoc.Y - speed, camLoc.Z) == 0) then --Move down
         camLoc.Y = camLoc.Y - speed
     end
 
-    if (KeyPressed(Keys.KeypadPlus) and VoxelAt(camLoc.X, camLoc.Y, camLoc.Z - 2) == 0) then --Zoom in
-        camLoc.Z = Max(camLoc.Z - 2, 2 * BlockSize)
-    elseif (KeyPressed(Keys.KeypadMinus) and VoxelAt(camLoc.X, camLoc.Y, camLoc.Z + 2) == 0) then --Zoom out
-        camLoc.Z = Min(camLoc.Z + 2, 55 * BlockSize)
+    if (keyPressed(Keys.KeypadPlus) and voxelAt(camLoc.X, camLoc.Y, camLoc.Z - 2) == 0) then --Zoom in
+        camLoc.Z = max(camLoc.Z - 2, 2 * BlockSize)
+    elseif (keyPressed(Keys.KeypadMinus) and voxelAt(camLoc.X, camLoc.Y, camLoc.Z + 2) == 0) then --Zoom out
+        camLoc.Z = min(camLoc.Z + 2, 55 * BlockSize)
     end
 
     camera.Location = camLoc
-    camera.LookAtLocation = Vector(camLoc.X, camLoc.Y + 150, 50)
+    camera.LookAtLocation = vector(camLoc.X, camLoc.Y + 150, 50)
 end
 

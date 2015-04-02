@@ -1,8 +1,12 @@
 ﻿using System;
+using JetBrains.Annotations;
+using MoonSharp.Interpreter;
 using ProdigalSoftware.Utils;
 
 namespace ProdigalSoftware.TiVEPluginFramework.Components
 {
+    [PublicAPI]
+    [MoonSharpUserData]
     public sealed class CameraComponent : IComponent
     {
         public bool Enabled = true;
