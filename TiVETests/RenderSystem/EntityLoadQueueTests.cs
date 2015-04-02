@@ -1,32 +1,34 @@
 ﻿using System;
+using System.Collections.Generic;
 using NUnit.Framework;
-using ProdigalSoftware.TiVE.RenderSystem.World;
+using ProdigalSoftware.TiVE.RenderSystem;
+using ProdigalSoftware.TiVEPluginFramework;
 
-namespace TiVETests.World
+namespace TiVETests.RenderSystem
 {
     /// <summary>
-    /// Test fixture for testing the ChunkLoadQueue class
+    /// Test fixture for testing the EntityLoadQueue class
     /// </summary>
     [TestFixture]
-    public class ChunkLoadQueueTests
+    public class EntityLoadQueueTests
     {
-        private ChunkLoadQueue queue;
+        private EntityLoadQueue queue;
 
         [SetUp]
         public void Setup()
         {
-            queue = new ChunkLoadQueue(5);
+            queue = new EntityLoadQueue(5);
         }
 
         [Test]
         public void Enqueue_PastCapacity()
         {
-            GameWorldVoxelChunk chunk1 = new GameWorldVoxelChunk(0, 0, 1);
-            GameWorldVoxelChunk chunk2 = new GameWorldVoxelChunk(1, 0, 2);
-            GameWorldVoxelChunk chunk3 = new GameWorldVoxelChunk(1, 2, 3);
-            GameWorldVoxelChunk chunk4 = new GameWorldVoxelChunk(1, 2, 4);
-            GameWorldVoxelChunk chunk5 = new GameWorldVoxelChunk(1, 2, 5);
-            GameWorldVoxelChunk chunk6 = new GameWorldVoxelChunk(4, 5, 6);
+            DummyEntity chunk1 = new DummyEntity();
+            DummyEntity chunk2 = new DummyEntity();
+            DummyEntity chunk3 = new DummyEntity();
+            DummyEntity chunk4 = new DummyEntity();
+            DummyEntity chunk5 = new DummyEntity();
+            DummyEntity chunk6 = new DummyEntity();
 
             // Fill to capacity
             queue.Enqueue(chunk1, 1);
@@ -49,7 +51,7 @@ namespace TiVETests.World
         [Test]
         public void EnqueueDequeue_OneItem()
         {
-            GameWorldVoxelChunk chunk = new GameWorldVoxelChunk(0, 1, 0);
+            DummyEntity chunk = new DummyEntity();
 
             queue.Enqueue(chunk, 1);
 
@@ -62,12 +64,12 @@ namespace TiVETests.World
         [Test]
         public void EnqueueDequeue_EnqueueItemAfterDequeueAllItems()
         {
-            GameWorldVoxelChunk chunk1 = new GameWorldVoxelChunk(0, 0, 1);
-            GameWorldVoxelChunk chunk2 = new GameWorldVoxelChunk(1, 0, 2);
-            GameWorldVoxelChunk chunk3 = new GameWorldVoxelChunk(1, 2, 3);
-            GameWorldVoxelChunk chunk4 = new GameWorldVoxelChunk(1, 2, 4);
-            GameWorldVoxelChunk chunk5 = new GameWorldVoxelChunk(1, 2, 5);
-            GameWorldVoxelChunk chunk6 = new GameWorldVoxelChunk(4, 5, 6);
+            DummyEntity chunk1 = new DummyEntity();
+            DummyEntity chunk2 = new DummyEntity();
+            DummyEntity chunk3 = new DummyEntity();
+            DummyEntity chunk4 = new DummyEntity();
+            DummyEntity chunk5 = new DummyEntity();
+            DummyEntity chunk6 = new DummyEntity();
 
             // Fill to capacity
             queue.Enqueue(chunk1, 1);
@@ -96,10 +98,10 @@ namespace TiVETests.World
         [Test]
         public void EnqueueDequeue_MultipleItems_SameDetailLevel()
         {
-            GameWorldVoxelChunk chunk1 = new GameWorldVoxelChunk(0, 0, 1);
-            GameWorldVoxelChunk chunk2 = new GameWorldVoxelChunk(1, 0, 2);
-            GameWorldVoxelChunk chunk3 = new GameWorldVoxelChunk(1, 2, 3);
-            GameWorldVoxelChunk chunk4 = new GameWorldVoxelChunk(1, 2, 4);
+            DummyEntity chunk1 = new DummyEntity();
+            DummyEntity chunk2 = new DummyEntity();
+            DummyEntity chunk3 = new DummyEntity();
+            DummyEntity chunk4 = new DummyEntity();
 
             queue.Enqueue(chunk4, 1);
             queue.Enqueue(chunk2, 1);
@@ -118,10 +120,10 @@ namespace TiVETests.World
         [Test]
         public void EnqueueDequeue_MultipleItems_DifferentDetailLevels()
         {
-            GameWorldVoxelChunk chunk1 = new GameWorldVoxelChunk(0, 0, 1);
-            GameWorldVoxelChunk chunk2 = new GameWorldVoxelChunk(1, 0, 2);
-            GameWorldVoxelChunk chunk3 = new GameWorldVoxelChunk(1, 2, 3);
-            GameWorldVoxelChunk chunk4 = new GameWorldVoxelChunk(1, 2, 4);
+            DummyEntity chunk1 = new DummyEntity();
+            DummyEntity chunk2 = new DummyEntity();
+            DummyEntity chunk3 = new DummyEntity();
+            DummyEntity chunk4 = new DummyEntity();
 
             queue.Enqueue(chunk4, 0);
             queue.Enqueue(chunk2, 1);
@@ -140,10 +142,10 @@ namespace TiVETests.World
         [Test]
         public void EnqueueDequeue_MultipleItems_EnqueueItemsAgainWithDifferentDetailLevels()
         {
-            GameWorldVoxelChunk chunk1 = new GameWorldVoxelChunk(0, 0, 1);
-            GameWorldVoxelChunk chunk2 = new GameWorldVoxelChunk(1, 0, 2);
-            GameWorldVoxelChunk chunk3 = new GameWorldVoxelChunk(1, 2, 3);
-            GameWorldVoxelChunk chunk4 = new GameWorldVoxelChunk(1, 2, 4);
+            DummyEntity chunk1 = new DummyEntity();
+            DummyEntity chunk2 = new DummyEntity();
+            DummyEntity chunk3 = new DummyEntity();
+            DummyEntity chunk4 = new DummyEntity();
 
             queue.Enqueue(chunk2, 0);
             queue.Enqueue(chunk1, 1);
@@ -165,11 +167,41 @@ namespace TiVETests.World
             Assert.That(queue.Size, Is.EqualTo(0));
         }
 
-        private void VerifyDequeue(GameWorldVoxelChunk expectedChunk, int expectedDetailLevel)
+        private void VerifyDequeue(DummyEntity expectedChunk, int expectedDetailLevel)
         {
             int detailLevel;
             Assert.That(queue.Dequeue(out detailLevel), Is.EqualTo(expectedChunk));
             Assert.That(detailLevel, Is.EqualTo(expectedDetailLevel));
+        }
+
+        private sealed class DummyEntity : IEntity
+        {
+            #region Implementation of IEntity
+            public string Name
+            {
+                get { throw new NotImplementedException(); }
+            }
+
+            public IEnumerable<IComponent> Components
+            {
+                get { throw new NotImplementedException(); }
+            }
+
+            public void AddComponent(IComponent component)
+            {
+                throw new NotImplementedException();
+            }
+
+            public T GetComponent<T>() where T : class, IComponent
+            {
+                throw new NotImplementedException();
+            }
+
+            public IComponent GetComponent(string componentName)
+            {
+                throw new NotImplementedException();
+            }
+            #endregion
         }
     }
 }

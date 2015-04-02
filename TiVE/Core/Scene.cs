@@ -12,9 +12,10 @@ namespace ProdigalSoftware.TiVE.Core
     internal sealed class Scene : IScene, IDisposable
     {
         private const int InitialEntityListSize = 10;
+        private const int InitialChunkListSize = 20000;
 
-        private readonly Dictionary<Type, List<IEntity>> entityComponentTypeMap = new Dictionary<Type, List<IEntity>>(50);
-        private readonly List<IEntity> entities = new List<IEntity>(50);
+        private readonly Dictionary<Type, List<IEntity>> entityComponentTypeMap = new Dictionary<Type, List<IEntity>>(30);
+        private readonly List<IEntity> entities = new List<IEntity>(3000);
 
         private BlockList blockList;
 
@@ -73,6 +74,11 @@ namespace ProdigalSoftware.TiVE.Core
             // Calculate static lighting
             LightProvider = LightProvider.Get(GameWorld);
             LightProvider.Calculate(blockList, false);
+
+            // This seems to be needed for the GC to realize that the light information and the game world are long-lived
+            // to keep it from causing pauses shortly after starting the render loop.
+            for (int i = 0; i < 3; i++)
+                GC.Collect();
         }
         #endregion
 
@@ -82,7 +88,10 @@ namespace ProdigalSoftware.TiVE.Core
             Type componentType = component.GetType();
             List<IEntity> entitiesWithType;
             if (!entityComponentTypeMap.TryGetValue(componentType, out entitiesWithType))
-                entityComponentTypeMap[componentType] = entitiesWithType = new List<IEntity>(InitialEntityListSize);
+            {
+                int initialSize = component is ChunkComponent ? InitialChunkListSize : InitialEntityListSize;
+                entityComponentTypeMap[componentType] = entitiesWithType = new List<IEntity>(initialSize);
+            }
 
             entitiesWithType.Add(entity);
         }

@@ -31,7 +31,7 @@ namespace ProdigalSoftware.TiVE
         /// Name of the script to run for the project
         /// </summary>
         [XmlElement("Start")]
-        public string StartScript;
+        public string StartScene;
 
         /// <summary>
         /// Creates a new TiVEProject from the specified XML file

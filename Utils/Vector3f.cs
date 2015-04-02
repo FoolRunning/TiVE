@@ -766,17 +766,9 @@ namespace ProdigalSoftware.Utils
         /// <param name="result">The transformed vector</param>
         public static void TransformVector(ref Vector3f vec, ref Matrix4f mat, out Vector3f result)
         {
-            result.X = vec.X * mat.Row0.X +
-                       vec.Y * mat.Row1.X +
-                       vec.Z * mat.Row2.X;
-
-            result.Y = vec.X * mat.Row0.Y +
-                       vec.Y * mat.Row1.Y +
-                       vec.Z * mat.Row2.Y;
-
-            result.Z = vec.X * mat.Row0.Z +
-                       vec.Y * mat.Row1.Z +
-                       vec.Z * mat.Row2.Z;
+            result.X = vec.X * mat.Row0X + vec.Y * mat.Row1X + vec.Z * mat.Row2X;
+            result.Y = vec.X * mat.Row0Y + vec.Y * mat.Row1Y + vec.Z * mat.Row2Y;
+            result.Z = vec.X * mat.Row0Z + vec.Y * mat.Row1Z + vec.Z * mat.Row2Z;
         }
 
         /// <summary>Transform a Normal by the given Matrix</summary>
@@ -818,9 +810,9 @@ namespace ProdigalSoftware.Utils
         public static Vector3f TransformNormalInverse(Vector3f norm, Matrix4f invMat)
         {
             Vector3f n;
-            n.X = Dot(norm, new Vector3f(invMat.Row0));
-            n.Y = Dot(norm, new Vector3f(invMat.Row1));
-            n.Z = Dot(norm, new Vector3f(invMat.Row2));
+            n.X = Dot(norm, new Vector3f(invMat.Row0X, invMat.Row0Y, invMat.Row0Z));
+            n.Y = Dot(norm, new Vector3f(invMat.Row1X, invMat.Row1Y, invMat.Row1Z));
+            n.Z = Dot(norm, new Vector3f(invMat.Row2X, invMat.Row2Y, invMat.Row2Z));
             return n;
         }
 
@@ -834,17 +826,9 @@ namespace ProdigalSoftware.Utils
         /// <param name="result">The transformed normal</param>
         public static void TransformNormalInverse(ref Vector3f norm, ref Matrix4f invMat, out Vector3f result)
         {
-            result.X = norm.X * invMat.Row0.X +
-                       norm.Y * invMat.Row0.Y +
-                       norm.Z * invMat.Row0.Z;
-
-            result.Y = norm.X * invMat.Row1.X +
-                       norm.Y * invMat.Row1.Y +
-                       norm.Z * invMat.Row1.Z;
-
-            result.Z = norm.X * invMat.Row2.X +
-                       norm.Y * invMat.Row2.Y +
-                       norm.Z * invMat.Row2.Z;
+            result.X = norm.X * invMat.Row0X + norm.Y * invMat.Row0Y + norm.Z * invMat.Row0Z;
+            result.Y = norm.X * invMat.Row1X + norm.Y * invMat.Row1Y + norm.Z * invMat.Row1Z;
+            result.Z = norm.X * invMat.Row2X + norm.Y * invMat.Row2Y + norm.Z * invMat.Row2Z;
         }
 
         /// <summary>Transform a Position by the given Matrix</summary>
@@ -854,9 +838,9 @@ namespace ProdigalSoftware.Utils
         public static Vector3f TransformPosition(Vector3f pos, Matrix4f mat)
         {
             Vector3f p;
-            p.X = Dot(pos, new Vector3f(mat.Column0)) + mat.Row3.X;
-            p.Y = Dot(pos, new Vector3f(mat.Column1)) + mat.Row3.Y;
-            p.Z = Dot(pos, new Vector3f(mat.Column2)) + mat.Row3.Z;
+            p.X = Dot(pos, new Vector3f(mat.Column0)) + mat.Row3X;
+            p.Y = Dot(pos, new Vector3f(mat.Column1)) + mat.Row3Y;
+            p.Z = Dot(pos, new Vector3f(mat.Column2)) + mat.Row3Z;
             return p;
         }
 
@@ -866,20 +850,9 @@ namespace ProdigalSoftware.Utils
         /// <param name="result">The transformed position</param>
         public static void TransformPosition(ref Vector3f pos, ref Matrix4f mat, out Vector3f result)
         {
-            result.X = pos.X * mat.Row0.X +
-                       pos.Y * mat.Row1.X +
-                       pos.Z * mat.Row2.X +
-                       mat.Row3.X;
-
-            result.Y = pos.X * mat.Row0.Y +
-                       pos.Y * mat.Row1.Y +
-                       pos.Z * mat.Row2.Y +
-                       mat.Row3.Y;
-
-            result.Z = pos.X * mat.Row0.Z +
-                       pos.Y * mat.Row1.Z +
-                       pos.Z * mat.Row2.Z +
-                       mat.Row3.Z;
+            result.X = pos.X * mat.Row0X + pos.Y * mat.Row1X + pos.Z * mat.Row2X + mat.Row3X;
+            result.Y = pos.X * mat.Row0Y + pos.Y * mat.Row1Y + pos.Z * mat.Row2Y + mat.Row3Y;
+            result.Z = pos.X * mat.Row0Z + pos.Y * mat.Row1Z + pos.Z * mat.Row2Z + mat.Row3Z;
         }
 
         /// <summary>Transform a Vector by the given Matrix</summary>

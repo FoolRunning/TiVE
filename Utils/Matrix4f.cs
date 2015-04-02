@@ -24,6 +24,7 @@ SOFTWARE.
 
 using System;
 using System.Runtime.InteropServices;
+using System.Text;
 
 namespace ProdigalSoftware.Utils
 {
@@ -39,22 +40,82 @@ namespace ProdigalSoftware.Utils
         /// <summary>
         /// Top row of the matrix.
         /// </summary>
-        public Vector4f Row0;
+        public float Row0X;
+
+        /// <summary>
+        /// Top row of the matrix.
+        /// </summary>
+        public float Row0Y;
+
+        /// <summary>
+        /// Top row of the matrix.
+        /// </summary>
+        public float Row0Z;
+
+        /// <summary>
+        /// Top row of the matrix.
+        /// </summary>
+        public float Row0W;
 
         /// <summary>
         /// 2nd row of the matrix.
         /// </summary>
-        public Vector4f Row1;
+        public float Row1X;
+
+        /// <summary>
+        /// 2nd row of the matrix.
+        /// </summary>
+        public float Row1Y;
+
+        /// <summary>
+        /// 2nd row of the matrix.
+        /// </summary>
+        public float Row1Z;
+
+        /// <summary>
+        /// 2nd row of the matrix.
+        /// </summary>
+        public float Row1W;
 
         /// <summary>
         /// 3rd row of the matrix.
         /// </summary>
-        public Vector4f Row2;
+        public float Row2X;
+
+        /// <summary>
+        /// 3rd row of the matrix.
+        /// </summary>
+        public float Row2Y;
+
+        /// <summary>
+        /// 3rd row of the matrix.
+        /// </summary>
+        public float Row2Z;
+
+        /// <summary>
+        /// 3rd row of the matrix.
+        /// </summary>
+        public float Row2W;
 
         /// <summary>
         /// Bottom row of the matrix.
         /// </summary>
-        public Vector4f Row3;
+        public float Row3X;
+
+        /// <summary>
+        /// Bottom row of the matrix.
+        /// </summary>
+        public float Row3Y;
+
+        /// <summary>
+        /// Bottom row of the matrix.
+        /// </summary>
+        public float Row3Z;
+
+        /// <summary>
+        /// Bottom row of the matrix.
+        /// </summary>
+        public float Row3W;
 
         /// <summary>
         /// The identity matrix.
@@ -79,10 +140,25 @@ namespace ProdigalSoftware.Utils
         /// <param name="row3">Bottom row of the matrix.</param>
         public Matrix4f(Vector4f row0, Vector4f row1, Vector4f row2, Vector4f row3)
         {
-            Row0 = row0;
-            Row1 = row1;
-            Row2 = row2;
-            Row3 = row3;
+            Row0X = row0.X;
+            Row0Y = row0.Y;
+            Row0Z = row0.Z;
+            Row0W = row0.W;
+
+            Row1X = row1.X;
+            Row1Y = row1.Y;
+            Row1Z = row1.Z;
+            Row1W = row1.W;
+
+            Row2X = row2.X;
+            Row2Y = row2.Y;
+            Row2Z = row2.Z;
+            Row2W = row2.W;
+
+            Row3X = row3.X;
+            Row3Y = row3.Y;
+            Row3Z = row3.Z;
+            Row3W = row3.W;
         }
 
         /// <summary>
@@ -110,10 +186,25 @@ namespace ProdigalSoftware.Utils
             float m20, float m21, float m22, float m23,
             float m30, float m31, float m32, float m33)
         {
-            Row0 = new Vector4f(m00, m01, m02, m03);
-            Row1 = new Vector4f(m10, m11, m12, m13);
-            Row2 = new Vector4f(m20, m21, m22, m23);
-            Row3 = new Vector4f(m30, m31, m32, m33);
+            Row0X = m00;
+            Row0Y = m01;
+            Row0Z = m02;
+            Row0W = m03;
+            
+            Row1X = m10;
+            Row1Y = m11;
+            Row1Z = m12;
+            Row1W = m13;
+
+            Row2X = m20;
+            Row2Y = m21;
+            Row2Z = m22;
+            Row2W = m23;
+
+            Row3X = m30;
+            Row3Y = m31;
+            Row3Z = m32;
+            Row3W = m33;
         }
         
         #endregion
@@ -129,18 +220,13 @@ namespace ProdigalSoftware.Utils
         {
             get
             {
-                float m11 = Row0.X, m12 = Row0.Y, m13 = Row0.Z, m14 = Row0.W,
-                      m21 = Row1.X, m22 = Row1.Y, m23 = Row1.Z, m24 = Row1.W,
-                      m31 = Row2.X, m32 = Row2.Y, m33 = Row2.Z, m34 = Row2.W,
-                      m41 = Row3.X, m42 = Row3.Y, m43 = Row3.Z, m44 = Row3.W;
-
                 return
-                    m11 * m22 * m33 * m44 - m11 * m22 * m34 * m43 + m11 * m23 * m34 * m42 - m11 * m23 * m32 * m44
-                  + m11 * m24 * m32 * m43 - m11 * m24 * m33 * m42 - m12 * m23 * m34 * m41 + m12 * m23 * m31 * m44
-                  - m12 * m24 * m31 * m43 + m12 * m24 * m33 * m41 - m12 * m21 * m33 * m44 + m12 * m21 * m34 * m43
-                  + m13 * m24 * m31 * m42 - m13 * m24 * m32 * m41 + m13 * m21 * m32 * m44 - m13 * m21 * m34 * m42
-                  + m13 * m22 * m34 * m41 - m13 * m22 * m31 * m44 - m14 * m21 * m32 * m43 + m14 * m21 * m33 * m42
-                  - m14 * m22 * m33 * m41 + m14 * m22 * m31 * m43 - m14 * m23 * m31 * m42 + m14 * m23 * m32 * m41;
+                    Row0X * Row1Y * Row2Z * Row3W - Row0X * Row1Y * Row2W * Row3Z + Row0X * Row1Z * Row2W * Row3Y - Row0X * Row1Z * Row2Y * Row3W
+                  + Row0X * Row1W * Row2Y * Row3Z - Row0X * Row1W * Row2Z * Row3Y - Row0Y * Row1Z * Row2W * Row3X + Row0Y * Row1Z * Row2X * Row3W
+                  - Row0Y * Row1W * Row2X * Row3Z + Row0Y * Row1W * Row2Z * Row3X - Row0Y * Row1X * Row2Z * Row3W + Row0Y * Row1X * Row2W * Row3Z
+                  + Row0Z * Row1W * Row2X * Row3Y - Row0Z * Row1W * Row2Y * Row3X + Row0Z * Row1X * Row2Y * Row3W - Row0Z * Row1X * Row2W * Row3Y
+                  + Row0Z * Row1Y * Row2W * Row3X - Row0Z * Row1Y * Row2X * Row3W - Row0W * Row1X * Row2Y * Row3Z + Row0W * Row1X * Row2Z * Row3Y
+                  - Row0W * Row1Y * Row2Z * Row3X + Row0W * Row1Y * Row2X * Row3Z - Row0W * Row1Z * Row2X * Row3Y + Row0W * Row1Z * Row2Y * Row3X;
             }
         }
 
@@ -149,8 +235,8 @@ namespace ProdigalSoftware.Utils
         /// </summary>
         public Vector4f Column0
         {
-            get { return new Vector4f(Row0.X, Row1.X, Row2.X, Row3.X); }
-            set { Row0.X = value.X; Row1.X = value.Y; Row2.X = value.Z; Row3.X = value.W; }
+            get { return new Vector4f(Row0X, Row1X, Row2X, Row3X); }
+            set { Row0X = value.X; Row1X = value.Y; Row2X = value.Z; Row3X = value.W; }
         }
 
         /// <summary>
@@ -158,8 +244,8 @@ namespace ProdigalSoftware.Utils
         /// </summary>
         public Vector4f Column1
         {
-            get { return new Vector4f(Row0.Y, Row1.Y, Row2.Y, Row3.Y); }
-            set { Row0.Y = value.X; Row1.Y = value.Y; Row2.Y = value.Z; Row3.Y = value.W; }
+            get { return new Vector4f(Row0Y, Row1Y, Row2Y, Row3Y); }
+            set { Row0Y = value.X; Row1Y = value.Y; Row2Y = value.Z; Row3Y = value.W; }
         }
 
         /// <summary>
@@ -167,8 +253,8 @@ namespace ProdigalSoftware.Utils
         /// </summary>
         public Vector4f Column2
         {
-            get { return new Vector4f(Row0.Z, Row1.Z, Row2.Z, Row3.Z); }
-            set { Row0.Z = value.X; Row1.Z = value.Y; Row2.Z = value.Z; Row3.Z = value.W; }
+            get { return new Vector4f(Row0Z, Row1Z, Row2Z, Row3Z); }
+            set { Row0Z = value.X; Row1Z = value.Y; Row2Z = value.Z; Row3Z = value.W; }
         }
 
         /// <summary>
@@ -176,89 +262,9 @@ namespace ProdigalSoftware.Utils
         /// </summary>
         public Vector4f Column3
         {
-            get { return new Vector4f(Row0.W, Row1.W, Row2.W, Row3.W); }
-            set { Row0.W = value.X; Row1.W = value.Y; Row2.W = value.Z; Row3.W = value.W; }
+            get { return new Vector4f(Row0W, Row1W, Row2W, Row3W); }
+            set { Row0W = value.X; Row1W = value.Y; Row2W = value.Z; Row3W = value.W; }
         }
-
-        /// <summary>
-        /// Gets or sets the value at row 1, column 1 of this instance.
-        /// </summary>
-        public float M11 { get { return Row0.X; } set { Row0.X = value; } }
-
-        /// <summary>
-        /// Gets or sets the value at row 1, column 2 of this instance.
-        /// </summary>
-        public float M12 { get { return Row0.Y; } set { Row0.Y = value; } }
-
-        /// <summary>
-        /// Gets or sets the value at row 1, column 3 of this instance.
-        /// </summary>
-        public float M13 { get { return Row0.Z; } set { Row0.Z = value; } }
-
-        /// <summary>
-        /// Gets or sets the value at row 1, column 4 of this instance.
-        /// </summary>
-        public float M14 { get { return Row0.W; } set { Row0.W = value; } }
-
-        /// <summary>
-        /// Gets or sets the value at row 2, column 1 of this instance.
-        /// </summary>
-        public float M21 { get { return Row1.X; } set { Row1.X = value; } }
-
-        /// <summary>
-        /// Gets or sets the value at row 2, column 2 of this instance.
-        /// </summary>
-        public float M22 { get { return Row1.Y; } set { Row1.Y = value; } }
-
-        /// <summary>
-        /// Gets or sets the value at row 2, column 3 of this instance.
-        /// </summary>
-        public float M23 { get { return Row1.Z; } set { Row1.Z = value; } }
-
-        /// <summary>
-        /// Gets or sets the value at row 2, column 4 of this instance.
-        /// </summary>
-        public float M24 { get { return Row1.W; } set { Row1.W = value; } }
-
-        /// <summary>
-        /// Gets or sets the value at row 3, column 1 of this instance.
-        /// </summary>
-        public float M31 { get { return Row2.X; } set { Row2.X = value; } }
-
-        /// <summary>
-        /// Gets or sets the value at row 3, column 2 of this instance.
-        /// </summary>
-        public float M32 { get { return Row2.Y; } set { Row2.Y = value; } }
-
-        /// <summary>
-        /// Gets or sets the value at row 3, column 3 of this instance.
-        /// </summary>
-        public float M33 { get { return Row2.Z; } set { Row2.Z = value; } }
-
-        /// <summary>
-        /// Gets or sets the value at row 3, column 4 of this instance.
-        /// </summary>
-        public float M34 { get { return Row2.W; } set { Row2.W = value; } }
-
-        /// <summary>
-        /// Gets or sets the value at row 4, column 1 of this instance.
-        /// </summary>
-        public float M41 { get { return Row3.X; } set { Row3.X = value; } }
-
-        /// <summary>
-        /// Gets or sets the value at row 4, column 2 of this instance.
-        /// </summary>
-        public float M42 { get { return Row3.Y; } set { Row3.Y = value; } }
-
-        /// <summary>
-        /// Gets or sets the value at row 4, column 3 of this instance.
-        /// </summary>
-        public float M43 { get { return Row3.Z; } set { Row3.Z = value; } }
-
-        /// <summary>
-        /// Gets or sets the value at row 4, column 4 of this instance.
-        /// </summary>
-        public float M44 { get { return Row3.W; } set { Row3.W = value; } }
 
         /// <summary>
         /// Gets or sets the values along the main diagonal of the matrix.
@@ -267,48 +273,21 @@ namespace ProdigalSoftware.Utils
         {
             get
             {
-                return new Vector4f(Row0.X, Row1.Y, Row2.Z, Row3.W);
+                return new Vector4f(Row0X, Row1Y, Row2Z, Row3W);
             }
             set
             {
-                Row0.X = value.X;
-                Row1.Y = value.Y;
-                Row2.Z = value.Z;
-                Row3.W = value.W;
+                Row0X = value.X;
+                Row1Y = value.Y;
+                Row2Z = value.Z;
+                Row3W = value.W;
             }
         }
 
         /// <summary>
         /// Gets the trace of the matrix, the sum of the values along the diagonal.
         /// </summary>
-        public float Trace { get { return Row0.X + Row1.Y + Row2.Z + Row3.W; } }
-
-        #endregion
-
-        #region Indexers
-
-        /// <summary>
-        /// Gets or sets the value at a specified row and column.
-        /// </summary>
-        public float this[int rowIndex, int columnIndex]
-        {
-            get
-            {
-                if (rowIndex == 0) return Row0[columnIndex];
-                else if (rowIndex == 1) return Row1[columnIndex];
-                else if (rowIndex == 2) return Row2[columnIndex];
-                else if (rowIndex == 3) return Row3[columnIndex];
-                throw new IndexOutOfRangeException("You tried to access this matrix at: (" + rowIndex + ", " + columnIndex + ")");
-            }
-            set
-            {
-                if (rowIndex == 0) Row0[columnIndex] = value;
-                else if (rowIndex == 1) Row1[columnIndex] = value;
-                else if (rowIndex == 2) Row2[columnIndex] = value;
-                else if (rowIndex == 3) Row3[columnIndex] = value;
-                else throw new IndexOutOfRangeException("You tried to set this matrix at: (" + rowIndex + ", " + columnIndex + ")");
-            }
-        }
+        public float Trace { get { return Row0X + Row1Y + Row2Z + Row3W; } }
 
         #endregion
 
@@ -354,10 +333,25 @@ namespace ProdigalSoftware.Utils
         public void Normalize()
         {
             var determinant = Determinant;
-            Row0 /= determinant;
-            Row1 /= determinant;
-            Row2 /= determinant;
-            Row3 /= determinant;
+            Row0X /= determinant;
+            Row0Y /= determinant;
+            Row0Z /= determinant;
+            Row0W /= determinant;
+
+            Row1X /= determinant;
+            Row1Y /= determinant;
+            Row1Z /= determinant;
+            Row1W /= determinant;
+
+            Row2X /= determinant;
+            Row2Y /= determinant;
+            Row2Z /= determinant;
+            Row2W /= determinant;
+
+            Row3X /= determinant;
+            Row3Y /= determinant;
+            Row3Z /= determinant;
+            Row3W /= determinant;
         }
 
         /// <summary>
@@ -377,31 +371,34 @@ namespace ProdigalSoftware.Utils
         public Matrix4f ClearTranslation()
         {
             Matrix4f m = this;
-            m.Row3.Xyz = Vector3f.Zero;
+            m.Row3X = 0;
+            m.Row3Y = 0;
+            m.Row3Z = 0;
             return m;
         }
-        /// <summary>
-        /// Returns a copy of this Matrix4f without scale.
-        /// </summary>
-        public Matrix4f ClearScale()
-        {
-            Matrix4f m = this;
-            m.Row0.Xyz = m.Row0.Xyz.Normalized();
-            m.Row1.Xyz = m.Row1.Xyz.Normalized();
-            m.Row2.Xyz = m.Row2.Xyz.Normalized();
-            return m;
-        }
-        /// <summary>
-        /// Returns a copy of this Matrix4f without rotation.
-        /// </summary>
-        public Matrix4f ClearRotation()
-        {
-            Matrix4f m = this;
-            m.Row0.Xyz = new Vector3f(m.Row0.Xyz.Length, 0, 0);
-            m.Row1.Xyz = new Vector3f(0, m.Row1.Xyz.Length, 0);
-            m.Row2.Xyz = new Vector3f(0, 0, m.Row2.Xyz.Length);
-            return m;
-        }
+        ///// <summary>
+        ///// Returns a copy of this Matrix4f without scale.
+        ///// </summary>
+        //public Matrix4f ClearScale()
+        //{
+        //    Matrix4f m = this;
+        //    m.Row0.Xyz = m.Row0.Xyz.Normalized();
+        //    m.Row1.Xyz = m.Row1.Xyz.Normalized();
+        //    m.Row2.Xyz = m.Row2.Xyz.Normalized();
+        //    return m;
+        //}
+        ///// <summary>
+        ///// Returns a copy of this Matrix4f without rotation.
+        ///// </summary>
+        //public Matrix4f ClearRotation()
+        //{
+        //    Matrix4f m = this;
+        //    m.Row0.Xyz = new Vector3f(m.Row0.Xyz.Length, 0, 0);
+        //    m.Row1.Xyz = new Vector3f(0, m.Row1.Xyz.Length, 0);
+        //    m.Row2.Xyz = new Vector3f(0, 0, m.Row2.Xyz.Length);
+        //    return m;
+        //}
+        
         /// <summary>
         /// Returns a copy of this Matrix4f without projection.
         /// </summary>
@@ -415,12 +412,12 @@ namespace ProdigalSoftware.Utils
         /// <summary>
         /// Returns the translation component of this instance.
         /// </summary>
-        public Vector3f ExtractTranslation() { return Row3.Xyz; }
+        public Vector3f ExtractTranslation() { return new Vector3f(Row3X, Row3Y, Row3Z); }
 
-        /// <summary>
-        /// Returns the scale component of this instance.
-        /// </summary>
-        public Vector3f ExtractScale() { return new Vector3f(Row0.Xyz.Length, Row1.Xyz.Length, Row2.Xyz.Length); }
+        ///// <summary>
+        ///// Returns the scale component of this instance.
+        ///// </summary>
+        //public Vector3f ExtractScale() { return new Vector3f(Row0.Xyz.Length, Row1.Xyz.Length, Row2.Xyz.Length); }
 
         /// <summary>
         /// Returns the projection component of this instance.
@@ -465,19 +462,22 @@ namespace ProdigalSoftware.Utils
                 sinY = sin * axisY,
                 sinZ = sin * axisZ;
 
-            result.Row0.X = tXX + cos;
-            result.Row0.Y = tXY - sinZ;
-            result.Row0.Z = tXZ + sinY;
-            result.Row0.W = 0;
-            result.Row1.X = tXY + sinZ;
-            result.Row1.Y = tYY + cos;
-            result.Row1.Z = tYZ - sinX;
-            result.Row1.W = 0;
-            result.Row2.X = tXZ - sinY;
-            result.Row2.Y = tYZ + sinX;
-            result.Row2.Z = tZZ + cos;
-            result.Row2.W = 0;
-            result.Row3 = Vector4f.UnitW;
+            result.Row0X = tXX + cos;
+            result.Row0Y = tXY - sinZ;
+            result.Row0Z = tXZ + sinY;
+            result.Row0W = 0;
+            result.Row1X = tXY + sinZ;
+            result.Row1Y = tYY + cos;
+            result.Row1Z = tYZ - sinX;
+            result.Row1W = 0;
+            result.Row2X = tXZ - sinY;
+            result.Row2Y = tYZ + sinX;
+            result.Row2Z = tZZ + cos;
+            result.Row2W = 0;
+            result.Row3X = 0;
+            result.Row3Y = 0;
+            result.Row3Z = 0;
+            result.Row3W = 1;
         }
 
         /// <summary>
@@ -508,10 +508,10 @@ namespace ProdigalSoftware.Utils
             float sin = (float)Math.Sin(angle);
 
             result = Identity;
-            result.Row1.Y = cos;
-            result.Row1.Z = sin;
-            result.Row2.Y = -sin;
-            result.Row2.Z = cos;
+            result.Row1Y = cos;
+            result.Row1Z = sin;
+            result.Row2Y = -sin;
+            result.Row2Z = cos;
         }
 
         /// <summary>
@@ -537,10 +537,10 @@ namespace ProdigalSoftware.Utils
             float sin = (float)Math.Sin(angle);
 
             result = Identity;
-            result.Row0.X = cos;
-            result.Row0.Z = -sin;
-            result.Row2.X = sin;
-            result.Row2.Z = cos;
+            result.Row0X = cos;
+            result.Row0Z = -sin;
+            result.Row2X = sin;
+            result.Row2Z = cos;
         }
 
         /// <summary>
@@ -566,10 +566,10 @@ namespace ProdigalSoftware.Utils
             float sin = (float)Math.Sin(angle);
 
             result = Identity;
-            result.Row0.X = cos;
-            result.Row0.Y = sin;
-            result.Row1.X = -sin;
-            result.Row1.Y = cos;
+            result.Row0X = cos;
+            result.Row0Y = sin;
+            result.Row1X = -sin;
+            result.Row1Y = cos;
         }
 
         /// <summary>
@@ -598,9 +598,9 @@ namespace ProdigalSoftware.Utils
         public static void CreateTranslation(float x, float y, float z, out Matrix4f result)
         {
             result = Identity;
-            result.Row3.X = x;
-            result.Row3.Y = y;
-            result.Row3.Z = z;
+            result.Row3X = x;
+            result.Row3Y = y;
+            result.Row3Z = z;
         }
 
         /// <summary>
@@ -611,9 +611,9 @@ namespace ProdigalSoftware.Utils
         public static void CreateTranslation(ref Vector3f vector, out Matrix4f result)
         {
             result = Identity;
-            result.Row3.X = vector.X;
-            result.Row3.Y = vector.Y;
-            result.Row3.Z = vector.Z;
+            result.Row3X = vector.X;
+            result.Row3Y = vector.Y;
+            result.Row3Z = vector.Z;
         }
 
         /// <summary>
@@ -692,9 +692,9 @@ namespace ProdigalSoftware.Utils
         public static void CreateScale(float scale, out Matrix4f result)
         {
             result = Identity;
-            result.Row0.X = scale;
-            result.Row1.Y = scale;
-            result.Row2.Z = scale;
+            result.Row0X = scale;
+            result.Row1Y = scale;
+            result.Row2Z = scale;
         }
 
         /// <summary>
@@ -705,9 +705,9 @@ namespace ProdigalSoftware.Utils
         public static void CreateScale(ref Vector3f scale, out Matrix4f result)
         {
             result = Identity;
-            result.Row0.X = scale.X;
-            result.Row1.Y = scale.Y;
-            result.Row2.Z = scale.Z;
+            result.Row0X = scale.X;
+            result.Row1Y = scale.Y;
+            result.Row2Z = scale.Z;
         }
 
         /// <summary>
@@ -720,9 +720,9 @@ namespace ProdigalSoftware.Utils
         public static void CreateScale(float x, float y, float z, out Matrix4f result)
         {
             result = Identity;
-            result.Row0.X = x;
-            result.Row1.Y = y;
-            result.Row2.Z = z;
+            result.Row0X = x;
+            result.Row1Y = y;
+            result.Row2Z = z;
         }
 
         #endregion
@@ -779,13 +779,13 @@ namespace ProdigalSoftware.Utils
             float invTB = 1.0f / (top - bottom);
             float invFN = 1.0f / (zFar - zNear);
 
-            result.Row0.X = 2 * invRL;
-            result.Row1.Y = 2 * invTB;
-            result.Row2.Z = -2 * invFN;
+            result.Row0X = 2 * invRL;
+            result.Row1Y = 2 * invTB;
+            result.Row2Z = -2 * invFN;
 
-            result.Row3.X = -(right + left) * invRL;
-            result.Row3.Y = -(top + bottom) * invTB;
-            result.Row3.Z = -(zFar + zNear) * invFN;
+            result.Row3X = -(right + left) * invRL;
+            result.Row3Y = -(top + bottom) * invTB;
+            result.Row3Z = -(zFar + zNear) * invFN;
         }
 
         /// <summary>
@@ -909,22 +909,22 @@ namespace ProdigalSoftware.Utils
             float c = -(zFar + zNear) / (zFar - zNear);
             float d = -(2.0f * zFar * zNear) / (zFar - zNear);
 
-            result.Row0.X = x;
-            result.Row0.Y = 0;
-            result.Row0.Z = 0;
-            result.Row0.W = 0;
-            result.Row1.X = 0;
-            result.Row1.Y = y;
-            result.Row1.Z = 0;
-            result.Row1.W = 0;
-            result.Row2.X = a;
-            result.Row2.Y = b;
-            result.Row2.Z = c;
-            result.Row2.W = -1;
-            result.Row3.X = 0;
-            result.Row3.Y = 0;
-            result.Row3.Z = d;
-            result.Row3.W = 0;
+            result.Row0X = x;
+            result.Row0Y = 0;
+            result.Row0Z = 0;
+            result.Row0W = 0;
+            result.Row1X = 0;
+            result.Row1Y = y;
+            result.Row1Z = 0;
+            result.Row1W = 0;
+            result.Row2X = a;
+            result.Row2Y = b;
+            result.Row2Z = c;
+            result.Row2W = -1;
+            result.Row3X = 0;
+            result.Row3Y = 0;
+            result.Row3Z = d;
+            result.Row3W = 0;
         }
 
         /// <summary>
@@ -965,30 +965,41 @@ namespace ProdigalSoftware.Utils
         /// <returns>A Matrix4f that transforms world space to camera space</returns>
         public static Matrix4f LookAt(Vector3f eye, Vector3f target, Vector3f up)
         {
+            Matrix4f result;
+            LookAt(eye, target, up, out result);
+            return result;
+        }
+
+        /// <summary>
+        /// Build a world space to camera space matrix
+        /// </summary>
+        /// <param name="eye">Eye (camera) position in world space</param>
+        /// <param name="target">Target position in world space</param>
+        /// <param name="up">Up vector in world space (should not be parallel to the camera direction, that is target - eye)</param>
+        /// <param name="result">A matrix that transforms world space to camera space matrix</param>
+        /// <returns>A Matrix4f that transforms world space to camera space</returns>
+        public static void LookAt(Vector3f eye, Vector3f target, Vector3f up, out Matrix4f result)
+        {
             Vector3f z = Vector3f.Normalize(eye - target);
             Vector3f x = Vector3f.Normalize(Vector3f.Cross(up, z));
             Vector3f y = Vector3f.Normalize(Vector3f.Cross(z, x));
 
-            Matrix4f result;
-
-            result.Row0.X = x.X;
-            result.Row0.Y = y.X;
-            result.Row0.Z = z.X;
-            result.Row0.W = 0;
-            result.Row1.X = x.Y;
-            result.Row1.Y = y.Y;
-            result.Row1.Z = z.Y;
-            result.Row1.W = 0;
-            result.Row2.X = x.Z;
-            result.Row2.Y = y.Z;
-            result.Row2.Z = z.Z;
-            result.Row2.W = 0;
-            result.Row3.X = -((x.X * eye.X) + (x.Y * eye.Y) + (x.Z * eye.Z));
-            result.Row3.Y = -((y.X * eye.X) + (y.Y * eye.Y) + (y.Z * eye.Z));
-            result.Row3.Z = -((z.X * eye.X) + (z.Y * eye.Y) + (z.Z * eye.Z));
-            result.Row3.W = 1;
-
-            return result;
+            result.Row0X = x.X;
+            result.Row0Y = y.X;
+            result.Row0Z = z.X;
+            result.Row0W = 0;
+            result.Row1X = x.Y;
+            result.Row1Y = y.Y;
+            result.Row1Z = z.Y;
+            result.Row1W = 0;
+            result.Row2X = x.Z;
+            result.Row2Y = y.Z;
+            result.Row2Z = z.Z;
+            result.Row2W = 0;
+            result.Row3X = -((x.X * eye.X) + (x.Y * eye.Y) + (x.Z * eye.Z));
+            result.Row3Y = -((y.X * eye.X) + (y.Y * eye.Y) + (y.Z * eye.Z));
+            result.Row3Z = -((z.X * eye.X) + (z.Y * eye.Y) + (z.Z * eye.Z));
+            result.Row3W = 1;
         }
 
         /// <summary>
@@ -1034,10 +1045,25 @@ namespace ProdigalSoftware.Utils
         /// <param name="result">A new instance that is the result of the addition.</param>
         public static void Add(ref Matrix4f left, ref Matrix4f right, out Matrix4f result)
         {
-            result.Row0 = left.Row0 + right.Row0;
-            result.Row1 = left.Row1 + right.Row1;
-            result.Row2 = left.Row2 + right.Row2;
-            result.Row3 = left.Row3 + right.Row3;
+            result.Row0X = left.Row0X + right.Row0X;
+            result.Row0Y = left.Row0Y + right.Row0Y;
+            result.Row0Z = left.Row0Z + right.Row0Z;
+            result.Row0W = left.Row0W + right.Row0W;
+
+            result.Row1X = left.Row1X + right.Row1X;
+            result.Row1Y = left.Row1Y + right.Row1Y;
+            result.Row1Z = left.Row1Z + right.Row1Z;
+            result.Row1W = left.Row1W + right.Row1W;
+
+            result.Row2X = left.Row2X + right.Row2X;
+            result.Row2Y = left.Row2Y + right.Row2Y;
+            result.Row2Z = left.Row2Z + right.Row2Z;
+            result.Row2W = left.Row2W + right.Row2W;
+
+            result.Row3X = left.Row3X + right.Row3X;
+            result.Row3Y = left.Row3Y + right.Row3Y;
+            result.Row3Z = left.Row3Z + right.Row3Z;
+            result.Row3W = left.Row3W + right.Row3W;
         }
 
         #endregion
@@ -1065,10 +1091,25 @@ namespace ProdigalSoftware.Utils
         /// <param name="result">A new instance that is the result of the subraction.</param>
         public static void Subtract(ref Matrix4f left, ref Matrix4f right, out Matrix4f result)
         {
-            result.Row0 = left.Row0 - right.Row0;
-            result.Row1 = left.Row1 - right.Row1;
-            result.Row2 = left.Row2 - right.Row2;
-            result.Row3 = left.Row3 - right.Row3;
+            result.Row0X = left.Row0X - right.Row0X;
+            result.Row0Y = left.Row0Y - right.Row0Y;
+            result.Row0Z = left.Row0Z - right.Row0Z;
+            result.Row0W = left.Row0W - right.Row0W;
+
+            result.Row1X = left.Row1X - right.Row1X;
+            result.Row1Y = left.Row1Y - right.Row1Y;
+            result.Row1Z = left.Row1Z - right.Row1Z;
+            result.Row1W = left.Row1W - right.Row1W;
+
+            result.Row2X = left.Row2X - right.Row2X;
+            result.Row2Y = left.Row2Y - right.Row2Y;
+            result.Row2Z = left.Row2Z - right.Row2Z;
+            result.Row2W = left.Row2W - right.Row2W;
+
+            result.Row3X = left.Row3X - right.Row3X;
+            result.Row3Y = left.Row3Y - right.Row3Y;
+            result.Row3Z = left.Row3Z - right.Row3Z;
+            result.Row3W = left.Row3W - right.Row3W;
         }
 
         #endregion
@@ -1096,31 +1137,31 @@ namespace ProdigalSoftware.Utils
         /// <param name="result">A new instance that is the result of the multiplication.</param>
         public static void Mult(ref Matrix4f left, ref Matrix4f right, out Matrix4f result)
         {
-            float lM11 = left.Row0.X, lM12 = left.Row0.Y, lM13 = left.Row0.Z, lM14 = left.Row0.W,
-                lM21 = left.Row1.X, lM22 = left.Row1.Y, lM23 = left.Row1.Z, lM24 = left.Row1.W,
-                lM31 = left.Row2.X, lM32 = left.Row2.Y, lM33 = left.Row2.Z, lM34 = left.Row2.W,
-                lM41 = left.Row3.X, lM42 = left.Row3.Y, lM43 = left.Row3.Z, lM44 = left.Row3.W,
-                rM11 = right.Row0.X, rM12 = right.Row0.Y, rM13 = right.Row0.Z, rM14 = right.Row0.W,
-                rM21 = right.Row1.X, rM22 = right.Row1.Y, rM23 = right.Row1.Z, rM24 = right.Row1.W,
-                rM31 = right.Row2.X, rM32 = right.Row2.Y, rM33 = right.Row2.Z, rM34 = right.Row2.W,
-                rM41 = right.Row3.X, rM42 = right.Row3.Y, rM43 = right.Row3.Z, rM44 = right.Row3.W;
+            float lM11 = left.Row0X, lM12 = left.Row0Y, lM13 = left.Row0Z, lM14 = left.Row0W,
+                lM21 = left.Row1X, lM22 = left.Row1Y, lM23 = left.Row1Z, lM24 = left.Row1W,
+                lM31 = left.Row2X, lM32 = left.Row2Y, lM33 = left.Row2Z, lM34 = left.Row2W,
+                lM41 = left.Row3X, lM42 = left.Row3Y, lM43 = left.Row3Z, lM44 = left.Row3W,
+                rM11 = right.Row0X, rM12 = right.Row0Y, rM13 = right.Row0Z, rM14 = right.Row0W,
+                rM21 = right.Row1X, rM22 = right.Row1Y, rM23 = right.Row1Z, rM24 = right.Row1W,
+                rM31 = right.Row2X, rM32 = right.Row2Y, rM33 = right.Row2Z, rM34 = right.Row2W,
+                rM41 = right.Row3X, rM42 = right.Row3Y, rM43 = right.Row3Z, rM44 = right.Row3W;
 
-            result.Row0.X = (((lM11 * rM11) + (lM12 * rM21)) + (lM13 * rM31)) + (lM14 * rM41);
-            result.Row0.Y = (((lM11 * rM12) + (lM12 * rM22)) + (lM13 * rM32)) + (lM14 * rM42);
-            result.Row0.Z = (((lM11 * rM13) + (lM12 * rM23)) + (lM13 * rM33)) + (lM14 * rM43);
-            result.Row0.W = (((lM11 * rM14) + (lM12 * rM24)) + (lM13 * rM34)) + (lM14 * rM44);
-            result.Row1.X = (((lM21 * rM11) + (lM22 * rM21)) + (lM23 * rM31)) + (lM24 * rM41);
-            result.Row1.Y = (((lM21 * rM12) + (lM22 * rM22)) + (lM23 * rM32)) + (lM24 * rM42);
-            result.Row1.Z = (((lM21 * rM13) + (lM22 * rM23)) + (lM23 * rM33)) + (lM24 * rM43);
-            result.Row1.W = (((lM21 * rM14) + (lM22 * rM24)) + (lM23 * rM34)) + (lM24 * rM44);
-            result.Row2.X = (((lM31 * rM11) + (lM32 * rM21)) + (lM33 * rM31)) + (lM34 * rM41);
-            result.Row2.Y = (((lM31 * rM12) + (lM32 * rM22)) + (lM33 * rM32)) + (lM34 * rM42);
-            result.Row2.Z = (((lM31 * rM13) + (lM32 * rM23)) + (lM33 * rM33)) + (lM34 * rM43);
-            result.Row2.W = (((lM31 * rM14) + (lM32 * rM24)) + (lM33 * rM34)) + (lM34 * rM44);
-            result.Row3.X = (((lM41 * rM11) + (lM42 * rM21)) + (lM43 * rM31)) + (lM44 * rM41);
-            result.Row3.Y = (((lM41 * rM12) + (lM42 * rM22)) + (lM43 * rM32)) + (lM44 * rM42);
-            result.Row3.Z = (((lM41 * rM13) + (lM42 * rM23)) + (lM43 * rM33)) + (lM44 * rM43);
-            result.Row3.W = (((lM41 * rM14) + (lM42 * rM24)) + (lM43 * rM34)) + (lM44 * rM44);
+            result.Row0X = (((lM11 * rM11) + (lM12 * rM21)) + (lM13 * rM31)) + (lM14 * rM41);
+            result.Row0Y = (((lM11 * rM12) + (lM12 * rM22)) + (lM13 * rM32)) + (lM14 * rM42);
+            result.Row0Z = (((lM11 * rM13) + (lM12 * rM23)) + (lM13 * rM33)) + (lM14 * rM43);
+            result.Row0W = (((lM11 * rM14) + (lM12 * rM24)) + (lM13 * rM34)) + (lM14 * rM44);
+            result.Row1X = (((lM21 * rM11) + (lM22 * rM21)) + (lM23 * rM31)) + (lM24 * rM41);
+            result.Row1Y = (((lM21 * rM12) + (lM22 * rM22)) + (lM23 * rM32)) + (lM24 * rM42);
+            result.Row1Z = (((lM21 * rM13) + (lM22 * rM23)) + (lM23 * rM33)) + (lM24 * rM43);
+            result.Row1W = (((lM21 * rM14) + (lM22 * rM24)) + (lM23 * rM34)) + (lM24 * rM44);
+            result.Row2X = (((lM31 * rM11) + (lM32 * rM21)) + (lM33 * rM31)) + (lM34 * rM41);
+            result.Row2Y = (((lM31 * rM12) + (lM32 * rM22)) + (lM33 * rM32)) + (lM34 * rM42);
+            result.Row2Z = (((lM31 * rM13) + (lM32 * rM23)) + (lM33 * rM33)) + (lM34 * rM43);
+            result.Row2W = (((lM31 * rM14) + (lM32 * rM24)) + (lM33 * rM34)) + (lM34 * rM44);
+            result.Row3X = (((lM41 * rM11) + (lM42 * rM21)) + (lM43 * rM31)) + (lM44 * rM41);
+            result.Row3Y = (((lM41 * rM12) + (lM42 * rM22)) + (lM43 * rM32)) + (lM44 * rM42);
+            result.Row3Z = (((lM41 * rM13) + (lM42 * rM23)) + (lM43 * rM33)) + (lM44 * rM43);
+            result.Row3W = (((lM41 * rM14) + (lM42 * rM24)) + (lM43 * rM34)) + (lM44 * rM44);
         }
 
         /// <summary>
@@ -1144,10 +1185,25 @@ namespace ProdigalSoftware.Utils
         /// <param name="result">A new instance that is the result of the multiplication</param>
         public static void Mult(ref Matrix4f left, float right, out Matrix4f result)
         {
-            result.Row0 = left.Row0 * right;
-            result.Row1 = left.Row1 * right;
-            result.Row2 = left.Row2 * right;
-            result.Row3 = left.Row3 * right;
+            result.Row0X = left.Row0X * right;
+            result.Row0Y = left.Row0Y * right;
+            result.Row0Z = left.Row0Z * right;
+            result.Row0W = left.Row0W * right;
+
+            result.Row1X = left.Row1X * right;
+            result.Row1Y = left.Row1Y * right;
+            result.Row1Z = left.Row1Z * right;
+            result.Row1W = left.Row1W * right;
+
+            result.Row2X = left.Row2X * right;
+            result.Row2Y = left.Row2Y * right;
+            result.Row2Z = left.Row2Z * right;
+            result.Row2W = left.Row2W * right;
+
+            result.Row3X = left.Row3X * right;
+            result.Row3Y = left.Row3Y * right;
+            result.Row3Z = left.Row3Z * right;
+            result.Row3W = left.Row3W * right;
         }
 
         #endregion
@@ -1167,10 +1223,10 @@ namespace ProdigalSoftware.Utils
             int[] pivotIdx = { -1, -1, -1, -1 };
 
             // convert the matrix to an array for easy looping
-            float[,] inverse = {{mat.Row0.X, mat.Row0.Y, mat.Row0.Z, mat.Row0.W}, 
-                                {mat.Row1.X, mat.Row1.Y, mat.Row1.Z, mat.Row1.W}, 
-                                {mat.Row2.X, mat.Row2.Y, mat.Row2.Z, mat.Row2.W}, 
-                                {mat.Row3.X, mat.Row3.Y, mat.Row3.Z, mat.Row3.W} };
+            float[,] inverse = {{mat.Row0X, mat.Row0Y, mat.Row0Z, mat.Row0W}, 
+                                {mat.Row1X, mat.Row1Y, mat.Row1Z, mat.Row1W}, 
+                                {mat.Row2X, mat.Row2Y, mat.Row2Z, mat.Row2W}, 
+                                {mat.Row3X, mat.Row3Y, mat.Row3Z, mat.Row3W} };
             int icol = 0;
             int irow = 0;
             for (int i = 0; i < 4; i++)
@@ -1257,22 +1313,22 @@ namespace ProdigalSoftware.Utils
                 }
             }
 
-            result.Row0.X = inverse[0, 0];
-            result.Row0.Y = inverse[0, 1];
-            result.Row0.Z = inverse[0, 2];
-            result.Row0.W = inverse[0, 3];
-            result.Row1.X = inverse[1, 0];
-            result.Row1.Y = inverse[1, 1];
-            result.Row1.Z = inverse[1, 2];
-            result.Row1.W = inverse[1, 3];
-            result.Row2.X = inverse[2, 0];
-            result.Row2.Y = inverse[2, 1];
-            result.Row2.Z = inverse[2, 2];
-            result.Row2.W = inverse[2, 3];
-            result.Row3.X = inverse[3, 0];
-            result.Row3.Y = inverse[3, 1];
-            result.Row3.Z = inverse[3, 2];
-            result.Row3.W = inverse[3, 3];
+            result.Row0X = inverse[0, 0];
+            result.Row0Y = inverse[0, 1];
+            result.Row0Z = inverse[0, 2];
+            result.Row0W = inverse[0, 3];
+            result.Row1X = inverse[1, 0];
+            result.Row1Y = inverse[1, 1];
+            result.Row1Z = inverse[1, 2];
+            result.Row1W = inverse[1, 3];
+            result.Row2X = inverse[2, 0];
+            result.Row2Y = inverse[2, 1];
+            result.Row2Z = inverse[2, 2];
+            result.Row2W = inverse[2, 3];
+            result.Row3X = inverse[3, 0];
+            result.Row3Y = inverse[3, 1];
+            result.Row3Z = inverse[3, 2];
+            result.Row3W = inverse[3, 3];
         }
 
         /// <summary>
@@ -1299,7 +1355,9 @@ namespace ProdigalSoftware.Utils
         /// <returns>The transpose of the given matrix</returns>
         public static Matrix4f Transpose(Matrix4f mat)
         {
-            return new Matrix4f(mat.Column0, mat.Column1, mat.Column2, mat.Column3);
+            Matrix4f result;
+            Transpose(ref mat, out result);
+            return result;
         }
 
 
@@ -1310,10 +1368,25 @@ namespace ProdigalSoftware.Utils
         /// <param name="result">The result of the calculation</param>
         public static void Transpose(ref Matrix4f mat, out Matrix4f result)
         {
-            result.Row0 = mat.Column0;
-            result.Row1 = mat.Column1;
-            result.Row2 = mat.Column2;
-            result.Row3 = mat.Column3;
+            result.Row0X = mat.Row0X;
+            result.Row0Y = mat.Row1X;
+            result.Row0Z = mat.Row2X;
+            result.Row0W = mat.Row3X;
+
+            result.Row1X = mat.Row0Y;
+            result.Row1Y = mat.Row1Y;
+            result.Row1Z = mat.Row2Y;
+            result.Row1W = mat.Row3Y;
+
+            result.Row2X = mat.Row0Z;
+            result.Row2Y = mat.Row1Z;
+            result.Row2Z = mat.Row2Z;
+            result.Row2W = mat.Row3Z;
+
+            result.Row3X = mat.Row0W;
+            result.Row3Y = mat.Row1W;
+            result.Row3Z = mat.Row2W;
+            result.Row3W = mat.Row3W;
         }
 
         #endregion
@@ -1392,10 +1465,10 @@ namespace ProdigalSoftware.Utils
         /// Returns a pointer to the first element of the specified instance.
         /// </summary>
         /// <param name="mat">The instance.</param>
-        /// <returns>A pointer to the first element of v.</returns>
+        /// <returns>A pointer to the first element of mat.</returns>
         unsafe public static explicit operator float*(Matrix4f mat)
         {
-            return &mat.Row0.X;
+            return &mat.Row0X;
         }
 
         #endregion
@@ -1410,7 +1483,12 @@ namespace ProdigalSoftware.Utils
         /// <returns>The string representation of the matrix.</returns>
         public override string ToString()
         {
-            return String.Format("{0}\n{1}\n{2}\n{3}", Row0, Row1, Row2, Row3);
+            StringBuilder builder = new StringBuilder();
+            builder.Append('(').Append(Row0X).Append(", ").Append(Row0Y).Append(", ").Append(Row0Z).Append(", ").Append(Row0W).Append(")\n");
+            builder.Append('(').Append(Row1X).Append(", ").Append(Row1Y).Append(", ").Append(Row1Z).Append(", ").Append(Row1W).Append(")\n");
+            builder.Append('(').Append(Row2X).Append(", ").Append(Row2Y).Append(", ").Append(Row2Z).Append(", ").Append(Row2W).Append(")\n");
+            builder.Append('(').Append(Row3X).Append(", ").Append(Row3Y).Append(", ").Append(Row3Z).Append(", ").Append(Row3W).Append(')');
+            return builder.ToString();
         }
 
         #endregion
@@ -1423,7 +1501,10 @@ namespace ProdigalSoftware.Utils
         /// <returns>A System.Int32 containing the unique hashcode for this instance.</returns>
         public override int GetHashCode()
         {
-            return Row0.GetHashCode() ^ Row1.GetHashCode() ^ Row2.GetHashCode() ^ Row3.GetHashCode();
+            return (Row0X.GetHashCode() ^ Row0Y.GetHashCode() ^ Row0Z.GetHashCode() ^ Row0W.GetHashCode()) 
+                ^ (Row1X.GetHashCode() ^ Row1Y.GetHashCode() ^ Row1Z.GetHashCode() ^ Row1W.GetHashCode())
+                ^ (Row2X.GetHashCode() ^ Row2Y.GetHashCode() ^ Row2Z.GetHashCode() ^ Row2W.GetHashCode())
+                ^ (Row3X.GetHashCode() ^ Row3Y.GetHashCode() ^ Row3Z.GetHashCode() ^ Row3W.GetHashCode());
         }
 
         #endregion
@@ -1457,10 +1538,22 @@ namespace ProdigalSoftware.Utils
         public bool Equals(Matrix4f other)
         {
             return
-                Row0 == other.Row0 &&
-                Row1 == other.Row1 &&
-                Row2 == other.Row2 &&
-                Row3 == other.Row3;
+                Row0X == other.Row0X &&
+                Row0Y == other.Row0Y &&
+                Row0Z == other.Row0Z &&
+                Row0W == other.Row0W &&
+                Row1X == other.Row1X &&
+                Row1Y == other.Row1Y &&
+                Row1Z == other.Row1Z &&
+                Row1W == other.Row1W &&
+                Row2X == other.Row2X &&
+                Row2Y == other.Row2Y &&
+                Row2Z == other.Row2Z &&
+                Row2W == other.Row2W &&
+                Row3X == other.Row3X &&
+                Row3Y == other.Row3Y &&
+                Row3Z == other.Row3Z &&
+                Row3W == other.Row3W;
         }
 
         #endregion

@@ -8,15 +8,7 @@ using ProdigalSoftware.Utils;
 
 namespace ProdigalSoftware.TiVE.RenderSystem.World
 {
-    internal enum VoxelDetailLevelDistance
-    {
-        Closest = 0,
-        Close = 1,
-        Mid = 2,
-        Far = 3,
-        Furthest = 4
-    }
-
+    [Obsolete("Use the VoxelMeshManager")]
     internal sealed class WorldChunkManager : IDisposable
     {
         private const int VoxelDetailLevelSections = 3; // 16x16x16 = 4096v, 8x8x8 = 512v, 4x4x4 = 64v, not worth going to 2x2x2 = 8v.

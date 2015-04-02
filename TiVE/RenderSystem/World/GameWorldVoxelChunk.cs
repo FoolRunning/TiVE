@@ -9,6 +9,7 @@ using ProdigalSoftware.Utils;
 
 namespace ProdigalSoftware.TiVE.RenderSystem.World
 {
+    [Obsolete("Use the new entity system with a ChunkComponent")]
     internal sealed class GameWorldVoxelChunk : IDisposable
     {
         #region Constants

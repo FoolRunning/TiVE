@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Drawing;
-using NLua.Exceptions;
+using MoonSharp.Interpreter;
 
 namespace ProdigalSoftware.TiVE.Starter
 {
@@ -163,10 +163,17 @@ namespace ProdigalSoftware.TiVE.Starter
         {
             while (e != null)
             {
-                AddError(e.Message);
-                LuaScriptException scriptException = e as LuaScriptException;
-                if (scriptException != null)
-                    AddError(scriptException.Source);
+                ScriptRuntimeException scriptException = e as ScriptRuntimeException;
+                if (scriptException == null)
+                    AddError(e.Message);
+                else
+                {
+                    string message = scriptException.DecoratedMessage;
+                    int index = message.LastIndexOfAny(new [] {'\\', '/' });
+                    if (index >= 0)
+                        message = message.Substring(index + 1);
+                    AddError(message);
+                }
 
                 foreach (string stackLine in e.StackTrace.Split(new[] {'\n', '\r'}, StringSplitOptions.RemoveEmptyEntries))
                 {

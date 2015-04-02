@@ -3,7 +3,6 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Threading;
 using Microsoft.CSharp.RuntimeBinder;
-using NLua.Exceptions;
 using OpenTK;
 using ProdigalSoftware.TiVE.Core.Backend;
 using ProdigalSoftware.TiVE.Debugging;
@@ -15,6 +14,7 @@ using ProdigalSoftware.Utils;
 
 namespace ProdigalSoftware.TiVE
 {
+    [Obsolete("Replaced by the core Engine implementation")]
     internal sealed class GameLogic
     {
         private const int UpdatesPerSecond = 60;
@@ -23,10 +23,10 @@ namespace ProdigalSoftware.TiVE
         private readonly SystemTimingHelper updateTime = new SystemTimingHelper(2, true);
         private readonly SystemTimingHelper frameTime = new SystemTimingHelper(2, true);
 
-        private readonly CountStatHelper drawCount = new CountStatHelper(4, false);
-        private readonly CountStatHelper voxelCount = new CountStatHelper(8, false);
-        private readonly CountStatHelper renderedVoxelCount = new CountStatHelper(8, false);
-        private readonly CountStatHelper polygonCount = new CountStatHelper(8, false);
+        private readonly ItemCountsHelper drawCount = new ItemCountsHelper(4, false);
+        private readonly ItemCountsHelper voxelCount = new ItemCountsHelper(8, false);
+        private readonly ItemCountsHelper renderedVoxelCount = new ItemCountsHelper(8, false);
+        private readonly ItemCountsHelper polygonCount = new ItemCountsHelper(8, false);
 
         private volatile bool continueMainLoop;
         private IKeyboard keyboard;
@@ -93,11 +93,6 @@ namespace ProdigalSoftware.TiVE
             catch (RuntimeBinderException)
             {
                 Messages.AddError("Can not find Initialize(camera) function in Game script");
-                return false;
-            }
-            catch (LuaScriptException e)
-            {
-                Messages.AddStackTrace(e);
                 return false;
             }
 
@@ -222,63 +217,10 @@ namespace ProdigalSoftware.TiVE
                 Messages.AddError("Can not find Update(camera) function in Game script");
                 continueMainLoop = false;
             }
-            catch (LuaScriptException e)
-            {
-                Messages.AddStackTrace(e);
-                continueMainLoop = false;
-            }
 
             renderer.Update(timeSinceLastFrame);//*/ 1.0f / GameUpdatesPerSecond);
 
             updateTime.PushTime();
         }
-
-        #region CountStatHelper class
-        private sealed class CountStatHelper
-        {
-            private readonly string formatString;
-            private long totalCount;
-            private int minCount = int.MaxValue;
-            private int maxCount;
-            private int dataCount;
-
-            public CountStatHelper(int maxDigits, bool showMinMax)
-            {
-                if (showMinMax)
-                    formatString = "{0:D" + maxDigits + "}({1:D" + maxDigits + "}-{2:D" + maxDigits + "})";
-                else
-                    formatString = "{0:D" + maxDigits + "}";
-            }
-
-            public string DisplayedValue { get; private set; }
-
-            /// <summary>
-            /// Updates the display time with the average of the data points
-            /// </summary>
-            public void UpdateDisplayedTime()
-            {
-                DisplayedValue = string.Format(formatString, totalCount / Math.Max(dataCount, 1), minCount, maxCount);
-                totalCount = 0;
-                dataCount = 0;
-                minCount = int.MaxValue;
-                maxCount = 0;
-            }
-
-            /// <summary>
-            /// Adds the specified value as a new data point
-            /// </summary>
-            public void PushCount(int newCount)
-            {
-                totalCount += newCount;
-                dataCount++;
-
-                if (newCount < minCount)
-                    minCount = newCount;
-
-                if (newCount > maxCount)
-                    maxCount = newCount;
-            }
-        }
-        #endregion
     }
 }
