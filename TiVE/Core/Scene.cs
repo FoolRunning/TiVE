@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using MoonSharp.Interpreter;
 using ProdigalSoftware.TiVE.RenderSystem;
 using ProdigalSoftware.TiVE.RenderSystem.Lighting;
 using ProdigalSoftware.TiVE.RenderSystem.World;
@@ -36,7 +37,8 @@ namespace ProdigalSoftware.TiVE.Core
         #region Implementation of IScene
         public void Dispose()
         {
-
+            if (RenderNode != null)
+                RenderNode.Dispose();
         }
 
         public IEntity CreateNewEntity(string entityName)
@@ -87,6 +89,7 @@ namespace ProdigalSoftware.TiVE.Core
         #endregion
 
         #region Entity class
+        [MoonSharpUserData]
         private sealed class Entity : IEntity
         {
             private readonly string name;

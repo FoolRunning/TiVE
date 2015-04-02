@@ -1,4 +1,5 @@
 ﻿using JetBrains.Annotations;
+using MoonSharp.Interpreter;
 using ProdigalSoftware.Utils;
 
 namespace ProdigalSoftware.TiVEPluginFramework.Components
@@ -7,6 +8,7 @@ namespace ProdigalSoftware.TiVEPluginFramework.Components
     /// Component for entities that are renderable
     /// </summary>
     [PublicAPI]
+    [MoonSharpUserData]
     public sealed class RenderComponent : IComponent
     {
         /// <summary>True if the entity is in the visible area of the screen, false otherwise</summary>

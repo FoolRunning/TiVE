@@ -77,6 +77,9 @@ namespace ProdigalSoftware.TiVE.Core
             INativeDisplay nativeDisplay = InitializeWindow();
             nativeDisplay.DisplayClosing += (s, e) => continueMainLoop = false;
 
+            TiVEController.Backend.Initialize();
+            NativeDisplayResized(nativeDisplay.ClientBounds); // Make sure we start out at the correct size
+
             continueMainLoop = InitializeSystems();
 
             LoadScene("Loading", false);
@@ -90,6 +93,7 @@ namespace ProdigalSoftware.TiVE.Core
                 previousTime = currentTime;
 
                 nativeDisplay.ProcessNativeEvents();
+                TiVEController.Backend.BeforeRenderFrame();
                 UpdateSystems(ticksSinceLastFrame);
                 nativeDisplay.UpdateDisplayContents();
             }
@@ -149,7 +153,7 @@ namespace ProdigalSoftware.TiVE.Core
                 }
                 catch (Exception e)
                 {
-                    Messages.AddError("Exception when deleting " + systems[i].DebuggingName + ":");
+                    Messages.AddError("Exception when disposing " + systems[i].DebuggingName + ":");
                     Messages.AddStackTrace(e);
                 }
             }

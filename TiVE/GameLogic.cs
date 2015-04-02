@@ -39,7 +39,7 @@ namespace ProdigalSoftware.TiVE
             int numChunkCreationThreads = TiVEController.UserSettings.Get(UserSettings.ChunkCreationThreadsKey);
             renderer = new WorldChunkRenderer(numChunkCreationThreads);
 
-            gameScript = TiVEController.Scripts.GetScript(startScript);
+            gameScript = null; // TiVEController.Scripts.GetScript(startScript);
             if (gameScript == null)
             {
                 Messages.AddError(string.Format("Failed to find script '{0}' to start", startScript));

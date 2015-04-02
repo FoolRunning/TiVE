@@ -1,28 +1,38 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.Dynamic;
 using System.IO;
 using System.Reflection;
-using NLua.Exceptions;
+using MoonSharp.Interpreter;
 using ProdigalSoftware.TiVE.Core;
+using ProdigalSoftware.TiVE.Core.Backend;
 using ProdigalSoftware.TiVE.Starter;
 using ProdigalSoftware.TiVEPluginFramework;
 using ProdigalSoftware.TiVEPluginFramework.Components;
+using ProdigalSoftware.Utils;
 
 namespace ProdigalSoftware.TiVE.ScriptSystem
 {
     internal sealed class ScriptSystem : TimeSlicedEngineSystem
     {
-        private readonly Dictionary<string, dynamic> scripts = new Dictionary<string, dynamic>();
+        private readonly Dictionary<string, Script> scripts = new Dictionary<string, Script>();
+        private readonly IKeyboard keyboard;
+        private readonly IMouse mouse;
 
-        public ScriptSystem() : base("Script System", 60)
+        public ScriptSystem(IKeyboard keyboard, IMouse mouse) : base("Script System", 60)
         {
+            this.keyboard = keyboard;
+            this.mouse = mouse;
         }
 
         public override bool Initialize()
         {
             Messages.Print("Loading scripts...");
+
+            foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies())
+                UserData.RegisterAssembly(assembly);
+            UserData.RegisterType<Vector3f>();
+            UserData.RegisterType<Color3f>();
 
             string dataDir = Path.Combine(Path.GetDirectoryName(Assembly.GetEntryAssembly().Location), "Data");
             List<string> errors = new List<string>();
@@ -35,12 +45,12 @@ namespace ProdigalSoftware.TiVE.ScriptSystem
                 {
                     try
                     {
-                        dynamic lua = new DynamicLua.DynamicLua();
-                        AddGlobalLuaMethods(lua);
-                        ((DynamicLua.DynamicLua)lua).DoFile(file);
-                        scripts.Add(Path.GetFileNameWithoutExtension(file), lua);
+                        Script script = new Script();
+                        AddLuaGlobals(script);
+                        script.DoFile(file);
+                        scripts.Add(Path.GetFileNameWithoutExtension(file), script);
                     }
-                    catch (LuaScriptException e)
+                    catch (InterpreterException e)
                     {
                         errors.Add(e.Message);
                     }
@@ -61,62 +71,154 @@ namespace ProdigalSoftware.TiVE.ScriptSystem
 
         public override void Dispose()
         {
-            foreach (DynamicLua.DynamicLua script in scripts.Values)
-                script.Dispose();
+            scripts.Clear();
         }
 
         protected override void Update(float timeSinceLastUpdate, Scene currentScene)
         {
+            keyboard.Update();
+
             foreach (IEntity entity in currentScene.GetEntitiesWithComponent<ScriptComponent>())
             {
                 ScriptComponent scriptData = entity.GetComponent<ScriptComponent>();
-                dynamic dynamicEntity = entity;
                 if (!scriptData.Loaded)
                 {
                     scriptData.Script = GetScript(scriptData.ScriptName);
                     if (scriptData.Script == null)
                         Messages.AddWarning("Unable to find script " + scriptData.ScriptName + " needed by entity " + entity.Name);
                     else
-                        scriptData.Script.initialize(dynamicEntity);
+                    {
+                        scriptData.UpdateFunctionCached = scriptData.Script.Globals.Get("update");
+                        if (scriptData.UpdateFunctionCached == null)
+                            Messages.AddWarning("Unable to find update method for " + scriptData.ScriptName);
+                        
+                        DynValue initFunction = scriptData.Script.Globals.Get("initialize");
+                        if (initFunction != null)
+                            CallLuaFunction(scriptData.Script, initFunction, entity, entity);
+                        else
+                            Messages.AddWarning("Unable to find initialize method for " + scriptData.ScriptName);
+                    }
                     scriptData.Loaded = true;
                 }
 
-                if (scriptData.Script != null)
-                    scriptData.Script.update(dynamicEntity, timeSinceLastUpdate);
+                if (scriptData.Script != null && scriptData.UpdateFunctionCached != null)
+                    CallLuaFunction(scriptData.Script, scriptData.UpdateFunctionCached, entity, entity, timeSinceLastUpdate);
             }
         }
 
-        public dynamic GetScript(string name)
+        public Script GetScript(string name)
         {
-            dynamic script;
+            Script script;
             scripts.TryGetValue(name, out script);
             return script;
         }
 
-        public static void AddLuaTableForEnum<T>(dynamic luaScript)
+        public static void AddLuaTableForEnum<T>(Script lua)
         {
             Type enumType = typeof(T);
             if (!enumType.IsEnum)
                 throw new ArgumentException("Type parameter must be for an Enum type");
 
             string tableName = enumType.Name;
-            dynamic keyTable = luaScript.NewTable(tableName);
+            Table keyTable = new Table(lua);
 
             foreach (string enumProperty in Enum.GetNames(enumType))
-                ((DynamicObject)keyTable).TrySetMember(new SetPropertyBinder(enumProperty), Enum.Parse(enumType, enumProperty));
+                keyTable[enumProperty] = (int)Enum.Parse(enumType, enumProperty);
+            lua.Globals[tableName] = keyTable;
         }
 
-        private static void AddGlobalLuaMethods(dynamic lua)
+        private static void CallLuaFunction(Script script, DynValue function, IEntity entity, params object[] args)
         {
-            lua.Log = new Action<object>(obj => Messages.Println(obj.ToString(), Color.CadetBlue));
-            lua.BlockSize = Block.VoxelSize;
-            lua.PI = (float)Math.PI;
-            lua.Max = new Func<float, float, float>(Math.Max);
-            lua.Min = new Func<float, float, float>(Math.Min);
-            lua.ToRad = new Func<float, float>(a => a * (float)Math.PI / 180.0f);
-            lua.Sin = new Func<float, float>(a => (float)Math.Sin(a));
-            lua.Cos = new Func<float, float>(a => (float)Math.Cos(a));
-            lua.Tan = new Func<float, float>(a => (float)Math.Tan(a));
+            try
+            {
+                script.Call(function, args);
+            }
+            catch (InterpreterException)
+            {
+                Messages.AddError("Got exception when processing script for " + entity.Name);
+                throw;
+            }
+        }
+
+        private void AddLuaGlobals(Script lua)
+        {
+            AddLuaTableForEnum<Keys>(lua);
+            lua.Globals["BlockSize"] = Block.VoxelSize;
+            lua.Globals["PI"] = (float)Math.PI;
+
+            lua.Globals["print"] = (Action<object>)LuaGlobalHelper.Print;
+            lua.Globals["max"] = (Func<float, float, float>)LuaGlobalHelper.Max;
+            lua.Globals["min"] = (Func<float, float, float>)LuaGlobalHelper.Min;
+            lua.Globals["toRadians"] = (Func<float, float>)LuaGlobalHelper.ToRadians;
+            lua.Globals["log"] = (Func<float, float>)LuaGlobalHelper.Log;
+            lua.Globals["sin"] = (Func<float, float>)LuaGlobalHelper.Sin;
+            lua.Globals["cos"] = (Func<float, float>)LuaGlobalHelper.Cos;
+            lua.Globals["tan"] = (Func<float, float>)LuaGlobalHelper.Tan;
+            lua.Globals["vector"] = (Func<float, float, float, Vector3f>)LuaGlobalHelper.Vector;
+            lua.Globals["color"] = (Func<float, float, float, Color3f>)LuaGlobalHelper.Color;
+            lua.Globals["keyPressed"] = new Func<int, bool>(key => keyboard.IsKeyPressed((Keys)key));
+            lua.Globals["voxelAt"] = new Func<float, float, float, uint>((x, y, z) => 0);
+
+            //gameScript.Renderer = new Func<IGameWorldRenderer>(() => renderer);
+            //gameScript.Camera = new Func<Camera>(() => renderer.Camera);
+            //gameScript.UserSettings = new Func<UserSettings>(() => TiVEController.UserSettings);
+            //gameScript.GameWorld = new Func<GameWorld>(() => renderer.GameWorld);
+            //gameScript.ReloadLevel = new Action(() => renderer.RefreshLevel());
+            //gameScript.EmptyBlock = BlockImpl.Empty;
+
+        }
+
+        private static class LuaGlobalHelper
+        {
+            public static void Print(object obj)
+            {
+                Messages.Println(obj.ToString(), System.Drawing.Color.CadetBlue);
+            }
+
+            public static float Max(float v1, float v2)
+            {
+                return Math.Max(v1, v2);
+            }
+
+            public static float Min(float v1, float v2)
+            {
+                return Math.Min(v1, v2);
+            }
+
+            public static float ToRadians(float angle)
+            {
+                return angle * (float)Math.PI / 180.0f;
+            }
+
+            public static float Log(float v)
+            {
+                return (float)Math.Log(v);
+            }
+
+            public static float Sin(float v)
+            {
+                return (float)Math.Sin(v);
+            }
+
+            public static float Cos(float v)
+            {
+                return (float)Math.Cos(v);
+            }
+
+            public static float Tan(float v)
+            {
+                return (float)Math.Tan(v);
+            }
+
+            public static Vector3f Vector(float x, float y, float z)
+            {
+                return new Vector3f(x, y, z);
+            }
+
+            public static Color3f Color(float r, float g, float b)
+            {
+                return new Color3f(r, g, b);
+            }
         }
 
         private sealed class SetPropertyBinder : SetMemberBinder

@@ -20,7 +20,6 @@ namespace ProdigalSoftware.TiVE
         internal static readonly long MaxTicksForSleep;
         internal static readonly PluginManager PluginManager = new PluginManager();
         //internal static readonly ResourceTableDefinitionManager TableDefinitions = new ResourceTableDefinitionManager();
-        internal static readonly ScriptSystem.ScriptSystem Scripts = new ScriptSystem.ScriptSystem();
         internal static readonly IControllerBackend Backend = new OpenTKBackend();
         internal static readonly UserSettings UserSettings = new UserSettings();
         internal static Engine Engine;
@@ -57,7 +56,7 @@ namespace ProdigalSoftware.TiVE
         internal static void RunEngine(string sceneToLoad)
         {
             Engine = new Engine();
-            Engine.AddSystem(new ScriptSystem.ScriptSystem());
+            Engine.AddSystem(new ScriptSystem.ScriptSystem(Backend.Keyboard, Backend.Mouse));
             Engine.AddSystem(new RenderSystem.RenderSystem());
 
             Engine.MainLoop(sceneToLoad);
@@ -84,7 +83,6 @@ namespace ProdigalSoftware.TiVE
 
         private static void starterForm_FormClosing(object sender, FormClosingEventArgs e)
         {
-            Scripts.Dispose();
             //TableDefinitions.Dispose();
             PluginManager.Dispose();
             UserSettings.Save();
