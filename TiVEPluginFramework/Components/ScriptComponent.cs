@@ -1,5 +1,4 @@
 ﻿using JetBrains.Annotations;
-using MoonSharp.Interpreter;
 
 namespace ProdigalSoftware.TiVEPluginFramework.Components
 {
@@ -7,14 +6,13 @@ namespace ProdigalSoftware.TiVEPluginFramework.Components
     /// Component for entities that are controled with a Lua script.
     /// </summary>
     [PublicAPI]
-    [MoonSharpUserData]
     public sealed class ScriptComponent : IComponent
     {
+        #region Internal data
         internal bool Loaded;
-        internal Script Script;
-        internal DynValue UpdateFunctionCached;
+        #endregion
 
-        public string ScriptName;
+        public readonly string ScriptName;
 
         public ScriptComponent(string scriptName)
         {

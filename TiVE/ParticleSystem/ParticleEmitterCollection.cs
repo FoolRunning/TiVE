@@ -1,30 +1,31 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using ProdigalSoftware.TiVE.Core.Backend;
+using ProdigalSoftware.TiVE.RenderSystem;
+using ProdigalSoftware.TiVE.RenderSystem.Lighting;
 using ProdigalSoftware.TiVE.RenderSystem.Meshes;
 using ProdigalSoftware.TiVE.RenderSystem.Voxels;
 using ProdigalSoftware.TiVE.Settings;
 using ProdigalSoftware.TiVEPluginFramework;
 using ProdigalSoftware.Utils;
 
-namespace ProdigalSoftware.TiVE.RenderSystem.Particles
+namespace ProdigalSoftware.TiVE.ParticleSystem
 {
     /// <summary>
     /// Holds all the running particle systems for a system type (i.e. all "fountains" are in a collection, all "fires" are in a collection, etc.)
     /// </summary>
-    internal sealed class ParticleSystemCollection : IDisposable
+    internal sealed class ParticleEmitterCollection : IDisposable
     {
         #region Member variables
         private static readonly ParticleSystemSorter sorter = new ParticleSystemSorter();
         /// <summary>List of particles systems in this collection</summary>
-        private readonly List<ParticleSystem> particleSystems = new List<ParticleSystem>();
+        private readonly List<ParticleEmitter> particleSystems = new List<ParticleEmitter>();
         /// <summary>Copy of the particle systems list used for updating without locking too long</summary>
-        private readonly List<ParticleSystem> updateList = new List<ParticleSystem>();
-        /// <summary>Quick lookup for the index of a system</summary>
-        private readonly Dictionary<RunningParticleSystem, int> particleSystemIndex = new Dictionary<RunningParticleSystem, int>();
+        private readonly List<ParticleEmitter> updateList = new List<ParticleEmitter>();
+        /// <summary>Quick lookup for the index of a particle entity</summary>
+        private readonly Dictionary<IEntity, int> particleSystemIndex = new Dictionary<IEntity, int>();
 
-        private readonly ParticleSystemComponent systemInfo;
+        private readonly ParticleController controller;
 
         private readonly IRendererData voxelInstanceLocationData;
         private readonly IRendererData voxelInstanceColorData;
@@ -46,27 +47,27 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Particles
 
         #region Constructor/Dispose
         /// <summary>
-        /// Creates a new ParticleSystemCollection to hold particle systems of the specified type
+        /// Creates a new ParticleEmitterCollection to hold particle systems of the specified type
         /// </summary>
-        public ParticleSystemCollection(ParticleSystemComponent systemInfo)
+        public ParticleEmitterCollection(ParticleController controller)
         {
-            this.systemInfo = systemInfo;
+            this.controller = controller;
 
             // Create particle voxel model to be used for each particle
             MeshBuilder voxelInstanceBuilder = new MeshBuilder(1000, 0);
-            VoxelMeshUtils.GenerateMesh(systemInfo.ParticleVoxels, voxelInstanceBuilder, true,
+            VoxelMeshUtils.GenerateMesh(controller.ParticleVoxels, voxelInstanceBuilder, true,
                 out voxelsPerParticle, out renderedVoxelsPerParticle, out polysPerParticle);
 
             voxelInstanceLocationData = voxelInstanceBuilder.GetLocationData();
             if (TiVEController.UserSettings.Get(UserSettings.ShadedVoxelsKey))
                 voxelInstanceColorData = voxelInstanceBuilder.GetColorData();
 
-            locations = new Vector3us[systemInfo.MaxParticles * 5];
-            colors = new Color4b[systemInfo.MaxParticles * 5];
+            locations = new Vector3us[controller.MaxParticles * 5];
+            colors = new Color4b[controller.MaxParticles * 5];
 
             // Initialize room for 5 particle systems in the collection
             for (int i = 0; i < 5; i++)
-                particleSystems.Add(new ParticleSystem(systemInfo));
+                particleSystems.Add(new ParticleEmitter(controller));
         }
 
         /// <summary>
@@ -90,30 +91,28 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Particles
         /// </summary>
         public TransparencyType TransparencyType
         {
-            get { return systemInfo.TransparencyType; }
+            get { return controller.TransparencyType; }
         }
         #endregion
 
         #region Public methods
         /// <summary>
-        /// Adds the specified particle system to this collection
+        /// Adds the specified particle entity to this collection
         /// </summary>
-        public void Add(RunningParticleSystem system)
+        public void Add(IEntity entity)
         {
-            Debug.Assert(system.SystemInfo == systemInfo);
-
             using (new PerformanceLock(particleSystems))
             {
-                int availableIndex = particleSystems.FindIndex(sys => !sys.IsAlive);
+                int availableIndex = particleSystems.FindIndex(sys => !sys.InUse);
                 if (availableIndex < 0)
                 {
                     // No free space, make room for 10 more particle systems and add the new system in the first new spot
                     availableIndex = particleSystems.Count;
                     for (int i = 0; i < 10; i++)
-                        particleSystems.Add(new ParticleSystem(systemInfo));
+                        particleSystems.Add(new ParticleEmitter(controller));
 
                     int origCount = locations.Length;
-                    int newCount = origCount + systemInfo.MaxParticles * 10;
+                    int newCount = origCount + controller.MaxParticles * 10;
                     lock (syncObj)
                     {
                         Array.Resize(ref locations, newCount);
@@ -121,53 +120,50 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Particles
                     }
                 }
 
-                particleSystems[availableIndex].Reset(system.WorldLocation);
-                particleSystems[availableIndex].IsAlive = true;
-                particleSystemIndex[system] = availableIndex;
+                particleSystems[availableIndex].Reset();
+                particleSystems[availableIndex].InUse = true;
+                particleSystemIndex[entity] = availableIndex;
             }
         }
 
         /// <summary>
-        /// Removes the specified particle system from this collection
+        /// Removes the specified particle entity from this collection
         /// </summary>
-        public void Remove(RunningParticleSystem system)
+        public void Remove(IEntity entity)
         {
-            Debug.Assert(system.SystemInfo == systemInfo);
-
             using (new PerformanceLock(particleSystems))
             {
                 int systemIndex;
-                if (particleSystemIndex.TryGetValue(system, out systemIndex))
-                    particleSystems[systemIndex].IsAlive = false;
-                particleSystemIndex.Remove(system);
+                if (particleSystemIndex.TryGetValue(entity, out systemIndex))
+                    particleSystems[systemIndex].InUse = false;
+                particleSystemIndex.Remove(entity);
             }
         }
 
         /// <summary>
         /// Updates all particle systems in this collection
         /// </summary>
-        /// <param name="renderer"></param>
-        /// <param name="timeSinceLastFrame">The time (in seconds) since the last call to update</param>
-        public void UpdateAll(IGameWorldRenderer renderer, float timeSinceLastFrame)
+        public void UpdateAll(Vector3i worldSize, Vector3i cameraLocation, LightProvider lightProvider, float timeSinceLastFrame)
         {
             updateList.Clear();
             using (new PerformanceLock(particleSystems))
                 updateList.AddRange(particleSystems); // Make copy to not lock during the updating
 
-            if (systemInfo.TransparencyType == TransparencyType.Realistic)
+            if (controller.TransparencyType == TransparencyType.Realistic)
             {
-                sorter.CameraLocation = new Vector3i((int)renderer.Camera.Location.X, (int)renderer.Camera.Location.Y, (int)renderer.Camera.Location.Z);
+                sorter.CameraLocation = cameraLocation;
                 updateList.Sort(sorter);
             }
 
             int dataIndex = 0;
             for (int i = 0; i < updateList.Count; i++)
             {
-                ParticleSystem system = updateList[i];
-                if (system.IsAlive)
+                ParticleEmitter system = updateList[i];
+                if (system.InUse)
                 {
-                    //lock (syncObj)
-                        system.Update(timeSinceLastFrame, locations, colors, renderer, ref dataIndex);
+                    system.UpdateInternal(cameraLocation, timeSinceLastFrame);
+                    lock (syncObj)
+                        system.AddToArrays(worldSize, lightProvider, locations, colors, ref dataIndex);
                 }
             }
 
@@ -198,16 +194,16 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Particles
             shader.Bind();
             shader.SetUniform("matrix_ModelViewProjection", ref matrixMVP);
 
-            if (systemInfo.TransparencyType != TransparencyType.None)
+            if (controller.TransparencyType != TransparencyType.None)
             {
                 TiVEController.Backend.DisableDepthWriting();
-                if (systemInfo.TransparencyType == TransparencyType.Additive)
+                if (controller.TransparencyType == TransparencyType.Additive)
                     TiVEController.Backend.SetBlendMode(BlendMode.Additive);
             }
 
             // Put the data for the current particles into the graphics memory and draw them
             int totalParticles = totalAliveParticles;
-            //lock (syncObj)
+            lock (syncObj)
             {
                 locationData.UpdateData(locations, totalParticles);
                 colorData.UpdateData(colors, totalParticles);
@@ -215,7 +211,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Particles
             instances.Bind();
             TiVEController.Backend.Draw(PrimitiveType.Triangles, instances);
 
-            if (systemInfo.TransparencyType != TransparencyType.None)
+            if (controller.TransparencyType != TransparencyType.None)
             {
                 TiVEController.Backend.SetBlendMode(BlendMode.Realistic);
                 TiVEController.Backend.EnableDepthWriting();
@@ -230,29 +226,29 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Particles
         /// <summary>
         /// Helper class for sorting particles by their distance from the camera
         /// </summary>
-        private sealed class ParticleSystemSorter : IComparer<ParticleSystem>
+        private sealed class ParticleSystemSorter : IComparer<ParticleEmitter>
         {
             public Vector3i CameraLocation;
 
-            public int Compare(ParticleSystem ps1, ParticleSystem ps2)
+            public int Compare(ParticleEmitter pe1, ParticleEmitter pe2)
             {
-                if (ps1 == null && ps2 == null)
+                if (pe1 == null && pe2 == null)
                     return 0;
 
-                if (ps1 == null)
+                if (pe1 == null)
                     return 1;
 
-                if (ps2 == null)
+                if (pe2 == null)
                     return -1;
 
-                int p1DistX = ps1.Location.X - CameraLocation.X;
-                int p1DistY = ps1.Location.Y - CameraLocation.Y;
-                int p1DistZ = ps1.Location.Z - CameraLocation.Z;
+                int p1DistX = pe1.Location.X - CameraLocation.X;
+                int p1DistY = pe1.Location.Y - CameraLocation.Y;
+                int p1DistZ = pe1.Location.Z - CameraLocation.Z;
                 int p1DistSquared = p1DistX * p1DistX + p1DistY * p1DistY + p1DistZ * p1DistZ;
 
-                int p2DistX = ps2.Location.X - CameraLocation.X;
-                int p2DistY = ps2.Location.Y - CameraLocation.Y;
-                int p2DistZ = ps2.Location.Z - CameraLocation.Z;
+                int p2DistX = pe2.Location.X - CameraLocation.X;
+                int p2DistY = pe2.Location.Y - CameraLocation.Y;
+                int p2DistZ = pe2.Location.Z - CameraLocation.Z;
                 int p2DistSquared = p2DistX * p2DistX + p2DistY * p2DistY + p2DistZ * p2DistZ;
                 return p2DistSquared - p1DistSquared;
             }

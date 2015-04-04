@@ -164,7 +164,7 @@ namespace ProdigalSoftware.TiVE.Starter
             while (e != null)
             {
                 ScriptRuntimeException scriptException = e as ScriptRuntimeException;
-                if (scriptException == null)
+                if (scriptException == null || scriptException.DecoratedMessage == null)
                     AddError(e.Message);
                 else
                 {

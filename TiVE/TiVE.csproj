@@ -99,6 +99,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CameraSystem\CameraSystem.cs" />
     <Compile Include="Core\Backend\IKeyboard.cs" />
     <Compile Include="Core\Backend\IMouse.cs" />
     <Compile Include="Core\Backend\INativeWindow.cs" />
@@ -122,7 +123,7 @@
     <Compile Include="Core\TimeSlicedEngineSystem.cs" />
     <Compile Include="Debugging\ItemCountsHelper.cs" />
     <Compile Include="Debugging\SystemTimingHelper.cs" />
-    <Compile Include="RenderSystem\Camera.cs" />
+    <Compile Include="ParticleSystem\ParticleSystem.cs" />
     <Compile Include="RenderSystem\EntityLoadQueue.cs" />
     <Compile Include="RenderSystem\Lighting\LightInfo.cs" />
     <Compile Include="RenderSystem\Lighting\LightingModel.cs" />
@@ -130,10 +131,8 @@
     <Compile Include="RenderSystem\Meshes\LargeMeshBuilder.cs" />
     <Compile Include="RenderSystem\Meshes\MeshBuilder.cs" />
     <Compile Include="RenderSystem\Meshes\MeshBuilderBase.cs" />
-    <Compile Include="RenderSystem\Particles\ParticleSystem.cs" />
-    <Compile Include="RenderSystem\Particles\ParticleSystemCollection.cs" />
-    <Compile Include="RenderSystem\Particles\ParticleSystemManager.cs" />
-    <Compile Include="RenderSystem\Particles\RunningParticleSystem.cs" />
+    <Compile Include="ParticleSystem\ParticleEmitter.cs" />
+    <Compile Include="ParticleSystem\ParticleEmitterCollection.cs" />
     <Compile Include="RenderSystem\RenderStatistics.cs" />
     <Compile Include="RenderSystem\RenderSystem.cs" />
     <Compile Include="RenderSystem\ShaderManager.cs" />
@@ -142,29 +141,22 @@
     <Compile Include="RenderSystem\Voxels\VoxelMeshHelper.cs" />
     <Compile Include="RenderSystem\Voxels\VoxelMeshUtils.cs" />
     <Compile Include="RenderSystem\VoxelMeshManager.cs" />
-    <Compile Include="RenderSystem\WorldChunkRenderer.cs" />
     <Compile Include="RenderSystem\World\AnimationInfo.cs" />
-    <Compile Include="RenderSystem\World\Block.cs" />
+    <Compile Include="RenderSystem\World\BlockImpl.cs" />
     <Compile Include="RenderSystem\World\BlockList.cs" />
     <Compile Include="RenderSystem\World\BlockListManager.cs" />
     <Compile Include="RenderSystem\World\ChunkComponent.cs" />
-    <Compile Include="RenderSystem\World\ChunkLoadQueue.cs" />
     <Compile Include="RenderSystem\RenderNode.cs" />
     <Compile Include="RenderSystem\World\GameWorld.cs" />
     <Compile Include="RenderSystem\World\GameWorldManager.cs" />
-    <Compile Include="RenderSystem\World\GameWorldVoxelChunk.cs" />
-    <Compile Include="RenderSystem\World\WorldChunkManager.cs" />
     <Compile Include="ScriptSystem\ScriptSystem.cs" />
     <Compile Include="Settings\DisplaySetting.cs" />
     <Compile Include="Settings\Setting.cs" />
     <Compile Include="Settings\UserSettings.cs" />
     <Compile Include="TiVEProject.cs" />
-    <Compile Include="Utils\Plane.cs" />
     <Compile Include="Plugins\PluginManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Resources\ResourceTableDefinitionManager.cs" />
-    <Compile Include="GameLogic.cs" />
-    <Compile Include="IGameWorldRenderer.cs" />
     <Compile Include="Sound\irrKlang\IrrKlangSoundEngine.cs" />
     <Compile Include="Sound\ISoundEngine.cs" />
     <Compile Include="Sound\SoundManager.cs" />

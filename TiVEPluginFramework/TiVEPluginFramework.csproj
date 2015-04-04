@@ -66,9 +66,6 @@
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="MoonSharp.Interpreter">
-      <HintPath>..\packages\MoonSharp.0.9.2.0\lib\net40-client\MoonSharp.Interpreter.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -83,9 +80,11 @@
     <Compile Include="Block.cs" />
     <Compile Include="BoundingBox.cs" />
     <Compile Include="Components\CameraComponent.cs" />
+    <Compile Include="Components\ParticleComponent.cs" />
     <Compile Include="Components\RenderComponent.cs" />
     <Compile Include="Components\ScriptComponent.cs" />
     <Compile Include="Generators\IBlockGenerator.cs" />
+    <Compile Include="Generators\IParticleControllerGenerator.cs" />
     <Compile Include="IBlockList.cs" />
     <Compile Include="IComponent.cs" />
     <Compile Include="IEntity.cs" />
@@ -94,12 +93,11 @@
     <Compile Include="Generators\ISceneGenerator.cs" />
     <Compile Include="Generators\ITableDefinitionProvider.cs" />
     <Compile Include="Generators\IWorldGenerator.cs" />
+    <Compile Include="Particle.cs" />
     <Compile Include="IScene.cs" />
-    <Compile Include="IVertexDataInfo.cs" />
+    <Compile Include="Internal\IVertexDataInfo.cs" />
     <Compile Include="Noise.cs" />
-    <Compile Include="Particles\IParticleSystem.cs" />
-    <Compile Include="Particles\Particle.cs" />
-    <Compile Include="Particles\ParticleController.cs" />
+    <Compile Include="ParticleController.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -107,9 +105,6 @@
       <Project>{DC99C507-28DD-4DBF-B6B4-1F9C99E849F1}</Project>
       <Name>Utils</Name>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

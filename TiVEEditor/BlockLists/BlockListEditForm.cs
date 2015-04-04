@@ -155,7 +155,7 @@ namespace ProdigalSoftware.TiVEEditor.BlockLists
             cntrlCurrentBlock.Camera.UpVector = Vector3f.UnitZ;
             float centerX = cntrlCurrentBlock.GameWorld.VoxelSize.X / 2.0f;
             float centerY = cntrlCurrentBlock.GameWorld.VoxelSize.Y / 2.0f;
-            cntrlCurrentBlock.Camera.FoV = (float)Math.PI / 4; // 45 degrees
+            cntrlCurrentBlock.Camera.FieldOfView = (float)Math.PI / 4; // 45 degrees
             cntrlCurrentBlock.Camera.LookAtLocation = new Vector3f(centerX, centerY, CenterZ);
             UpdateCameraPos();
             UpdateBlocksInList();

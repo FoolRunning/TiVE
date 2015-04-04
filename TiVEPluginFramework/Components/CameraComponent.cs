@@ -1,20 +1,37 @@
 ﻿using System;
+using System.Collections.Generic;
 using JetBrains.Annotations;
-using MoonSharp.Interpreter;
 using ProdigalSoftware.Utils;
 
 namespace ProdigalSoftware.TiVEPluginFramework.Components
 {
+    /// <summary>
+    /// Component for entities that represent the current camera view
+    /// </summary>
     [PublicAPI]
-    [MoonSharpUserData]
     public sealed class CameraComponent : IComponent
     {
-        public bool Enabled = true;
-        public float FarDistance = 500.0f;
-        public float AspectRatio = 16 / 9.0f;
-        public float FieldOfView = (float)Math.PI / 3; // 60 degrees
-        public Vector3f UpVector = Vector3f.UnitY;
-        public Vector3f Location;
-        public Vector3f LookAtLocation;
+        public const float NearDist = 0.1f;
+
+        #region Internal data
+        internal const int TopFrustrum = 0;
+        internal const int BottomFrustrum = 1;
+        internal const int LeftFrustrum = 2;
+        internal const int RightFrustrum = 3;
+        internal const int NearFrustrum = 4;
+        internal const int FarFrustrum = 5;
+
+        internal readonly Plane[] FrustrumPlanes = new Plane[6];
+        internal readonly HashSet<IEntity> VisibleEntitites = new HashSet<IEntity>();
+        internal Matrix4f ViewProjectionMatrix;
+        #endregion
+
+        [UsedImplicitly] public bool Enabled = true;
+        [UsedImplicitly] public float FarDistance = 500.0f;
+        [UsedImplicitly] public float AspectRatio = 16 / 9.0f;
+        [UsedImplicitly] public float FieldOfView = (float)Math.PI / 3; // 60 degrees
+        [UsedImplicitly] public Vector3f UpVector = Vector3f.UnitY;
+        [UsedImplicitly] public Vector3f Location;
+        [UsedImplicitly] public Vector3f LookAtLocation;
     }
 }

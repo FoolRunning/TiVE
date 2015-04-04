@@ -41,6 +41,12 @@ namespace ProdigalSoftware.TiVE.Core
             timing.PushTime();
         }
 
-        protected abstract void UpdateInternal(int ticksSinceLastFrame, Scene currentScene);
+        /// <summary>
+        /// Do one update step
+        /// </summary>
+        /// <param name="ticksSinceLastUpdate">The number of ticks (10,000th of a second) since the last update was called</param>
+        /// <param name="currentScene">The current scene</param>
+        /// <returns>True to keep running, false to quit</returns>
+        protected abstract bool UpdateInternal(int ticksSinceLastUpdate, Scene currentScene);
     }
 }

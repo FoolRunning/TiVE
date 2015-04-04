@@ -58,10 +58,12 @@ namespace TiVETests.Core
                 return true;
             }
 
-            protected override void UpdateInternal(int ticksSinceLastUpdate, Scene currentScene)
+            protected override bool UpdateInternal(int ticksSinceLastUpdate, Scene currentScene)
             {
                 UpdateCount++;
                 TotalTicks += ticksSinceLastUpdate;
+
+                return true;
             }
         }
     }

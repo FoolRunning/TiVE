@@ -1,8 +1,6 @@
-﻿using ProdigalSoftware.Utils;
-
-namespace ProdigalSoftware.TiVE.Utils
+﻿namespace ProdigalSoftware.Utils
 {
-    internal struct Plane
+    public struct Plane
     {
         public readonly Vector3f PlaneNormal;
         public readonly float PlaneD;

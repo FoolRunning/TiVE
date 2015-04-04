@@ -24,7 +24,7 @@ function update(entity, timeSinceLastFrame)
     speed = 2
     if (keyPressed(Keys.LShift)) then --Speed up
         speed = 10
-    elseif (KeyPressed(Keys.LControl)) then --Slow down
+    elseif (keyPressed(Keys.LControl)) then --Slow down
         speed = 0.2
     end
 
