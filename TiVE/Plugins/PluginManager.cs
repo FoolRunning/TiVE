@@ -1,7 +1,6 @@
 ﻿using System;
 using System.CodeDom.Compiler;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -30,18 +29,14 @@ namespace ProdigalSoftware.TiVE.Plugins
             string pluginPath = Path.Combine(path, PluginDir);
             string[] pluginFiles = Directory.Exists(pluginPath) ? Directory.GetFiles(pluginPath, "*.cs", SearchOption.AllDirectories) : new string[0];
 
-            List<string> warnings = new List<string>();
-            foreach (string pluginFilePath in pluginFiles)
-            {
-                List<string> errorMessages;
-                Assembly asm = LoadPlugin(pluginFilePath, out errorMessages);
-                if (asm == null)
-                {
-                    // Could not compile plugin
-                    warnings.AddRange(errorMessages);
-                    continue;
-                }
+            List<string> errorMessages;
+            Assembly asm = LoadPlugin(pluginFiles, out errorMessages);
 
+            List<string> warnings = new List<string>();
+            if (asm == null)
+                warnings.AddRange(errorMessages); // Could not compile plugins
+            else
+            {
                 try
                 {
                     foreach (Type pluginType in asm.GetExportedTypes().Where(t => !t.IsAbstract && t.IsClass))
@@ -62,7 +57,6 @@ namespace ProdigalSoftware.TiVE.Plugins
                 }
                 catch (Exception e)
                 {
-                    warnings.Add("Failed to load plugins in " + Path.GetFileName(pluginFilePath));
                     warnings.Add(e.ToString());
                 }
             }
@@ -97,24 +91,9 @@ namespace ProdigalSoftware.TiVE.Plugins
                 yield return (T)type.GetConstructor(Type.EmptyTypes).Invoke(null);
         }
 
-        private Assembly LoadPlugin(string filePath, out List<string> errorMessages)
+        private Assembly LoadPlugin(string[] codeFiles, out List<string> errorMessages)
         {
-            Debug.Assert(File.Exists(filePath));
-
             errorMessages = null;
-
-            string fileName = Path.GetFileName(filePath);
-            
-            string pluginCode;
-            try
-            {
-                pluginCode = File.ReadAllText(filePath);
-            }
-            catch (IOException)
-            {
-                errorMessages = new List<string> { "Error reading plugin: " + fileName };
-                return null;
-            }
 
             CompilerParameters parameters = new CompilerParameters();
             parameters.ReferencedAssemblies.Add("System.dll");
@@ -125,12 +104,11 @@ namespace ProdigalSoftware.TiVE.Plugins
             parameters.GenerateInMemory = true;
             parameters.GenerateExecutable = false;
             parameters.IncludeDebugInformation = true;
-            CompilerResults results = codeCompiler.CompileAssemblyFromSource(parameters, pluginCode);
+            CompilerResults results = codeCompiler.CompileAssemblyFromFile(parameters, codeFiles);
 
             if (results.Errors.HasErrors)
             {
                 errorMessages = new List<string>();
-                errorMessages.Add(string.Format("File {0}:", fileName));
                 errorMessages.AddRange(results.Errors.Cast<CompilerError>()
                     .Where(error => !error.IsWarning)
                     .Select(error => string.Format("   {0},{1}: {2}", error.Line, error.Column, error.ErrorText)));

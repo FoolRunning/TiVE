@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Dynamic;
 using System.IO;
 using System.Reflection;
 using MoonSharp.Interpreter;
@@ -18,11 +17,14 @@ namespace ProdigalSoftware.TiVE.ScriptSystem
     /// </summary>
     internal sealed class ScriptSystem : TimeSlicedEngineSystem
     {
-        private readonly Dictionary<string, Script> scripts = new Dictionary<string, Script>();
+        private const int UpdatesPerSecond = 60;
+
+        private readonly Dictionary<string, ScriptDataInternal> scripts = new Dictionary<string, ScriptDataInternal>();
         private readonly IKeyboard keyboard;
         private readonly IMouse mouse;
+        private bool keepRunning;
 
-        public ScriptSystem(IKeyboard keyboard, IMouse mouse) : base("Scripts", 60)
+        public ScriptSystem(IKeyboard keyboard, IMouse mouse) : base("Scripts", UpdatesPerSecond)
         {
             this.keyboard = keyboard;
             this.mouse = mouse;
@@ -32,10 +34,17 @@ namespace ProdigalSoftware.TiVE.ScriptSystem
         {
             Messages.Print("Loading scripts...");
 
+            // Register anything explicitly registered as script-accessible
             foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies())
                 UserData.RegisterAssembly(assembly);
-            UserData.RegisterType<Vector3f>();
-            UserData.RegisterType<Color3f>();
+
+            // Register all public classes in the plugin framework and the utils
+            foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies())
+            {
+                string asmName = assembly.GetName().Name;
+                if (asmName == "TiVEPluginFramework" || asmName == "Utils")
+                    RegisterTypesIn(assembly);
+            }
 
             string dataDir = Path.Combine(Path.GetDirectoryName(Assembly.GetEntryAssembly().Location), "Data");
             List<string> errors = new List<string>();
@@ -51,7 +60,7 @@ namespace ProdigalSoftware.TiVE.ScriptSystem
                         Script script = new Script();
                         AddLuaGlobals(script);
                         script.DoFile(file);
-                        scripts.Add(Path.GetFileNameWithoutExtension(file), script);
+                        scripts.Add(Path.GetFileNameWithoutExtension(file), new ScriptDataInternal(script));
                     }
                     catch (InterpreterException e)
                     {
@@ -77,7 +86,7 @@ namespace ProdigalSoftware.TiVE.ScriptSystem
             scripts.Clear();
         }
 
-        protected override void Update(float timeSinceLastUpdate, Scene currentScene)
+        protected override bool Update(float timeSinceLastUpdate, Scene currentScene)
         {
             keyboard.Update();
 
@@ -86,47 +95,46 @@ namespace ProdigalSoftware.TiVE.ScriptSystem
             foreach (IEntity entity in currentScene.GetEntitiesWithComponent<ScriptComponent>())
             {
                 ScriptComponent scriptData = entity.GetComponent<ScriptComponent>();
+                ScriptDataInternal scriptDataInternal;
+                scripts.TryGetValue(scriptData.ScriptName, out scriptDataInternal);
                 if (!scriptData.Loaded)
                 {
-                    scripts.TryGetValue(scriptData.ScriptName, out scriptData.Script);
-                    if (scriptData.Script == null)
+                    if (scriptDataInternal == null)
                         Messages.AddWarning("Unable to find script " + scriptData.ScriptName + " needed by entity " + entity.Name);
                     else
                     {
-                        DynValue entityValue = DynValue.FromObject(scriptData.Script, entity);
-                        scriptData.UpdateFunctionCached = scriptData.Script.Globals.Get("update");
-                        if (scriptData.UpdateFunctionCached == null)
-                            Messages.AddWarning("Unable to find update method for " + scriptData.ScriptName);
-                        
-                        DynValue initFunction = scriptData.Script.Globals.Get("initialize");
+                        DynValue entityValue = DynValue.FromObject(scriptDataInternal.Script, entity);
+                        scriptDataInternal.UpdateFunctionCached = scriptDataInternal.Script.Globals.Get("update");
+                        if (scriptDataInternal.UpdateFunctionCached == null)
+                            Messages.AddWarning("Unable to find update(entity, frameTime) method for " + scriptData.ScriptName);
+
+                        DynValue initFunction = scriptDataInternal.Script.Globals.Get("initialize");
                         if (initFunction != null)
-                            CallLuaFunction(scriptData.Script, initFunction, entity, entityValue);
+                            CallLuaFunction(scriptDataInternal.Script, initFunction, entity, entityValue);
                         else
-                            Messages.AddWarning("Unable to find initialize method for " + scriptData.ScriptName);
+                            Messages.AddWarning("Unable to find initialize(entity) method for " + scriptData.ScriptName);
                     }
                     scriptData.Loaded = true;
                 }
 
-                if (scriptData.Script != null && scriptData.UpdateFunctionCached != null)
+                if (scriptDataInternal != null && scriptDataInternal.UpdateFunctionCached != null)
                 {
-                    DynValue entityValue = DynValue.FromObject(scriptData.Script, entity);
-                    CallLuaFunction(scriptData.Script, scriptData.UpdateFunctionCached, entity, entityValue, tsluValue);
+                    DynValue entityValue = DynValue.FromObject(scriptDataInternal.Script, entity);
+                    CallLuaFunction(scriptDataInternal.Script, scriptDataInternal.UpdateFunctionCached, entity, entityValue, tsluValue);
                 }
             }
+
+            return keepRunning;
         }
 
-        public static void AddLuaTableForEnum<T>(Script lua)
+        private static void RegisterTypesIn(Assembly asm)
         {
-            Type enumType = typeof(T);
-            if (!enumType.IsEnum)
-                throw new ArgumentException("Type parameter must be for an Enum type");
+            foreach (Type type in asm.ExportedTypes)
+            {
+                if (!type.IsInterface)
+                    UserData.RegisterType(type);
 
-            string tableName = enumType.Name;
-            Table keyTable = new Table(lua);
-
-            foreach (string enumProperty in Enum.GetNames(enumType))
-                keyTable[enumProperty] = (int)Enum.Parse(enumType, enumProperty);
-            lua.Globals[tableName] = keyTable;
+            }
         }
 
         private static void CallLuaFunction(Script script, DynValue function, IEntity entity, params DynValue[] args)
@@ -160,6 +168,7 @@ namespace ProdigalSoftware.TiVE.ScriptSystem
             lua.Globals["color"] = (Func<float, float, float, Color3f>)LuaGlobalHelper.Color;
             lua.Globals["keyPressed"] = new Func<int, bool>(key => keyboard.IsKeyPressed((Keys)key));
             lua.Globals["voxelAt"] = new Func<float, float, float, uint>((x, y, z) => 0);
+            lua.Globals["stopRunning"] = new Action(() => keepRunning = false);
 
             //gameScript.Renderer = new Func<IGameWorldRenderer>(() => renderer);
             //gameScript.Camera = new Func<Camera>(() => renderer.Camera);
@@ -167,8 +176,65 @@ namespace ProdigalSoftware.TiVE.ScriptSystem
             //gameScript.GameWorld = new Func<GameWorld>(() => renderer.GameWorld);
             //gameScript.ReloadLevel = new Action(() => renderer.RefreshLevel());
             //gameScript.EmptyBlock = BlockImpl.Empty;
+            //gameScript.BlockAt = new Func<int, int, int, ushort>((blockX, blockY, blockZ) =>
+            //{
+            //    GameWorld gameWorld = renderer.GameWorld;
+            //    if (blockX < 0 || blockX >= gameWorld.BlockSize.X || blockY < 0 || blockY >= gameWorld.BlockSize.Y || blockZ < 0 || blockZ >= gameWorld.BlockSize.Z)
+            //        return 0;
+
+            //    return gameWorld[blockX, blockY, blockZ];
+            //});
+
+            //gameScript.VoxelAt = new Func<int, int, int, uint>((voxelX, voxelY, voxelZ) =>
+            //{
+            //    GameWorld gameWorld = renderer.GameWorld;
+            //    if (voxelX < 0 || voxelX >= gameWorld.VoxelSize.X || voxelY < 0 || voxelY >= gameWorld.VoxelSize.Y || voxelZ < 0 || voxelZ >= gameWorld.VoxelSize.Z)
+            //        return 0;
+
+            //    return gameWorld.GetVoxel(voxelX, voxelY, voxelZ);
+            //});
+
+            //gameScript.LoadWorld = new Func<string, GameWorld>(worldName =>
+            //{
+            //    BlockList blockList;
+            //    GameWorld newWorld = GameWorldManager.LoadGameWorld(worldName, out blockList);
+            //    if (newWorld == null)
+            //        throw new TiVEException("Failed to create game world");
+            //    newWorld.Initialize(blockList);
+            //    renderer.SetGameWorld(blockList, newWorld);
+            //    return newWorld;
+            //});
         }
 
+        public static void AddLuaTableForEnum<T>(Script lua)
+        {
+            Type enumType = typeof(T);
+            if (!enumType.IsEnum)
+                throw new ArgumentException("Type parameter must be for an Enum type");
+
+            string tableName = enumType.Name;
+            Table keyTable = new Table(lua);
+
+            foreach (string enumProperty in Enum.GetNames(enumType))
+                keyTable[enumProperty] = (int)Enum.Parse(enumType, enumProperty);
+            lua.Globals[tableName] = keyTable;
+        }
+
+        private sealed class ScriptDataInternal
+        {
+            public readonly Script Script;
+            public DynValue UpdateFunctionCached;
+
+            public ScriptDataInternal(Script script)
+            {
+                Script = script;
+            }
+        }
+
+        #region LuaGlobalHelper class
+        /// <summary>
+        /// Helper class to keep from having to create new functions via anonomous delegates for the script functions
+        /// </summary>
         private static class LuaGlobalHelper
         {
             public static void Print(object obj)
@@ -221,17 +287,6 @@ namespace ProdigalSoftware.TiVE.ScriptSystem
                 return new Color3f(r, g, b);
             }
         }
-
-        private sealed class SetPropertyBinder : SetMemberBinder
-        {
-            public SetPropertyBinder(string name) : base(name, false)
-            {
-            }
-
-            public override DynamicMetaObject FallbackSetMember(DynamicMetaObject target, DynamicMetaObject value, DynamicMetaObject errorSuggestion)
-            {
-                throw new NotImplementedException();
-            }
-        }
+        #endregion
     }
 }

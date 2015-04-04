@@ -138,7 +138,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem
         #endregion
 
         #region Properties
-        public IEnumerable<IEntity> Entities
+        public List<IEntity> Entities
         {
             get { return entities; }
         }

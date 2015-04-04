@@ -84,6 +84,7 @@
     <Compile Include="Color4f.cs" />
     <Compile Include="MathHelper.cs" />
     <Compile Include="Matrix4f.cs" />
+    <Compile Include="Plane.cs" />
     <Compile Include="Vector3f.cs" />
     <Compile Include="Vector3us.cs" />
     <Compile Include="MathUtils.cs" />

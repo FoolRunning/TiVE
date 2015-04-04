@@ -1,19 +1,24 @@
 ﻿using System;
 using System.ComponentModel;
+using System.Diagnostics;
+using System.Linq;
 using System.Windows.Forms;
 using OpenTK;
 using OpenTK.Graphics;
 using ProdigalSoftware.TiVE;
-using ProdigalSoftware.TiVE.RenderSystem;
+using ProdigalSoftware.TiVE.Core;
 using ProdigalSoftware.TiVE.RenderSystem.Lighting;
 using ProdigalSoftware.TiVE.RenderSystem.World;
+using ProdigalSoftware.TiVEPluginFramework;
+using ProdigalSoftware.TiVEPluginFramework.Components;
 
 namespace ProdigalSoftware.TiVEEditor.Common
 {
     internal class TiVEGameControl : GLControl
     {
         private readonly Timer timer = new Timer();
-        private readonly WorldChunkRenderer renderer = new WorldChunkRenderer(1);
+        private readonly Engine engine = new Engine();
+        private readonly Scene scene = new Scene();
         private readonly bool reallyDesignMode;
 
         public TiVEGameControl() : base(new GraphicsMode(32, 16, 0, 4), 3, 1, GraphicsContextFlags.ForwardCompatible)
@@ -31,35 +36,41 @@ namespace ProdigalSoftware.TiVEEditor.Common
 
         public GameWorld GameWorld
         {
-            get { return renderer.GameWorld; }
+            get { return scene.GameWorld; }
         }
 
         public LightProvider LightProvider
         {
-            get { return renderer.LightProvider; }
+            get { return scene.LightProvider; }
         }
 
         public BlockList BlockList
         {
-            get { return renderer.BlockList; }
+            get { return scene.BlockList; }
         }
 
-        public Camera Camera
+        public CameraComponent Camera
         {
-            get { return renderer.Camera; }
+            get 
+            {
+                IEntity entity = scene.GetEntitiesWithComponent<CameraComponent>().FirstOrDefault();
+                return entity != null ? entity.GetComponent<CameraComponent>() : null;
+            }
         }
 
         public void SetGameWorld(BlockList blockList, GameWorld gameWorld)
         {
-            renderer.SetGameWorld(blockList, gameWorld);
+            scene.SetGameWorld(gameWorld, blockList);
         }
 
         public void RefreshLevel(bool refreshStaticLighting)
         {
-            renderer.GameWorld.Initialize(renderer.BlockList);
-            if (refreshStaticLighting)
-                renderer.LightProvider.Calculate(renderer.BlockList, true);
-            renderer.RefreshLevel();
+            Console.WriteLine("Need to implement level refresh!");
+            Debug.Fail("implement me!");
+            //renderer.GameWorld.Initialize(renderer.BlockList);
+            //if (refreshStaticLighting)
+            //    renderer.LightProvider.Calculate(renderer.BlockList, true);
+            //renderer.RefreshLevel();
         }
 
         #region Overrides of GLControl
@@ -76,6 +87,7 @@ namespace ProdigalSoftware.TiVEEditor.Common
             {
                 MakeCurrent();
                 TiVEController.Backend.Initialize();
+                engine.InitializeSystems();
             }
         }
 
@@ -84,7 +96,8 @@ namespace ProdigalSoftware.TiVEEditor.Common
             if (!reallyDesignMode)
             {
                 MakeCurrent();
-                renderer.Dispose();
+                engine.DeleteCurrentScene();
+                engine.DisposeSystems();
             }
             base.OnHandleDestroyed(e);
         }
@@ -97,8 +110,7 @@ namespace ProdigalSoftware.TiVEEditor.Common
                 MakeCurrent();
                 TiVEController.Backend.BeforeRenderFrame();
                 
-                renderer.Update(0.0f);
-                renderer.Draw();
+                engine.UpdateSystems(1);
                 SwapBuffers();
             }
         }

@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
+using ProdigalSoftware.TiVEPluginFramework;
+using ProdigalSoftware.TiVEPluginFramework.Components;
 using ProdigalSoftware.Utils;
 
 namespace ProdigalSoftware.TiVE.Utils
@@ -19,6 +21,19 @@ namespace ProdigalSoftware.TiVE.Utils
                 throw new ArgumentOutOfRangeException("y");
             if (z < 0 || z >= size.Z)
                 throw new ArgumentOutOfRangeException("z");
+        }
+
+        /// <summary>
+        /// Determines if the specified bounding box is visible from the current location and orientation of the camera
+        /// </summary>
+        public static bool BoxInView(CameraComponent cameraData, BoundingBox box)
+        {
+            for (int i = 0; i < cameraData.FrustrumPlanes.Length; i++)
+            {
+                if (cameraData.FrustrumPlanes[i].DistanceFromPoint(box.GetPositivePoint(cameraData.FrustrumPlanes[i].PlaneNormal)) < 0)
+                    return false;
+            }
+            return true;
         }
     }
 }

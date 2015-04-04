@@ -1,5 +1,5 @@
 ﻿using System;
-using ProdigalSoftware.TiVEPluginFramework;
+using ProdigalSoftware.TiVEPluginFramework.Internal;
 
 namespace ProdigalSoftware.TiVE.Core.Backend
 {

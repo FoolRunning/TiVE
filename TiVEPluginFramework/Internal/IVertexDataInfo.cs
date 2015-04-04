@@ -1,4 +1,4 @@
-﻿namespace ProdigalSoftware.TiVEPluginFramework
+﻿namespace ProdigalSoftware.TiVEPluginFramework.Internal
 {
     /// <summary>
     /// Do nothing interface for support for RenderComponent to contain the vertex data needed for drawing without requiring the

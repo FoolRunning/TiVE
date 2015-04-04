@@ -17,17 +17,12 @@ namespace ProdigalSoftware.TiVE.Core
         private readonly Dictionary<Type, List<IEntity>> entityComponentTypeMap = new Dictionary<Type, List<IEntity>>(30);
         private readonly List<IEntity> entities = new List<IEntity>(3000);
 
-        private BlockList blockList;
-
         public IEnumerable<IEntity> AllEntities
         {
             get { return entities; }
         }
 
-        public BlockList BlockList
-        {
-            get { return blockList; }
-        }
+        public BlockList BlockList { get; private set; }
 
         public LightProvider LightProvider { get; private set; }
 
@@ -67,18 +62,33 @@ namespace ProdigalSoftware.TiVE.Core
 
         public void SetGameWorld(string worldName)
         {
-            GameWorld = GameWorldManager.LoadGameWorld(worldName, out blockList);
-            GameWorld.Initialize(blockList);
-            RenderNode = new RenderNode(GameWorld, this);
-
-            // Calculate static lighting
-            LightProvider = LightProvider.Get(GameWorld);
-            LightProvider.Calculate(blockList, false);
+            BlockList newBlockList;
+            GameWorld newGameWorld = GameWorldManager.LoadGameWorld(worldName, out newBlockList);
+            SetGameWorld(newGameWorld, newBlockList);
 
             // This seems to be needed for the GC to realize that the light information and the game world are long-lived
             // to keep it from causing pauses shortly after starting the render loop.
             for (int i = 0; i < 3; i++)
                 GC.Collect();
+        }
+        #endregion
+
+        #region Public methods
+        public void SetGameWorld(GameWorld newGameWorld, BlockList newBlockList)
+        {
+            if (newGameWorld == null)
+                throw new ArgumentNullException("newGameWorld");
+            if (newBlockList == null)
+                throw new ArgumentNullException("newBlockList");
+
+            GameWorld = newGameWorld;
+            BlockList = newBlockList;
+            GameWorld.Initialize(BlockList);
+            RenderNode = new RenderNode(GameWorld, this);
+
+            // Calculate static lighting
+            LightProvider = LightProvider.Get(GameWorld);
+            LightProvider.Calculate(BlockList, false);
         }
         #endregion
 

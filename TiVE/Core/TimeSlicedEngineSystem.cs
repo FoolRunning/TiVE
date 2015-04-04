@@ -34,18 +34,21 @@ namespace ProdigalSoftware.TiVE.Core
         /// </summary>
         /// <param name="timeSinceLastUpdate">The time (in seconds) since the last update</param>
         /// <param name="currentScene">The current scene</param>
-        protected abstract void Update(float timeSinceLastUpdate, Scene currentScene);
+        /// <returns>True to keep running, false to quit</returns>
+        protected abstract bool Update(float timeSinceLastUpdate, Scene currentScene);
         #endregion
 
         #region Implementation of EngineSystem
-        protected override void UpdateInternal(int ticksSinceLastFrame, Scene currentScene)
+        protected override bool UpdateInternal(int ticksSinceLastFrame, Scene currentScene)
         {
             ticksSinceLastUpdate += ticksSinceLastFrame;
             while (ticksSinceLastUpdate >= ticksPerUpdate)
             {
-                Update(timePerUpdate, currentScene);
+                if (!Update(timePerUpdate, currentScene))
+                    return false;
                 ticksSinceLastUpdate -= ticksPerUpdate;
             }
+            return true;
         }
         #endregion
     }
