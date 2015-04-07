@@ -387,6 +387,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
                             if (surroundingAreaCount == 1)
                             {
                                 dungeonMap[x, y].AreaId = 0;
+                                dungeonMap[x, y].LightId = 0;
                                 removedDeadEnd = true;
                             }
                         }
@@ -400,7 +401,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
         #region 3D world creation methods
         private static void FillWorld(IGameWorld gameWorld, IBlockList blockList, MazeCell[,] dungeonMap, int mazeStartAreaId)
         {
-            BlockRandomizer backWalls = new BlockRandomizer(blockList, "back", 6);
+            BlockRandomizer dirts = new BlockRandomizer(blockList, "back", 6);
             BlockRandomizer grasses = new BlockRandomizer(blockList, "grass", 50);
             BlockRandomizer stoneBacks = new BlockRandomizer(blockList, "backStone", 6);
             ushort stone = blockList["ston0"];
@@ -418,28 +419,37 @@ namespace ProdigalSoftware.ProjectM.Plugins
                     if (areaId == 0)
                     {
                         // Empty space
+                        gameWorld[x, y, 3] = stone;
                         gameWorld[x, y, 4] = stone;
                         gameWorld[x, y, 5] = stone;
                         gameWorld[x, y, 6] = stone;
                         gameWorld[x, y, 7] = stone;
-                        gameWorld[x, y, 8] = stone;
-                        //gameWorld[x, y, 9] = stone;
-                        //gameWorld[x, y, 10] = stone;
+
+                        if (mazeLocX == 0 || (dungeonMap[mazeLocX - 1, mazeLocY].AreaId > 0 && dungeonMap[mazeLocX - 1, mazeLocY].AreaId < mazeStartAreaId) ||
+                            mazeLocX == dungeonMap.GetLength(0) - 1 || (dungeonMap[mazeLocX + 1, mazeLocY].AreaId > 0 && dungeonMap[mazeLocX + 1, mazeLocY].AreaId < mazeStartAreaId) ||
+                            mazeLocY == 0 || (dungeonMap[mazeLocX, mazeLocY - 1].AreaId > 0 && dungeonMap[mazeLocX, mazeLocY - 1].AreaId < mazeStartAreaId) ||
+                            mazeLocY == dungeonMap.GetLength(1) - 1 || (dungeonMap[mazeLocX, mazeLocY + 1].AreaId > 0 && dungeonMap[mazeLocX, mazeLocY + 1].AreaId < mazeStartAreaId))
+                        {
+                            // Empty space next to a room
+                            gameWorld[x, y, 8] = stone;
+                            gameWorld[x, y, 9] = stone;
+                            gameWorld[x, y, 10] = stone;
+                        }
                     }
                     else if (areaId == DoorAreaId)
                     {
-                        gameWorld[x, y, 4] = backWalls.NextBlock();
+                        gameWorld[x, y, 3] = dirts.NextBlock();
                     }
                     else if (areaId >= mazeStartAreaId)
                     {
                         // Maze
-                        gameWorld[x, y, 4] = backWalls.NextBlock();
-                        gameWorld[x, y, 5] = grasses.NextBlock();
+                        gameWorld[x, y, 3] = dirts.NextBlock();
+                        gameWorld[x, y, 4] = grasses.NextBlock();
                     }
                     else
                     {
                         // Room
-                        gameWorld[x, y, 4] = stoneBacks.NextBlock();
+                        gameWorld[x, y, 3] = stoneBacks.NextBlock();
                     }
 
                     int lightId = dungeonMap[mazeLocX, mazeLocY].LightId;
@@ -447,7 +457,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
                     {
                         // Light
                         if (lightId == RoomLightId)
-                            gameWorld[x, y, 8] = blockList["roomLight"];
+                            gameWorld[x, y, 9] = blockList["roomLight"];
                         else
                         {
                             // For maze lights, move the light near to the maze walls so it's not in the middle of the path
@@ -465,7 +475,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
                             if (mazeLocY == dungeonMap.GetLength(1) - 1 || dungeonMap[mazeLocX, mazeLocY + 1].AreaId == 0)
                                 lightLocY++;
 
-                            gameWorld[lightLocX, lightLocY, 6] = blockList["light" + (lightId - 1)];
+                            gameWorld[lightLocX, lightLocY, 5] = blockList["light" + (lightId - 1)];
                         }
                     }
                 }

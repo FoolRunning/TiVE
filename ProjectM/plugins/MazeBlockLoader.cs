@@ -192,9 +192,9 @@ namespace ProdigalSoftware.ProjectM.Plugins
             yield return fireBlock;
 
             yield return CreateBlockInfo("roomLight", 5, new Color4f(1.0f, 1.0f, 1.0f, 1.0f), 1.0f, null,
-                new LightComponent(blockCenterVector, new Color3f(1.0f, 1.0f, 1.0f), 30));
+                new LightComponent(blockCenterVector, new Color3f(1.0f, 1.0f, 1.0f), 40));
 
-            const int lightDist = 20;
+            const int lightDist = 40;
             ParticleComponent bugInformation = new ParticleComponent("LightBugs", new Vector3i(bc, bc, bc));
 
             yield return CreateBlockInfo("light0", 2, new Color4f(0.5f, 0.8f, 1.0f, 1.0f), 1.0f, bugInformation,

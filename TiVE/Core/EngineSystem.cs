@@ -1,52 +1,34 @@
-﻿using System;
-using System.Diagnostics;
-using ProdigalSoftware.TiVE.Debugging;
-
-namespace ProdigalSoftware.TiVE.Core
+﻿namespace ProdigalSoftware.TiVE.Core
 {
-    internal abstract class EngineSystem : IDisposable
+    internal abstract class EngineSystem : EngineSystemBase
     {
-        private static readonly int timeBetweenTimingUpdates = (int)(Stopwatch.Frequency / 2); // 1/2 second
-
-        private readonly SystemTimingHelper timing = new SystemTimingHelper(2, true);
-        private int ticksSinceLastTimingUpdate;
-
-        protected EngineSystem(string debuggingName)
+        protected EngineSystem(string debuggingName) : base(debuggingName)
         {
-            DebuggingName = debuggingName;
-        }
-
-        public string TimingInfo
-        {
-            get { return timing.DisplayedValue; }
-        }
-
-        public string DebuggingName { get; private set; }
-
-        public abstract void Dispose();
-
-        public abstract bool Initialize();
-
-        public void Update(int ticksSinceLastFrame, Scene currentScene)
-        {
-            ticksSinceLastTimingUpdate += ticksSinceLastFrame;
-            if (ticksSinceLastTimingUpdate >= timeBetweenTimingUpdates)
-            {
-                timing.UpdateDisplayedTime();
-                ticksSinceLastTimingUpdate -= timeBetweenTimingUpdates;
-            }
-
-            timing.StartTime();
-            UpdateInternal(ticksSinceLastFrame, currentScene);
-            timing.PushTime();
         }
 
         /// <summary>
         /// Do one update step
         /// </summary>
         /// <param name="ticksSinceLastUpdate">The number of ticks (10,000th of a second) since the last update was called</param>
+        /// <param name="timeBlendFactor">Factor (between 0 and 1) of the amount of time left in the time step from the previous update</param>
         /// <param name="currentScene">The current scene</param>
         /// <returns>True to keep running, false to quit</returns>
-        protected abstract bool UpdateInternal(int ticksSinceLastUpdate, Scene currentScene);
+        public bool Update(int ticksSinceLastUpdate, float timeBlendFactor, Scene currentScene)
+        {
+            timing.StartTime();
+            bool keepRunning = UpdateInternal(ticksSinceLastUpdate, timeBlendFactor, currentScene);
+            timing.PushTime();
+
+            return keepRunning;
+        }
+
+        /// <summary>
+        /// Do one update step
+        /// </summary>
+        /// <param name="ticksSinceLastUpdate">The number of ticks (10,000th of a second) since the last update was called</param>
+        /// <param name="timeBlendFactor">Factor (between 0 and 1) of the amount of time left in the time step from the previous update</param>
+        /// <param name="currentScene">The current scene</param>
+        /// <returns>True to keep running, false to quit</returns>
+        protected abstract bool UpdateInternal(int ticksSinceLastUpdate, float timeBlendFactor, Scene currentScene);
     }
 }

@@ -17,22 +17,22 @@ namespace ProdigalSoftware.TiVE.ScriptSystem
     /// </summary>
     internal sealed class ScriptSystem : TimeSlicedEngineSystem
     {
-        private const int UpdatesPerSecond = 60;
-
         private readonly Dictionary<string, ScriptDataInternal> scripts = new Dictionary<string, ScriptDataInternal>();
         private readonly IKeyboard keyboard;
         private readonly IMouse mouse;
         private bool keepRunning;
 
-        public ScriptSystem(IKeyboard keyboard, IMouse mouse) : base("Scripts", UpdatesPerSecond)
+        public ScriptSystem(IKeyboard keyboard, IMouse mouse) : base("Scripts")
         {
             this.keyboard = keyboard;
             this.mouse = mouse;
         }
 
+        #region Implementation of TimeSlicedEngineSystem
         public override bool Initialize()
         {
             Messages.Print("Loading scripts...");
+            keepRunning = true;
 
             // Register anything explicitly registered as script-accessible
             foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies())
@@ -55,17 +55,10 @@ namespace ProdigalSoftware.TiVE.ScriptSystem
             {
                 foreach (string file in Directory.EnumerateFiles(dataDir, "*.lua", SearchOption.AllDirectories))
                 {
-                    try
-                    {
-                        Script script = new Script();
-                        AddLuaGlobals(script);
-                        script.DoFile(file);
-                        scripts.Add(Path.GetFileNameWithoutExtension(file), new ScriptDataInternal(script));
-                    }
-                    catch (InterpreterException e)
-                    {
-                        errors.Add(e.Message);
-                    }
+                    Script script = new Script();
+                    AddLuaGlobals(script);
+                    script.DoFile(file);
+                    scripts.Add(Path.GetFileNameWithoutExtension(file), new ScriptDataInternal(script));
                 }
             }
 
@@ -86,7 +79,7 @@ namespace ProdigalSoftware.TiVE.ScriptSystem
             scripts.Clear();
         }
 
-        protected override bool Update(float timeSinceLastUpdate, Scene currentScene)
+        protected override bool UpdateInternal(float timeSinceLastUpdate, Scene currentScene)
         {
             keyboard.Update();
 
@@ -126,7 +119,9 @@ namespace ProdigalSoftware.TiVE.ScriptSystem
 
             return keepRunning;
         }
+        #endregion
 
+        #region Private helper methods
         private static void RegisterTypesIn(Assembly asm)
         {
             foreach (Type type in asm.ExportedTypes)
@@ -139,6 +134,13 @@ namespace ProdigalSoftware.TiVE.ScriptSystem
 
         private static void CallLuaFunction(Script script, DynValue function, IEntity entity, params DynValue[] args)
         {
+            CameraComponent cameraData = entity.GetComponent<CameraComponent>();
+            if (cameraData != null)
+            {
+                cameraData.PrevLocation = cameraData.Location;
+                cameraData.PrevLookAtLocation = cameraData.LookAtLocation;
+            }
+
             try
             {
                 script.Call(function, args);
@@ -219,7 +221,9 @@ namespace ProdigalSoftware.TiVE.ScriptSystem
                 keyTable[enumProperty] = (int)Enum.Parse(enumType, enumProperty);
             lua.Globals[tableName] = keyTable;
         }
+        #endregion
 
+        #region ScriptDataInternal class
         private sealed class ScriptDataInternal
         {
             public readonly Script Script;
@@ -230,6 +234,7 @@ namespace ProdigalSoftware.TiVE.ScriptSystem
                 Script = script;
             }
         }
+        #endregion
 
         #region LuaGlobalHelper class
         /// <summary>

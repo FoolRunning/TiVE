@@ -12,18 +12,37 @@ namespace ProdigalSoftware.TiVE.Core
 {
     internal sealed class Engine
     {
-        private readonly List<EngineSystem> systems = new List<EngineSystem>();
+        private readonly int maxTicksPerUpdate = (int)(Stopwatch.Frequency / 10);
+
+        private readonly List<EngineSystemBase> systems = new List<EngineSystemBase>();
+        private readonly float timePerUpdate;
+        private readonly int ticksPerUpdate;
+        private readonly object syncLock = new object();
+        private int ticksSinceLastUpdate;
+
+        private Thread sceneLoadThread;
         private bool continueMainLoop = true;
         private Scene currentScene;
         private string currentSceneName;
-        private readonly object syncLock = new object();
 
-        public void AddSystem(EngineSystem system)
+        /// <summary>
+        /// Creates a new Engine that updates at the specified rate
+        /// </summary>
+        public Engine(int updatesPerSecond)
+        {
+            if (updatesPerSecond <= 0)
+                throw new ArgumentException("updatesPerSecond must be greater then zero");
+
+            ticksPerUpdate = (int)(Stopwatch.Frequency / updatesPerSecond);
+            timePerUpdate = 1.0f / updatesPerSecond;
+        }
+
+        public void AddSystem(EngineSystemBase system)
         {
             systems.Add(system);
         }
 
-        public void LoadScene(string sceneName, bool useSeparateThread)
+        private void LoadScene(string sceneName, bool useSeparateThread)
         {
             currentSceneName = sceneName;
             ThreadStart loadSceneAction = () =>
@@ -39,20 +58,21 @@ namespace ProdigalSoftware.TiVE.Core
                         break;
                     }
                 }
+                sceneLoadThread = null;
             };
 
             if (!useSeparateThread)
                 loadSceneAction();
             else
             {
-                Thread sceneLoadThread = new Thread(loadSceneAction);
+                sceneLoadThread = new Thread(loadSceneAction);
                 sceneLoadThread.Name = "Scene Load";
                 sceneLoadThread.IsBackground = true;
                 sceneLoadThread.Start();
             }
         }
 
-        public void SetScene(Scene newScene)
+        private void SetScene(Scene newScene)
         {
             lock (syncLock)
             {
@@ -81,21 +101,33 @@ namespace ProdigalSoftware.TiVE.Core
             NativeDisplayResized(nativeDisplay.ClientBounds); // Make sure we start out at the correct size
 
             continueMainLoop = InitializeSystems();
-
-            LoadScene("Loading", false);
-            LoadScene(sceneToLoad, true);
+            if (continueMainLoop)
+            {
+                LoadScene("Loading", false);
+                LoadScene(sceneToLoad, true);
+            }
 
             long previousTime = Stopwatch.GetTimestamp();
             while (continueMainLoop)
             {
                 long currentTime = Stopwatch.GetTimestamp();
                 int ticksSinceLastFrame = (int)(currentTime - previousTime);
+                if (ticksSinceLastFrame > maxTicksPerUpdate)
+                    ticksSinceLastFrame = maxTicksPerUpdate;
+
                 previousTime = currentTime;
 
                 nativeDisplay.ProcessNativeEvents();
                 TiVEController.Backend.BeforeRenderFrame();
                 UpdateSystems(ticksSinceLastFrame);
                 nativeDisplay.UpdateDisplayContents();
+            }
+
+            if (sceneLoadThread != null)
+            {
+                // Something bad probably happened while loading the next scene.
+                sceneLoadThread.Abort();
+                sceneLoadThread.Join();
             }
 
             DisposeSystems();
@@ -125,19 +157,37 @@ namespace ProdigalSoftware.TiVE.Core
 
         public void UpdateSystems(int ticksSinceLastFrame)
         {
+            ticksSinceLastUpdate += ticksSinceLastFrame;
+            int slicedUpdateCount = ticksSinceLastUpdate / ticksPerUpdate;
+            ticksSinceLastUpdate -= slicedUpdateCount * ticksPerUpdate;
+
+            float timeBlendFactor = ticksSinceLastUpdate / (float)ticksPerUpdate;
             lock (syncLock) // Don't let the scene change while updating
             {
-                for (int i = 0; i < systems.Count; i++)
+                for (int sys = 0; sys < systems.Count; sys++)
                 {
+                    systems[sys].UpdateTiming(ticksSinceLastFrame);
+
                     try
                     {
-                        systems[i].Update(ticksSinceLastFrame, currentScene);
+                        TimeSlicedEngineSystem slicedSystem = systems[sys] as TimeSlicedEngineSystem;
+                        bool keepRunning = true;
+                        if (slicedSystem == null)
+                            keepRunning = ((EngineSystem)systems[sys]).Update(ticksSinceLastFrame, timeBlendFactor, currentScene);
+                        else
+                        {
+                            for (int i = 0; i < slicedUpdateCount; i++)
+                                keepRunning = slicedSystem.Update(timePerUpdate, currentScene);
+                        }
+                        if (!keepRunning)
+                            continueMainLoop = false;
                     }
                     catch (Exception e)
                     {
-                        Messages.AddError("Exception when updating " + systems[i].DebuggingName + ":");
+                        Messages.AddError("Exception when updating " + systems[sys].DebuggingName + ":");
                         Messages.AddStackTrace(e);
                         continueMainLoop = false;
+                        break;
                     }
                 }
             }

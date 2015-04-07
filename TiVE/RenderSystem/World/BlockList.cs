@@ -52,7 +52,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
             get { return blockToIndexMap[blockName]; }
         }
 
-        public Block this[int blockIndex]
+        public Block this[ushort blockIndex]
         {
             get { return blocks[blockIndex]; }
         }

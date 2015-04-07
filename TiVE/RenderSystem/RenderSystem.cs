@@ -55,7 +55,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem
             return shaderManager.Initialize();
         }
 
-        protected override bool UpdateInternal(int ticksSinceLastFrame, Scene currentScene)
+        protected override bool UpdateInternal(int ticksSinceLastFrame, float timeBlendFactor, Scene currentScene)
         {
             if (currentScene == null)
                 return true;

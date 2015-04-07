@@ -114,7 +114,8 @@ namespace ProdigalSoftware.TiVE.RenderSystem
             foreach (IEntity entity in entitiesToRender)
             {
                 RenderComponent renderData = entity.GetComponent<RenderComponent>();
-                Debug.Assert(renderData != null);
+                if (renderData == null)
+                    continue;
 
                 if (!loadedEntities.Contains(entity))
                     LoadEntity(entity, renderData, WorstVoxelDetailLevel); // Initially load at the worst detail level
@@ -289,8 +290,8 @@ namespace ProdigalSoftware.TiVE.RenderSystem
                             continue;
 
                         BlockImpl block = (BlockImpl)blockList[blockIndex];
-                        //if (block.NextBlock != null)
-                        //    continue;
+                        if (block.TotalVoxels == 0)
+                            continue;
 
                         voxelCount += block.TotalVoxels;
 

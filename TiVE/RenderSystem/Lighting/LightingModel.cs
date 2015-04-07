@@ -6,7 +6,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
 {
     internal abstract class LightingModel
     {
-        private const float MinRealisticLightPercent = 0.01f;
+        public const float MinRealisticLightPercent = 0.005f;
 
         private static readonly LightingModel realistic = new RealisticLightingModel();
         private static readonly LightingModel brightRealistic = new BrightRealisticLightingModel();

@@ -52,7 +52,7 @@ namespace ProdigalSoftware.TiVE
 
         internal static void RunEngine(string sceneToLoad)
         {
-            Engine = new Engine();
+            Engine = new Engine(60);
             Engine.AddSystem(new ScriptSystem.ScriptSystem(Backend.Keyboard, Backend.Mouse));
             Engine.AddSystem(new CameraSystem.CameraSystem());
             Engine.AddSystem(new RenderSystem.RenderSystem());

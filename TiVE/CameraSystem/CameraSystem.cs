@@ -31,7 +31,7 @@ namespace ProdigalSoftware.TiVE.CameraSystem
             return true;
         }
 
-        protected override bool UpdateInternal(int ticksSinceLastUpdate, Scene currentScene)
+        protected override bool UpdateInternal(int ticksSinceLastUpdate, float timeBlendFactor, Scene currentScene)
         {
             foreach (IEntity entity in currentScene.GetEntitiesWithComponent<CameraComponent>())
             {
@@ -50,7 +50,9 @@ namespace ProdigalSoftware.TiVE.CameraSystem
 
                 // Calculate the view matrix
                 Matrix4f viewMatrix;
-                Matrix4f.LookAt(cameraData.Location, cameraData.LookAtLocation, cameraData.UpVector, out viewMatrix);
+                Vector3f blendedLocation = cameraData.Location * timeBlendFactor + cameraData.PrevLocation * (1.0f - timeBlendFactor);
+                Vector3f blendedLookAtLocation = cameraData.LookAtLocation * timeBlendFactor + cameraData.PrevLookAtLocation * (1.0f - timeBlendFactor);
+                Matrix4f.LookAt(blendedLocation, blendedLookAtLocation, cameraData.UpVector, out viewMatrix);
 
                 // Create and cache the view projection matrix
                 Matrix4f.Mult(ref viewMatrix, ref projectionMatrix, out cameraData.ViewProjectionMatrix);

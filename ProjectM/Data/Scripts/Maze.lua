@@ -1,5 +1,5 @@
-﻿WorldXSize = 0;
-WorldYSize = 0;
+﻿WorldXSize = 500;
+WorldYSize = 500;
 WorldZSize = 0;
 
 function initialize(entity)
@@ -19,6 +19,10 @@ end
 function update(entity, timeSinceLastFrame)
     camera = entity.GetComponent("CameraComponent")
     camLoc = camera.Location
+
+    if (keyPressed(Keys.Escape)) then -- Stop running demo
+        stopRunning()
+    end
 
     speed = 2
     if (keyPressed(Keys.LShift)) then --Speed up
