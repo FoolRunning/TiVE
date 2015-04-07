@@ -70,7 +70,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
             for (int i = 0; i < blockList.BlockCount; i++)
             {
                 BlockImpl block = blockList.AllBlocks[i];
-                blockLightPassThrough[i] = block.HasComponent<TransparentComponent>();
+                blockLightPassThrough[i] = (i == 0 || block.HasComponent<TransparentComponent>());
                 Array.Copy(block.VoxelsArray, 0, blockVoxels, i * BlockTotalVoxelCount, BlockTotalVoxelCount);
                 if (!block.HasComponent<LightComponent>())
                     Array.Copy(block.VoxelsArray, 0, blockVoxelsForLighting, i * BlockTotalVoxelCount, BlockTotalVoxelCount);
@@ -140,8 +140,8 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
             int prevBlockX = 0;
             int prevBlockY = 0;
             int prevBlockZ = 0;
+            ushort block = blocks[GetBlockOffset(blockX, blockY, blockZ)];
 
-            ushort block = blocks[GetBlockOffset(blockX, blockY, blockZ)]; 
             do
             {
                 if (tMaxX < tMaxY)
@@ -200,7 +200,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
         /// Voxel transversal algorithm taken from: http://www.cse.chalmers.se/edu/year/2011/course/TDA361_Computer_Graphics/grid.pdf
         /// Modified with optimizations for TiVE.
         /// </summary>
-        public bool LessThanBlockCountInLine(int x, int y, int z, int endX, int endY, int endZ, int maxBlocks, IBlockList blockList)
+        public bool LessThanBlockCountInLine(int x, int y, int z, int endX, int endY, int endZ, int maxBlocks)
         {
             if (x == endX && y == endY && z == endZ)
                 return true;
@@ -245,12 +245,12 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
                     return true;
 
                 ushort block = blocks[GetBlockOffset(x, y, z)];
-                if (block != 0 && !blockLightPassThrough[block] && ++blockCount >= maxBlocks) 
+                if (!blockLightPassThrough[block] && ++blockCount >= maxBlocks)
                     return false;
             }
             while (true);
         }
-        
+
         #region Private helper methods
         /// <summary>
         /// Gets the offset into the game world blocks array for the block at the specified location

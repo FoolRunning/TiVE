@@ -4,9 +4,9 @@ namespace ProdigalSoftware.TiVEPluginFramework
 {
     public enum TransparencyType
     {
-        None,
-        Realistic,
-        Additive
+        None = 0,
+        Additive = 1,
+        Realistic = 2
     }
 
     /// <summary>

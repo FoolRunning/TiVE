@@ -246,7 +246,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
             #region Implementation of ParticleController
             public override uint[,,] ParticleVoxels
             {
-                get { throw new NotImplementedException(); }
+                get { return new[, ,] { { { 0xFFFFFFFF } } }; }
             }
 
             public override void Update(Particle particle, float timeSinceLastFrame, Vector3i systemLocation)
@@ -286,7 +286,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
             private static Color4b CreateColor()
             {
                 byte intensity = (byte)(150 + random.Next(100));
-                return new Color4b(intensity, intensity, intensity, 155);
+                return new Color4b(intensity, intensity, intensity, 200);
             }
         }
         #endregion

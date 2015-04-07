@@ -7,6 +7,7 @@ using ProdigalSoftware.TiVE.RenderSystem.Meshes;
 using ProdigalSoftware.TiVE.RenderSystem.Voxels;
 using ProdigalSoftware.TiVE.Settings;
 using ProdigalSoftware.TiVEPluginFramework;
+using ProdigalSoftware.TiVEPluginFramework.Components;
 using ProdigalSoftware.Utils;
 
 namespace ProdigalSoftware.TiVE.ParticleSystem
@@ -99,7 +100,7 @@ namespace ProdigalSoftware.TiVE.ParticleSystem
         /// <summary>
         /// Adds the specified particle entity to this collection
         /// </summary>
-        public void Add(IEntity entity)
+        public void Add(IEntity entity, ParticleComponent particleData)
         {
             using (new PerformanceLock(particleSystems))
             {
@@ -121,6 +122,7 @@ namespace ProdigalSoftware.TiVE.ParticleSystem
                 }
 
                 particleSystems[availableIndex].Reset();
+                particleSystems[availableIndex].Location = particleData.Location;
                 particleSystems[availableIndex].InUse = true;
                 particleSystemIndex[entity] = availableIndex;
             }
@@ -173,26 +175,10 @@ namespace ProdigalSoftware.TiVE.ParticleSystem
         /// <summary>
         /// Renders all particles in all systems in this collection
         /// </summary>
-        public RenderStatistics Render(ShaderManager shaderManager, ref Matrix4f matrixMVP)
+        public RenderStatistics Render()
         {
             if (instances == null)
-            {
-                // Initialize the data for use in the renderer
-                instances = TiVEController.Backend.CreateVertexDataCollection();
-                instances.AddBuffer(voxelInstanceLocationData);
-                if (TiVEController.UserSettings.Get(UserSettings.ShadedVoxelsKey))
-                    instances.AddBuffer(voxelInstanceColorData);
-
-                locationData = TiVEController.Backend.CreateData(locations, 0, 3, DataType.Instance, DataValueType.UShort, false, true);
-                instances.AddBuffer(locationData);
-                colorData = TiVEController.Backend.CreateData(colors, 0, 4, DataType.Instance, DataValueType.Byte, true, true);
-                instances.AddBuffer(colorData);
-                instances.Initialize();
-            }
-
-            IShaderProgram shader = shaderManager.GetShaderProgram(VoxelMeshHelper.Get(true).ShaderName);
-            shader.Bind();
-            shader.SetUniform("matrix_ModelViewProjection", ref matrixMVP);
+                instances = CreateInstanceDataBuffer(out locationData, out colorData);
 
             if (controller.TransparencyType != TransparencyType.None)
             {
@@ -221,6 +207,22 @@ namespace ProdigalSoftware.TiVE.ParticleSystem
                 totalParticles * voxelsPerParticle, totalParticles * renderedVoxelsPerParticle);
         }
         #endregion
+
+        private IVertexDataCollection CreateInstanceDataBuffer(out IRendererData locData, out IRendererData colData)
+        {
+            IVertexDataCollection instanceData = TiVEController.Backend.CreateVertexDataCollection();
+            instanceData.AddBuffer(voxelInstanceLocationData);
+            if (TiVEController.UserSettings.Get(UserSettings.ShadedVoxelsKey))
+                instanceData.AddBuffer(voxelInstanceColorData);
+
+            locData = TiVEController.Backend.CreateData(locations, 0, 3, DataType.Instance, DataValueType.UShort, false, true);
+            instanceData.AddBuffer(locData);
+            colData = TiVEController.Backend.CreateData(colors, 0, 4, DataType.Instance, DataValueType.Byte, true, true);
+            instanceData.AddBuffer(colData);
+            instanceData.Initialize();
+
+            return instanceData;
+        }
 
         #region ParticleSystemSorter class
         /// <summary>

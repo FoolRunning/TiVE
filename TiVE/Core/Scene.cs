@@ -6,6 +6,8 @@ using ProdigalSoftware.TiVE.RenderSystem;
 using ProdigalSoftware.TiVE.RenderSystem.Lighting;
 using ProdigalSoftware.TiVE.RenderSystem.World;
 using ProdigalSoftware.TiVEPluginFramework;
+using ProdigalSoftware.TiVEPluginFramework.Components;
+using ProdigalSoftware.Utils;
 
 namespace ProdigalSoftware.TiVE.Core
 {
@@ -65,11 +67,35 @@ namespace ProdigalSoftware.TiVE.Core
             BlockList newBlockList;
             GameWorld newGameWorld = GameWorldManager.LoadGameWorld(worldName, out newBlockList);
             SetGameWorld(newGameWorld, newBlockList);
+            CreateEntitiesForBlockComponents(newGameWorld, newBlockList);
 
             // This seems to be needed for the GC to realize that the light information and the game world are long-lived
             // to keep it from causing pauses shortly after starting the render loop.
             for (int i = 0; i < 3; i++)
                 GC.Collect();
+        }
+
+        private void CreateEntitiesForBlockComponents(GameWorld gameWorld, BlockList blockList)
+        {
+            for (int z = 0; z < gameWorld.BlockSize.Z; z++)
+            {
+                for (int x = 0; x < gameWorld.BlockSize.X; x++)
+                {
+                    for (int y = 0; y < gameWorld.BlockSize.Y; y++)
+                    {
+                        BlockImpl block = (BlockImpl)blockList[gameWorld[x, y, z]];
+                        ParticleComponent particleData = block.GetComponent<ParticleComponent>();
+                        if (particleData != null)
+                        {
+                            IEntity entity = CreateNewEntity(string.Format("BlockParticles({0}, {1}, {2})", x, y, z));
+                            entity.AddComponent(new ParticleComponent(particleData.ControllerName, 
+                                new Vector3i(x * Block.VoxelSize + particleData.Location.X,
+                                    y * Block.VoxelSize + particleData.Location.Y,
+                                    z * Block.VoxelSize + particleData.Location.Z)));
+                        }
+                    }
+                }
+            }
         }
         #endregion
 
@@ -104,6 +130,35 @@ namespace ProdigalSoftware.TiVE.Core
             }
 
             entitiesWithType.Add(entity);
+
+            /*if (component is RenderComponent)
+                AddEntityToRenderNode(entity, ((RenderComponent)component).BoundingBox, RenderNode);
+            else*/ if (component is ParticleComponent)
+            {
+                Vector3i loc = ((ParticleComponent)component).Location;
+                AddEntityToRenderNode(entity, 
+                    new BoundingBox(new Vector3f(loc.X - 20, loc.Y - 20, loc.Z - 20), new Vector3f(loc.X + 20, loc.Y + 20, loc.Z + 20)), RenderNode);
+            }
+        }
+
+        private void AddEntityToRenderNode(IEntity entity, BoundingBox boundingBox, RenderNode node)
+        {
+            if (node.Entities != null)
+            {
+                node.Entities.Add(entity);
+                return;
+            }
+
+            RenderNode[] childrenLocal = node.ChildNodes;
+            for (int i = 0; i < childrenLocal.Length; i++)
+            {
+                RenderNode childNode = childrenLocal[i];
+                if (childNode != null)
+                {
+                    if (childNode.BoundingBox.IntersectsWith(boundingBox))
+                        AddEntityToRenderNode(entity, boundingBox, childNode);
+                }
+            }
         }
         #endregion
 

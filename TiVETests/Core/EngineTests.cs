@@ -12,7 +12,7 @@ namespace TiVETests.Core
             TestSystem system1 = new TestSystem();
             TestSystem system2 = new TestSystem();
             TestSystem system3 = new TestSystem();
-            Engine engine = new Engine();
+            Engine engine = new Engine(5);
             
             engine.AddSystem(system1);
             engine.UpdateSystems(12);
@@ -58,7 +58,7 @@ namespace TiVETests.Core
                 return true;
             }
 
-            protected override bool UpdateInternal(int ticksSinceLastUpdate, Scene currentScene)
+            protected override bool UpdateInternal(int ticksSinceLastUpdate, float timeBlendFactor, Scene currentScene)
             {
                 UpdateCount++;
                 TotalTicks += ticksSinceLastUpdate;

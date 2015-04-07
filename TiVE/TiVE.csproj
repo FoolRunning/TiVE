@@ -118,6 +118,7 @@
     <Compile Include="Core\Backend\OpenTKImpl\VertexDataCollection.cs" />
     <Compile Include="Core\Engine.cs" />
     <Compile Include="Core\EngineSystem.cs" />
+    <Compile Include="Core\EngineSystemBase.cs" />
     <Compile Include="Core\Factory.cs" />
     <Compile Include="Core\Scene.cs" />
     <Compile Include="Core\TimeSlicedEngineSystem.cs" />

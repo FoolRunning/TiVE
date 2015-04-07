@@ -9,6 +9,6 @@ namespace ProdigalSoftware.TiVEPluginFramework
         ushort this[string blockName] { get; }
 
         [UsedImplicitly]
-        Block this[int blockIndex] { get; }
+        Block this[ushort blockIndex] { get; }
     }
 }

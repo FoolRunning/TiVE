@@ -3,7 +3,9 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using ProdigalSoftware.TiVE.Core;
+using ProdigalSoftware.TiVE.Core.Backend;
 using ProdigalSoftware.TiVE.RenderSystem;
+using ProdigalSoftware.TiVE.RenderSystem.Voxels;
 using ProdigalSoftware.TiVE.Settings;
 using ProdigalSoftware.TiVE.Starter;
 using ProdigalSoftware.TiVEPluginFramework;
@@ -13,11 +15,12 @@ using ProdigalSoftware.Utils;
 
 namespace ProdigalSoftware.TiVE.ParticleSystem
 {
-    internal sealed class ParticleSystem : TimeSlicedEngineSystem
+    internal sealed class ParticleSystem : EngineSystem
     {
         private const int UpdatesPerSecond = 60;
 
         private readonly List<ParticleEmitterCollection> renderList = new List<ParticleEmitterCollection>();
+        private readonly List<ParticleEmitterCollection> updateList = new List<ParticleEmitterCollection>();
 
         private readonly HashSet<IEntity> systemsToRender = new HashSet<IEntity>();
         private readonly HashSet<IEntity> runningSystems = new HashSet<IEntity>();
@@ -31,7 +34,7 @@ namespace ProdigalSoftware.TiVE.ParticleSystem
         private Thread particleUpdateThread;
         private volatile bool stopThread;
 
-        public ParticleSystem() : base("Particles", UpdatesPerSecond)
+        public ParticleSystem() : base("Particles")
         {
             controllerGenerator = TiVEController.PluginManager.GetPluginsOfType<IParticleControllerGenerator>().FirstOrDefault();
         }
@@ -45,7 +48,15 @@ namespace ProdigalSoftware.TiVE.ParticleSystem
             foreach (ParticleEmitterCollection systemCollection in particleSystemCollections.Values)
                 systemCollection.Dispose();
             particleSystemCollections.Clear();
+
+            renderList.Clear();
+            updateList.Clear();
+            systemsToRender.Clear();
+            systemsToDelete.Clear();
+            runningSystems.Clear();
             shaderManager.Dispose();
+
+            particleUpdateThread = null;
             loadedScene = null;
         }
 
@@ -65,40 +76,44 @@ namespace ProdigalSoftware.TiVE.ParticleSystem
             return shaderManager.Initialize();
         }
 
-        protected override bool UpdateInternal(int ticksSinceLastFrame, Scene currentScene)
+        protected override bool UpdateInternal(int ticksSinceLastFrame, float timeBlendFactor, Scene currentScene)
         {
             loadedScene = currentScene;
 
             CameraComponent cameraData = FindCamera(currentScene);
             if (cameraData == null)
-                return base.UpdateInternal(ticksSinceLastFrame, currentScene); // Couldn't find a camera to determine view projection matrix
+                return true; // Couldn't find a camera to determine view projection matrix
+
+            Bla(cameraData);
+            //if (particleUpdateThread == null)
+            //{
+            //    // Running in single-threaded mode
+            //    UpdateEntities(timeSinceLastUpdate);
+            //}
+
+
+            IShaderProgram shader = shaderManager.GetShaderProgram(VoxelMeshHelper.Get(true).ShaderName);
+            shader.Bind();
+            shader.SetUniform("matrix_ModelViewProjection", ref cameraData.ViewProjectionMatrix);
 
             renderList.Clear();
             using (new PerformanceLock(particleSystemCollections))
                 renderList.AddRange(particleSystemCollections.Values);
+            
+            // Sort by transparency type
+            renderList.Sort((em1, em2) => em1.TransparencyType.CompareTo(em2.TransparencyType));
 
             RenderStatistics stats = new RenderStatistics();
-            // Render opaque particles first
-            foreach (ParticleEmitterCollection system in renderList.Where(s => s.TransparencyType == TransparencyType.None))
-                stats += system.Render(shaderManager, ref cameraData.ViewProjectionMatrix);
+            for (int i = 0; i < renderList.Count; i++)
+                stats += renderList[i].Render();
 
-            // Render transparent particles last
-            foreach (ParticleEmitterCollection system in renderList.Where(s => s.TransparencyType == TransparencyType.Additive))
-                stats += system.Render(shaderManager, ref cameraData.ViewProjectionMatrix);
-
-            foreach (ParticleEmitterCollection system in renderList.Where(s => s.TransparencyType == TransparencyType.Realistic))
-                stats += system.Render(shaderManager, ref cameraData.ViewProjectionMatrix);
-
-            return base.UpdateInternal(ticksSinceLastFrame, currentScene);
+            return true;
         }
 
-        protected override bool Update(float timeSinceLastUpdate, Scene currentScene)
+        private void Bla(CameraComponent cameraData)
         {
-            CameraComponent cameraData = FindCamera(currentScene);
-            if (cameraData == null)
-                return true; // Couldn't find a camera to determine what should be updated
-
             cameraLocation = new Vector3i((int)cameraData.Location.X, (int)cameraData.Location.Y, (int)cameraData.Location.Z);
+
             systemsToRender.Clear();
             foreach (IEntity entity in cameraData.VisibleEntitites)
             {
@@ -130,8 +145,6 @@ namespace ProdigalSoftware.TiVE.ParticleSystem
                 RemoveParticleSystem(entity, particleData);
             }
             systemsToDelete.Clear();
-
-            return true;
         }
 
         /// <summary>
@@ -166,7 +179,7 @@ namespace ProdigalSoftware.TiVE.ParticleSystem
                 }
             }
             if (collection != null)
-                collection.Add(entity);
+                collection.Add(entity, particleData);
         }
 
         private void RemoveParticleSystem(IEntity entity, ParticleComponent particleData)
@@ -179,12 +192,26 @@ namespace ProdigalSoftware.TiVE.ParticleSystem
                 collection.Remove(entity);
         }
 
+        private void UpdateEntities(float timeSinceLastUpdate)
+        {
+            updateList.Clear();
+            using (new PerformanceLock(particleSystemCollections))
+                updateList.AddRange(particleSystemCollections.Values);
+
+            Scene currentScene = loadedScene;
+            if (currentScene != null)
+            {
+                Vector3i worldSize = currentScene.GameWorld != null ? currentScene.GameWorld.VoxelSize : new Vector3i();
+                for (int i = 0; i < updateList.Count; i++)
+                    updateList[i].UpdateAll(worldSize, cameraLocation, currentScene.LightProvider, timeSinceLastUpdate);
+            }
+        }
+
         private void ParticleUpdateLoop()
         {
             float ticksPerSecond = Stopwatch.Frequency;
             long particleUpdateTime = Stopwatch.Frequency / UpdatesPerSecond;
             long lastTime = 0;
-            List<ParticleEmitterCollection> updateList = new List<ParticleEmitterCollection>();
             Stopwatch sw = Stopwatch.StartNew();
             while (!stopThread)
             {
@@ -197,17 +224,7 @@ namespace ProdigalSoftware.TiVE.ParticleSystem
 
                     lastTime = newTicks;
 
-                    updateList.Clear();
-                    using (new PerformanceLock(particleSystemCollections))
-                        updateList.AddRange(particleSystemCollections.Values);
-
-                    Scene currentScene = loadedScene;
-                    if (currentScene != null)
-                    {
-                        Vector3i worldSize = currentScene.GameWorld != null ? currentScene.GameWorld.VoxelSize : new Vector3i();
-                        for (int i = 0; i < updateList.Count; i++)
-                            updateList[i].UpdateAll(worldSize, cameraLocation, currentScene.LightProvider, timeSinceLastUpdate);
-                    }
+                    UpdateEntities(timeSinceLastUpdate);
                 }
                 else if (lastTime + particleUpdateTime - TiVEController.MaxTicksForSleep > newTicks)
                     Thread.Sleep(1);

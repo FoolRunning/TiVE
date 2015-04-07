@@ -17,7 +17,7 @@ namespace ProdigalSoftware.TiVEEditor.Common
     internal class TiVEGameControl : GLControl
     {
         private readonly Timer timer = new Timer();
-        private readonly Engine engine = new Engine();
+        private readonly Engine engine = new Engine(30);
         private readonly Scene scene = new Scene();
         private readonly bool reallyDesignMode;
 
