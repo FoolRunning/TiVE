@@ -7,12 +7,14 @@ namespace ProdigalSoftware.TiVEPluginFramework
         public readonly Vector3b Location;
         public readonly int LightBlockDist;
         public readonly Color3f Color;
+        public readonly bool ReflectiveAmbientLighting;
 
-        public LightComponent(Vector3b location, Color3f color, int lightBlockDist)
+        public LightComponent(Vector3b location, Color3f color, int lightBlockDist, bool reflectiveAmbientLighting = false)
         {
             Location = location;
             Color = color;
             LightBlockDist = lightBlockDist;
+            ReflectiveAmbientLighting = reflectiveAmbientLighting;
         }
     }
 
@@ -30,9 +32,28 @@ namespace ProdigalSoftware.TiVEPluginFramework
 
     public sealed class UnlitComponent : IBlockComponent
     {
+        public static readonly IBlockComponent Instance = new UnlitComponent();
+
+        private UnlitComponent()
+        {
+        }
     }
 
     public sealed class TransparentComponent : IBlockComponent
     {
+        public static readonly IBlockComponent Instance = new TransparentComponent();
+
+        private TransparentComponent()
+        {
+        }
+    }
+
+    public sealed class ReflectiveLightComponent : IBlockComponent
+    {
+        public static readonly IBlockComponent Instance = new ReflectiveLightComponent();
+
+        private ReflectiveLightComponent()
+        {
+        }
     }
 }

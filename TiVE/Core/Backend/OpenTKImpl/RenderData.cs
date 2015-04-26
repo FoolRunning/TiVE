@@ -111,7 +111,7 @@ namespace ProdigalSoftware.TiVE.Core.Backend.OpenTKImpl
 
             //int totalSizeInBytes = allocatedDataElementCount * Marshal.SizeOf(typeof(T2));
             GL.BufferData(target, new IntPtr(sizeInBytes), (T2[])null, BufferUsageHint.StreamDraw);
-            GL.BufferSubData(target, new IntPtr(0), new IntPtr(sizeInBytes), newData);
+            GL.BufferSubData(target, IntPtr.Zero, new IntPtr(sizeInBytes), newData);
             GlUtils.CheckGLErrors();
         }
 
@@ -125,7 +125,7 @@ namespace ProdigalSoftware.TiVE.Core.Backend.OpenTKImpl
 
             elementCount = elementsToMap;
             int sizeInBytes = elementsToMap * Marshal.SizeOf(typeof(T));
-            IntPtr result = GL.MapBufferRange(Target, new IntPtr(0), new IntPtr(sizeInBytes),
+            IntPtr result = GL.MapBufferRange(Target, IntPtr.Zero, new IntPtr(sizeInBytes),
                 BufferAccessMask.MapWriteBit | BufferAccessMask.MapInvalidateBufferBit);
             GlUtils.CheckGLErrors();
 

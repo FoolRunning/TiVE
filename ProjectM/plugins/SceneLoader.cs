@@ -32,6 +32,14 @@ namespace ProdigalSoftware.ProjectM.Plugins
                 entity.AddComponent(new CameraComponent());
                 entity.AddComponent(new ScriptComponent("LiquidTest"));
             }
+            else if (sceneName == "StressTest")
+            {
+                scene = Factory.Create<IScene>();
+                scene.SetGameWorld("StressTest");
+                IEntity entity = scene.CreateNewEntity("Camera");
+                entity.AddComponent(new CameraComponent());
+                entity.AddComponent(new ScriptComponent("StressTest"));
+            }
 
             return scene;
         }

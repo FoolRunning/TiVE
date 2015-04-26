@@ -79,6 +79,16 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
             components.RemoveAll(c => c.GetType() == typeof(T));
         }
 
+        public override bool HasComponent(IBlockComponent component)
+        {
+            for (int i = 0; i < components.Count; i++)
+            {
+                if (components[i] == component)
+                    return true;
+            }
+            return false;
+        }
+
         public override bool HasComponent<T>()
         {
             Type tType = typeof(T);

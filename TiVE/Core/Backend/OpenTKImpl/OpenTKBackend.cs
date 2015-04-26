@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using OpenTK;
-using OpenTK.Graphics.OpenGL4;
+using OpenTK.Graphics.OpenGL;
 using ProdigalSoftware.TiVE.Renderer;
 
 namespace ProdigalSoftware.TiVE.Core.Backend.OpenTKImpl
@@ -98,6 +98,11 @@ namespace ProdigalSoftware.TiVE.Core.Backend.OpenTKImpl
             return new RendererData<T>(data, elementCount, elementsPerVertex, dataType, dataValueType, normalize, dynamic);
         }
 
+        public ITexture CreateTexture(int width, int height)
+        {
+            return new OpenTKTexture(width, height);
+        }
+
         public IShaderProgram CreateShaderProgram()
         {
             return new ShaderProgram();
@@ -143,14 +148,14 @@ namespace ProdigalSoftware.TiVE.Core.Backend.OpenTKImpl
         /// <summary>
         /// Gets the OpenTK primitive type for the specified TiVE primitive type
         /// </summary>
-        private static OpenTK.Graphics.OpenGL4.PrimitiveType GlPrimitiveType(PrimitiveType primitiveType)
+        private static OpenTK.Graphics.OpenGL.PrimitiveType GlPrimitiveType(PrimitiveType primitiveType)
         {
             switch (primitiveType)
             {
-                case PrimitiveType.Lines: return OpenTK.Graphics.OpenGL4.PrimitiveType.Lines;
-                case PrimitiveType.Triangles: return OpenTK.Graphics.OpenGL4.PrimitiveType.Triangles;
-                case PrimitiveType.Quads: return OpenTK.Graphics.OpenGL4.PrimitiveType.Quads;
-                default: return OpenTK.Graphics.OpenGL4.PrimitiveType.Points;
+                case PrimitiveType.Lines: return OpenTK.Graphics.OpenGL.PrimitiveType.Lines;
+                case PrimitiveType.Triangles: return OpenTK.Graphics.OpenGL.PrimitiveType.Triangles;
+                case PrimitiveType.Quads: return OpenTK.Graphics.OpenGL.PrimitiveType.Quads;
+                default: return OpenTK.Graphics.OpenGL.PrimitiveType.Points;
             }
         }
 

@@ -81,12 +81,12 @@ namespace ProdigalSoftware.TiVE.Settings
                 new UserSettingOption("Realistic", new EnumSetting<LightComplexity>(LightComplexity.Realistic))));
 
             int totalCores = Environment.ProcessorCount;
-            int numThreadOptions = totalCores > 3 ? totalCores - 2 : 1;
+            int numThreadOptions = totalCores > 3 ? totalCores - 1 : 1;
             UserSettingOption[] threadOptions = new UserSettingOption[numThreadOptions];
             for (int i = 0; i < numThreadOptions; i++)
                 threadOptions[i] = new UserSettingOption(new IntSetting(i + 1));
             settingOptions.Add(new UserSettingOptions(ChunkCreationThreadsKey, "Chunk creation threads", UserOptionTab.Advanced,
-                new IntSetting(totalCores > 3 ? totalCores / 2 : 1), threadOptions));
+                new IntSetting(totalCores > 3 ? totalCores / 2 + 1 : 1), threadOptions));
 
             settingOptions.Add(new UserSettingOptions(UseThreadedParticlesKey, "Threaded particles", UserOptionTab.Advanced, new BoolSetting(totalCores > 3),
                 new UserSettingOption("True", new BoolSetting(true)),

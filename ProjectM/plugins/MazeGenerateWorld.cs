@@ -117,7 +117,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
         #endregion
 
         #region Maze generation methods
-        private static int FillBlankWithMaze(MazeCell[,] dungeonMap, Random random, int mazeAreaId)
+        private static void FillBlankWithMaze(MazeCell[,] dungeonMap, Random random, int mazeAreaId)
         {
             List<MazeCellLocation> cellsInMaze = new List<MazeCellLocation>();
 
@@ -128,7 +128,6 @@ namespace ProdigalSoftware.ProjectM.Plugins
             Direction lastDir = Direction.None;
             bool searchingForNewCell = false;
             int lightId = 0;
-            int mazePathsCreated = 1;
             while (cellsInMaze.Count > 0)
             {
                 Direction dir = cell != MazeCellLocation.NONE ? ChooseRandomDirection(cell, dungeonMap, random) : Direction.None;
@@ -160,7 +159,6 @@ namespace ProdigalSoftware.ProjectM.Plugins
                         {
                             cellsInMaze.Add(cell);
                             dungeonMap[cell.X, cell.Y].AreaId = ++mazeAreaId;
-                            mazePathsCreated++;
                         }
                     }
                 }
@@ -200,8 +198,6 @@ namespace ProdigalSoftware.ProjectM.Plugins
                 }
                 lastDir = dir;
             }
-
-            return mazePathsCreated;
         }
 
         private static MazeCellLocation FindBlankSpace(MazeCell[,] dungeonMap, Random random)
@@ -243,21 +239,15 @@ namespace ProdigalSoftware.ProjectM.Plugins
 
             while (true)
             {
-                switch (random.Next(4))
-                {
-                    case 0:
-                        if (availableUp) return Direction.Up;
-                        break;
-                    case 1:
-                        if (availableDown) return Direction.Down;
-                        break;
-                    case 2:
-                        if (availableLeft) return Direction.Left;
-                        break;
-                    case 3:
-                        if (availableRight) return Direction.Right;
-                        break;
-                }
+                int randomDir = random.Next(4);
+                if (availableUp && randomDir == 0) 
+                    return Direction.Up;
+                if (availableDown && randomDir == 1)
+                    return Direction.Down;
+                if (availableLeft && randomDir == 2)
+                    return Direction.Left;
+                if (availableRight && randomDir == 3)
+                    return Direction.Right;
             }
         }
         #endregion
@@ -266,32 +256,14 @@ namespace ProdigalSoftware.ProjectM.Plugins
         private static void CreateDoors(MazeCell[,] dungeonMap, Random random)
         {
             // Find possible door points at places where rooms and maze (or another room) meet
-            for (int x = 1; x < dungeonMap.GetLength(0) - 1; x++)
-            {
-                for (int y = 1; y < dungeonMap.GetLength(1) - 1; y++)
-                {
-                    int areaToCheck = AreaIdAround(dungeonMap, x, y);
-                    if (areaToCheck == -1)
-                        continue;
-
-                    dungeonMap[x, y].PossibleDoorPoint = 
-                        ((dungeonMap[x - 1, y].AreaId != 0 && dungeonMap[x - 1, y].AreaId != areaToCheck) ||
-                        (dungeonMap[x + 1, y].AreaId != 0 && dungeonMap[x + 1, y].AreaId != areaToCheck) ||
-                        (dungeonMap[x, y - 1].AreaId != 0 && dungeonMap[x, y - 1].AreaId != areaToCheck) ||
-                        (dungeonMap[x, y + 1].AreaId != 0 && dungeonMap[x, y + 1].AreaId != areaToCheck));
-                }
-            }
+            FindDoorPoints(dungeonMap);
 
             HashSet<int> connectedAreaIds = new HashSet<int>();
             connectedAreaIds.Add(1); // Start with the first room
 
             int tries = 0;
-            while (true)
+            while (tries++ < 1000)
             {
-                tries++;
-                if (tries > 1000)
-                    break;
-
                 int foundUnconnectedAreaId = -1;
 
                 for (int x = 1; x < dungeonMap.GetLength(0) - 1; x++)
@@ -328,16 +300,43 @@ namespace ProdigalSoftware.ProjectM.Plugins
             }
         }
 
+        private static void FindDoorPoints(MazeCell[,] dungeonMap)
+        {
+            for (int x = 1; x < dungeonMap.GetLength(0) - 1; x++)
+            {
+                for (int y = 1; y < dungeonMap.GetLength(1) - 1; y++)
+                {
+                    int areaToCheck = AreaIdAround(dungeonMap, x, y);
+                    if (areaToCheck == -1)
+                        continue;
+
+                    dungeonMap[x, y].PossibleDoorPoint =
+                        ((dungeonMap[x - 1, y].AreaId != 0 && dungeonMap[x - 1, y].AreaId != areaToCheck) ||
+                        (dungeonMap[x + 1, y].AreaId != 0 && dungeonMap[x + 1, y].AreaId != areaToCheck) ||
+                        (dungeonMap[x, y - 1].AreaId != 0 && dungeonMap[x, y - 1].AreaId != areaToCheck) ||
+                        (dungeonMap[x, y + 1].AreaId != 0 && dungeonMap[x, y + 1].AreaId != areaToCheck));
+                }
+            }
+        }
+
         private static int AreaIdAround(MazeCell[,] dungeonMap, int x, int y)
         {
-            if (dungeonMap[x - 1, y].AreaId != 0)
-                return dungeonMap[x - 1, y].AreaId;
-            if (dungeonMap[x + 1, y].AreaId != 0)
-                return dungeonMap[x + 1, y].AreaId;
-            if (dungeonMap[x, y - 1].AreaId != 0)
-                return dungeonMap[x, y - 1].AreaId;
-            if (dungeonMap[x, y + 1].AreaId != 0)
-                return dungeonMap[x, y + 1].AreaId;
+            int areaId = dungeonMap[x - 1, y].AreaId;
+            if (areaId != 0)
+                return areaId;
+            
+            areaId = dungeonMap[x + 1, y].AreaId;
+            if (areaId != 0)
+                return areaId;
+            
+            areaId = dungeonMap[x, y - 1].AreaId;
+            if (areaId != 0)
+                return areaId;
+
+            areaId = dungeonMap[x, y + 1].AreaId;
+            if (areaId != 0)
+                return areaId;
+
             return -1;
         }
 
@@ -351,14 +350,22 @@ namespace ProdigalSoftware.ProjectM.Plugins
 
         private static int UnconnectedAreaIdAround(MazeCell[,] dungeonMap, HashSet<int> connectedAreaIds, int x, int y)
         {
-            if (!connectedAreaIds.Contains(dungeonMap[x - 1, y].AreaId))
-                return dungeonMap[x - 1, y].AreaId;
-            if (!connectedAreaIds.Contains(dungeonMap[x + 1, y].AreaId))
-                return dungeonMap[x + 1, y].AreaId;
-            if (!connectedAreaIds.Contains(dungeonMap[x, y - 1].AreaId))
-                return dungeonMap[x, y - 1].AreaId;
-            if (!connectedAreaIds.Contains(dungeonMap[x, y + 1].AreaId))
-                return dungeonMap[x, y + 1].AreaId;
+            int areaId = dungeonMap[x - 1, y].AreaId;
+            if (!connectedAreaIds.Contains(areaId))
+                return areaId;
+
+            areaId = dungeonMap[x + 1, y].AreaId;
+            if (!connectedAreaIds.Contains(areaId))
+                return areaId;
+
+            areaId = dungeonMap[x, y - 1].AreaId;
+            if (!connectedAreaIds.Contains(areaId))
+                return areaId;
+
+            areaId = dungeonMap[x, y + 1].AreaId;
+            if (!connectedAreaIds.Contains(areaId))
+                return areaId;
+
             return -1;
         }
         #endregion
@@ -401,7 +408,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
         #region 3D world creation methods
         private static void FillWorld(IGameWorld gameWorld, IBlockList blockList, MazeCell[,] dungeonMap, int mazeStartAreaId)
         {
-            BlockRandomizer dirts = new BlockRandomizer(blockList, "back", 6);
+            BlockRandomizer dirts = new BlockRandomizer(blockList, "dirt", 6);
             BlockRandomizer grasses = new BlockRandomizer(blockList, "grass", 50);
             BlockRandomizer stoneBacks = new BlockRandomizer(blockList, "backStone", 6);
             ushort stone = blockList["ston0"];
@@ -418,38 +425,40 @@ namespace ProdigalSoftware.ProjectM.Plugins
                     int areaId = dungeonMap[mazeLocX, mazeLocY].AreaId;
                     if (areaId == 0)
                     {
-                        // Empty space
+                        // Wall
+                        gameWorld[x, y, 2] = stone;
                         gameWorld[x, y, 3] = stone;
                         gameWorld[x, y, 4] = stone;
                         gameWorld[x, y, 5] = stone;
                         gameWorld[x, y, 6] = stone;
                         gameWorld[x, y, 7] = stone;
+                        //gameWorld[x, y, 9] = stone;
 
-                        if (mazeLocX == 0 || (dungeonMap[mazeLocX - 1, mazeLocY].AreaId > 0 && dungeonMap[mazeLocX - 1, mazeLocY].AreaId < mazeStartAreaId) ||
-                            mazeLocX == dungeonMap.GetLength(0) - 1 || (dungeonMap[mazeLocX + 1, mazeLocY].AreaId > 0 && dungeonMap[mazeLocX + 1, mazeLocY].AreaId < mazeStartAreaId) ||
-                            mazeLocY == 0 || (dungeonMap[mazeLocX, mazeLocY - 1].AreaId > 0 && dungeonMap[mazeLocX, mazeLocY - 1].AreaId < mazeStartAreaId) ||
-                            mazeLocY == dungeonMap.GetLength(1) - 1 || (dungeonMap[mazeLocX, mazeLocY + 1].AreaId > 0 && dungeonMap[mazeLocX, mazeLocY + 1].AreaId < mazeStartAreaId))
-                        {
-                            // Empty space next to a room
-                            gameWorld[x, y, 8] = stone;
-                            gameWorld[x, y, 9] = stone;
-                            gameWorld[x, y, 10] = stone;
-                        }
+                        //if (mazeLocX == 0 || (dungeonMap[mazeLocX - 1, mazeLocY].AreaId > 0 && dungeonMap[mazeLocX - 1, mazeLocY].AreaId < mazeStartAreaId) ||
+                        //    mazeLocX == dungeonMap.GetLength(0) - 1 || (dungeonMap[mazeLocX + 1, mazeLocY].AreaId > 0 && dungeonMap[mazeLocX + 1, mazeLocY].AreaId < mazeStartAreaId) ||
+                        //    mazeLocY == 0 || (dungeonMap[mazeLocX, mazeLocY - 1].AreaId > 0 && dungeonMap[mazeLocX, mazeLocY - 1].AreaId < mazeStartAreaId) ||
+                        //    mazeLocY == dungeonMap.GetLength(1) - 1 || (dungeonMap[mazeLocX, mazeLocY + 1].AreaId > 0 && dungeonMap[mazeLocX, mazeLocY + 1].AreaId < mazeStartAreaId))
+                        //{
+                        //    // Empty space next to a room
+                        //    gameWorld[x, y, 8] = stone;
+                        //    gameWorld[x, y, 9] = stone;
+                        //    gameWorld[x, y, 10] = stone;
+                        //}
                     }
                     else if (areaId == DoorAreaId)
                     {
-                        gameWorld[x, y, 3] = dirts.NextBlock();
+                        gameWorld[x, y, 2] = stoneBacks.NextBlock();
                     }
                     else if (areaId >= mazeStartAreaId)
                     {
                         // Maze
-                        gameWorld[x, y, 3] = dirts.NextBlock();
-                        gameWorld[x, y, 4] = grasses.NextBlock();
+                        gameWorld[x, y, 2] = dirts.NextBlock();
+                        gameWorld[x, y, 3] = grasses.NextBlock();
                     }
                     else
                     {
                         // Room
-                        gameWorld[x, y, 3] = stoneBacks.NextBlock();
+                        gameWorld[x, y, 2] = stoneBacks.NextBlock();
                     }
 
                     int lightId = dungeonMap[mazeLocX, mazeLocY].LightId;
@@ -457,7 +466,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
                     {
                         // Light
                         if (lightId == RoomLightId)
-                            gameWorld[x, y, 9] = blockList["roomLight"];
+                            gameWorld[x, y, 7] = blockList["roomLight"];
                         else
                         {
                             // For maze lights, move the light near to the maze walls so it's not in the middle of the path
@@ -475,7 +484,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
                             if (mazeLocY == dungeonMap.GetLength(1) - 1 || dungeonMap[mazeLocX, mazeLocY + 1].AreaId == 0)
                                 lightLocY++;
 
-                            gameWorld[lightLocX, lightLocY, 5] = blockList["light" + (lightId - 1)];
+                            gameWorld[lightLocX, lightLocY, 4] = blockList["light" + (lightId - 1)];
                         }
                     }
                 }

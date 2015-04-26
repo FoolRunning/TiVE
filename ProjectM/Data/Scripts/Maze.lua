@@ -11,7 +11,7 @@ function initialize(entity)
     --Renderer().LightProvider.AmbientLight = Color(0.02, 0.02, 0.02)
 
     camera.FieldOfView = PI / 3 --60 degrees
-    camera.Location = vector(WorldXSize * BlockSize / 2, WorldYSize * BlockSize / 2, 345)
+    camera.Location = vector(WorldXSize * BlockSize / 2, WorldYSize * BlockSize / 2, 400)
     camera.FarDistance = 1000
     camera.UpVector = vector(0, 0, 1)
 end

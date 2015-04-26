@@ -81,10 +81,10 @@ namespace ProdigalSoftware.ProjectM.Plugins
             if (light != null)
             {
                 block.AddComponent(light);
-                block.AddComponent(new UnlitComponent());
+                block.AddComponent(UnlitComponent.Instance);
             }
             if (allowLightPassthrough || light != null)
-                block.AddComponent(new TransparentComponent());
+                block.AddComponent(TransparentComponent.Instance);
 
             for (int x = 0; x < Block.VoxelSize; x++)
             {
@@ -157,10 +157,10 @@ namespace ProdigalSoftware.ProjectM.Plugins
             if (light != null)
             {
                 block.AddComponent(light);
-                block.AddComponent(new UnlitComponent());
+                block.AddComponent(UnlitComponent.Instance);
             }
             if (allowLightPassthrough || light != null)
-                block.AddComponent(new TransparentComponent());
+                block.AddComponent(TransparentComponent.Instance);
 
             for (int x = 0; x < Block.VoxelSize; x++)
             {

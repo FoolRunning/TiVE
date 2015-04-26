@@ -6,7 +6,8 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
 {
     internal abstract class LightingModel
     {
-        public const float MinRealisticLightPercent = 0.005f;
+        public const float MinRealisticLightPercent = 0.01f;
+        private const float ShadowLightDistMinFactor = 2.0f;
 
         private static readonly LightingModel realistic = new RealisticLightingModel();
         private static readonly LightingModel brightRealistic = new BrightRealisticLightingModel();
@@ -38,9 +39,27 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
         }
 
         /// <summary>
+        /// Gets the amount of light (0.0 - 1.0) that would the specified light would produce for the voxel at the specified location
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public float GetLightPercentageShadow(LightInfo lightInfo, int voxelX, int voxelY, int voxelZ)
+        {
+            int lightDistX = lightInfo.VoxelLocX - voxelX;
+            int lightDistY = lightInfo.VoxelLocY - voxelY;
+            int lightDistZ = lightInfo.VoxelLocZ - voxelZ;
+            float distSquared = lightDistX * lightDistX + lightDistY * lightDistY + lightDistZ * lightDistZ;
+            return GetLightPercentageInternal(distSquared, lightInfo.CachedLightCalcShadow);
+        }
+
+        /// <summary>
         /// Gets a value to cache for the specified light that will make the lighting calculations faster
         /// </summary>
         public abstract float GetCacheLightCalculation(LightComponent light);
+
+        /// <summary>
+        /// Gets a value to cache for the specified light that will make the lighting calculations in shadow faster
+        /// </summary>
+        public abstract float GetCacheLightCalculationForShadow(LightComponent light);
 
         protected abstract float GetLightPercentageInternal(float distSquared, float cachedLightCalc);
 
@@ -50,6 +69,12 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
             public override float GetCacheLightCalculation(LightComponent light)
             {
                 float dist = light.LightBlockDist * Block.VoxelSize;
+                return 1.0f / (dist * dist * MinRealisticLightPercent); // Light attentuation
+            }
+
+            public override float GetCacheLightCalculationForShadow(LightComponent light)
+            {
+                float dist = (light.LightBlockDist * Block.VoxelSize) / ShadowLightDistMinFactor;
                 return 1.0f / (dist * dist * MinRealisticLightPercent); // Light attentuation
             }
 
@@ -69,6 +94,12 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
                 return 1.0f / (dist * dist * dist * dist * MinRealisticLightPercent); // Light attentuation
             }
 
+            public override float GetCacheLightCalculationForShadow(LightComponent light)
+            {
+                float dist = (light.LightBlockDist * Block.VoxelSize) / ShadowLightDistMinFactor;
+                return 1.0f / (dist * dist * dist * dist * MinRealisticLightPercent); // Light attentuation
+            }
+
             protected override float GetLightPercentageInternal(float distSquared, float cachedLightCalc)
             {
                 return 1.0f / (1.0f + distSquared * distSquared * cachedLightCalc);
@@ -82,6 +113,12 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
             public override float GetCacheLightCalculation(LightComponent light)
             {
                 float dist = light.LightBlockDist * Block.VoxelSize;
+                return dist * dist; // Max light distance squared
+            }
+
+            public override float GetCacheLightCalculationForShadow(LightComponent light)
+            {
+                float dist = (light.LightBlockDist * Block.VoxelSize) / ShadowLightDistMinFactor;
                 return dist * dist; // Max light distance squared
             }
 
@@ -99,6 +136,12 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
             public override float GetCacheLightCalculation(LightComponent light)
             {
                 float dist = light.LightBlockDist * Block.VoxelSize;
+                return dist * dist; // Max light distance squared
+            }
+
+            public override float GetCacheLightCalculationForShadow(LightComponent light)
+            {
+                float dist = (light.LightBlockDist * Block.VoxelSize) / ShadowLightDistMinFactor;
                 return dist * dist; // Max light distance squared
             }
 

@@ -87,6 +87,9 @@
     <Reference Include="OpenTK, Version=1.1.0.0, Culture=neutral, PublicKeyToken=bad199fe84eb3df4, processorArchitecture=MSIL">
       <HintPath>..\packages\OpenTK.1.1.1589.5942\lib\NET40\OpenTK.dll</HintPath>
     </Reference>
+    <Reference Include="Squid">
+      <HintPath>..\Libraries\Squid.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -105,6 +108,7 @@
     <Compile Include="Core\Backend\INativeWindow.cs" />
     <Compile Include="Core\Backend\IRendererBackend.cs" />
     <Compile Include="Core\Backend\IShaderProgram.cs" />
+    <Compile Include="Core\Backend\ITexture.cs" />
     <Compile Include="Core\Backend\IVertexData.cs" />
     <Compile Include="Core\Backend\IVertexDataCollection.cs" />
     <Compile Include="Core\Backend\Keys.cs" />
@@ -112,6 +116,8 @@
     <Compile Include="Core\Backend\OpenTKImpl\KeyboardImpl.cs" />
     <Compile Include="Core\Backend\OpenTKImpl\OpenTKBackend.cs" />
     <Compile Include="Core\Backend\OpenTKImpl\OpenTKDisplay.cs" />
+    <Compile Include="GUISystem\SquidRenderer.cs" />
+    <Compile Include="Core\Backend\OpenTKImpl\OpenTKTexture.cs" />
     <Compile Include="Core\Backend\OpenTKImpl\RenderData.cs" />
     <Compile Include="Core\Backend\OpenTKImpl\Shader.cs" />
     <Compile Include="Core\Backend\OpenTKImpl\ShaderProgram.cs" />
@@ -124,6 +130,7 @@
     <Compile Include="Core\TimeSlicedEngineSystem.cs" />
     <Compile Include="Debugging\ItemCountsHelper.cs" />
     <Compile Include="Debugging\SystemTimingHelper.cs" />
+    <Compile Include="GUISystem\GUISystem.cs" />
     <Compile Include="ParticleSystem\ParticleSystem.cs" />
     <Compile Include="RenderSystem\EntityLoadQueue.cs" />
     <Compile Include="RenderSystem\Lighting\LightInfo.cs" />
