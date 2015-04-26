@@ -45,6 +45,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem
 
         #region Member variables
         private readonly Dictionary<RenderComponent, MeshBuilder> meshesToInitialize = new Dictionary<RenderComponent, MeshBuilder>();
+        private readonly List<KeyValuePair<RenderComponent, MeshBuilder>> meshesToInitializeList = new List<KeyValuePair<RenderComponent, MeshBuilder>>();
         private readonly List<IEntity> entitiesToDelete = new List<IEntity>();
         private readonly HashSet<IEntity> loadedEntities = new HashSet<IEntity>();
 
@@ -118,7 +119,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem
                     continue;
 
                 if (!loadedEntities.Contains(entity))
-                    LoadEntity(entity, renderData, WorstVoxelDetailLevel); // Initially load at the worst detail level
+                    LoadEntity(entity, renderData, WorstVoxelDetailLevel); // Initially load at the worst detail level to quickly get something onscreen
                 else if (renderData.MeshData != null)
                 {
                     int perferedDetailLevel = GetPerferedVoxelDetailLevel(renderData, cameraData, currentVoxelDetalLevelSetting);
@@ -138,29 +139,32 @@ namespace ProdigalSoftware.TiVE.RenderSystem
 
             entitiesToDelete.Clear();
 
+            meshesToInitializeList.Clear();
             using (new PerformanceLock(meshesToInitialize))
             {
-                foreach (KeyValuePair<RenderComponent, MeshBuilder> meshToInitialize in meshesToInitialize)
-                {
-                    RenderComponent renderData = meshToInitialize.Key;
-                    MeshBuilder meshBuilder = meshToInitialize.Value;
-                    using (new PerformanceLock(renderData.SyncLock))
-                    {
-                        if (renderData.MeshData != null)
-                            ((IVertexDataCollection)renderData.MeshData).Dispose();
-
-                        if (renderData.PolygonCount == 0)
-                            renderData.MeshData = null;
-                        else
-                        {
-                            renderData.MeshData = meshBuilder.GetMesh();
-                            ((IVertexDataCollection)renderData.MeshData).Initialize();
-                        }
-
-                        meshBuilder.DropMesh(); // Release builder - Must be called after initializing the mesh
-                    }
-                }
+                meshesToInitializeList.AddRange(meshesToInitialize);
                 meshesToInitialize.Clear();
+            }
+
+            foreach (KeyValuePair<RenderComponent, MeshBuilder> meshToInitialize in meshesToInitializeList)
+            {
+                RenderComponent renderData = meshToInitialize.Key;
+                MeshBuilder meshBuilder = meshToInitialize.Value;
+                using (new PerformanceLock(renderData.SyncLock))
+                {
+                    if (renderData.MeshData != null)
+                        ((IVertexDataCollection)renderData.MeshData).Dispose();
+
+                    if (renderData.PolygonCount == 0)
+                        renderData.MeshData = null;
+                    else
+                    {
+                        renderData.MeshData = meshBuilder.GetMesh();
+                        ((IVertexDataCollection)renderData.MeshData).Initialize();
+                    }
+
+                    meshBuilder.DropMesh(); // Release builder - Must be called after initializing the mesh
+                }
             }
         }
 
@@ -183,6 +187,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem
         private Thread StartMeshCreateThread(int num)
         {
             Thread thread = new Thread(MeshCreateLoop);
+            thread.Priority = ThreadPriority.BelowNormal;
             thread.IsBackground = true;
             thread.Name = "MeshLoad" + num;
             thread.Start();
@@ -312,9 +317,12 @@ namespace ProdigalSoftware.TiVE.RenderSystem
             using (new PerformanceLock(renderData.SyncLock))
             {
                 MeshBuilder existingMeshBuilder;
-                meshesToInitialize.TryGetValue(renderData, out existingMeshBuilder);
-                if (existingMeshBuilder != null)
-                    existingMeshBuilder.DropMesh(); // Must have been loading this chunk while waiting to initialize a previous version of this chunk
+                if (meshesToInitialize.TryGetValue(renderData, out existingMeshBuilder))
+                {
+                    // Must have been loading this chunk while waiting to initialize a previous version of this chunk
+                    existingMeshBuilder.DropMesh();
+                    meshesToInitialize.Remove(renderData);
+                }
 
                 if (!renderData.Visible)
                 {
@@ -323,7 +331,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem
                 }
                 else
                 {
-                    meshesToInitialize[renderData] = meshBuilder;
+                    meshesToInitialize.Add(renderData, meshBuilder); // Make sure we don't add it again due to a lock timing issue
                     renderData.PolygonCount = polygonCount;
                     renderData.VoxelCount = voxelCount;
                     renderData.RenderedVoxelCount = renderedVoxelCount;
@@ -345,7 +353,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem
             int maxVoxelZ = gameWorld.VoxelSize.Z - 1 - voxelSize;
             int maxBlockVoxelSize = Block.VoxelSize - voxelSize;
 
-            bool blockIsLit = !block.HasComponent<UnlitComponent>();
+            bool blockIsLit = !block.HasComponent(UnlitComponent.Instance);
             //for (int bz = BlockInformation.VoxelSize - 1; bz >= 0; bz -= voxelSize)
             for (int bvz = 0; bvz < Block.VoxelSize; bvz += voxelSize)
             {

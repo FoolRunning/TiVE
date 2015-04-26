@@ -70,7 +70,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
             for (int i = 0; i < blockList.BlockCount; i++)
             {
                 BlockImpl block = blockList.AllBlocks[i];
-                blockLightPassThrough[i] = (i == 0 || block.HasComponent<TransparentComponent>());
+                blockLightPassThrough[i] = (i == 0 || block.HasComponent(TransparentComponent.Instance));
                 Array.Copy(block.VoxelsArray, 0, blockVoxels, i * BlockTotalVoxelCount, BlockTotalVoxelCount);
                 if (!block.HasComponent<LightComponent>())
                     Array.Copy(block.VoxelsArray, 0, blockVoxelsForLighting, i * BlockTotalVoxelCount, BlockTotalVoxelCount);

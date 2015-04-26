@@ -23,13 +23,12 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
     internal abstract class LightProvider : IDisposable
     {
         #region Constants
-        private const float ReflectiveLightingFactor = 0.3f;
-
         private const int HalfBlockVoxelSize = Block.VoxelSize / 2;
         #endregion
 
         #region Member variables
         private readonly GameWorld gameWorld;
+        private readonly BlockList blockList;
         private readonly Vector3i blockSize;
         private readonly ushort[][] lightsInBlocks;
         private readonly LightingModel lightingModel;
@@ -39,9 +38,10 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
         #endregion
 
         #region Constructor/singleton getter
-        private LightProvider(GameWorld gameWorld)
+        private LightProvider(GameWorld gameWorld, BlockList blockList)
         {
             this.gameWorld = gameWorld;
+            this.blockList = blockList;
             blockSize = new Vector3i(gameWorld.BlockSize.X, gameWorld.BlockSize.Y, gameWorld.BlockSize.Z);
 
             AmbientLight = Color3f.Empty;
@@ -63,12 +63,12 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
         /// <summary>
         /// Gets a light provider for the specified game world using the current user settings to determine the complexity
         /// </summary>
-        public static LightProvider Get(GameWorld gameWorld)
+        public static LightProvider Get(GameWorld gameWorld, BlockList blockList)
         {
             switch ((LightComplexity)(int)TiVEController.UserSettings.Get(UserSettings.LightingComplexityKey))
             {
-                case LightComplexity.Realistic: return new RealisticLightProvider(gameWorld);
-                default: return new SimpleLightProvider(gameWorld);
+                case LightComplexity.Realistic: return new RealisticLightProvider(gameWorld, blockList);
+                default: return new SimpleLightProvider(gameWorld, blockList);
             }
         }
         #endregion
@@ -145,7 +145,9 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
             int endY = Math.Min(sizeY, blockY + maxLightBlockDist);
             int endZ = Math.Min(sizeZ, blockZ + maxLightBlockDist);
             LightingModel lm = lightingModel;
-            LightInfo lightInfo = new LightInfo(blockX, blockY, blockZ, light, lm.GetCacheLightCalculation(light));
+            LightInfo lightInfo = new LightInfo(blockX, blockY, blockZ, light, 
+                lm.GetCacheLightCalculation(light), lm.GetCacheLightCalculationForShadow(light));
+
             ushort lightIndex;
             lock (lightInfos)
             {
@@ -156,23 +158,35 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
                 lightInfos.Add(lightInfo);
             }
 
+            const int maxBlockCount = 2;
             for (int bz = startZ; bz < endZ; bz++)
             {
                 for (int bx = startX; bx < endX; bx++)
                 {
                     for (int by = startY; by < endY; by++)
                     {
-                        if (!gameWorld.LessThanBlockCountInLine(blockX, blockY, blockZ, bx, by, bz, 2) &&
-                            !gameWorld.LessThanBlockCountInLine(bx, by, bz, blockX, blockY, blockZ, 2)/* &&
-                            (bx == 0 || !gameWorld.LessThanBlockCountInLine(blockX, blockY, blockZ, bx - 1, by, bz, 2)) &&
-                            (bx == sizeX - 1 || !gameWorld.LessThanBlockCountInLine(blockX, blockY, blockZ, bx + 1, by, bz, 2)) &&
-                            (by == 0 || !gameWorld.LessThanBlockCountInLine(blockX, blockY, blockZ, bx, by - 1, bz, 2)) &&
-                            (by == sizeY - 1 || !gameWorld.LessThanBlockCountInLine(blockX, blockY, blockZ, bx, by + 1, bz, 2)) &&
-                            (bz == 0 || !gameWorld.LessThanBlockCountInLine(blockX, blockY, blockZ, bx, by, bz - 1, 2)) &&
-                            (bz == sizeZ - 1 || !gameWorld.LessThanBlockCountInLine(blockX, blockY, blockZ, bx, by, bz + 1, 2))*/)
+                        if (!gameWorld.LessThanBlockCountInLine(blockX, blockY, blockZ, bx, by, bz, maxBlockCount) &&
+                            !gameWorld.LessThanBlockCountInLine(bx, by, bz, blockX, blockY, blockZ, maxBlockCount))
                         {
                             continue; // Unlikely the light will actually hit the block at all
                         }
+
+                        //if (!gameWorld.LessThanBlockCountInLine(blockX, blockY, blockZ, bx, by, bz, maxBlockCount) &&
+                        //    (bx == 0 || (!gameWorld.LessThanBlockCountInLine(blockX, blockY, blockZ, bx - 1, by, bz, maxBlockCount) &&
+                        //        !gameWorld.LessThanBlockCountInLine(bx - 1, by, bz, blockX, blockY, blockZ, maxBlockCount))) &&
+                        //    (bx == sizeX - 1 || (!gameWorld.LessThanBlockCountInLine(blockX, blockY, blockZ, bx + 1, by, bz, maxBlockCount) &&
+                        //        !gameWorld.LessThanBlockCountInLine(bx + 1, by, bz, blockX, blockY, blockZ, maxBlockCount))) &&
+                        //    (by == 0 || (!gameWorld.LessThanBlockCountInLine(blockX, blockY, blockZ, bx, by - 1, bz, maxBlockCount) &&
+                        //        !gameWorld.LessThanBlockCountInLine(bx, by - 1, bz, blockX, blockY, blockZ, maxBlockCount))) &&
+                        //    (by == sizeY - 1 || (!gameWorld.LessThanBlockCountInLine(blockX, blockY, blockZ, bx, by + 1, bz, maxBlockCount) &&
+                        //        !gameWorld.LessThanBlockCountInLine(bx, by + 1, bz, blockX, blockY, blockZ, maxBlockCount))) &&
+                        //    (bz == 0 || (!gameWorld.LessThanBlockCountInLine(blockX, blockY, blockZ, bx, by, bz - 1, maxBlockCount) &&
+                        //        !gameWorld.LessThanBlockCountInLine(bx, by, bz - 1, blockX, blockY, blockZ, maxBlockCount))) &&
+                        //    (bz == sizeZ - 1 || (!gameWorld.LessThanBlockCountInLine(blockX, blockY, blockZ, bx, by, bz + 1, maxBlockCount) &&
+                        //        !gameWorld.LessThanBlockCountInLine(bx, by, bz + 1, blockX, blockY, blockZ, maxBlockCount))))
+                        //{
+                        //    continue; // Unlikely the light will actually hit the block at all
+                        //}
 
                         int vx = bx * Block.VoxelSize + HalfBlockVoxelSize;
                         int vy = by * Block.VoxelSize + HalfBlockVoxelSize;
@@ -264,7 +278,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
         #region RealisticLightProvider class
         private sealed class RealisticLightProvider : LightProvider
         {
-            public RealisticLightProvider(GameWorld gameWorld) : base(gameWorld)
+            public RealisticLightProvider(GameWorld gameWorld, BlockList blockList) : base(gameWorld, blockList)
             {
             }
 
@@ -285,13 +299,13 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
                         break;
                     LightInfo lightInfo = lights[lightIndex];
 
-                    if (world.NoVoxelInLine(lightInfo.VoxelLocX, lightInfo.VoxelLocY, lightInfo.VoxelLocZ, voxelX, voxelY, voxelZ))
+                    if (world.NoVoxelInLine(voxelX, voxelY, voxelZ, lightInfo.VoxelLocX, lightInfo.VoxelLocY, lightInfo.VoxelLocZ))
                         color += lightInfo.LightColor * lightModel.GetLightPercentage(lightInfo, voxelX, voxelY, voxelZ);
-                    else
+                    else if (lightInfo.ReflectiveAmbientLighting)
                     {
                         // Simulate a very crude and simple reflective ambient lighting model by using the light reduced by a small 
                         // amount for voxels in a "shadow".
-                        color += lightInfo.LightColor * (lightModel.GetLightPercentage(lightInfo, voxelX, voxelY, voxelZ) * ReflectiveLightingFactor);
+                        color += lightInfo.LightColor * (lightModel.GetLightPercentageShadow(lightInfo, voxelX, voxelY, voxelZ));
                     }
                 }
                 return color;
@@ -306,11 +320,12 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
                 bool availablePlusY = (visibleSides & VoxelSides.Top) != 0;
                 bool availablePlusZ = (visibleSides & VoxelSides.Front) != 0;
 
-                LightingModel lightModel = lightingModel;
                 GameWorld world = gameWorld;
+                LightingModel lightModel = lightingModel;
                 Color3f color = AmbientLight;
                 LightInfo[] lights = lightInfoList;
                 ushort[] lightsInBlock = lightsInBlocks[GetBlockLightOffset(blockX, blockY, blockZ)];
+                bool blockGetsReflectiveLighting = blockList[world[blockX, blockY, blockZ]].HasComponent(ReflectiveLightComponent.Instance);
                 for (int i = 0; i < lightsInBlock.Length; i++)
                 {
                     ushort lightIndex = lightsInBlock[i];
@@ -321,21 +336,22 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
                     int lx = lightInfo.VoxelLocX;
                     int ly = lightInfo.VoxelLocY;
                     int lz = lightInfo.VoxelLocZ;
-                    if ((availableMinusX && lx <= voxelX && world.NoVoxelInLine(lx, ly, lz, voxelX - 1, voxelY, voxelZ)) ||
-                        (availableMinusY && ly <= voxelY && world.NoVoxelInLine(lx, ly, lz, voxelX, voxelY - 1, voxelZ)) ||
-                        (availableMinusZ && lz <= voxelZ && world.NoVoxelInLine(lx, ly, lz, voxelX, voxelY, voxelZ - 1)) ||
-                        (availablePlusX && lx >= voxelX && world.NoVoxelInLine(lx, ly, lz, voxelX + voxelSize, voxelY, voxelZ)) ||
-                        (availablePlusY && ly >= voxelY && world.NoVoxelInLine(lx, ly, lz, voxelX, voxelY + voxelSize, voxelZ)) ||
-                        (availablePlusZ && lz >= voxelZ && world.NoVoxelInLine(lx, ly, lz, voxelX, voxelY, voxelZ + voxelSize)))
+                    if ((availableMinusX && lx <= voxelX && world.NoVoxelInLine(voxelX - 1, voxelY, voxelZ, lx, ly, lz)) ||
+                        (availableMinusY && ly <= voxelY && world.NoVoxelInLine(voxelX, voxelY - 1, voxelZ, lx, ly, lz)) ||
+                        (availableMinusZ && lz <= voxelZ && world.NoVoxelInLine(voxelX, voxelY, voxelZ - 1, lx, ly, lz)) ||
+                        (availablePlusX && lx >= voxelX && world.NoVoxelInLine(voxelX + voxelSize, voxelY, voxelZ, lx, ly, lz)) ||
+                        (availablePlusY && ly >= voxelY && world.NoVoxelInLine(voxelX, voxelY + voxelSize, voxelZ, lx, ly, lz)) ||
+                        (availablePlusZ && lz >= voxelZ && world.NoVoxelInLine(voxelX, voxelY, voxelZ + voxelSize, lx, ly, lz)))
                     {
                         color += lightInfo.LightColor * lightModel.GetLightPercentage(lightInfo, voxelX, voxelY, voxelZ);
                     }
-                    else if ((availableMinusX && lx <= voxelX) || (availableMinusY && ly <= voxelY) || (availableMinusZ && lz <= voxelZ) ||
-                        (availablePlusX && lx >= voxelX) || (availablePlusY && ly >= voxelY) || (availablePlusZ && lz >= voxelZ))
+                    else if (blockGetsReflectiveLighting && lightInfo.ReflectiveAmbientLighting &&
+                        ((availableMinusX && lx <= voxelX) || (availableMinusY && ly <= voxelY) || (availableMinusZ && lz <= voxelZ) ||
+                        (availablePlusX && lx >= voxelX) || (availablePlusY && ly >= voxelY) || (availablePlusZ && lz >= voxelZ)))
                     {
                         // Simulate a very crude and simple reflective ambient lighting model by using the light reduced by a small 
                         // amount for voxels in a "shadow".
-                        color += lightInfo.LightColor * (lightModel.GetLightPercentage(lightInfo, voxelX, voxelY, voxelZ) * ReflectiveLightingFactor);
+                        color += lightInfo.LightColor * lightModel.GetLightPercentageShadow(lightInfo, voxelX, voxelY, voxelZ);
                     }
                 }
                 return color;
@@ -346,7 +362,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
         #region SimpleLightProvider class
         private sealed class SimpleLightProvider : LightProvider
         {
-            public SimpleLightProvider(GameWorld gameWorld) : base(gameWorld)
+            public SimpleLightProvider(GameWorld gameWorld, BlockList blockList) : base(gameWorld, blockList)
             {
             }
 

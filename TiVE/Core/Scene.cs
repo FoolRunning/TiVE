@@ -113,7 +113,7 @@ namespace ProdigalSoftware.TiVE.Core
             RenderNode = new RenderNode(GameWorld, this);
 
             // Calculate static lighting
-            LightProvider = LightProvider.Get(GameWorld);
+            LightProvider = LightProvider.Get(GameWorld, BlockList);
             LightProvider.Calculate(BlockList, false);
         }
         #endregion

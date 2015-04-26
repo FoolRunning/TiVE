@@ -16,6 +16,8 @@
 
         public abstract void RemoveComponent<T>() where T : IBlockComponent;
 
+        public abstract bool HasComponent(IBlockComponent component);
+
         public abstract bool HasComponent<T>() where T : IBlockComponent;
 
         public abstract T GetComponent<T>() where T : IBlockComponent;
