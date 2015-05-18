@@ -19,6 +19,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Voxels
         Bottom = 1 << 3,
         Front = 1 << 4,
         Back = 1 << 5,
+        Unknown = 1 << 15,
         All = Top | Left | Right | Bottom | Front | Back,
     }
 

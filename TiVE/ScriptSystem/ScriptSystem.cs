@@ -98,11 +98,11 @@ namespace ProdigalSoftware.TiVE.ScriptSystem
                     {
                         DynValue entityValue = DynValue.FromObject(scriptDataInternal.Script, entity);
                         scriptDataInternal.UpdateFunctionCached = scriptDataInternal.Script.Globals.Get("update");
-                        if (scriptDataInternal.UpdateFunctionCached == null)
+                        if (scriptDataInternal.UpdateFunctionCached == null || Equals(scriptDataInternal.UpdateFunctionCached, DynValue.Nil))
                             Messages.AddWarning("Unable to find update(entity, frameTime) method for " + scriptData.ScriptName);
 
                         DynValue initFunction = scriptDataInternal.Script.Globals.Get("initialize");
-                        if (initFunction != null)
+                        if (initFunction != null && !Equals(initFunction, DynValue.Nil))
                             CallLuaFunction(scriptDataInternal.Script, initFunction, entity, entityValue);
                         else
                             Messages.AddWarning("Unable to find initialize(entity) method for " + scriptData.ScriptName);
@@ -145,9 +145,9 @@ namespace ProdigalSoftware.TiVE.ScriptSystem
             {
                 script.Call(function, args);
             }
-            catch (InterpreterException)
+            catch (Exception)
             {
-                Messages.AddError("Got exception when processing script for " + entity.Name);
+                Messages.AddError("Got exception when processing script for " + entity.Name + " (function " + function + ")");
                 throw;
             }
         }

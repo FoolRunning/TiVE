@@ -47,6 +47,9 @@ namespace ProdigalSoftware.TiVE.Core
             currentSceneName = sceneName;
             ThreadStart loadSceneAction = () =>
             {
+                if (useSeparateThread)
+                    Thread.Sleep(1000); // Give the loading screen a chance to load
+
                 foreach (ISceneGenerator generator in TiVEController.PluginManager.GetPluginsOfType<ISceneGenerator>())
                 {
                     Scene scene = (Scene)generator.CreateScene(sceneName);
@@ -94,46 +97,60 @@ namespace ProdigalSoftware.TiVE.Core
 
         public void MainLoop(string sceneToLoad)
         {
-            INativeDisplay nativeDisplay = InitializeWindow();
-            nativeDisplay.DisplayClosing += (s, e) => continueMainLoop = false;
-
-            TiVEController.Backend.Initialize();
-            NativeDisplayResized(nativeDisplay.ClientBounds); // Make sure we start out at the correct size
-
-            continueMainLoop = InitializeSystems();
-            if (continueMainLoop)
+            INativeDisplay nativeDisplay = null;
+            try
             {
-                LoadScene("Loading", false);
-                LoadScene(sceneToLoad, true);
-            }
+                nativeDisplay = InitializeWindow();
+                nativeDisplay.DisplayClosing += (s, e) => continueMainLoop = false;
 
-            long previousTime = Stopwatch.GetTimestamp();
-            while (continueMainLoop)
+                TiVEController.Backend.Initialize();
+                NativeDisplayResized(nativeDisplay.ClientBounds); // Make sure we start out at the correct size
+
+                continueMainLoop = InitializeSystems();
+                if (continueMainLoop)
+                {
+                    LoadScene("Loading", false);
+                    LoadScene(sceneToLoad, true);
+                }
+
+                long previousTime = Stopwatch.GetTimestamp();
+                while (continueMainLoop)
+                {
+                    long currentTime = Stopwatch.GetTimestamp();
+                    int ticksSinceLastFrame = (int)(currentTime - previousTime);
+                    if (ticksSinceLastFrame > maxTicksPerUpdate)
+                        ticksSinceLastFrame = maxTicksPerUpdate;
+
+                    previousTime = currentTime;
+
+                    nativeDisplay.ProcessNativeEvents();
+                    TiVEController.Backend.BeforeRenderFrame();
+                    UpdateSystems(ticksSinceLastFrame);
+                    nativeDisplay.UpdateDisplayContents();
+                }
+            }
+            catch (Exception e)
             {
-                long currentTime = Stopwatch.GetTimestamp();
-                int ticksSinceLastFrame = (int)(currentTime - previousTime);
-                if (ticksSinceLastFrame > maxTicksPerUpdate)
-                    ticksSinceLastFrame = maxTicksPerUpdate;
-
-                previousTime = currentTime;
-
-                nativeDisplay.ProcessNativeEvents();
-                TiVEController.Backend.BeforeRenderFrame();
-                UpdateSystems(ticksSinceLastFrame);
-                nativeDisplay.UpdateDisplayContents();
+                Messages.AddError("Exception while running main loop:");
+                Messages.AddStackTrace(e);
             }
-
-            if (sceneLoadThread != null)
+            finally
             {
-                // Something bad probably happened while loading the next scene.
-                sceneLoadThread.Abort();
-                sceneLoadThread.Join();
+                if (sceneLoadThread != null)
+                {
+                    // Something bad probably happened while loading the next scene.
+                    sceneLoadThread.Abort();
+                    sceneLoadThread.Join();
+                }
+
+                DisposeSystems();
+
+                if (nativeDisplay != null)
+                {
+                    nativeDisplay.CloseWindow();
+                    nativeDisplay.Dispose();
+                }
             }
-
-            DisposeSystems();
-
-            nativeDisplay.CloseWindow();
-            nativeDisplay.Dispose();
         }
 
         public bool InitializeSystems()

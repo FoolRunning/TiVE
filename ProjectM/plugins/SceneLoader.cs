@@ -15,6 +15,10 @@ namespace ProdigalSoftware.ProjectM.Plugins
             if (sceneName == "Loading")
             {
                 scene = Factory.Create<IScene>();
+                scene.SetGameWorld("Loading");
+                IEntity entity = scene.CreateNewEntity("Camera");
+                entity.AddComponent(new CameraComponent());
+                entity.AddComponent(new ScriptComponent("Loading"));
             }
             else if (sceneName == "Maze")
             {

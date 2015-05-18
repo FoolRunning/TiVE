@@ -9,7 +9,7 @@ using ProdigalSoftware.Utils;
 namespace ProdigalSoftware.ProjectM.Plugins
 {
     [UsedImplicitly]
-    public class GenerateMazeWorld : IWorldGenerator
+    public class MazeGenerateWorld : IWorldGenerator
     {
         private const int RoomLightId = 100;
         private const int DoorAreaId = 2100;
@@ -35,6 +35,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
 
             IGameWorld gameWorld = Factory.CreateGameWorld(513, 513, 12); // Width and height must be divisible by 3
             gameWorld.LightingModelType = LightingModelType.Realistic;
+            gameWorld.DoLightCulling = true;
 
             Random random = new Random();
 
@@ -130,11 +131,11 @@ namespace ProdigalSoftware.ProjectM.Plugins
             int lightId = 0;
             while (cellsInMaze.Count > 0)
             {
-                Direction dir = cell != MazeCellLocation.NONE ? ChooseRandomDirection(cell, dungeonMap, random) : Direction.None;
+                Direction dir = cell != MazeCellLocation.None ? ChooseRandomDirection(cell, dungeonMap, random) : Direction.None;
                 if (dir == Direction.None)
                 {
                     // Couldn't continue with current road so find a good place for another one
-                    if (!searchingForNewCell && cell != MazeCellLocation.NONE)
+                    if (!searchingForNewCell && cell != MazeCellLocation.None)
                         dungeonMap[cell.X, cell.Y].LightId = lightId + 1;
 
                     lightId = (lightId + 1) % 6;
@@ -155,7 +156,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
                     {
                         // There are no more cells in the maze path so we need to find a brand new location to start a new maze path
                         cell = FindBlankSpace(dungeonMap, random);
-                        if (cell != MazeCellLocation.NONE)
+                        if (cell != MazeCellLocation.None)
                         {
                             cellsInMaze.Add(cell);
                             dungeonMap[cell.X, cell.Y].AreaId = ++mazeAreaId;
@@ -222,7 +223,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
                 }
             }
 
-            return MazeCellLocation.NONE;
+            return MazeCellLocation.None;
         }
 
         private static Direction ChooseRandomDirection(MazeCellLocation cell, MazeCell[,] dungeonMap, Random random)
@@ -432,7 +433,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
                         gameWorld[x, y, 5] = stone;
                         gameWorld[x, y, 6] = stone;
                         gameWorld[x, y, 7] = stone;
-                        //gameWorld[x, y, 9] = stone;
+                        //gameWorld[x, y, 8] = stone;
 
                         //if (mazeLocX == 0 || (dungeonMap[mazeLocX - 1, mazeLocY].AreaId > 0 && dungeonMap[mazeLocX - 1, mazeLocY].AreaId < mazeStartAreaId) ||
                         //    mazeLocX == dungeonMap.GetLength(0) - 1 || (dungeonMap[mazeLocX + 1, mazeLocY].AreaId > 0 && dungeonMap[mazeLocX + 1, mazeLocY].AreaId < mazeStartAreaId) ||
@@ -484,7 +485,10 @@ namespace ProdigalSoftware.ProjectM.Plugins
                             if (mazeLocY == dungeonMap.GetLength(1) - 1 || dungeonMap[mazeLocX, mazeLocY + 1].AreaId == 0)
                                 lightLocY++;
 
-                            gameWorld[lightLocX, lightLocY, 4] = blockList["light" + (lightId - 1)];
+                            int height = 4;
+                            if (lightLocX == x && lightLocY == y)
+                                height = 7;
+                            gameWorld[lightLocX, lightLocY, height] = blockList["light" + (lightId - 1)];
                         }
                     }
                 }
@@ -571,7 +575,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
         #region MazeCellLocation structure
         private struct MazeCellLocation
         {
-            public static readonly MazeCellLocation NONE = new MazeCellLocation(-1, -1);
+            public static readonly MazeCellLocation None = new MazeCellLocation(-1, -1);
 
             public readonly int X;
             public readonly int Y;
@@ -611,26 +615,6 @@ namespace ProdigalSoftware.ProjectM.Plugins
             public int AreaId;
             public int LightId;
             public bool PossibleDoorPoint;
-        }
-        #endregion
-
-        #region BlockRandomizer class
-        private sealed class BlockRandomizer
-        {
-            private readonly ushort[] blocks;
-            private readonly Random random = new Random();
-
-            public BlockRandomizer(IBlockList blockList, string blockname, int blockCount)
-            {
-                blocks = new ushort[blockCount];
-                for (int i = 0; i < blocks.Length; i++)
-                    blocks[i] = blockList[blockname + i];
-            }
-
-            public ushort NextBlock()
-            {
-                return blocks[random.Next(blocks.Length)];
-            }
         }
         #endregion
     }
