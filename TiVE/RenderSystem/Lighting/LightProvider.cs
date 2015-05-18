@@ -90,7 +90,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
         /// <remarks>Very performance-critical method</remarks>
         public abstract Color3f GetLightAt(int voxelX, int voxelY, int voxelZ, int voxelSize, int blockX, int blockY, int blockZ, VoxelSides visibleSides);
 
-        public void Calculate(BlockList blockList, bool clearLightInfo)
+        public void Calculate(bool clearLightInfo)
         {
             Messages.Print("Initializing lighting...");
             Stopwatch sw = Stopwatch.StartNew();
@@ -115,7 +115,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
             Thread[] threads = new Thread[numThreads];
             for (int i = 0; i < numThreads; i++)
             {
-                threads[i] = StartLightCalculationThread("Light " + (i + 1), blockList, lightInfos,
+                threads[i] = StartLightCalculationThread("Light " + (i + 1), lightInfos,
                     i * blockSize.X / numThreads, (i + 1) * blockSize.X / numThreads);
             }
 
@@ -165,11 +165,14 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
                 {
                     for (int by = startY; by < endY; by++)
                     {
-                        if (!gameWorld.LessThanBlockCountInLine(blockX, blockY, blockZ, bx, by, bz, maxBlockCount) &&
+                        if (gameWorld.DoLightCulling && !gameWorld.LessThanBlockCountInLine(blockX, blockY, blockZ, bx, by, bz, maxBlockCount) &&
                             !gameWorld.LessThanBlockCountInLine(bx, by, bz, blockX, blockY, blockZ, maxBlockCount))
                         {
                             continue; // Unlikely the light will actually hit the block at all
                         }
+
+                        // TODO: The code below should produce much better accuracy (with a maxBlockCount of 1) when determining whether a light can affect a block.
+                        // However, this seems to produce some other bugs (which I haven't been able to track down) and makes lighting calculate 10x slower.
 
                         //if (!gameWorld.LessThanBlockCountInLine(blockX, blockY, blockZ, bx, by, bz, maxBlockCount) &&
                         //    (bx == 0 || (!gameWorld.LessThanBlockCountInLine(blockX, blockY, blockZ, bx - 1, by, bz, maxBlockCount) &&
@@ -228,7 +231,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
         #endregion
 
         #region Private helper methods
-        private Thread StartLightCalculationThread(string threadName, BlockList blockList, List<LightInfo> lightInfos, int startX, int endX)
+        private Thread StartLightCalculationThread(string threadName, List<LightInfo> lightInfos, int startX, int endX)
         {
             Thread thread = new Thread(() =>
             {
@@ -241,7 +244,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
                     int percentComplete = totalComplete * 100 / (sizeX - 1);
                     if (percentComplete != lastPercentComplete)
                     {
-                        //Console.WriteLine("Calculating lighting: {0}%", percentComplete);
+                        Console.WriteLine("Calculating lighting: {0}%", percentComplete);
                         lastPercentComplete = percentComplete;
                     }
 
@@ -259,6 +262,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
             });
 
             thread.Name = threadName;
+            thread.Priority = ThreadPriority.BelowNormal;
             thread.Start();
             return thread;
         }

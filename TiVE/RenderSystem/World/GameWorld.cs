@@ -34,8 +34,14 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
             blocks = new ushort[blockSizeX * blockSizeY * blockSizeZ];
         }
 
-        [UsedImplicitly]
+        #region Implementation of IGameWorld
         public LightingModelType LightingModelType { get; set; }
+
+        /// <summary>
+        /// Gets/sets whether light culling will be enabled for the game world. Light culling produces faster level chunk loading, but creates
+        /// small lighting bugs and takes longer to do the initial load.
+        /// </summary>
+        public bool DoLightCulling { get; set; }
 
         /// <summary>
         /// Gets the voxel size of the game world
@@ -61,6 +67,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
             get { return blocks[GetBlockOffset(blockX, blockY, blockZ)]; }
             set { blocks[GetBlockOffset(blockX, blockY, blockZ)] = value; }
         }
+        #endregion
 
         public void Initialize(BlockList blockList)
         {
@@ -244,8 +251,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
                 if (x == endX && y == endY && z == endZ)
                     return true;
 
-                ushort block = blocks[GetBlockOffset(x, y, z)];
-                if (!blockLightPassThrough[block] && ++blockCount >= maxBlocks)
+                if (!blockLightPassThrough[blocks[GetBlockOffset(x, y, z)]] && ++blockCount >= maxBlocks)
                     return false;
             }
             while (true);

@@ -17,6 +17,8 @@ namespace ProdigalSoftware.TiVE.GUISystem
         {
             Gui.Renderer.Dispose();
             Gui.Renderer = null;
+            desktop = null;
+            lastDrawnScene = null;
         }
 
         public override bool Initialize()
@@ -36,6 +38,7 @@ namespace ProdigalSoftware.TiVE.GUISystem
                 desktop.Controls.Add(label);
             }
 
+            //desktop.Size = new Point(100, 100);
             desktop.Update();
             desktop.Draw();
 

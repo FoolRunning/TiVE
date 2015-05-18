@@ -236,7 +236,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
         #region LightBugsUpdater class
         private class LightBugsUpdater : ParticleController
         {
-            private const float BugDeacceleration = 15.0f;
+            private const float BugDeacceleration = 30.0f;
             private static readonly Random random = new Random();
 
             public LightBugsUpdater() : base(10, 15, TransparencyType.Realistic, true)
@@ -270,9 +270,9 @@ namespace ProdigalSoftware.ProjectM.Plugins
 
             public override void InitializeNew(Particle particle, Vector3i systemLocation)
             {
-                particle.VelX = (float)random.NextDouble() * 20.0f - 10.0f;
-                particle.VelZ = (float)random.NextDouble() * 20.0f - 10.0f;
-                particle.VelY = (float)random.NextDouble() * 20.0f - 10.0f;
+                particle.VelX = (float)random.NextDouble() * 40.0f - 20.0f;
+                particle.VelZ = (float)random.NextDouble() * 40.0f - 20.0f;
+                particle.VelY = (float)random.NextDouble() * 40.0f - 20.0f;
 
                 particle.X = (float)random.NextDouble() * 20.0f + systemLocation.X - 10.0f;
                 particle.Y = (float)random.NextDouble() * 20.0f + systemLocation.Y - 10.0f;
@@ -285,7 +285,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
 
             private static Color4b CreateColor()
             {
-                byte intensity = (byte)(150 + random.Next(100));
+                byte intensity = (byte)(50 + random.Next(100));
                 return new Color4b(intensity, intensity, intensity, 200);
             }
         }

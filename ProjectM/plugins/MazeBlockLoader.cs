@@ -22,7 +22,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
 
         public IEnumerable<Block> CreateBlocks(string blockListName)
         {
-            if (blockListName != "maze")
+            if (blockListName != "maze" && blockListName != "loading")
                 yield break;
 
             const byte bc = Block.VoxelSize / 2;
@@ -184,7 +184,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
                 yield return grass;
             }
 
-            // alowing light to pass through the back blocks is to work around a bug in the lighting calculations
+            // allowing light to pass through the back blocks is to work around a bug in the lighting calculations
             for (int i = 0; i < 6; i++)
             {
                 yield return CreateBlockInfo("backStone" + i, 0, new Color4f(240, 240, 240, 255), 1.0f, allowLightPassthrough: true);
@@ -199,8 +199,11 @@ namespace ProdigalSoftware.ProjectM.Plugins
             fireBlock.AddComponent(new LightComponent(new Vector3b(bc, bc, 4), new Color3f(1.0f, 0.8f, 0.6f), 15));
             yield return fireBlock;
 
+            yield return CreateBlockInfo("loadingLight", 3, new Color4f(1.0f, 1.0f, 1.0f, 1.0f), 1.0f, null,
+                new LightComponent(blockCenterVector, new Color3f(1.0f, 1.0f, 1.0f), 55, true));
+
             yield return CreateBlockInfo("roomLight", 5, new Color4f(1.0f, 1.0f, 1.0f, 1.0f), 1.0f, null,
-                new LightComponent(blockCenterVector, new Color3f(1.0f, 1.0f, 1.0f), 35));
+                new LightComponent(blockCenterVector, new Color3f(1.0f, 1.0f, 1.0f), 35, true));
 
             const int lightDist = 30;
             ParticleComponent bugInformation = new ParticleComponent("LightBugs", new Vector3i(bc, bc, bc));
