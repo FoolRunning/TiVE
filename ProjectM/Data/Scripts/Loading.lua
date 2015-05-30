@@ -1,6 +1,6 @@
-﻿WorldXSize = 50;
-WorldYSize = 20;
-WorldZSize = 4;
+﻿WorldXSize = 75;
+WorldYSize = 50;
+WorldZSize = 8;
 
 function initialize(entity)
     camera = entity.GetComponent("CameraComponent")
@@ -11,7 +11,7 @@ function initialize(entity)
 
     camera.FieldOfView = PI / 4 --45 degrees
     camera.Location = vector(WorldXSize * BlockSize / 2, WorldYSize * BlockSize / 2 - 50, 0)
-    camera.LookAtLocation = vector(WorldXSize * BlockSize / 2, WorldYSize * BlockSize / 2 + 50, 0)
+    camera.LookAtLocation = vector(WorldXSize * BlockSize / 2, WorldYSize * BlockSize / 2, 0)
     camera.FarDistance = 2000
     camera.UpVector = vector(0, 0, 1)
 end
@@ -22,6 +22,6 @@ function update(entity, timeSinceLastFrame)
     cameraAngle = cameraAngle + (20 * timeSinceLastFrame)
 
     camera = entity.GetComponent("CameraComponent")
-    camera.Location = vector(WorldXSize * BlockSize / 2 + cos(toRadians(cameraAngle / 3)) * 70, -50 + sin(toRadians(cameraAngle)) * 40, 450)
+    camera.Location = vector(WorldXSize * BlockSize / 2 + cos(toRadians(cameraAngle / 3)) * 70, 150 + sin(toRadians(cameraAngle)) * 40, 550)
 end
 

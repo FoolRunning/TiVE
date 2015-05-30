@@ -26,32 +26,6 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
         }
 
         /// <summary>
-        /// Gets the amount of light (0.0 - 1.0) that would the specified light would produce for the voxel at the specified location
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public float GetLightPercentage(LightInfo lightInfo, int voxelX, int voxelY, int voxelZ)
-        {
-            int lightDistX = lightInfo.VoxelLocX - voxelX;
-            int lightDistY = lightInfo.VoxelLocY - voxelY;
-            int lightDistZ = lightInfo.VoxelLocZ - voxelZ;
-            float distSquared = lightDistX * lightDistX + lightDistY * lightDistY + lightDistZ * lightDistZ;
-            return GetLightPercentageInternal(distSquared, lightInfo.CachedLightCalc);
-        }
-
-        /// <summary>
-        /// Gets the amount of light (0.0 - 1.0) that would the specified light would produce for the voxel at the specified location
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public float GetLightPercentageShadow(LightInfo lightInfo, int voxelX, int voxelY, int voxelZ)
-        {
-            int lightDistX = lightInfo.VoxelLocX - voxelX;
-            int lightDistY = lightInfo.VoxelLocY - voxelY;
-            int lightDistZ = lightInfo.VoxelLocZ - voxelZ;
-            float distSquared = lightDistX * lightDistX + lightDistY * lightDistY + lightDistZ * lightDistZ;
-            return GetLightPercentageInternal(distSquared, lightInfo.CachedLightCalcShadow);
-        }
-
-        /// <summary>
         /// Gets a value to cache for the specified light that will make the lighting calculations faster
         /// </summary>
         public abstract float GetCacheLightCalculation(LightComponent light);
@@ -61,7 +35,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
         /// </summary>
         public abstract float GetCacheLightCalculationForShadow(LightComponent light);
 
-        protected abstract float GetLightPercentageInternal(float distSquared, float cachedLightCalc);
+        public abstract float GetLightPercentage(float distSquared, float cachedLightCalc);
 
         #region RealisticLightingModel class
         private sealed class RealisticLightingModel : LightingModel
@@ -78,7 +52,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
                 return 1.0f / (dist * dist * MinRealisticLightPercent); // Light attentuation
             }
 
-            protected override float GetLightPercentageInternal(float distSquared, float cachedLightCalc)
+            public override float GetLightPercentage(float distSquared, float cachedLightCalc)
             {
                 return 1.0f / (1.0f + distSquared * cachedLightCalc);
             }
@@ -100,7 +74,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
                 return 1.0f / (dist * dist * dist * dist * MinRealisticLightPercent); // Light attentuation
             }
 
-            protected override float GetLightPercentageInternal(float distSquared, float cachedLightCalc)
+            public override float GetLightPercentage(float distSquared, float cachedLightCalc)
             {
                 return 1.0f / (1.0f + distSquared * distSquared * cachedLightCalc);
             }
@@ -118,11 +92,11 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
 
             public override float GetCacheLightCalculationForShadow(LightComponent light)
             {
-                float dist = (light.LightBlockDist * Block.VoxelSize) / (ShadowLightDistMinFactor  * 0.7f);
+                float dist = (light.LightBlockDist * Block.VoxelSize) / ShadowLightDistMinFactor;
                 return 1.0f / (dist * dist); // One over max light distance squared
             }
 
-            protected override float GetLightPercentageInternal(float distSquared, float cachedLightCalc)
+            public override float GetLightPercentage(float distSquared, float cachedLightCalc)
             {
                 float att = Math.Max(0.0f, 1.0f - distSquared * cachedLightCalc);
                 return att * att;
@@ -141,11 +115,11 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
 
             public override float GetCacheLightCalculationForShadow(LightComponent light)
             {
-                float dist = (light.LightBlockDist * Block.VoxelSize) / (ShadowLightDistMinFactor * 0.7f);
+                float dist = (light.LightBlockDist * Block.VoxelSize) / ShadowLightDistMinFactor;
                 return 1.0f / (dist * dist); // One over max light distance squared
             }
 
-            protected override float GetLightPercentageInternal(float distSquared, float cachedLightCalc)
+            public override float GetLightPercentage(float distSquared, float cachedLightCalc)
             {
                 float att = Math.Max(0.0f, 1.0f - distSquared * cachedLightCalc);
                 return att * att * att * att * att;

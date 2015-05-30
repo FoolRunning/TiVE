@@ -426,7 +426,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
                     int areaId = dungeonMap[mazeLocX, mazeLocY].AreaId;
                     if (areaId == 0)
                     {
-                        gameWorld[x, y, 2] = stoneBacks.NextBlock();
+                        gameWorld[x, y, 2] = stone;
                         gameWorld[x, y, 3] = stone;
                         gameWorld[x, y, 4] = stone;
                         gameWorld[x, y, 5] = stone;

@@ -84,13 +84,16 @@ namespace ProdigalSoftware.TiVE.ParticleSystem
             if (cameraData == null)
                 return true; // Couldn't find a camera to determine view projection matrix
 
-            Bla(cameraData);
+            FindSystemsToRender(cameraData);
+
+            if (currentScene.LoadingInitialChunks)
+                return true;
+
             //if (particleUpdateThread == null)
             //{
             //    // Running in single-threaded mode
             //    UpdateEntities(timeSinceLastUpdate);
             //}
-
 
             IShaderProgram shader = shaderManager.GetShaderProgram(VoxelMeshHelper.Get(true).ShaderName);
             shader.Bind();
@@ -110,7 +113,7 @@ namespace ProdigalSoftware.TiVE.ParticleSystem
             return true;
         }
 
-        private void Bla(CameraComponent cameraData)
+        private void FindSystemsToRender(CameraComponent cameraData)
         {
             cameraLocation = new Vector3i((int)cameraData.Location.X, (int)cameraData.Location.Y, (int)cameraData.Location.Z);
 

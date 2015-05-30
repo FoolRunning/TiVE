@@ -204,12 +204,12 @@ namespace ProdigalSoftware.ProjectM.Plugins
 
             const bool forFantasy = false;
             yield return CreateBlockInfo("roomLight", 5, new Color4f(1.0f, 1.0f, 1.0f, 1.0f), 1.0f, null,
-                new LightComponent(blockCenterVector, new Color3f(1.0f, 1.0f, 1.0f), forFantasy ? 17 : 60, true));
+                new LightComponent(blockCenterVector, new Color3f(forFantasy ? 0.5f : 0.7f, forFantasy ? 0.5f : 0.7f, forFantasy ? 0.5f : 0.7f), forFantasy ? 25 : 60, true));
 
-            const int lightDist = forFantasy ? 13 : 45;
-            const float bright = 1.0f;
-            const float mid = 0.8f;
-            const float dim = 0.5f;
+            const int lightDist = forFantasy ? 20 : 45;
+            const float bright = forFantasy ? 0.6f : 1.0f;
+            const float mid = forFantasy ? 0.45f : 0.8f;
+            const float dim = forFantasy ? 0.3f : 0.5f;
             ParticleComponent bugInformation = new ParticleComponent("LightBugs", new Vector3i(bc, bc, bc));
 
             yield return CreateBlockInfo("light0", 2, new Color4f(0.5f, 0.8f, 1.0f, 1.0f), 1.0f, bugInformation,

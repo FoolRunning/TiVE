@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics;
+using JetBrains.Annotations;
 using ProdigalSoftware.TiVE.Core;
 using ProdigalSoftware.TiVE.Core.Backend;
 using ProdigalSoftware.TiVE.Debugging;
@@ -27,6 +28,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem
         private readonly ItemCountsHelper renderedVoxelCount = new ItemCountsHelper(8, false);
         private readonly ItemCountsHelper polygonCount = new ItemCountsHelper(8, false);
         private readonly ShaderManager shaderManager = new ShaderManager();
+        private Scene previousScene;
         private VoxelMeshManager meshManager;
         private int ticksSinceLastStatUpdate;
         #endregion
@@ -45,6 +47,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem
             shaderManager.Dispose();
 
             meshManager = null;
+            previousScene = null;
         }
 
         public override bool Initialize()
@@ -59,6 +62,12 @@ namespace ProdigalSoftware.TiVE.RenderSystem
         {
             if (currentScene == null)
                 return true;
+
+            if (currentScene != previousScene)
+            {
+                currentScene.LoadingInitialChunks = true;
+                previousScene = currentScene;
+            }
 
             ticksSinceLastStatUpdate += ticksSinceLastFrame;
             if (ticksSinceLastStatUpdate > timeBetweenTimingUpdates)
@@ -77,6 +86,13 @@ namespace ProdigalSoftware.TiVE.RenderSystem
 
             HashSet<IEntity> entitiesToRender = cameraData.VisibleEntitites;
             meshManager.LoadMeshesForEntities(entitiesToRender, cameraData, currentScene);
+
+            if (currentScene.LoadingInitialChunks)
+            {
+                if (meshManager.ChunkLoadCount < 10) // Let chunks load before showing scene
+                    currentScene.LoadingInitialChunks = false;
+                return true;
+            }
 
             RenderStatistics stats = new RenderStatistics();
             //stats += RenderSceneDebug(cameraData, currentScene.RenderNode, -1);
@@ -117,7 +133,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem
                 CameraComponent cameraData = cameraEntity.GetComponent<CameraComponent>();
                 Debug.Assert(cameraData != null);
 
-                if (cameraData.Enabled)
+                if (cameraData.Enabled && cameraData.ViewProjectionMatrix != Matrix4f.Zero)
                     return cameraData;
             }
             return null;
@@ -140,6 +156,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem
             return new RenderStatistics(1, renderData.PolygonCount, renderData.VoxelCount, renderData.RenderedVoxelCount);
         }
 
+        [UsedImplicitly]
         private RenderStatistics RenderSceneDebug(CameraComponent cameraData, RenderNode node, int locationInParent)
         {
             node.RenderDebugOutline(shaderManager, ref cameraData.ViewProjectionMatrix, locationInParent);
