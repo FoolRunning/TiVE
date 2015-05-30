@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Drawing;
 using System.Runtime;
 using System.Threading;
 using System.Windows.Forms;
@@ -7,6 +8,7 @@ using ProdigalSoftware.TiVE.Core;
 using ProdigalSoftware.TiVE.Core.Backend;
 using ProdigalSoftware.TiVE.Core.Backend.OpenTKImpl;
 using ProdigalSoftware.TiVE.Plugins;
+using ProdigalSoftware.TiVE.RenderSystem.World;
 using ProdigalSoftware.TiVE.Settings;
 using ProdigalSoftware.TiVE.Starter;
 using ProdigalSoftware.TiVEPluginFramework;
@@ -71,12 +73,13 @@ namespace ProdigalSoftware.TiVE
                     UserSettings.Load();
                 if (success)
                     starterForm.AfterInitialLoad();
+
+                DoVoxelRayCastTest();
+                DoBlockLineTest();
             });
             initialLoadThread.IsBackground = true;
             initialLoadThread.Name = "InitialLoad";
             initialLoadThread.Start();
-
-            //DoTest();
         }
 
         private static void starterForm_FormClosing(object sender, FormClosingEventArgs e)
@@ -85,36 +88,68 @@ namespace ProdigalSoftware.TiVE
             UserSettings.Save();
         }
 
-        //private static void DoTest()
-        //{
-        //    GameWorld gameWorld = new GameWorld(100, 100, 100);
-        //    BlockList blockList = new BlockList();
-        //    blockList.AddBlock(new BlockImpl("dummy"));
-        //    ushort block = blockList["dummy"];
-        //    for (int x = 0; x < 100; x++)
-        //    {
-        //        for (int z = 0; z < 100; z++)
-        //        {
-        //            for (int y = 0; y < 100; y++)
-        //                gameWorld[x, y, z] = block;
-        //        }
-        //    }
+        private static void DoVoxelRayCastTest()
+        {
+            GameWorld gameWorld = new GameWorld(100, 100, 100);
+            BlockList blockList = new BlockList();
+            blockList.AddBlock(new BlockImpl("dummy"));
+            ushort block = blockList["dummy"];
+            for (int x = 0; x < 100; x++)
+            {
+                for (int z = 0; z < 100; z++)
+                {
+                    for (int y = 0; y < 100; y++)
+                        gameWorld[x, y, z] = block;
+                }
+            }
 
-        //    gameWorld.Initialize(blockList);
-        //    int center = gameWorld.VoxelSize.X / 2;
+            gameWorld.Initialize(blockList);
+            int center = gameWorld.VoxelSize.X / 2;
 
-        //    long totalMs = 0;
-        //    Stopwatch sw = new Stopwatch();
-        //    for (int t = 0; t < 10; t++)
-        //    {
-        //        sw.Restart();
-        //        for (int i = 0; i < 10000; i++)
-        //            gameWorld.NoVoxelInLine(center, center, center, i % center + 200, i % center + 200, i % center + 200);
-        //        sw.Stop();
-        //        totalMs += sw.ElapsedMilliseconds;
-        //    }
+            long totalMs = 0;
+            Stopwatch sw = new Stopwatch();
+            for (int t = 0; t < 20; t++)
+            {
+                sw.Restart();
+                for (int i = 0; i < 10000; i++)
+                    gameWorld.NoVoxelInLine(center, center, center, i % center + 200, i % center + 200, i % center + 200);
+                sw.Stop();
+                totalMs += sw.ElapsedMilliseconds;
+            }
+            Messages.Println(string.Format("10,000 ray casts took average of {0}ms", totalMs / 20.0f), Color.Chocolate);
+        }
 
-        //    Console.WriteLine("Took average of {0}ms", totalMs / 10.0f);
-        //}
+        private static void DoBlockLineTest()
+        {
+            GameWorld gameWorld = new GameWorld(200, 200, 200);
+            BlockList blockList = new BlockList();
+            BlockImpl block = new BlockImpl("dummy");
+            block.AddComponent(TransparentComponent.Instance);
+            blockList.AddBlock(block);
+            ushort blockId = blockList["dummy"];
+            for (int x = 0; x < 100; x++)
+            {
+                for (int z = 0; z < 100; z++)
+                {
+                    for (int y = 0; y < 100; y++)
+                        gameWorld[x, y, z] = blockId;
+                }
+            }
+
+            gameWorld.Initialize(blockList);
+            int center = gameWorld.BlockSize.X / 2;
+
+            long totalMs = 0;
+            Stopwatch sw = new Stopwatch();
+            for (int t = 0; t < 20; t++)
+            {
+                sw.Restart();
+                for (int i = 0; i < 10000; i++)
+                    gameWorld.LessThanBlockCountInLine(center, center, center, i % center + 98, i % center + 98, i % center + 98, 2);
+                sw.Stop();
+                totalMs += sw.ElapsedMilliseconds;
+            }
+            Messages.Println(string.Format("10,000 block lines took average of {0}ms", totalMs / 20.0f), Color.Chocolate);
+        }
     }
 }

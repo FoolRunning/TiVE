@@ -47,9 +47,6 @@ namespace ProdigalSoftware.TiVE.Core
             currentSceneName = sceneName;
             ThreadStart loadSceneAction = () =>
             {
-                if (useSeparateThread)
-                    Thread.Sleep(1000); // Give the loading screen a chance to load
-
                 foreach (ISceneGenerator generator in TiVEController.PluginManager.GetPluginsOfType<ISceneGenerator>())
                 {
                     Scene scene = (Scene)generator.CreateScene(sceneName);

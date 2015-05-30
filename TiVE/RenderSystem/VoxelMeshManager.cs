@@ -91,6 +91,11 @@ namespace ProdigalSoftware.TiVE.RenderSystem
         }
         #endregion
 
+        public int ChunkLoadCount
+        {
+            get { return entityLoadQueue.Size; }
+        }
+
         #region Public methods
         /// <summary>
         /// Loads meshes for the specified entities. Meshes for any entities that were loaded that are no longer in the specified list will be deleted.

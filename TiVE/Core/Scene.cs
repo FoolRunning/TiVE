@@ -24,6 +24,8 @@ namespace ProdigalSoftware.TiVE.Core
             get { return entities; }
         }
 
+        public bool LoadingInitialChunks { get; set; }
+
         public BlockList BlockList { get; private set; }
 
         public LightProvider LightProvider { get; private set; }

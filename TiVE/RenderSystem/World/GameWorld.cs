@@ -252,7 +252,8 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
                 if (x == endX && y == endY && z == endZ)
                     return true;
 
-                if (!blockLightPassThrough[blocks[GetBlockOffset(x, y, z)]] && ++blockCount >= maxBlocks)
+                ushort block = blocks[GetBlockOffset(x, y, z)];
+                if (block != 0 && !blockLightPassThrough[block] && ++blockCount >= maxBlocks)
                     return false;
             }
             while (true);
