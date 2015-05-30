@@ -33,7 +33,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
             if (gameWorldName != "Maze")
                 return null;
 
-            IGameWorld gameWorld = Factory.CreateGameWorld(513, 513, 12); // Width and height must be divisible by 3
+            IGameWorld gameWorld = Factory.CreateGameWorld(513, 513, 12); // x-axis and y-axis must be divisible by 3
             gameWorld.LightingModelType = LightingModelType.Realistic;
             gameWorld.DoLightCulling = true;
 
@@ -426,8 +426,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
                     int areaId = dungeonMap[mazeLocX, mazeLocY].AreaId;
                     if (areaId == 0)
                     {
-                        // Wall
-                        gameWorld[x, y, 2] = stone;
+                        gameWorld[x, y, 2] = stoneBacks.NextBlock();
                         gameWorld[x, y, 3] = stone;
                         gameWorld[x, y, 4] = stone;
                         gameWorld[x, y, 5] = stone;
@@ -517,7 +516,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
                         Block block = blockList[blockIndex];
                         string blockNameKey = GetBlockSet(block);
 
-                        if (blockNameKey != "ston" && blockNameKey != "sand" && blockNameKey != "lava")
+                        if (blockNameKey != "ston" && blockNameKey != "sand" && blockNameKey != "shru" && blockNameKey != "lava")
                             continue;
 
                         int sides = 0;
@@ -548,7 +547,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
 
         private static string GetBlockSet(Block block)
         {
-            return block.BlockName.Substring(0, 4);
+            return block.Name.Substring(0, 4);
         }
         #endregion
 

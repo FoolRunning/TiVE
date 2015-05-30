@@ -113,7 +113,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
 
         private static string GetBlockSet(Block block)
         {
-            return block.BlockName.Substring(0, 4);
+            return block.Name.Substring(0, 4);
         }
         #endregion
 

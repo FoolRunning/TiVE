@@ -54,6 +54,6 @@ function update(entity, timeSinceLastFrame)
     end
 
     camera.Location = camLoc
-    camera.LookAtLocation = vector(camLoc.X, camLoc.Y + 50, camLoc.Z - 150)
+    camera.LookAtLocation = vector(camLoc.X, camLoc.Y + 35, camLoc.Z - 150)
 end
 

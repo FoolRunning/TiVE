@@ -9,13 +9,16 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
 {
     internal sealed class BlockImpl : Block
     {
+        #region Member variables/constants
         public static readonly BlockImpl Empty = new BlockImpl("Empty");
 
         private readonly List<IBlockComponent> components = new List<IBlockComponent>();
         private readonly uint[] voxels = new uint[VoxelSize * VoxelSize * VoxelSize];
         private string name;
         private int totalVoxels = -1;
-    
+        #endregion
+
+        #region Constructors
         private BlockImpl(BlockImpl toCopy, string newBlockName) : this(newBlockName)
         {
             Array.Copy(toCopy.voxels, voxels, voxels.Length);
@@ -29,15 +32,12 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
 
             this.name = name;
         }
+        #endregion
 
-        internal uint[] VoxelsArray
+        #region Properties
+        public uint[] VoxelsArray
         {
             get { return voxels; }
-        }
-
-        public override string BlockName  
-        {
-            get { return name; }
         }
 
         public int TotalVoxels
@@ -48,6 +48,13 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
                     totalVoxels = voxels.Count(v => v != 0);
                 return totalVoxels;
             }
+        }
+        #endregion
+
+        #region Implementation of Block
+        public override string Name
+        {
+            get { return name; }
         }
 
         /// <summary>
@@ -115,7 +122,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
             if (rotation == BlockRotation.NotRotated)
                 return this;
 
-            BlockImpl rotatedBlock = new BlockImpl(this, BlockName + "R" + (int)rotation);
+            BlockImpl rotatedBlock = new BlockImpl(this, Name + "R" + (int)rotation);
             switch (rotation)
             {
                 case BlockRotation.NinetyCCW:
@@ -151,17 +158,29 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
             }
             return rotatedBlock;
         }
+        #endregion
 
-        public override string ToString()
+        #region Public methods
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public uint GetVoxelFast(int x, int y, int z)
         {
-            return BlockName;
+            return voxels[GetOffset(x, y, z)];
         }
 
-        internal void SetName(string newName)
+        public void SetName(string newName)
         {
             name = newName;
         }
-        
+        #endregion
+
+        #region Overrides of Object
+        public override string ToString()
+        {
+            return Name;
+        }
+        #endregion
+
+        #region Private helper methods
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static int GetOffset(int x, int y, int z)
         {
@@ -171,5 +190,6 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
 
             return (z * VoxelSize + x) * VoxelSize + y; // y-axis major for speed
         }
+        #endregion
     }
 }

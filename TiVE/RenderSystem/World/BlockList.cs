@@ -166,7 +166,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
                             writer.Write((short)light.LightBlockDist);
                         }
                     }
-                    blockFile.AddEntry(block.BlockName + "." + FileExtension, memStream.ToArray());
+                    blockFile.AddEntry(block.Name + "." + FileExtension, memStream.ToArray());
                 }
             }
 
@@ -186,7 +186,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
 
             ushort index = (ushort)blocks.Count;
             blocks.Add(block);
-            blockToIndexMap[block.BlockName] = index;
+            blockToIndexMap[block.Name] = index;
         }
 
         public void RemoveBlock(string blockName)
@@ -254,7 +254,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
             foreach (ushort blockIndex in blocksInIndex)
             {
                 BlockImpl block = blocks[blockIndex];
-                blockToIndexMap[block.BlockName] = blockIndex;
+                blockToIndexMap[block.Name] = blockIndex;
             }
         }
     }

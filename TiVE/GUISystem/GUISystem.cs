@@ -1,4 +1,5 @@
 ﻿using ProdigalSoftware.TiVE.Core;
+using ProdigalSoftware.Utils;
 using Squid;
 
 namespace ProdigalSoftware.TiVE.GUISystem
@@ -32,7 +33,9 @@ namespace ProdigalSoftware.TiVE.GUISystem
             if (currentScene != lastDrawnScene)
             {
                 desktop = new Desktop();
+                desktop.Size = new Point(300, 300);
                 Label label = new Label();
+                label.TextColor = (int)new Color4b(255, 255, 255, 255).ToArgb();
                 label.Text = "Loading...";
                 label.Position = new Point(100, 100);
                 desktop.Controls.Add(label);

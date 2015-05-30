@@ -98,9 +98,9 @@ namespace ProdigalSoftware.TiVE.Core.Backend.OpenTKImpl
             return new RendererData<T>(data, elementCount, elementsPerVertex, dataType, dataValueType, normalize, dynamic);
         }
 
-        public ITexture CreateTexture(int width, int height)
+        public ITexture CreateTexture(int width, int height, byte[] data = null)
         {
-            return new OpenTKTexture(width, height);
+            return new OpenTKTexture(width, height, data);
         }
 
         public IShaderProgram CreateShaderProgram()

@@ -63,7 +63,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem
         {
             meshBuilders = new List<MeshBuilder>(TotalMeshBuilders);
             for (int i = 0; i < TotalMeshBuilders; i++)
-                meshBuilders.Add(new MeshBuilder(1500000, 2000000));
+                meshBuilders.Add(new MeshBuilder(1700000, 3500000));
 
             for (int i = 0; i < maxThreads; i++)
                 meshCreationThreads.Add(StartMeshCreateThread(i + 1));
@@ -204,7 +204,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem
 
                 if (!hasItemToLoad)
                 {
-                    Thread.Sleep(5);
+                    Thread.Sleep(1);
                     continue;
                 }
 
@@ -217,7 +217,10 @@ namespace ProdigalSoftware.TiVE.RenderSystem
                 }
 
                 if (meshBuilder == null)
+                {
+                    Thread.Sleep(1);
                     continue; // No free meshbuilders to use
+                }
 
                 IEntity entity;
                 int foundEntityDetailLevel;
@@ -295,8 +298,8 @@ namespace ProdigalSoftware.TiVE.RenderSystem
                             continue;
 
                         BlockImpl block = (BlockImpl)blockList[blockIndex];
-                        if (block.TotalVoxels == 0)
-                            continue;
+                        //if (block.TotalVoxels == 0)
+                        //    continue;
 
                         voxelCount += block.TotalVoxels;
 
@@ -365,7 +368,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem
                     byte chunkVoxelX = (byte)(voxelX - voxelStartX);
                     for (int bvy = 0; bvy < Block.VoxelSize; bvy += voxelSize)
                     {
-                        uint color = voxelSize == 1 ? block[bvx, bvy, bvz] : GetLODVoxelColor(block, bvz, bvx, bvy, voxelSize);
+                        uint color = voxelSize == 1 ? block.GetVoxelFast(bvx, bvy, bvz) : GetLODVoxelColor(block, bvz, bvx, bvy, voxelSize);
                         if (color == 0)
                             continue;
 
@@ -376,7 +379,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem
                         // Check to see if the back side is visible
                         if (bvz >= voxelSize)
                         {
-                            if (block[bvx, bvy, bvz - voxelSize] == 0)
+                            if (block.GetVoxelFast(bvx, bvy, bvz - voxelSize) == 0)
                                 sides |= VoxelSides.Back;
                         }
                         else if (voxelZ >= voxelSize && gameWorld.GetVoxel(voxelX, voxelY, voxelZ - voxelSize) == 0)
@@ -385,7 +388,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem
                         // Check to see if the front side is visible
                         if (bvz < maxBlockVoxelSize)
                         {
-                            if (block[bvx, bvy, bvz + voxelSize] == 0)
+                            if (block.GetVoxelFast(bvx, bvy, bvz + voxelSize) == 0)
                                 sides |= VoxelSides.Front;
                         }
                         else if (voxelZ <= maxVoxelZ && gameWorld.GetVoxel(voxelX, voxelY, voxelZ + voxelSize) == 0)
@@ -394,7 +397,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem
                         // Check to see if the left side is visible
                         if (bvx >= voxelSize)
                         {
-                            if (block[bvx - voxelSize, bvy, bvz] == 0)
+                            if (block.GetVoxelFast(bvx - voxelSize, bvy, bvz) == 0)
                                 sides |= VoxelSides.Left;
                         }
                         else if (voxelX >= voxelSize && gameWorld.GetVoxel(voxelX - voxelSize, voxelY, voxelZ) == 0)
@@ -403,7 +406,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem
                         // Check to see if the right side is visible
                         if (bvx < maxBlockVoxelSize)
                         {
-                            if (block[bvx + voxelSize, bvy, bvz] == 0)
+                            if (block.GetVoxelFast(bvx + voxelSize, bvy, bvz) == 0)
                                 sides |= VoxelSides.Right;
                         }
                         else if (voxelX <= maxVoxelX && gameWorld.GetVoxel(voxelX + voxelSize, voxelY, voxelZ) == 0)
@@ -412,7 +415,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem
                         // Check to see if the bottom side is visible
                         if (bvy >= voxelSize)
                         {
-                            if (block[bvx, bvy - voxelSize, bvz] == 0)
+                            if (block.GetVoxelFast(bvx, bvy - voxelSize, bvz) == 0)
                                 sides |= VoxelSides.Bottom;
                         }
                         else if (voxelY >= voxelSize && gameWorld.GetVoxel(voxelX, voxelY - voxelSize, voxelZ) == 0)
@@ -421,7 +424,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem
                         // Check to see if the top side is visible
                         if (bvy < maxBlockVoxelSize)
                         {
-                            if (block[bvx, bvy + voxelSize, bvz] == 0)
+                            if (block.GetVoxelFast(bvx, bvy + voxelSize, bvz) == 0)
                                 sides |= VoxelSides.Top;
                         }
                         else if (voxelY <= maxVoxelY && gameWorld.GetVoxel(voxelX, voxelY + voxelSize, voxelZ) == 0)
@@ -463,7 +466,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem
                 {
                     for (int y = bvy; y < maxY; y++)
                     {
-                        uint otherColor = block[x, y, z];
+                        uint otherColor = block.GetVoxelFast(x, y, z);
                         if (otherColor == 0)
                             continue;
 
