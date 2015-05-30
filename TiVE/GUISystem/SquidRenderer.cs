@@ -1,45 +1,72 @@
 ﻿using System.Collections.Generic;
 using ProdigalSoftware.TiVE.Core.Backend;
+using ProdigalSoftware.Utils;
 using Squid;
 
 namespace ProdigalSoftware.TiVE.GUISystem
 {
     internal class SquidRenderer : ISquidRenderer
     {
-        private readonly Dictionary<string, int> nameToIdMap = new Dictionary<string, int>();
+        private readonly Dictionary<string, int> textureNameToIdMap = new Dictionary<string, int>();
         private readonly Dictionary<int, ITexture> idToTextureMap = new Dictionary<int, ITexture>();
+        private readonly Dictionary<string, int> fontNameToIdMap = new Dictionary<string, int>();
+        private readonly Dictionary<int, Font> idToFontMap = new Dictionary<int, Font>();
+        private int lastFontId = 1;
+        private int lastTextureId = 1;
 
-        #region Implementation of IGUIRenderer
+        #region Implementation of ISquidRenderer
         public void Dispose()
         {
             foreach (ITexture texture in idToTextureMap.Values)
                 texture.Dispose();
 
-            nameToIdMap.Clear();
+            foreach (Font font in idToFontMap.Values)
+                font.Dispose();
+
+            textureNameToIdMap.Clear();
             idToTextureMap.Clear();
+            fontNameToIdMap.Clear();
+            idToFontMap.Clear();
         }
 
         public int GetTexture(string name)
         {
             int textureId;
-            if (nameToIdMap.TryGetValue(name, out textureId))
+            if (textureNameToIdMap.TryGetValue(name, out textureId))
                 return textureId;
 
             ITexture newTexture = TiVEController.Backend.CreateTexture(100, 100);
             newTexture.Initialize();
-            nameToIdMap.Add(name, newTexture.Id);
-            idToTextureMap.Add(newTexture.Id, newTexture);
-            return newTexture.Id;
+
+            int newId = lastTextureId++;
+            textureNameToIdMap.Add(name, newId);
+            idToTextureMap.Add(newId, newTexture);
+            return newId;
         }
 
         public int GetFont(string name)
         {
-            return 0;
+            name = "Font";
+            int fontId;
+            if (fontNameToIdMap.TryGetValue(name, out fontId))
+                return fontId;
+
+            Font newFont = new Font("Font");
+            newFont.Initialize();
+            int newId = lastFontId++;
+            fontNameToIdMap.Add(name, newId);
+            idToFontMap.Add(newId, newFont);
+            return newId;
         }
 
-        public Point GetTextSize(string text, int font)
+        public Point GetTextSize(string text, int fontId)
         {
-            return Point.Zero;
+            Font font;
+            if (!idToFontMap.TryGetValue(fontId, out font))
+                return Point.Zero;
+            
+            Vector2s textSize = font.MeasureText(text);
+            return new Point(textSize.X, textSize.Y);
         }
 
         public Point GetTextureSize(int texture)
@@ -63,7 +90,6 @@ namespace ProdigalSoftware.TiVE.GUISystem
         public void DrawTexture(int texture, int x, int y, int width, int height, Rectangle source, int color)
         {
             idToTextureMap[texture].Activate();
-            
         }
 
         public void StartBatch()

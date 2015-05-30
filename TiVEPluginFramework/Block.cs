@@ -5,7 +5,7 @@
         /// <summary>Number of voxels that make up a block on each axis</summary>
         public const int VoxelSize = 16;
 
-        public abstract string BlockName { get; }
+        public abstract string Name { get; }
 
         /// <summary>
         /// Gets/sets the voxel at the specified position within the block

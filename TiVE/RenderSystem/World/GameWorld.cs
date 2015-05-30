@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
-using JetBrains.Annotations;
+using ProdigalSoftware.TiVE.RenderSystem.Voxels;
 using ProdigalSoftware.TiVEPluginFramework;
 using ProdigalSoftware.Utils;
 
@@ -77,6 +77,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
             for (int i = 0; i < blockList.BlockCount; i++)
             {
                 BlockImpl block = blockList.AllBlocks[i];
+
                 blockLightPassThrough[i] = (i == 0 || block.HasComponent(TransparentComponent.Instance));
                 Array.Copy(block.VoxelsArray, 0, blockVoxels, i * BlockTotalVoxelCount, BlockTotalVoxelCount);
                 if (!block.HasComponent<LightComponent>())
@@ -113,7 +114,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
             int blockVoxelX = voxelX % Block.VoxelSize;
             int blockVoxelY = voxelY % Block.VoxelSize;
             int blockVoxelZ = voxelZ % Block.VoxelSize;
-            return blockVoxels[GetBlockOffset(block, blockVoxelX, blockVoxelY, blockVoxelZ)];
+            return blockVoxels[GetBlockVoxelsOffset(block, blockVoxelX, blockVoxelY, blockVoxelZ)];
         }
 
         /// <summary>
@@ -198,7 +199,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
                 if (x == endX && y == endY && z == endZ)
                     return true;
             }
-            while (block == 0 || blockVoxelsForLighting[GetBlockOffset(block, blockVoxelX, blockVoxelY, blockVoxelZ)] == 0);
+            while (block == 0 || blockVoxelsForLighting[GetBlockVoxelsOffset(block, blockVoxelX, blockVoxelY, blockVoxelZ)] == 0);
 
             return false;
         }
@@ -273,7 +274,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
         /// Gets the offset into the blocks voxels array
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static int GetBlockOffset(ushort blockIndex, int x, int y, int z)
+        private static int GetBlockVoxelsOffset(ushort blockIndex, int x, int y, int z)
         {
             Debug.Assert(x >= 0 && x < Block.VoxelSize);
             Debug.Assert(y >= 0 && y < Block.VoxelSize);

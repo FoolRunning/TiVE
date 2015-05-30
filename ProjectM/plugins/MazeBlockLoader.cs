@@ -34,7 +34,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
             {
                 yield return CreateRoundedBlockInfo("lava" + i, new Color4f(200, 15, 8, 255), 1.0f, i,
                     new LightComponent(new Vector3b(bc, bc, bc), new Color3f(0.2f, 0.01f, 0.005f), 4));
-                
+
                 Block stone = CreateRoundedBlockInfo("ston" + i, new Color4f(220, 220, 220, 255), 1.0f, i);
                 stone.AddComponent(ReflectiveLightComponent.Instance);
                 for (int x = 0; x <= mv; x++)
@@ -200,31 +200,35 @@ namespace ProdigalSoftware.ProjectM.Plugins
             yield return fireBlock;
 
             yield return CreateBlockInfo("loadingLight", 3, new Color4f(1.0f, 1.0f, 1.0f, 1.0f), 1.0f, null,
-                new LightComponent(blockCenterVector, new Color3f(1.0f, 1.0f, 1.0f), 55, true));
+                new LightComponent(blockCenterVector, new Color3f(1.0f, 1.0f, 1.0f), 80, true));
 
+            const bool forFantasy = false;
             yield return CreateBlockInfo("roomLight", 5, new Color4f(1.0f, 1.0f, 1.0f, 1.0f), 1.0f, null,
-                new LightComponent(blockCenterVector, new Color3f(1.0f, 1.0f, 1.0f), 35, true));
+                new LightComponent(blockCenterVector, new Color3f(1.0f, 1.0f, 1.0f), forFantasy ? 17 : 60, true));
 
-            const int lightDist = 30;
+            const int lightDist = forFantasy ? 13 : 45;
+            const float bright = 1.0f;
+            const float mid = 0.8f;
+            const float dim = 0.5f;
             ParticleComponent bugInformation = new ParticleComponent("LightBugs", new Vector3i(bc, bc, bc));
 
             yield return CreateBlockInfo("light0", 2, new Color4f(0.5f, 0.8f, 1.0f, 1.0f), 1.0f, bugInformation,
-                new LightComponent(blockCenterVector, new Color3f(0.5f, 0.8f, 1.0f), lightDist, true));
+                new LightComponent(blockCenterVector, new Color3f(dim, mid, bright), lightDist, true));
 
             yield return CreateBlockInfo("light1", 2, new Color4f(0.8f, 0.5f, 1.0f, 1.0f), 1.0f, bugInformation,
-                new LightComponent(blockCenterVector, new Color3f(0.8f, 0.5f, 1.0f), lightDist, true));
+                new LightComponent(blockCenterVector, new Color3f(mid, dim, bright), lightDist, true));
 
             yield return CreateBlockInfo("light2", 2, new Color4f(1.0f, 0.5f, 0.8f, 1.0f), 1.0f, bugInformation,
-                new LightComponent(blockCenterVector, new Color3f(1.0f, 0.5f, 0.8f), lightDist, true));
+                new LightComponent(blockCenterVector, new Color3f(bright, dim, mid), lightDist, true));
 
             yield return CreateBlockInfo("light3", 2, new Color4f(1.0f, 0.8f, 0.5f, 1.0f), 1.0f, bugInformation,
-                new LightComponent(blockCenterVector, new Color3f(1.0f, 0.8f, 0.5f), lightDist, true));
+                new LightComponent(blockCenterVector, new Color3f(bright, mid, dim), lightDist, true));
 
             yield return CreateBlockInfo("light4", 2, new Color4f(0.5f, 1.0f, 0.8f, 1.0f), 1.0f, bugInformation,
-                new LightComponent(blockCenterVector, new Color3f(0.5f, 1.0f, 0.8f), lightDist, true));
+                new LightComponent(blockCenterVector, new Color3f(dim, bright, mid), lightDist, true));
 
             yield return CreateBlockInfo("light5", 2, new Color4f(0.8f, 1.0f, 0.5f, 1.0f), 1.0f, bugInformation,
-                new LightComponent(blockCenterVector, new Color3f(0.8f, 1.0f, 0.5f), lightDist, true));
+                new LightComponent(blockCenterVector, new Color3f(mid, bright, dim), lightDist, true));
 
             yield return CreateBlockInfo("fountain", bc, new Color4f(20, 20, 150, 255), 1.0f, new ParticleComponent("Fountain", new Vector3i(bc, bc, 13)));
         }

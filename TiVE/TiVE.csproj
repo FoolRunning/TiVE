@@ -116,6 +116,7 @@
     <Compile Include="Core\Backend\OpenTKImpl\KeyboardImpl.cs" />
     <Compile Include="Core\Backend\OpenTKImpl\OpenTKBackend.cs" />
     <Compile Include="Core\Backend\OpenTKImpl\OpenTKDisplay.cs" />
+    <Compile Include="GUISystem\Font.cs" />
     <Compile Include="GUISystem\SquidRenderer.cs" />
     <Compile Include="Core\Backend\OpenTKImpl\OpenTKTexture.cs" />
     <Compile Include="Core\Backend\OpenTKImpl\RenderData.cs" />

@@ -84,7 +84,7 @@ namespace ProdigalSoftware.TiVE.Core.Backend
         IRendererData CreateData<T>(T[] data, int elementCount, int elementsPerVertex, DataType dataType, 
             DataValueType dataValueType, bool normalize, bool dynamic) where T : struct;
 
-        ITexture CreateTexture(int width, int height);
+        ITexture CreateTexture(int width, int height, byte[] data = null);
         
         IShaderProgram CreateShaderProgram();
 

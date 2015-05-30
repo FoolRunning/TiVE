@@ -158,6 +158,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
                 lightInfos.Add(lightInfo);
             }
 
+            bool doLightCulling = gameWorld.DoLightCulling;
             const int maxBlockCount = 2;
             for (int bz = startZ; bz < endZ; bz++)
             {
@@ -165,7 +166,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
                 {
                     for (int by = startY; by < endY; by++)
                     {
-                        if (gameWorld.DoLightCulling && !gameWorld.LessThanBlockCountInLine(blockX, blockY, blockZ, bx, by, bz, maxBlockCount) &&
+                        if (doLightCulling && !gameWorld.LessThanBlockCountInLine(blockX, blockY, blockZ, bx, by, bz, maxBlockCount) &&
                             !gameWorld.LessThanBlockCountInLine(bx, by, bz, blockX, blockY, blockZ, maxBlockCount))
                         {
                             continue; // Unlikely the light will actually hit the block at all

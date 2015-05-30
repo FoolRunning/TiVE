@@ -201,7 +201,7 @@ namespace ProdigalSoftware.TiVEEditor.BlockLists
                         using (BinaryReader reader = new BinaryReader(new FileStream(file, FileMode.Open)))
                         {
                             string blockName = Path.GetFileNameWithoutExtension(file);
-                            if (blockList.AllBlocks.Any(b => b.BlockName == blockName))
+                            if (blockList.AllBlocks.Any(b => b.Name == blockName))
                             {
                                 DialogResult result = MessageBox.Show(this, 
                                     string.Format("Block with the name {0} already exists.\nDo you want to replace it?", blockName),
@@ -210,7 +210,7 @@ namespace ProdigalSoftware.TiVEEditor.BlockLists
                                 {
                                     blockName += "2";
                                     int num = 3;
-                                    while (blockList.AllBlocks.Any(b => b.BlockName == blockName))
+                                    while (blockList.AllBlocks.Any(b => b.Name == blockName))
                                         blockName = blockName.Substring(0, blockName.Length - 1) + (num++);
                                 }
                             }
@@ -232,11 +232,11 @@ namespace ProdigalSoftware.TiVEEditor.BlockLists
         private void btnDeleteBlock_Click(object sender, EventArgs e)
         {
             Block block = SelectedBlock;
-            DialogResult result = MessageBox.Show(this, string.Format("Are you sure you want to delete the block: {0}?", block.BlockName), 
+            DialogResult result = MessageBox.Show(this, string.Format("Are you sure you want to delete the block: {0}?", block.Name), 
                 messageBoxCaption, MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
             if (result == DialogResult.Yes)
             {
-                blockList.RemoveBlock(block.BlockName);
+                blockList.RemoveBlock(block.Name);
                 hasUnsavedChanges = true;
                 UpdateBlocksInList();
                 UpdateState();
@@ -301,7 +301,7 @@ namespace ProdigalSoftware.TiVEEditor.BlockLists
 
             Font font = lstBxBlocks.Font;
             int height = font.Height;
-            e.Graphics.DrawString(block.BlockName, font, new SolidBrush(e.ForeColor), 
+            e.Graphics.DrawString(block.Name, font, new SolidBrush(e.ForeColor), 
                 e.Bounds.X + BlockPreviewCache.PreviewImageSize + 4, e.Bounds.Y + (e.Bounds.Height - height) / 2);
         }
 
@@ -318,7 +318,7 @@ namespace ProdigalSoftware.TiVEEditor.BlockLists
 
             // If the order of the blocks has changes with the new name, then reload the whole block list.
             blocksInList.Clear();
-            blocksInList.AddRange(blockList.AllBlocks.OrderBy(b => b.BlockName));
+            blocksInList.AddRange(blockList.AllBlocks.OrderBy(b => b.Name));
             int newBlockIndex = blocksInList.IndexOf(block);
             if (newBlockIndex != prevBlockIndex)
                 UpdateBlocksInList();
@@ -397,7 +397,7 @@ namespace ProdigalSoftware.TiVEEditor.BlockLists
             cmbEffect.Enabled = hasSelectedItem;
 
             ignoreValueChange = true;
-            txtBlockName.Text = hasSelectedItem ? block.BlockName : "";
+            txtBlockName.Text = hasSelectedItem ? block.Name : "";
             btnLightColor.BackColor = hasLight ? Color.FromArgb((int)((Color4b)light.Color).ToArgb()) : Color.Black;
             spnLightLocX.Value = hasLight ? light.Location.X : Block.VoxelSize / 2;
             spnLightLocY.Value = hasLight ? light.Location.Y : Block.VoxelSize / 2;
@@ -441,7 +441,7 @@ namespace ProdigalSoftware.TiVEEditor.BlockLists
             lstBxBlocks.Items.Clear();
 
             blocksInList.Clear();
-            foreach (BlockImpl block in blockList.AllBlocks.OrderBy(b => b.BlockName))
+            foreach (BlockImpl block in blockList.AllBlocks.OrderBy(b => b.Name))
             {
                 blocksInList.Add(block);
                 lstBxBlocks.Items.Add(block);
