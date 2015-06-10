@@ -32,13 +32,16 @@ namespace ProdigalSoftware.TiVE.Core
 
         public GameWorld GameWorld { get; private set; }
 
-        public RenderNode RenderNode { get; private set; }
+        public RootRenderNode RenderNode { get; private set; }
 
         #region Implementation of IScene
         public void Dispose()
         {
             if (RenderNode != null)
                 RenderNode.Dispose();
+
+            if (BlockList != null)
+                BlockList.Dispose();
         }
 
         public IEntity CreateNewEntity(string entityName)
@@ -112,11 +115,11 @@ namespace ProdigalSoftware.TiVE.Core
             GameWorld = newGameWorld;
             BlockList = newBlockList;
             GameWorld.Initialize(BlockList);
-            RenderNode = new RenderNode(GameWorld, this);
+            RenderNode = new RootRenderNode(GameWorld, this);
 
             // Calculate static lighting
-            LightProvider = LightProvider.Get(GameWorld, BlockList);
-            LightProvider.Calculate(false);
+            LightProvider = LightProvider.Get(this);
+            LightProvider.Calculate();
         }
         #endregion
 
@@ -143,23 +146,20 @@ namespace ProdigalSoftware.TiVE.Core
             }
         }
 
-        private void AddEntityToRenderNode(IEntity entity, BoundingBox boundingBox, RenderNode node)
+        private static void AddEntityToRenderNode(IEntity entity, BoundingBox boundingBox, RenderNodeBase node)
         {
-            if (node.Entities != null)
+            LeafRenderNode leafNode = node as LeafRenderNode;
+            if (leafNode != null)
             {
-                node.Entities.Add(entity);
+                leafNode.Entities.Add(entity);
                 return;
             }
 
-            RenderNode[] childrenLocal = node.ChildNodes;
-            for (int i = 0; i < childrenLocal.Length; i++)
+            RenderNode renderNode = (RenderNode)node;
+            foreach (RenderNodeBase childNode in renderNode.ChildNodes
+                .Where(c => c != null && c.BoundingBox.IntersectsWith(boundingBox)))
             {
-                RenderNode childNode = childrenLocal[i];
-                if (childNode != null)
-                {
-                    if (childNode.BoundingBox.IntersectsWith(boundingBox))
-                        AddEntityToRenderNode(entity, boundingBox, childNode);
-                }
+                AddEntityToRenderNode(entity, boundingBox, childNode);
             }
         }
         #endregion

@@ -79,6 +79,10 @@ namespace ProdigalSoftware.TiVE.ScriptSystem
             scripts.Clear();
         }
 
+        public override void ChangeScene(Scene newScene)
+        {
+        }
+
         protected override bool UpdateInternal(float timeSinceLastUpdate, Scene currentScene)
         {
             keyboard.Update();

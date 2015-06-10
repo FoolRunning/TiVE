@@ -49,13 +49,16 @@ namespace TiVETests.Core
             }
 
             public override void Dispose()
-            {
-                
+            {   
             }
 
             public override bool Initialize()
             {
                 return true;
+            }
+
+            public override void ChangeScene(Scene newScene)
+            {
             }
 
             protected override bool UpdateInternal(int ticksSinceLastUpdate, float timeBlendFactor, Scene currentScene)

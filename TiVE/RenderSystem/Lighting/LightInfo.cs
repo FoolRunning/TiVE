@@ -21,7 +21,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
         /// <summary>Color of the light when at full brightness</summary>
         public readonly Color3f LightColor;    // 12 bytes
         /// <summary>True to simulate reflective ambient lighting with this light</summary>
-        public readonly bool ReflectiveAmbientLighting;
+        public readonly bool ReflectiveAmbientLighting; // 1 byte
 
         /// <summary>
         /// Creates a new LightInfo from the specified information
@@ -31,6 +31,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
         /// <param name="blockZ">The block location of the light on the z-axis</param>
         /// <param name="light">The light</param>
         /// <param name="cachedLightCalc">Cached lighting calculation needed by the current light model</param>
+        /// <param name="cachedLightCalcForShadow">Cached lighting calculation needed by the current light model</param>
         public LightInfo(int blockX, int blockY, int blockZ, LightComponent light, float cachedLightCalc, float cachedLightCalcForShadow)
         {
             VoxelLocX = (ushort)(light.Location.X + blockX * Block.VoxelSize);
@@ -40,6 +41,21 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
             CachedLightCalc = cachedLightCalc;
             CachedLightCalcShadow = cachedLightCalcForShadow;
             ReflectiveAmbientLighting = light.ReflectiveAmbientLighting;
+        }
+
+        public int BlockX
+        {
+            get { return VoxelLocX / Block.VoxelSize; }
+        }
+
+        public int BlockY
+        {
+            get { return VoxelLocY / Block.VoxelSize; }
+        }
+
+        public int BlockZ
+        {
+            get { return VoxelLocZ / Block.VoxelSize; }
         }
     }
 }

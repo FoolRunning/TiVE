@@ -28,7 +28,6 @@ namespace ProdigalSoftware.TiVE.RenderSystem
         private readonly ItemCountsHelper renderedVoxelCount = new ItemCountsHelper(8, false);
         private readonly ItemCountsHelper polygonCount = new ItemCountsHelper(8, false);
         private readonly ShaderManager shaderManager = new ShaderManager();
-        private Scene previousScene;
         private VoxelMeshManager meshManager;
         private int ticksSinceLastStatUpdate;
         #endregion
@@ -47,7 +46,6 @@ namespace ProdigalSoftware.TiVE.RenderSystem
             shaderManager.Dispose();
 
             meshManager = null;
-            previousScene = null;
         }
 
         public override bool Initialize()
@@ -58,17 +56,14 @@ namespace ProdigalSoftware.TiVE.RenderSystem
             return shaderManager.Initialize();
         }
 
+        public override void ChangeScene(Scene newScene)
+        {
+            newScene.LoadingInitialChunks = true;
+            meshManager.ChangeScene(newScene);
+        }
+
         protected override bool UpdateInternal(int ticksSinceLastFrame, float timeBlendFactor, Scene currentScene)
         {
-            if (currentScene == null)
-                return true;
-
-            if (currentScene != previousScene)
-            {
-                currentScene.LoadingInitialChunks = true;
-                previousScene = currentScene;
-            }
-
             ticksSinceLastStatUpdate += ticksSinceLastFrame;
             if (ticksSinceLastStatUpdate > timeBetweenTimingUpdates)
             {
@@ -85,7 +80,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem
                 return true; // No camera to render with or it probably hasn't been initialized yet
 
             HashSet<IEntity> entitiesToRender = cameraData.VisibleEntitites;
-            meshManager.LoadMeshesForEntities(entitiesToRender, cameraData, currentScene);
+            meshManager.LoadMeshesForEntities(entitiesToRender, cameraData);
 
             if (currentScene.LoadingInitialChunks)
             {
@@ -157,19 +152,22 @@ namespace ProdigalSoftware.TiVE.RenderSystem
         }
 
         [UsedImplicitly]
-        private RenderStatistics RenderSceneDebug(CameraComponent cameraData, RenderNode node, int locationInParent)
+        private RenderStatistics RenderSceneDebug(CameraComponent cameraData, RenderNodeBase node, int locationInParent)
         {
             node.RenderDebugOutline(shaderManager, ref cameraData.ViewProjectionMatrix, locationInParent);
 
             RenderStatistics stats = new RenderStatistics(1, 12, 0, 0);
-            RenderNode[] childrenLocal = node.ChildNodes;
-            for (int i = 0; i < childrenLocal.Length; i++)
+            RenderNode renderNode = node as RenderNode;
+            if (renderNode != null)
             {
-                RenderNode childBox = childrenLocal[i];
-                if (childBox != null && TiVEUtils.BoxInView(cameraData, childBox.BoundingBox))
-                    stats += RenderSceneDebug(cameraData, childBox, i);
+                RenderNodeBase[] childrenLocal = renderNode.ChildNodes;
+                for (int i = 0; i < childrenLocal.Length; i++)
+                {
+                    RenderNodeBase childBox = childrenLocal[i];
+                    if (childBox != null && TiVEUtils.BoxInView(cameraData, childBox.BoundingBox))
+                        stats += RenderSceneDebug(cameraData, childBox, i);
+                }
             }
-
             return stats;
         }
         #endregion

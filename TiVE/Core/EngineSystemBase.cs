@@ -28,6 +28,8 @@ namespace ProdigalSoftware.TiVE.Core
 
         public abstract bool Initialize();
 
+        public abstract void ChangeScene(Scene newScene);
+
         public void UpdateTiming(int ticksSinceLastFrame)
         {
             ticksSinceLastTimingUpdate += ticksSinceLastFrame;

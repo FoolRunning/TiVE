@@ -31,6 +31,10 @@ namespace ProdigalSoftware.TiVE.CameraSystem
             return true;
         }
 
+        public override void ChangeScene(Scene newScene)
+        {
+        }
+
         protected override bool UpdateInternal(int ticksSinceLastUpdate, float timeBlendFactor, Scene currentScene)
         {
             foreach (IEntity entity in currentScene.GetEntitiesWithComponent<CameraComponent>())
@@ -108,24 +112,25 @@ namespace ProdigalSoftware.TiVE.CameraSystem
         /// <summary>
         /// Fills the specified HashSet with entities that visible based on the current location and orientation of the camera
         /// </summary>
-        private static void FindVisibleEntities(HashSet<IEntity> visibleEntities, CameraComponent cameraData, RenderNode node)
+        private static void FindVisibleEntities(HashSet<IEntity> visibleEntities, CameraComponent cameraData, RenderNodeBase node)
         {
-            List<IEntity> entities = node.Entities;
-            if (entities != null)
+            LeafRenderNode leafNode = node as LeafRenderNode;
+            if (leafNode != null)
             {
-                for (int i = 0; i < entities.Count; i++)
-                    visibleEntities.Add(entities[i]);
-                return;
+                for (int i = 0; i < leafNode.Entities.Count; i++)
+                    visibleEntities.Add(leafNode.Entities[i]);
             }
-
-            RenderNode[] childrenLocal = node.ChildNodes;
-            for (int i = 0; i < childrenLocal.Length; i++)
+            else
             {
-                RenderNode childNode = childrenLocal[i];
-                if (childNode != null)
+                RenderNodeBase[] childrenLocal = ((RenderNode)node).ChildNodes;
+                for (int i = 0; i < childrenLocal.Length; i++)
                 {
-                    if (TiVEUtils.BoxInView(cameraData, childNode.BoundingBox))
-                        FindVisibleEntities(visibleEntities, cameraData, childNode);
+                    RenderNodeBase childNode = childrenLocal[i];
+                    if (childNode != null)
+                    {
+                        if (TiVEUtils.BoxInView(cameraData, childNode.BoundingBox))
+                            FindVisibleEntities(visibleEntities, cameraData, childNode);
+                    }
                 }
             }
         }

@@ -76,7 +76,13 @@ namespace ProdigalSoftware.TiVE.Core
         {
             lock (syncLock)
             {
-                DeleteCurrentScene();
+                Scene previousScene = currentScene;
+
+                foreach (EngineSystemBase system in systems)
+                    system.ChangeScene(newScene);
+
+                if (previousScene != null)
+                    previousScene.Dispose();
                 currentScene = newScene;
             }
             Messages.AddDebug("Running scene: " + currentSceneName);
@@ -222,7 +228,7 @@ namespace ProdigalSoftware.TiVE.Core
                 }
             }
 
-            DeleteCurrentScene();
+            DeleteCurrentScene(); // Must be done after disposing systems
 
             GC.Collect();
             Messages.Println("Done cleaning up");
