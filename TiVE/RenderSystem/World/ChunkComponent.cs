@@ -1,4 +1,5 @@
-﻿using ProdigalSoftware.TiVEPluginFramework;
+﻿using ProdigalSoftware.TiVE.RenderSystem.Lighting;
+using ProdigalSoftware.TiVEPluginFramework;
 using ProdigalSoftware.Utils;
 
 namespace ProdigalSoftware.TiVE.RenderSystem.World
@@ -13,6 +14,8 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
         public readonly Vector3i ChunkLoc;
         public readonly Vector3i ChunkBlockLoc;
         public readonly Vector3i ChunkVoxelLoc;
+
+        public LightInfo[] BlockLights;
 
         public ChunkComponent(Vector3i chunkLoc)
         {

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
-using ProdigalSoftware.TiVE.RenderSystem.Voxels;
 using ProdigalSoftware.TiVEPluginFramework;
 using ProdigalSoftware.Utils;
 

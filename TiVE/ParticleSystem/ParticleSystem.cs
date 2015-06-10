@@ -76,9 +76,14 @@ namespace ProdigalSoftware.TiVE.ParticleSystem
             return shaderManager.Initialize();
         }
 
+        public override void ChangeScene(Scene newScene)
+        {
+            loadedScene = newScene;
+        }
+
         protected override bool UpdateInternal(int ticksSinceLastFrame, float timeBlendFactor, Scene currentScene)
         {
-            loadedScene = currentScene;
+            Debug.Assert(loadedScene == currentScene);
 
             CameraComponent cameraData = FindCamera(currentScene);
             if (cameraData == null)

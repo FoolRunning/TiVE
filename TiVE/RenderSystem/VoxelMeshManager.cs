@@ -39,7 +39,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem
         private const int VoxelDetailLevelSections = 3; // 16x16x16 = 4096v, 8x8x8 = 512v, 4x4x4 = 64v, not worth going to 2x2x2 = 8v.
         private const int BestVoxelDetailLevel = 0;
         private const int WorstVoxelDetailLevel = VoxelDetailLevelSections - 1;
-        private const int TotalMeshBuilders = 25;
+        private const int TotalMeshBuilders = 35;
         private const int MaxQueueSize = 3000;
         #endregion
 
@@ -98,38 +98,39 @@ namespace ProdigalSoftware.TiVE.RenderSystem
 
         #region Public methods
         /// <summary>
+        /// Performs the necessary cleanup when the current scene has changed
+        /// </summary>
+        public void ChangeScene(Scene newScene)
+        {
+            // Clean up threads and data for previous scene
+            endCreationThreads = true;
+            foreach (Thread thread in meshCreationThreads)
+                thread.Join();
+            using (new PerformanceLock(entityLoadQueue))
+                entityLoadQueue.Clear();
+            foreach (IEntity entity in loadedEntities)
+                entityLoadQueue.Remove(entity);
+
+            // Start threads for new scene
+            endCreationThreads = false;
+            for (int i = 0; i < meshCreationThreads.Count; i++)
+                meshCreationThreads[i] = StartMeshCreateThread(i);
+
+            loadedScene = newScene;
+        }
+
+        /// <summary>
         /// Loads meshes for the specified entities. Meshes for any entities that were loaded that are no longer in the specified list will be deleted.
         /// </summary>
-        public void LoadMeshesForEntities(HashSet<IEntity> entitiesToRender, CameraComponent cameraData, Scene currentScene)
+        public void LoadMeshesForEntities(HashSet<IEntity> entitiesToRender, CameraComponent cameraData)
         {
             Debug.Assert(Thread.CurrentThread.Name == "Main UI");
-
-            if (loadedScene != currentScene)
-                ChangeScene(currentScene);
-
             foreach (IEntity entity in loadedEntities)
             {
                 if (!entitiesToRender.Contains(entity))
                 {
                     entitiesToDelete.Add(entity);
                     DeleteEntity(entity);
-                }
-            }
-
-            VoxelDetailLevelDistance currentVoxelDetalLevelSetting = (VoxelDetailLevelDistance)(int)TiVEController.UserSettings.Get(UserSettings.DetailDistanceKey);
-            foreach (IEntity entity in entitiesToRender)
-            {
-                RenderComponent renderData = entity.GetComponent<RenderComponent>();
-                if (renderData == null)
-                    continue;
-
-                if (!loadedEntities.Contains(entity))
-                    LoadEntity(entity, renderData, WorstVoxelDetailLevel); // Initially load at the worst detail level to quickly get something onscreen
-                else if (renderData.MeshData != null)
-                {
-                    int perferedDetailLevel = GetPerferedVoxelDetailLevel(renderData, cameraData, currentVoxelDetalLevelSetting);
-                    if (renderData.LoadedVoxelDetailLevel != perferedDetailLevel)
-                        LoadEntity(entity, renderData, perferedDetailLevel);
                 }
             }
 
@@ -141,8 +142,24 @@ namespace ProdigalSoftware.TiVE.RenderSystem
                     loadedEntities.Remove(entitiesToDelete[i]);
                 }
             }
-
             entitiesToDelete.Clear();
+
+            VoxelDetailLevelDistance currentVoxelDetalLevelSetting = (VoxelDetailLevelDistance)(int)TiVEController.UserSettings.Get(UserSettings.DetailDistanceKey);
+            foreach (IEntity entity in entitiesToRender)
+            {
+                RenderComponent renderData = entity.GetComponent<RenderComponent>();
+                if (renderData == null)
+                    continue;
+
+                if (!loadedEntities.Contains(entity))
+                    LoadEntity(entity, renderData, WorstVoxelDetailLevel); // Initially load at the worst detail level to quickly get something on screen
+                else if (renderData.MeshData != null)
+                {
+                    int perferedDetailLevel = GetPerferedVoxelDetailLevel(renderData, cameraData, currentVoxelDetalLevelSetting);
+                    if (renderData.LoadedVoxelDetailLevel != perferedDetailLevel)
+                        LoadEntity(entity, renderData, perferedDetailLevel);
+                }
+            }
 
             meshesToInitializeList.Clear();
             using (new PerformanceLock(meshesToInitialize))
@@ -266,14 +283,17 @@ namespace ProdigalSoftware.TiVE.RenderSystem
         #region Methods for loading chunk meshes
         private void LoadChunkMesh(RenderComponent renderData, ChunkComponent chunkData, MeshBuilder meshBuilder, int voxelDetailLevel)
         {
+            Scene scene = loadedScene; // For thread safety
             renderData.LoadedVoxelDetailLevel = voxelDetailLevel;
 
             Debug.Assert(meshBuilder.IsLocked);
             Debug.Assert(loadedScene != null);
             //Debug.WriteLine("Started chunk ({0},{1},{2})", chunkStartX, chunkStartY, chunkStartZ);
 
-            GameWorld gameWorld = loadedScene.GameWorld;
-            BlockList blockList = loadedScene.BlockList;
+            GameWorld gameWorld = scene.GameWorld;
+            BlockList blockList = scene.BlockList;
+
+            scene.LightProvider.CacheLightsInBlocksForChunk(chunkData);
 
             int blockStartX = chunkData.ChunkBlockLoc.X;
             int blockEndX = Math.Min((chunkData.ChunkLoc.X + 1) * ChunkComponent.BlockSize, gameWorld.BlockSize.X);
@@ -308,7 +328,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem
 
                         voxelCount += block.TotalVoxels;
 
-                        CreateMeshForBlockInChunk(block, blockX, blockY, blockZ, voxelStartX, voxelStartY, voxelStartZ, voxelDetailLevel,
+                        CreateMeshForBlockInChunk(block, blockX, blockY, blockZ, voxelStartX, voxelStartY, voxelStartZ, voxelDetailLevel, scene,
                             meshBuilder, ref polygonCount, ref renderedVoxelCount);
                     }
                 }
@@ -347,12 +367,12 @@ namespace ProdigalSoftware.TiVE.RenderSystem
             }
         }
 
-        private void CreateMeshForBlockInChunk(BlockImpl block, int blockX, int blockY, int blockZ,
-            int voxelStartX, int voxelStartY, int voxelStartZ, int voxelDetailLevel, 
+        private static void CreateMeshForBlockInChunk(BlockImpl block, int blockX, int blockY, int blockZ,
+            int voxelStartX, int voxelStartY, int voxelStartZ, int voxelDetailLevel, Scene scene,
             MeshBuilder meshBuilder, ref int polygonCount, ref int renderedVoxelCount)
         {
-            GameWorld gameWorld = loadedScene.GameWorld;
-            LightProvider lightProvider = loadedScene.LightProvider;
+            GameWorld gameWorld = scene.GameWorld;
+            LightProvider lightProvider = scene.LightProvider;
             VoxelMeshHelper meshHelper = VoxelMeshHelper.Get(false);
 
             int voxelSize = 1 << voxelDetailLevel;
@@ -503,7 +523,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem
         }
         #endregion
 
-        #region Private helper methods
+        #region Other private helper methods
         /// <summary>
         /// Deletes the mesh data and cached render information for the specified entity. This method does nothing if the specified entitiy has
         /// not had a mesh created yet.
@@ -532,19 +552,10 @@ namespace ProdigalSoftware.TiVE.RenderSystem
                 renderData.VoxelCount = 0;
                 renderData.RenderedVoxelCount = 0;
             }
-        }
 
-        /// <summary>
-        /// Performs the necessary cleanup when the current scene has changed
-        /// </summary>
-        private void ChangeScene(Scene newScene)
-        {
-            using (new PerformanceLock(entityLoadQueue))
-            {
-                foreach (IEntity entity in loadedEntities)
-                    entityLoadQueue.Remove(entity);
-            }
-            loadedScene = newScene;
+            ChunkComponent chunkData = entity.GetComponent<ChunkComponent>();
+            if (chunkData != null)
+                loadedScene.LightProvider.RemoveLightsForChunk(chunkData);
         }
 
         /// <summary>

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using ProdigalSoftware.TiVE.Core;
 using ProdigalSoftware.TiVE.Core.Backend;
 using ProdigalSoftware.TiVE.RenderSystem.Meshes;
 using ProdigalSoftware.TiVE.RenderSystem.World;
@@ -10,10 +11,43 @@ using ProdigalSoftware.Utils;
 
 namespace ProdigalSoftware.TiVE.RenderSystem
 {
-    internal sealed class RenderNode : IDisposable
+    internal sealed class RootRenderNode : RenderNode
+    {
+        public RootRenderNode(GameWorld gameWorld, Scene scene) :
+            base(Vector3f.Zero, new Vector3f(
+                (int)Math.Ceiling(gameWorld.BlockSize.X / (float)ChunkComponent.BlockSize) * ChunkVoxelSize,
+                (int)Math.Ceiling(gameWorld.BlockSize.Y / (float)ChunkComponent.BlockSize) * ChunkVoxelSize,
+                (int)Math.Ceiling(gameWorld.BlockSize.Z / (float)ChunkComponent.BlockSize) * ChunkVoxelSize), 0, scene)
+        {
+        }
+    }
+
+    #region LeafRenderNode class
+    internal sealed class LeafRenderNode : RenderNodeBase
+    {
+        private readonly List<IEntity> entities = new List<IEntity>(2);
+
+        public LeafRenderNode(Vector3f minPoint, Vector3f maxPoint, int depth, Scene scene) : base(minPoint, maxPoint, depth)
+        {
+            Vector3i chunkLoc = new Vector3i((int)(minPoint.X / ChunkVoxelSize), (int)(minPoint.Y / ChunkVoxelSize), (int)(minPoint.Z / ChunkVoxelSize));
+            IEntity entity = scene.CreateNewEntity(string.Format("Chunk ({0}, {1}, {2})", chunkLoc.X, chunkLoc.Y, chunkLoc.Z));
+            ChunkComponent chunkData = new ChunkComponent(chunkLoc);
+            entity.AddComponent(chunkData);
+            entity.AddComponent(new RenderComponent(new Vector3f(chunkData.ChunkVoxelLoc.X, chunkData.ChunkVoxelLoc.Y, chunkData.ChunkVoxelLoc.Z)));
+            entities.Add(entity);
+        }
+
+        public List<IEntity> Entities
+        {
+            get { return entities; }
+        }
+    }
+    #endregion
+
+    #region RenderNode class
+    internal class RenderNode : RenderNodeBase
     {
         #region Constants
-        private const int ChunkVoxelSize = ChunkComponent.VoxelSize;
         private const int NearTopLeft = 0;
         private const int NearTopRight = 1;
         private const int NearBottomLeft = 2;
@@ -25,54 +59,12 @@ namespace ProdigalSoftware.TiVE.RenderSystem
         #endregion
 
         #region Member variables
-        private static readonly LargeMeshBuilder debugBoxOutlineBuilder = new LargeMeshBuilder(8, 24);
-
-        public readonly RenderNode[] ChildNodes = new RenderNode[8];
-        public readonly BoundingBox BoundingBox;
-
-        private readonly int depth;
-        private readonly List<IEntity> entities;
-        private IVertexDataCollection debugBoxOutLine;
+        public readonly RenderNodeBase[] ChildNodes = new RenderNodeBase[8];
         #endregion
 
-        #region Constructors
-        public RenderNode(GameWorld gameWorld, IScene scene) :
-            this(Vector3f.Zero, new Vector3f(
-                (int)Math.Ceiling(gameWorld.BlockSize.X / (float)ChunkComponent.BlockSize) * ChunkVoxelSize,
-                (int)Math.Ceiling(gameWorld.BlockSize.Y / (float)ChunkComponent.BlockSize) * ChunkVoxelSize,
-                (int)Math.Ceiling(gameWorld.BlockSize.Z / (float)ChunkComponent.BlockSize) * ChunkVoxelSize), 0, scene)
+        #region Constructor
+        protected RenderNode(Vector3f minPoint, Vector3f maxPoint, int depth, Scene scene) : base(minPoint, maxPoint, depth)
         {
-        }
-
-        private RenderNode(Vector3f minPoint, Vector3f maxPoint, int depth, IScene scene)
-        {
-            BoundingBox = new BoundingBox(minPoint, maxPoint);
-
-            this.depth = depth;
-            Debug.Assert((int)(maxPoint.X - minPoint.X) % ChunkVoxelSize == 0, "Game world box should fit an even number of chunks inside on the x-axis");
-            Debug.Assert((int)(maxPoint.Y - minPoint.Y) % ChunkVoxelSize == 0, "Game world box should fit an even number of chunks inside on the y-axis");
-            Debug.Assert((int)(maxPoint.Z - minPoint.Z) % ChunkVoxelSize == 0, "Game world box should fit an even number of chunks inside on the z-axis");
-
-            Debug.Assert(maxPoint.X - minPoint.X > 0, "X-axis: min is greater than or equal to max");
-            Debug.Assert(maxPoint.Y - minPoint.Y > 0, "Y-axis: min is greater than or equal to max");
-            Debug.Assert(maxPoint.Z - minPoint.Z > 0, "Z-axis: min is greater than or equal to max");
-
-            int boxSizeX = (int)(maxPoint.X - minPoint.X);
-            int boxSizeY = (int)(maxPoint.Y - minPoint.Y);
-            int boxSizeZ = (int)(maxPoint.Z - minPoint.Z);
-            if (boxSizeX <= ChunkVoxelSize && boxSizeY <= ChunkVoxelSize && boxSizeZ <= ChunkVoxelSize)
-            {
-                // Box size is the size of a chunk, so create a chunk for this leaf node
-                Vector3i chunkLoc = new Vector3i((int)(minPoint.X / ChunkVoxelSize), (int)(minPoint.Y / ChunkVoxelSize), (int)(minPoint.Z / ChunkVoxelSize));
-                IEntity entity = scene.CreateNewEntity(string.Format("Chunk ({0}, {1}, {2})", chunkLoc.X, chunkLoc.Y, chunkLoc.Z));
-                ChunkComponent chunkData = new ChunkComponent(chunkLoc);
-                entity.AddComponent(chunkData);
-                entity.AddComponent(new RenderComponent(new Vector3f(chunkData.ChunkVoxelLoc.X, chunkData.ChunkVoxelLoc.Y, chunkData.ChunkVoxelLoc.Z)));
-                entities = new List<IEntity>(2);
-                entities.Add(entity);
-                return;
-            }
-
             // Find the center of the box while making sure to evenly divide the box by the chunk size
             Vector3f boxCenter = new Vector3f((int)(minPoint.X + maxPoint.X) / 2 / ChunkVoxelSize * ChunkVoxelSize,
                 (int)(minPoint.Y + maxPoint.Y) / 2 / ChunkVoxelSize * ChunkVoxelSize,
@@ -100,47 +92,110 @@ namespace ProdigalSoftware.TiVE.RenderSystem
             }
 
             int childDepth = depth + 1;
-            ChildNodes[FarBottomLeft] = new RenderNode(minPoint, boxCenter, childDepth, scene);
+            ChildNodes[FarBottomLeft] = CreateNode(minPoint, boxCenter, childDepth, scene);
             if (hasAvailableX)
-                ChildNodes[FarBottomRight] = new RenderNode(new Vector3f(boxCenter.X, minPoint.Y, minPoint.Z), new Vector3f(maxPoint.X, boxCenter.Y, boxCenter.Z), childDepth, scene);
+                ChildNodes[FarBottomRight] = CreateNode(new Vector3f(boxCenter.X, minPoint.Y, minPoint.Z), new Vector3f(maxPoint.X, boxCenter.Y, boxCenter.Z), childDepth, scene);
             if (hasAvailableY)
-                ChildNodes[FarTopLeft] = new RenderNode(new Vector3f(minPoint.X, boxCenter.Y, minPoint.Z), new Vector3f(boxCenter.X, maxPoint.Y, boxCenter.Z), childDepth, scene);
+                ChildNodes[FarTopLeft] = CreateNode(new Vector3f(minPoint.X, boxCenter.Y, minPoint.Z), new Vector3f(boxCenter.X, maxPoint.Y, boxCenter.Z), childDepth, scene);
             if (hasAvailableX && hasAvailableY)
-                ChildNodes[FarTopRight] = new RenderNode(new Vector3f(boxCenter.X, boxCenter.Y, minPoint.Z), new Vector3f(maxPoint.X, maxPoint.Y, boxCenter.Z), childDepth, scene);
+                ChildNodes[FarTopRight] = CreateNode(new Vector3f(boxCenter.X, boxCenter.Y, minPoint.Z), new Vector3f(maxPoint.X, maxPoint.Y, boxCenter.Z), childDepth, scene);
 
             if (hasAvailableZ)
             {
-                ChildNodes[NearBottomLeft] = new RenderNode(new Vector3f(minPoint.X, minPoint.Y, boxCenter.Z), new Vector3f(boxCenter.X, boxCenter.Y, maxPoint.Z), childDepth, scene);
+                ChildNodes[NearBottomLeft] = CreateNode(new Vector3f(minPoint.X, minPoint.Y, boxCenter.Z), new Vector3f(boxCenter.X, boxCenter.Y, maxPoint.Z), childDepth, scene);
                 if (hasAvailableX)
-                    ChildNodes[NearBottomRight] = new RenderNode(new Vector3f(boxCenter.X, minPoint.Y, boxCenter.Z), new Vector3f(maxPoint.X, boxCenter.Y, maxPoint.Z), childDepth, scene);
+                    ChildNodes[NearBottomRight] = CreateNode(new Vector3f(boxCenter.X, minPoint.Y, boxCenter.Z), new Vector3f(maxPoint.X, boxCenter.Y, maxPoint.Z), childDepth, scene);
                 if (hasAvailableY)
-                    ChildNodes[NearTopLeft] = new RenderNode(new Vector3f(minPoint.X, boxCenter.Y, boxCenter.Z), new Vector3f(boxCenter.X, maxPoint.Y, maxPoint.Z), childDepth, scene);
+                    ChildNodes[NearTopLeft] = CreateNode(new Vector3f(minPoint.X, boxCenter.Y, boxCenter.Z), new Vector3f(boxCenter.X, maxPoint.Y, maxPoint.Z), childDepth, scene);
                 if (hasAvailableX && hasAvailableY)
-                    ChildNodes[NearTopRight] = new RenderNode(boxCenter, maxPoint, depth + 1, scene);
+                    ChildNodes[NearTopRight] = CreateNode(boxCenter, maxPoint, depth + 1, scene);
             }
         }
         #endregion
 
-        #region Implementation of IDisposable
-        public void Dispose()
+        #region Overrides of RenderNodeBase
+        public override void Dispose()
         {
-            if (debugBoxOutLine != null)
-                debugBoxOutLine.Dispose();
-
-            RenderNode[] childrenLocal = ChildNodes;
+            RenderNodeBase[] childrenLocal = ChildNodes;
             for (int i = 0; i < childrenLocal.Length; i++)
             {
-                RenderNode childBox = childrenLocal[i];
+                RenderNodeBase childBox = childrenLocal[i];
                 if (childBox != null)
                     childBox.Dispose();
             }
         }
+
+        protected override Color4b GetColorForLocation(int location)
+        {
+            switch (location)
+            {
+                case FarTopLeft: return new Color4b(255, 0, 0, 255);
+                case FarTopRight: return new Color4b(0, 255, 0, 255);
+                case FarBottomLeft: return new Color4b(0, 0, 255, 255);
+                case FarBottomRight: return new Color4b(255, 255, 0, 255);
+                case NearTopLeft: return new Color4b(0, 255, 255, 255);
+                case NearTopRight: return new Color4b(255, 0, 255, 255);
+                case NearBottomLeft: return new Color4b(100, 255, 50, 255);
+                case NearBottomRight: return new Color4b(50, 100, 255, 255);
+                default: return base.GetColorForLocation(location);
+            }
+        }
         #endregion
 
-        #region Properties
-        public List<IEntity> Entities
+        #region Private helper methods
+        private static RenderNodeBase CreateNode(Vector3f minPoint, Vector3f maxPoint, int depth, Scene scene)
         {
-            get { return entities; }
+            int boxSizeX = (int)(maxPoint.X - minPoint.X);
+            int boxSizeY = (int)(maxPoint.Y - minPoint.Y);
+            int boxSizeZ = (int)(maxPoint.Z - minPoint.Z);
+
+            // If box size is the size of a chunk, create leaf node
+            if (boxSizeX <= ChunkVoxelSize && boxSizeY <= ChunkVoxelSize && boxSizeZ <= ChunkVoxelSize)
+                return new LeafRenderNode(minPoint, maxPoint, depth, scene);
+
+            return new RenderNode(minPoint, maxPoint, depth, scene);
+        }
+        #endregion
+    }
+    #endregion
+
+    #region RenderNodeBase class
+    internal abstract class RenderNodeBase : IDisposable
+    {
+        #region Constants
+        protected const int ChunkVoxelSize = ChunkComponent.VoxelSize;
+        #endregion
+
+        #region Member variables
+        private static readonly LargeMeshBuilder debugBoxOutlineBuilder = new LargeMeshBuilder(8, 24);
+
+        public readonly BoundingBox BoundingBox;
+
+        private readonly int depth;
+        private IVertexDataCollection debugBoxOutLine;
+        #endregion
+
+        #region Constructor
+        protected RenderNodeBase(Vector3f minPoint, Vector3f maxPoint, int depth)
+        {
+            BoundingBox = new BoundingBox(minPoint, maxPoint);
+
+            this.depth = depth;
+            Debug.Assert((int)(maxPoint.X - minPoint.X) % ChunkVoxelSize == 0, "Game world box should fit an even number of chunks inside on the x-axis");
+            Debug.Assert((int)(maxPoint.Y - minPoint.Y) % ChunkVoxelSize == 0, "Game world box should fit an even number of chunks inside on the y-axis");
+            Debug.Assert((int)(maxPoint.Z - minPoint.Z) % ChunkVoxelSize == 0, "Game world box should fit an even number of chunks inside on the z-axis");
+
+            Debug.Assert(maxPoint.X - minPoint.X > 0, "X-axis: min is greater than or equal to max");
+            Debug.Assert(maxPoint.Y - minPoint.Y > 0, "Y-axis: min is greater than or equal to max");
+            Debug.Assert(maxPoint.Z - minPoint.Z > 0, "Z-axis: min is greater than or equal to max");
+        }
+        #endregion
+
+        #region Implementation of IDisposable
+        public virtual void Dispose()
+        {
+            if (debugBoxOutLine != null)
+                debugBoxOutLine.Dispose();
         }
         #endregion
 
@@ -203,21 +258,11 @@ namespace ProdigalSoftware.TiVE.RenderSystem
             TiVEController.Backend.Draw(PrimitiveType.Lines, debugBoxOutLine);
         }
 
-        private static Color4b GetColorForLocation(int location)
+        protected virtual Color4b GetColorForLocation(int location)
         {
-            switch (location)
-            {
-                case FarTopLeft: return new Color4b(255, 0, 0, 255);
-                case FarTopRight: return new Color4b(0, 255, 0, 255);
-                case FarBottomLeft: return new Color4b(0, 0, 255, 255);
-                case FarBottomRight: return new Color4b(255, 255, 0, 255);
-                case NearTopLeft: return new Color4b(0, 255, 255, 255);
-                case NearTopRight: return new Color4b(255, 0, 255, 255);
-                case NearBottomLeft: return new Color4b(100, 255, 50, 255);
-                case NearBottomRight: return new Color4b(50, 100, 255, 255);
-                default: return new Color4b(255, 255, 255, 255);
-            }
+            return new Color4b(255, 255, 255, 255);
         }
         #endregion
     }
+    #endregion
 }
