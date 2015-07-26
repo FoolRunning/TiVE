@@ -19,7 +19,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
         private readonly BlockState[] blockStates;
 
         private uint[] blockVoxels;
-        private uint[] blockVoxelsForLighting;
+        private bool[] blockVoxelsEmptyForLighting;
         private bool[] blockLightPassThrough;
 
         public GameWorld(int blockSizeX, int blockSizeY, int blockSizeZ)
@@ -70,17 +70,20 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
 
         public void Initialize(BlockList blockList)
         {
-            blockVoxelsForLighting = new uint[blockList.BlockCount * BlockTotalVoxelCount];
+            blockVoxelsEmptyForLighting = new bool[blockList.BlockCount * BlockTotalVoxelCount];
             blockVoxels = new uint[blockList.BlockCount * BlockTotalVoxelCount];
             blockLightPassThrough = new bool[blockList.BlockCount];
-            for (int i = 0; i < blockList.BlockCount; i++)
+            for (int blockIndex = 0; blockIndex < blockList.BlockCount; blockIndex++)
             {
-                BlockImpl block = blockList.AllBlocks[i];
+                BlockImpl block = blockList.AllBlocks[blockIndex];
 
-                blockLightPassThrough[i] = (i == 0 || block.HasComponent(TransparentComponent.Instance));
-                Array.Copy(block.VoxelsArray, 0, blockVoxels, i * BlockTotalVoxelCount, BlockTotalVoxelCount);
-                if (!block.HasComponent<LightComponent>())
-                    Array.Copy(block.VoxelsArray, 0, blockVoxelsForLighting, i * BlockTotalVoxelCount, BlockTotalVoxelCount);
+                blockLightPassThrough[blockIndex] = (blockIndex == 0 || block.HasComponent(TransparentComponent.Instance));
+                Array.Copy(block.VoxelsArray, 0, blockVoxels, blockIndex * BlockTotalVoxelCount, BlockTotalVoxelCount);
+
+                int offset = blockIndex * BlockTotalVoxelCount;
+                bool forceEveryVoxelEmpty = block.HasComponent<LightComponent>();
+                for (int i = 0; i < BlockTotalVoxelCount; i++)
+                    blockVoxelsEmptyForLighting[offset + i] = forceEveryVoxelEmpty || block.VoxelsArray[i] == 0;
             }
         }
 
@@ -198,7 +201,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
                 if (x == endX && y == endY && z == endZ)
                     return true;
             }
-            while (block == 0 || blockVoxelsForLighting[GetBlockVoxelsOffset(block, blockVoxelX, blockVoxelY, blockVoxelZ)] == 0);
+            while (block == 0 || blockVoxelsEmptyForLighting[GetBlockVoxelsOffset(block, blockVoxelX, blockVoxelY, blockVoxelZ)]);
 
             return false;
         }

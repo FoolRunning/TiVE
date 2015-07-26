@@ -1,10 +1,9 @@
 ﻿using System;
 using System.Diagnostics;
-using ProdigalSoftware.TiVEPluginFramework;
 using ProdigalSoftware.TiVEPluginFramework.Components;
 using ProdigalSoftware.Utils;
 
-namespace ProdigalSoftware.TiVE.Utils
+namespace ProdigalSoftware.TiVEPluginFramework
 {
     internal static class TiVEUtils
     {
@@ -13,6 +12,7 @@ namespace ProdigalSoftware.TiVE.Utils
         /// This method is not compiled into release builds.
         /// </summary>
         [Conditional("DEBUG")]
+        [JetBrains.Annotations.AssertionMethod]
         public static void CheckConstraints(int x, int y, int z, Vector3i size)
         {
             if (x < 0 || x >= size.X)

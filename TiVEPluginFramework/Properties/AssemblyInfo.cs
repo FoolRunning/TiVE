@@ -14,8 +14,9 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
-[assembly: InternalsVisibleTo("TiVEEditor")]
 [assembly: InternalsVisibleTo("TiVE")]
+[assembly: InternalsVisibleTo("TiVE.Tests")]
+[assembly: InternalsVisibleTo("TiVEEditor")]
 [assembly: InternalsVisibleTo("BlockConverter")]
 
 // Setting ComVisible to false makes the types in this assembly not visible 

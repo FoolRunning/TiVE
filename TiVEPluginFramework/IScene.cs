@@ -4,6 +4,8 @@ namespace ProdigalSoftware.TiVEPluginFramework
 {
     public interface IScene
     {
+        IEnumerable<IEntity> AllEntities { get; }
+
         IEntity CreateNewEntity(string entityName);
 
         IEnumerable<IEntity> GetEntitiesWithComponent<T>() where T : class, IComponent;

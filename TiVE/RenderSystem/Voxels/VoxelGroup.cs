@@ -3,14 +3,13 @@ using System.Runtime.CompilerServices;
 using ProdigalSoftware.TiVE.Core.Backend;
 using ProdigalSoftware.TiVE.RenderSystem.Meshes;
 using ProdigalSoftware.TiVE.RenderSystem.World;
-using ProdigalSoftware.TiVE.Utils;
 using ProdigalSoftware.TiVEPluginFramework;
 using ProdigalSoftware.Utils;
 
 namespace ProdigalSoftware.TiVE.RenderSystem.Voxels
 {
     [Flags]
-    internal enum VoxelSides
+    internal enum VoxelSides : byte
     {
         None = 0,
         Top = 1 << 0,
@@ -19,7 +18,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Voxels
         Bottom = 1 << 3,
         Front = 1 << 4,
         Back = 1 << 5,
-        Unknown = 1 << 15,
+        Unknown = 1 << 7,
         All = Top | Left | Right | Bottom | Front | Back,
     }
 

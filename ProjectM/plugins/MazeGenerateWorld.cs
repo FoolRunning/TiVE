@@ -41,10 +41,9 @@ namespace ProdigalSoftware.ProjectM.Plugins
 
             MazeCell[,] dungeonMap = new MazeCell[gameWorld.BlockSize.X / 3, gameWorld.BlockSize.Y / 3];
             List<Vector3i> rooms = CreateRandomRooms(150, random, 3, 11, 3, 11).ToList();
-            int mazeStartAreaId = rooms.Count + 5;
-            PlaceRooms(rooms, dungeonMap, 25, random);
-            FillBlankWithMaze(dungeonMap, random, mazeStartAreaId);
-            CreateDoors(dungeonMap, random);
+            int mazeStartAreaId = PlaceRooms(rooms, dungeonMap, 25, random);
+            int lastUsedId = FillBlankWithMaze(dungeonMap, random, mazeStartAreaId);
+            CreateDoors(dungeonMap, random, lastUsedId);
             CleanUpDeadEnds(dungeonMap, 10);
 
             //Console.WriteLine("\n\nFinished Maze:");
@@ -69,7 +68,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
             }
         }
 
-        private static void PlaceRooms(List<Vector3i> rooms, MazeCell[,] dungeonMap, int maxTries, Random random)
+        private static int PlaceRooms(List<Vector3i> rooms, MazeCell[,] dungeonMap, int maxTries, Random random)
         {
             int maxWidth = dungeonMap.GetLength(0) - 2;
             int maxHeight = dungeonMap.GetLength(1) - 2;
@@ -90,6 +89,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
                 if (placed)
                     areaId++;
             }
+            return areaId;
         }
 
         private static bool TryPlaceRoom(Vector3i room, int roomX, int roomY, MazeCell[,] dungeonMap, int areaId)
@@ -118,7 +118,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
         #endregion
 
         #region Maze generation methods
-        private static void FillBlankWithMaze(MazeCell[,] dungeonMap, Random random, int mazeAreaId)
+        private static int FillBlankWithMaze(MazeCell[,] dungeonMap, Random random, int mazeAreaId)
         {
             List<MazeCellLocation> cellsInMaze = new List<MazeCellLocation>();
 
@@ -199,6 +199,8 @@ namespace ProdigalSoftware.ProjectM.Plugins
                 }
                 lastDir = dir;
             }
+
+            return mazeAreaId;
         }
 
         private static MazeCellLocation FindBlankSpace(MazeCell[,] dungeonMap, Random random)
@@ -254,7 +256,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
         #endregion
 
         #region Door placement methods
-        private static void CreateDoors(MazeCell[,] dungeonMap, Random random)
+        private static void CreateDoors(MazeCell[,] dungeonMap, Random random, int lastUsedId)
         {
             // Find possible door points at places where rooms and maze (or another room) meet
             FindDoorPoints(dungeonMap);
@@ -271,9 +273,8 @@ namespace ProdigalSoftware.ProjectM.Plugins
                 {
                     for (int y = 1; y < dungeonMap.GetLength(1) - 1; y++)
                     {
-                        if (dungeonMap[x, y].PossibleDoorPoint && random.Next(100) < 5 && ConnectedAreaAround(dungeonMap, connectedAreaIds, x, y))
+                        if (dungeonMap[x, y].PossibleDoorPoint && random.Next(100) < 7 && ConnectedAreaAround(dungeonMap, connectedAreaIds, x, y))
                         {
-
                             int unconnectedAreaId = UnconnectedAreaIdAround(dungeonMap, connectedAreaIds, x, y);
                             if (unconnectedAreaId != -1 && (foundUnconnectedAreaId == -1 || unconnectedAreaId == foundUnconnectedAreaId))
                             {
@@ -298,6 +299,8 @@ namespace ProdigalSoftware.ProjectM.Plugins
                     connectedAreaIds.Add(foundUnconnectedAreaId);
                     tries = 0;
                 }
+                if (tries > 30 && connectedAreaIds.Count >= lastUsedId)
+                    break;
             }
         }
 
@@ -496,12 +499,20 @@ namespace ProdigalSoftware.ProjectM.Plugins
 
         private static void SmoothWorld(IGameWorld gameWorld, IBlockList blockList)
         {
-            HashSet<int> blocksToConsiderEmpty = new HashSet<int>();
+            HashSet<ushort> blocksToConsiderEmpty = new HashSet<ushort>();
             blocksToConsiderEmpty.Add(0);
             for (int i = 0; i < 50; i++)
                 blocksToConsiderEmpty.Add(blockList["grass" + i]);
             for (int i = 0; i < 6; i++)
                 blocksToConsiderEmpty.Add(blockList["light" + i]);
+
+            HashSet<ushort> blocksToSmooth = new HashSet<ushort>();
+            List<ushort> stoneBlocks = new List<ushort>(64);
+            for (int i = 0; i < 64; i++)
+            {
+                blocksToSmooth.Add(blockList["ston" + i]);
+                stoneBlocks.Add(blockList["ston" + i]);
+            }
 
             for (int z = 0; z < gameWorld.BlockSize.Z; z++)
             {
@@ -510,13 +521,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
                     for (int y = 0; y < gameWorld.BlockSize.Y; y++)
                     {
                         ushort blockIndex = gameWorld[x, y, z];
-                        if (blockIndex == 0)
-                            continue;
-
-                        Block block = blockList[blockIndex];
-                        string blockNameKey = GetBlockSet(block);
-
-                        if (blockNameKey != "ston" && blockNameKey != "sand" && blockNameKey != "shru" && blockNameKey != "lava")
+                        if (blockIndex == 0 || !blocksToSmooth.Contains(blockIndex))
                             continue;
 
                         int sides = 0;
@@ -539,15 +544,10 @@ namespace ProdigalSoftware.ProjectM.Plugins
                         if (y == gameWorld.BlockSize.Y - 1 || blocksToConsiderEmpty.Contains(gameWorld[x, y + 1, z]))
                             sides |= Top;
 
-                        gameWorld[x, y, z] = blockList[blockNameKey + sides];
+                        gameWorld[x, y, z] = stoneBlocks[sides];
                     }
                 }
             }
-        }
-
-        private static string GetBlockSet(Block block)
-        {
-            return block.Name.Substring(0, 4);
         }
         #endregion
 

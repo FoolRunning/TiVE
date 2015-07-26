@@ -2,7 +2,7 @@
 
 namespace ProdigalSoftware.TiVEPluginFramework
 {
-    public sealed class BoundingBox
+    public class BoundingBox
     {
         private readonly Vector3f minPoint;
         private readonly Vector3f maxPoint;
