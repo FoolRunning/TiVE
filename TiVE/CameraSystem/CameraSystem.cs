@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using ProdigalSoftware.TiVE.Core;
 using ProdigalSoftware.TiVE.RenderSystem;
-using ProdigalSoftware.TiVE.Utils;
 using ProdigalSoftware.TiVEPluginFramework;
 using ProdigalSoftware.TiVEPluginFramework.Components;
 using ProdigalSoftware.Utils;
@@ -128,7 +127,7 @@ namespace ProdigalSoftware.TiVE.CameraSystem
                     RenderNodeBase childNode = childrenLocal[i];
                     if (childNode != null)
                     {
-                        if (TiVEUtils.BoxInView(cameraData, childNode.BoundingBox))
+                        if (TiVEUtils.BoxInView(cameraData, childNode))
                             FindVisibleEntities(visibleEntities, cameraData, childNode);
                     }
                 }

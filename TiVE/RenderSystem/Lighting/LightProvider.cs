@@ -93,17 +93,20 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
             Messages.Print("Calculating static lighting...");
             Stopwatch sw = Stopwatch.StartNew();
             for (int i = 0; i < chunkLightInfo.Length; i++)
-                chunkLightInfo[i] = new ChunkLights(50);
+                chunkLightInfo[i] = new ChunkLights(200);
             
-            int numThreads = Environment.ProcessorCount > 2 ? Environment.ProcessorCount - 1 : 1;
+            int numThreads = Environment.ProcessorCount > 3 ? Environment.ProcessorCount / 2 : 1;
             Thread[] threads = new Thread[numThreads];
-            List<LightInfo> lightInfos = new List<LightInfo>(2000);
+            List<LightInfo> lightInfos = new List<LightInfo>(20000);
             lightInfos.Add(new LightInfo());
             for (int i = 0; i < numThreads; i++)
                 threads[i] = StartLightCalculationThread("Light " + (i + 1), lightInfos, i * blockSize.X / numThreads, (i + 1) * blockSize.X / numThreads);
 
             foreach (Thread thread in threads)
                 thread.Join();
+
+            for (int i = 0; i < chunkLightInfo.Length; i++)
+                chunkLightInfo[i].LightsAffectingChunks.TrimExcess();
 
             lightInfoList = lightInfos.ToArray();
 
@@ -129,9 +132,9 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
             int startX = chunkData.ChunkBlockLoc.X;
             int startY = chunkData.ChunkBlockLoc.Y;
             int startZ = chunkData.ChunkBlockLoc.Z;
-            int endX = startX + ChunkComponent.BlockSize;
-            int endY = startY + ChunkComponent.BlockSize;
-            int endZ = startZ + ChunkComponent.BlockSize;
+            int endX = Math.Min(gameWorld.BlockSize.X, startX + ChunkComponent.BlockSize);
+            int endY = Math.Min(gameWorld.BlockSize.Y, startY + ChunkComponent.BlockSize);
+            int endZ = Math.Min(gameWorld.BlockSize.Z, startZ + ChunkComponent.BlockSize);
             bool doLightCulling = scene.GameWorld.DoLightCulling;
             for (int lightIndex = 0; lightIndex < lightsAffectingChunk.Count; lightIndex++)
             {

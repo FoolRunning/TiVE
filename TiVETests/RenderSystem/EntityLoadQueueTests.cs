@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using NUnit.Framework;
 using ProdigalSoftware.TiVE.RenderSystem;
 using ProdigalSoftware.TiVEPluginFramework;
+using ProdigalSoftware.TiVEPluginFramework.Components;
 
 namespace TiVETests.RenderSystem
 {
@@ -45,7 +46,7 @@ namespace TiVETests.RenderSystem
         public void EnqueueDequeue_NoItems()
         {
             Assert.That(queue.Size, Is.EqualTo(0));
-            VerifyDequeue(null, -1);
+            VerifyDequeue(null, VoxelMeshComponent.BlankDetailLevel);
         }
 
         [Test]
@@ -57,7 +58,7 @@ namespace TiVETests.RenderSystem
 
             Assert.That(queue.Size, Is.EqualTo(1));
             VerifyDequeue(chunk, 1);
-            VerifyDequeue(null, -1);
+            VerifyDequeue(null, VoxelMeshComponent.BlankDetailLevel);
             Assert.That(queue.Size, Is.EqualTo(0));
         }
 
@@ -84,14 +85,14 @@ namespace TiVETests.RenderSystem
             VerifyDequeue(chunk3, 1);
             VerifyDequeue(chunk4, 1);
             VerifyDequeue(chunk5, 1);
-            VerifyDequeue(null, -1);
+            VerifyDequeue(null, VoxelMeshComponent.BlankDetailLevel);
             Assert.That(queue.Size, Is.EqualTo(0));
 
             queue.Enqueue(chunk6, 1);
 
             Assert.That(queue.Size, Is.EqualTo(1));
             VerifyDequeue(chunk6, 1);
-            VerifyDequeue(null, -1);
+            VerifyDequeue(null, VoxelMeshComponent.BlankDetailLevel);
             Assert.That(queue.Size, Is.EqualTo(0));
         }
 
@@ -113,7 +114,7 @@ namespace TiVETests.RenderSystem
             VerifyDequeue(chunk2, 1);
             VerifyDequeue(chunk1, 1);
             VerifyDequeue(chunk3, 1);
-            VerifyDequeue(null, -1);
+            VerifyDequeue(null, VoxelMeshComponent.BlankDetailLevel);
             Assert.That(queue.Size, Is.EqualTo(0));
         }
 
@@ -135,7 +136,7 @@ namespace TiVETests.RenderSystem
             VerifyDequeue(chunk2, 1);
             VerifyDequeue(chunk3, 1);
             VerifyDequeue(chunk4, 0);
-            VerifyDequeue(null, -1);
+            VerifyDequeue(null, VoxelMeshComponent.BlankDetailLevel);
             Assert.That(queue.Size, Is.EqualTo(0));
         }
 
@@ -163,13 +164,13 @@ namespace TiVETests.RenderSystem
             VerifyDequeue(chunk1, 1);
             VerifyDequeue(chunk4, 1);
             VerifyDequeue(chunk3, 0);
-            VerifyDequeue(null, -1);
+            VerifyDequeue(null, VoxelMeshComponent.BlankDetailLevel);
             Assert.That(queue.Size, Is.EqualTo(0));
         }
 
-        private void VerifyDequeue(DummyEntity expectedChunk, int expectedDetailLevel)
+        private void VerifyDequeue(DummyEntity expectedChunk, byte expectedDetailLevel)
         {
-            int detailLevel;
+            byte detailLevel;
             Assert.That(queue.Dequeue(out detailLevel), Is.EqualTo(expectedChunk));
             Assert.That(detailLevel, Is.EqualTo(expectedDetailLevel));
         }

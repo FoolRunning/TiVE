@@ -8,6 +8,7 @@ using ProdigalSoftware.TiVE.RenderSystem.World;
 using ProdigalSoftware.TiVEPluginFramework;
 using ProdigalSoftware.TiVEPluginFramework.Components;
 using ProdigalSoftware.Utils;
+//#define DEBUG_NODES
 
 namespace ProdigalSoftware.TiVE.Core
 {
@@ -18,11 +19,6 @@ namespace ProdigalSoftware.TiVE.Core
 
         private readonly Dictionary<Type, List<IEntity>> entityComponentTypeMap = new Dictionary<Type, List<IEntity>>(30);
         private readonly List<IEntity> entities = new List<IEntity>(3000);
-
-        public IEnumerable<IEntity> AllEntities
-        {
-            get { return entities; }
-        }
 
         public bool LoadingInitialChunks { get; set; }
 
@@ -37,11 +33,18 @@ namespace ProdigalSoftware.TiVE.Core
         #region Implementation of IScene
         public void Dispose()
         {
+#if DEBUG_NODES
             if (RenderNode != null)
                 RenderNode.Dispose();
+#endif
 
             if (BlockList != null)
                 BlockList.Dispose();
+        }
+
+        public IEnumerable<IEntity> AllEntities
+        {
+            get { return entities; }
         }
 
         public IEntity CreateNewEntity(string entityName)
@@ -136,9 +139,9 @@ namespace ProdigalSoftware.TiVE.Core
 
             entitiesWithType.Add(entity);
 
-            /*if (component is RenderComponent)
-                AddEntityToRenderNode(entity, ((RenderComponent)component).BoundingBox, RenderNode);
-            else*/ if (component is ParticleComponent)
+            if (component is SpriteComponent)
+                AddEntityToRenderNode(entity, ((SpriteComponent)component).BoundingBox, RenderNode);
+            else if (component is ParticleComponent)
             {
                 Vector3i loc = ((ParticleComponent)component).Location;
                 AddEntityToRenderNode(entity, 
@@ -157,7 +160,7 @@ namespace ProdigalSoftware.TiVE.Core
 
             RenderNode renderNode = (RenderNode)node;
             foreach (RenderNodeBase childNode in renderNode.ChildNodes
-                .Where(c => c != null && c.BoundingBox.IntersectsWith(boundingBox)))
+                .Where(c => c != null && c.IntersectsWith(boundingBox)))
             {
                 AddEntityToRenderNode(entity, boundingBox, childNode);
             }

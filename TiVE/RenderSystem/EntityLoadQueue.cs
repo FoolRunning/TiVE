@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using ProdigalSoftware.TiVEPluginFramework;
+using ProdigalSoftware.TiVEPluginFramework.Components;
 
 namespace ProdigalSoftware.TiVE.RenderSystem
 {
@@ -54,7 +55,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem
         /// Adds the specified entity to the queue to be loaded at the specified detail level. If the entity is already in the queue at a 
         /// different detail level, then the entity is removed from the queue and added at the specifed new detail level.
         /// </summary>
-        public void Enqueue(IEntity entity, int detailLevel)
+        public void Enqueue(IEntity entity, byte detailLevel)
         {
             if (size == maxCapacity)
                 throw new InvalidOperationException("Queue is full.");
@@ -88,11 +89,11 @@ namespace ProdigalSoftware.TiVE.RenderSystem
         /// <summary>
         /// Gets the next entity in the queue or null if the queue is empty
         /// </summary>
-        public IEntity Dequeue(out int detailLevel)
+        public IEntity Dequeue(out byte detailLevel)
         {
             if (size == 0)
             {
-                detailLevel = -1;
+                detailLevel = VoxelMeshComponent.BlankDetailLevel;
                 return null;
             }
 
@@ -121,7 +122,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem
         /// <summary>
         /// Gets whether the specified entity is already in the queue at the specified detail level
         /// </summary>
-        public bool Contains(IEntity entity, int detailLevel)
+        public bool Contains(IEntity entity, byte detailLevel)
         {
             QueueItem item;
             return entityLocations.TryGetValue(entity, out item) && item.DetailLevel == detailLevel;
@@ -204,7 +205,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem
             /// <summary>Entity in the queue at this spot</summary>
             public IEntity Entity;
             /// <summary>Requested load detail level of the entity at this spot</summary>
-            public int DetailLevel = -1;
+            public byte DetailLevel = VoxelMeshComponent.BlankDetailLevel;
 
             /// <summary>
             /// Creates a new link in the chain with the specified previous item
@@ -220,7 +221,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem
             public void RemoveEntity()
             {
                 Entity = null;
-                DetailLevel = -1;
+                DetailLevel = VoxelMeshComponent.BlankDetailLevel;
             }
 
             public override string ToString()

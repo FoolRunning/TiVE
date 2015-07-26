@@ -1,16 +1,13 @@
-﻿using JetBrains.Annotations;
-using ProdigalSoftware.TiVEPluginFramework.Internal;
+﻿using ProdigalSoftware.TiVEPluginFramework.Internal;
 using ProdigalSoftware.Utils;
 
 namespace ProdigalSoftware.TiVEPluginFramework.Components
 {
-    /// <summary>
-    /// Component for entities that are renderable
-    /// </summary>
-    [PublicAPI]
-    public sealed class RenderComponent : IComponent
+    public abstract class VoxelMeshComponent : IComponent
     {
         #region Internal data
+        internal const byte BlankDetailLevel = byte.MaxValue;
+
         /// <summary>True if the entity is in the visible area of the screen, false otherwise</summary>
         internal volatile bool Visible;
         /// <summary>Number of voxels that make up the entity</summary>
@@ -22,23 +19,16 @@ namespace ProdigalSoftware.TiVEPluginFramework.Components
         /// <summary>Mesh data for the entity for rendering</summary>
         internal IVertexDataInfo MeshData;
         /// <summary>Detail level of the mesh used to represent the voxels that make up this component</summary>
-        internal int LoadedVoxelDetailLevel = -1;
+        internal byte LoadedVoxelDetailLevel = BlankDetailLevel;
         /// <summary>Object to use for locking when accessing the mesh data</summary>
         internal readonly object SyncLock = new object();
         #endregion
 
-        [UsedImplicitly] public BoundingBox BoundingBox;
-        [UsedImplicitly] public Vector3f Location;
+        public Vector3f Location;
 
-        public RenderComponent(Vector3f location)
+        protected VoxelMeshComponent(Vector3f location)
         {
             Location = location;
-        }
-
-        public RenderComponent(Vector3f location, BoundingBox boundingBox)
-        {
-            Location = location;
-            BoundingBox = boundingBox;
         }
     }
 }

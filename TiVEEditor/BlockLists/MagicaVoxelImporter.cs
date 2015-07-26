@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using ProdigalSoftware.TiVE.RenderSystem.World;
 using ProdigalSoftware.TiVEPluginFramework;
 
@@ -9,6 +10,7 @@ namespace ProdigalSoftware.TiVEEditor.BlockLists
     /// </summary>
     internal class MagicaVoxelImporter
     {
+        #region Constants
         // this is the default palette of voxel colors (the RGBA chunk is only included if the palette is different)
         private static readonly uint[] voxColors = {
     0x00000000, 0xffffffff, 0xffccffff, 0xff99ffff, 0xff66ffff, 0xff33ffff, 0xff00ffff, 0xffffccff, 0xffccccff, 0xff99ccff, 0xff66ccff, 0xff33ccff, 0xff00ccff, 0xffff99ff, 0xffcc99ff, 0xff9999ff,
@@ -28,22 +30,25 @@ namespace ProdigalSoftware.TiVEEditor.BlockLists
     0xff000022, 0xff000011, 0xff00ee00, 0xff00dd00, 0xff00bb00, 0xff00aa00, 0xff008800, 0xff007700, 0xff005500, 0xff004400, 0xff002200, 0xff001100, 0xffee0000, 0xffdd0000, 0xffbb0000, 0xffaa0000,
     0xff880000, 0xff770000, 0xff550000, 0xff440000, 0xff220000, 0xff110000, 0xffeeeeee, 0xffdddddd, 0xffbbbbbb, 0xffaaaaaa, 0xff888888, 0xff777777, 0xff555555, 0xff444444, 0xff222222, 0xff111111
 };
+        #endregion
 
+        #region MagicaVoxelData structure
         private struct MagicaVoxelData
         {
-            public readonly byte x;
-            public readonly byte y;
-            public readonly byte z;
-            public readonly byte color;
+            public readonly byte X;
+            public readonly byte Y;
+            public readonly byte Z;
+            public readonly byte Color;
 
             public MagicaVoxelData(BinaryReader stream)
             {
-                x = stream.ReadByte();
-                y = stream.ReadByte();
-                z = stream.ReadByte();
-                color = stream.ReadByte();
+                X = stream.ReadByte();
+                Y = stream.ReadByte();
+                Z = stream.ReadByte();
+                Color = stream.ReadByte();
             }
         }
+        #endregion
 
         /// <summary>
         /// Load a MagicaVoxel .vox format file.
@@ -51,7 +56,29 @@ namespace ProdigalSoftware.TiVEEditor.BlockLists
         public static Block CreateBlock(BinaryReader stream, string blockName)
         {
             Block block = new BlockImpl(blockName);
+            VoxelSprite spriteData = CreateSprite(stream);
 
+            int sizex = Math.Min(spriteData.Size.X, Block.VoxelSize);
+            int sizey = Math.Min(spriteData.Size.Y, Block.VoxelSize);
+            int sizez = Math.Min(spriteData.Size.Z, Block.VoxelSize);
+
+            for (int z = 0; z < sizez; z++)
+            {
+                for (int x = 0; x < sizex; x++)
+                {
+                    for (int y = 0; y < sizey; y++)
+                        block[x, y, z] = spriteData[x, y, z];
+                }
+            }
+
+            return block;
+        }
+
+        /// <summary>
+        /// Load a MagicaVoxel .vox format file.
+        /// </summary>
+        public static VoxelSprite CreateSprite(BinaryReader stream)
+        {
             // check out http://voxel.codeplex.com/wikipage?title=VOX%20Format&referringTitle=Home for the file format used below
             // we're going to return a voxel chunk worth of data
             uint[] colors = voxColors;
@@ -59,7 +86,7 @@ namespace ProdigalSoftware.TiVEEditor.BlockLists
 
             string mainId = new string(stream.ReadChars(4));
             if (mainId != "VOX ")
-                return block;
+                return null;
 
             int version = stream.ReadInt32();
             if (version != 150)
@@ -108,27 +135,24 @@ namespace ProdigalSoftware.TiVEEditor.BlockLists
 
                     stream.ReadInt32(); // Skip reserved last color
                 }
-                else 
-                    stream.ReadBytes(chunkSize);   // read any other chunks
+                else
+                    stream.ReadBytes(chunkSize);   // skip any other chunks
             }
 
-            if (voxelData == null || voxelData.Length == 0) 
-                return block; // failed to read any valid voxel data
+            if (voxelData == null || voxelData.Length == 0)
+                return null; // failed to read any valid voxel data
 
             // now push the voxel data into our voxel chunk structure
+            VoxelSprite sprite = new VoxelSprite(sizex, sizey, sizez);
             for (int i = 0; i < voxelData.Length; i++)
             {
-                if (voxelData[i].x >= Block.VoxelSize || voxelData[i].y >= Block.VoxelSize ||
-                    voxelData[i].z >= Block.VoxelSize)
-                {
-                    // do not store this voxel if it lies out of range of the block voxels
-                    continue;
-                }
+                if (voxelData[i].X >= sizex || voxelData[i].Y >= sizey || voxelData[i].Z >= sizez)
+                    continue; // do not store this voxel if it lies out of range of the voxels
 
-                block[voxelData[i].x, voxelData[i].y, voxelData[i].z] = colors[voxelData[i].color];
+                sprite[voxelData[i].X, voxelData[i].Y, voxelData[i].Z] = colors[voxelData[i].Color];
             }
 
-            return block;
+            return sprite;
         }
     }
 }

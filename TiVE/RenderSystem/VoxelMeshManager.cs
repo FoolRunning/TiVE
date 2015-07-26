@@ -36,16 +36,16 @@ namespace ProdigalSoftware.TiVE.RenderSystem
     internal sealed class VoxelMeshManager : IDisposable
     {
         #region Constants
-        private const int VoxelDetailLevelSections = 3; // 16x16x16 = 4096v, 8x8x8 = 512v, 4x4x4 = 64v, not worth going to 2x2x2 = 8v.
-        private const int BestVoxelDetailLevel = 0;
-        private const int WorstVoxelDetailLevel = VoxelDetailLevelSections - 1;
-        private const int TotalMeshBuilders = 35;
-        private const int MaxQueueSize = 3000;
+        private const byte VoxelDetailLevelSections = 3; // 16x16x16 = 4096v, 8x8x8 = 512v, 4x4x4 = 64v, not worth going to 2x2x2 = 8v.
+        private const byte BestVoxelDetailLevel = 0;
+        private const byte WorstVoxelDetailLevel = VoxelDetailLevelSections - 1;
+        private const int TotalMeshBuilders = 20;
+        private const int MaxQueueSize = 5000;
         #endregion
 
         #region Member variables
-        private readonly Dictionary<RenderComponent, MeshBuilder> meshesToInitialize = new Dictionary<RenderComponent, MeshBuilder>();
-        private readonly List<KeyValuePair<RenderComponent, MeshBuilder>> meshesToInitializeList = new List<KeyValuePair<RenderComponent, MeshBuilder>>();
+        private readonly Dictionary<VoxelMeshComponent, MeshBuilder> meshesToInitialize = new Dictionary<VoxelMeshComponent, MeshBuilder>();
+        private readonly List<KeyValuePair<VoxelMeshComponent, MeshBuilder>> meshesToInitializeList = new List<KeyValuePair<VoxelMeshComponent, MeshBuilder>>();
         private readonly List<IEntity> entitiesToDelete = new List<IEntity>();
         private readonly HashSet<IEntity> loadedEntities = new HashSet<IEntity>();
 
@@ -91,10 +91,12 @@ namespace ProdigalSoftware.TiVE.RenderSystem
         }
         #endregion
 
+        #region Properties
         public int ChunkLoadCount
         {
             get { return entityLoadQueue.Size; }
         }
+        #endregion
 
         #region Public methods
         /// <summary>
@@ -147,7 +149,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem
             VoxelDetailLevelDistance currentVoxelDetalLevelSetting = (VoxelDetailLevelDistance)(int)TiVEController.UserSettings.Get(UserSettings.DetailDistanceKey);
             foreach (IEntity entity in entitiesToRender)
             {
-                RenderComponent renderData = entity.GetComponent<RenderComponent>();
+                VoxelMeshComponent renderData = entity.GetComponent<VoxelMeshComponent>();
                 if (renderData == null)
                     continue;
 
@@ -155,7 +157,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem
                     LoadEntity(entity, renderData, WorstVoxelDetailLevel); // Initially load at the worst detail level to quickly get something on screen
                 else if (renderData.MeshData != null)
                 {
-                    int perferedDetailLevel = GetPerferedVoxelDetailLevel(renderData, cameraData, currentVoxelDetalLevelSetting);
+                    byte perferedDetailLevel = GetPerferedVoxelDetailLevel(renderData, cameraData, currentVoxelDetalLevelSetting);
                     if (renderData.LoadedVoxelDetailLevel != perferedDetailLevel)
                         LoadEntity(entity, renderData, perferedDetailLevel);
                 }
@@ -168,9 +170,9 @@ namespace ProdigalSoftware.TiVE.RenderSystem
                 meshesToInitialize.Clear();
             }
 
-            foreach (KeyValuePair<RenderComponent, MeshBuilder> meshToInitialize in meshesToInitializeList)
+            foreach (KeyValuePair<VoxelMeshComponent, MeshBuilder> meshToInitialize in meshesToInitializeList)
             {
-                RenderComponent renderData = meshToInitialize.Key;
+                VoxelMeshComponent renderData = meshToInitialize.Key;
                 MeshBuilder meshBuilder = meshToInitialize.Value;
                 using (new PerformanceLock(renderData.SyncLock))
                 {
@@ -245,7 +247,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem
                 }
 
                 IEntity entity;
-                int foundEntityDetailLevel;
+                byte foundEntityDetailLevel;
                 using (new PerformanceLock(entityLoadQueue))
                     entity = entityLoadQueue.Dequeue(out foundEntityDetailLevel);
 
@@ -256,7 +258,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem
                     continue;
                 }
 
-                RenderComponent renderData = entity.GetComponent<RenderComponent>();
+                VoxelMeshComponent renderData = entity.GetComponent<VoxelMeshComponent>();
                 Debug.Assert(renderData != null);
 
                 if (!renderData.Visible)
@@ -266,9 +268,9 @@ namespace ProdigalSoftware.TiVE.RenderSystem
                     continue;
                 }
 
-                ChunkComponent chunkData = entity.GetComponent<ChunkComponent>();
+                ChunkComponent chunkData = renderData as ChunkComponent;
                 if (chunkData != null)
-                    LoadChunkMesh(renderData, chunkData, meshBuilder, foundEntityDetailLevel);
+                    LoadChunkMesh(chunkData, meshBuilder, foundEntityDetailLevel);
                 else
                     LoadMesh(entity, renderData, meshBuilder, foundEntityDetailLevel);
             }
@@ -281,10 +283,10 @@ namespace ProdigalSoftware.TiVE.RenderSystem
         #endregion
 
         #region Methods for loading chunk meshes
-        private void LoadChunkMesh(RenderComponent renderData, ChunkComponent chunkData, MeshBuilder meshBuilder, int voxelDetailLevel)
+        private void LoadChunkMesh(ChunkComponent chunkData, MeshBuilder meshBuilder, byte voxelDetailLevel)
         {
             Scene scene = loadedScene; // For thread safety
-            renderData.LoadedVoxelDetailLevel = voxelDetailLevel;
+            chunkData.LoadedVoxelDetailLevel = voxelDetailLevel;
 
             Debug.Assert(meshBuilder.IsLocked);
             Debug.Assert(loadedScene != null);
@@ -311,7 +313,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem
             int polygonCount = 0;
             for (int blockZ = blockEndZ - 1; blockZ >= blockStartZ; blockZ--)
             {
-                if (!renderData.Visible)
+                if (!chunkData.Visible)
                     break;
 
                 for (int blockX = blockStartX; blockX < blockEndX; blockX++)
@@ -342,33 +344,33 @@ namespace ProdigalSoftware.TiVE.RenderSystem
             }
 
             using (new PerformanceLock(meshesToInitialize))
-            using (new PerformanceLock(renderData.SyncLock))
+            using (new PerformanceLock(chunkData.SyncLock))
             {
                 MeshBuilder existingMeshBuilder;
-                if (meshesToInitialize.TryGetValue(renderData, out existingMeshBuilder))
+                if (meshesToInitialize.TryGetValue(chunkData, out existingMeshBuilder))
                 {
                     // Must have been loading this chunk while waiting to initialize a previous version of this chunk
                     existingMeshBuilder.DropMesh();
-                    meshesToInitialize.Remove(renderData);
+                    meshesToInitialize.Remove(chunkData);
                 }
 
-                if (!renderData.Visible)
+                if (!chunkData.Visible)
                 {
                     // Entity became invisible while loading so just release the lock on the mesh builder since we're done with it.
                     meshBuilder.DropMesh();
                 }
                 else
                 {
-                    meshesToInitialize.Add(renderData, meshBuilder); // Make sure we don't add it again due to a lock timing issue
-                    renderData.PolygonCount = polygonCount;
-                    renderData.VoxelCount = voxelCount;
-                    renderData.RenderedVoxelCount = renderedVoxelCount;
+                    meshesToInitialize.Add(chunkData, meshBuilder); // Make sure we don't add it again due to a lock timing issue
+                    chunkData.PolygonCount = polygonCount;
+                    chunkData.VoxelCount = voxelCount;
+                    chunkData.RenderedVoxelCount = renderedVoxelCount;
                 }
             }
         }
 
         private static void CreateMeshForBlockInChunk(BlockImpl block, int blockX, int blockY, int blockZ,
-            int voxelStartX, int voxelStartY, int voxelStartZ, int voxelDetailLevel, Scene scene,
+            int voxelStartX, int voxelStartY, int voxelStartZ, byte voxelDetailLevel, Scene scene,
             MeshBuilder meshBuilder, ref int polygonCount, ref int renderedVoxelCount)
         {
             GameWorld gameWorld = scene.GameWorld;
@@ -518,7 +520,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem
         #endregion
 
         #region Methods for loading entity meshes
-        private void LoadMesh(IEntity entity, RenderComponent renderData, MeshBuilder meshBuilder, int voxelDetailLevel)
+        private void LoadMesh(IEntity entity, VoxelMeshComponent renderData, MeshBuilder meshBuilder, int voxelDetailLevel)
         {
         }
         #endregion
@@ -530,7 +532,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem
         /// </summary>
         private void DeleteEntity(IEntity entity)
         {
-            RenderComponent renderData = entity.GetComponent<RenderComponent>();
+            VoxelMeshComponent renderData = entity.GetComponent<VoxelMeshComponent>();
             using (new PerformanceLock(renderData.SyncLock))
             {
                 using (new PerformanceLock(meshesToInitialize))
@@ -547,7 +549,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem
 
                 renderData.MeshData = null;
                 renderData.Visible = false;
-                renderData.LoadedVoxelDetailLevel = -1;
+                renderData.LoadedVoxelDetailLevel = VoxelMeshComponent.BlankDetailLevel;
                 renderData.PolygonCount = 0;
                 renderData.VoxelCount = 0;
                 renderData.RenderedVoxelCount = 0;
@@ -561,7 +563,8 @@ namespace ProdigalSoftware.TiVE.RenderSystem
         /// <summary>
         /// Given the specified render data and camera data determine the wanted voxel detail level given the specified user detail setting
         /// </summary>
-        private static int GetPerferedVoxelDetailLevel(RenderComponent renderData, CameraComponent cameraData, VoxelDetailLevelDistance currentVoxelDetalLevelSetting)
+        private static byte GetPerferedVoxelDetailLevel(VoxelMeshComponent renderData, CameraComponent cameraData, 
+            VoxelDetailLevelDistance currentVoxelDetalLevelSetting)
         {
             Vector3f entityLoc = renderData.Location;
             Vector3f cameraLoc = cameraData.Location;
@@ -580,7 +583,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem
                 default: distancePerLevel = 1500; break;
             }
 
-            for (int i = BestVoxelDetailLevel; i <= WorstVoxelDetailLevel; i++)
+            for (byte i = BestVoxelDetailLevel; i <= WorstVoxelDetailLevel; i++)
             {
                 if (dist <= distancePerLevel)
                     return i;
@@ -592,7 +595,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem
         /// <summary>
         /// Queues the specified entity to be loaded at the specified detail level.
         /// </summary>
-        private void LoadEntity(IEntity entity, RenderComponent renderData, int voxelDetailLevel)
+        private void LoadEntity(IEntity entity, VoxelMeshComponent renderData, byte voxelDetailLevel)
         {
             using (new PerformanceLock(renderData.SyncLock))
                 renderData.Visible = true;
@@ -600,7 +603,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem
             ReloadEntity(entity, voxelDetailLevel);
         }
 
-        private void ReloadEntity(IEntity entity, int voxelDetailLevel)
+        private void ReloadEntity(IEntity entity, byte voxelDetailLevel)
         {
             if (entity == null)
                 throw new ArgumentNullException("entity");
