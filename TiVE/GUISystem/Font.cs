@@ -121,6 +121,7 @@ namespace ProdigalSoftware.TiVE.GUISystem
 
         public void DrawText(string text)
         {
+            texture.Activate();
         }
 
         private CharInfo GetInfo(char c)

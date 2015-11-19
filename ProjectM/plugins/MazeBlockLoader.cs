@@ -27,7 +27,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
 
             const byte bc = Block.VoxelSize / 2;
             const int mv = Block.VoxelSize - 1;
-            const uint mortarColor = 0xFFAFAFAF;
+            Voxel mortarColor = new Voxel(0xAF, 0xAF, 0xAF, 0xFF);
 
             Vector3b blockCenterVector = new Vector3b(bc, bc, bc);
             for (int i = 0; i < 64; i++)
@@ -43,46 +43,46 @@ namespace ProdigalSoftware.ProjectM.Plugins
                     {
                         if ((i & Bottom) != 0)
                         {
-                            stone[x, 0, 0] = 0;
-                            stone[x, 0, 1] = 0;
-                            stone[x, 0, mv] = 0;
+                            stone[x, 0, 0] = Voxel.Empty;
+                            stone[x, 0, 1] = Voxel.Empty;
+                            stone[x, 0, mv] = Voxel.Empty;
 
-                            stone[x, 0, bc] = 0;
-                            stone[x, 0, bc - 1] = 0;
-                            stone[x, 0, bc + 1] = 0;
+                            stone[x, 0, bc] = Voxel.Empty;
+                            stone[x, 0, bc - 1] = Voxel.Empty;
+                            stone[x, 0, bc + 1] = Voxel.Empty;
                         }
 
                         if ((i & Top) != 0)
                         {
-                            stone[x, mv, 0] = 0;
-                            stone[x, mv, 1] = 0;
-                            stone[x, mv, mv] = 0;
+                            stone[x, mv, 0] = Voxel.Empty;
+                            stone[x, mv, 1] = Voxel.Empty;
+                            stone[x, mv, mv] = Voxel.Empty;
 
-                            stone[x, mv, bc] = 0;
-                            stone[x, mv, bc - 1] = 0;
-                            stone[x, mv, bc + 1] = 0;
+                            stone[x, mv, bc] = Voxel.Empty;
+                            stone[x, mv, bc - 1] = Voxel.Empty;
+                            stone[x, mv, bc + 1] = Voxel.Empty;
                         }
 
                         if ((i & Left) != 0)
                         {
-                            stone[0, y, 0] = 0;
-                            stone[0, y, 1] = 0;
-                            stone[0, y, mv] = 0;
+                            stone[0, y, 0] = Voxel.Empty;
+                            stone[0, y, 1] = Voxel.Empty;
+                            stone[0, y, mv] = Voxel.Empty;
 
-                            stone[0, y, bc] = 0;
-                            stone[0, y, bc - 1] = 0;
-                            stone[0, y, bc + 1] = 0;
+                            stone[0, y, bc] = Voxel.Empty;
+                            stone[0, y, bc - 1] = Voxel.Empty;
+                            stone[0, y, bc + 1] = Voxel.Empty;
                         }
 
                         if ((i & Right) != 0)
                         {
-                            stone[mv, y, 0] = 0;
-                            stone[mv, y, 1] = 0;
-                            stone[mv, y, mv] = 0;
+                            stone[mv, y, 0] = Voxel.Empty;
+                            stone[mv, y, 1] = Voxel.Empty;
+                            stone[mv, y, mv] = Voxel.Empty;
 
-                            stone[mv, y, bc] = 0;
-                            stone[mv, y, bc - 1] = 0;
-                            stone[mv, y, bc + 1] = 0;
+                            stone[mv, y, bc] = Voxel.Empty;
+                            stone[mv, y, bc - 1] = Voxel.Empty;
+                            stone[mv, y, bc + 1] = Voxel.Empty;
                         }
 
                         ReplaceVoxel(stone, x, y, 0, mortarColor);
@@ -95,46 +95,46 @@ namespace ProdigalSoftware.ProjectM.Plugins
                     {
                         if ((i & Bottom) != 0)
                         {
-                            stone[bc - 5, 0, z] = 0;
-                            stone[bc - 4, 0, z] = 0;
-                            stone[bc - 3, 0, z] = 0;
+                            stone[bc - 5, 0, z] = Voxel.Empty;
+                            stone[bc - 4, 0, z] = Voxel.Empty;
+                            stone[bc - 3, 0, z] = Voxel.Empty;
 
-                            stone[bc + 3, 0, z + bc] = 0;
-                            stone[bc + 4, 0, z + bc] = 0;
-                            stone[bc + 5, 0, z + bc] = 0;
+                            stone[bc + 3, 0, z + bc] = Voxel.Empty;
+                            stone[bc + 4, 0, z + bc] = Voxel.Empty;
+                            stone[bc + 5, 0, z + bc] = Voxel.Empty;
                         }
 
                         if ((i & Top) != 0)
                         {
-                            stone[bc - 5, mv, z] = 0;
-                            stone[bc - 4, mv, z] = 0;
-                            stone[bc - 3, mv, z] = 0;
+                            stone[bc - 5, mv, z] = Voxel.Empty;
+                            stone[bc - 4, mv, z] = Voxel.Empty;
+                            stone[bc - 3, mv, z] = Voxel.Empty;
 
-                            stone[bc + 3, mv, z + bc] = 0;
-                            stone[bc + 4, mv, z + bc] = 0;
-                            stone[bc + 5, mv, z + bc] = 0;
+                            stone[bc + 3, mv, z + bc] = Voxel.Empty;
+                            stone[bc + 4, mv, z + bc] = Voxel.Empty;
+                            stone[bc + 5, mv, z + bc] = Voxel.Empty;
                         }
 
                         if ((i & Left) != 0)
                         {
-                            stone[0, bc - 5, z] = 0;
-                            stone[0, bc - 4, z] = 0;
-                            stone[0, bc - 3, z] = 0;
+                            stone[0, bc - 5, z] = Voxel.Empty;
+                            stone[0, bc - 4, z] = Voxel.Empty;
+                            stone[0, bc - 3, z] = Voxel.Empty;
 
-                            stone[0, bc + 3, z + bc] = 0;
-                            stone[0, bc + 4, z + bc] = 0;
-                            stone[0, bc + 5, z + bc] = 0;
+                            stone[0, bc + 3, z + bc] = Voxel.Empty;
+                            stone[0, bc + 4, z + bc] = Voxel.Empty;
+                            stone[0, bc + 5, z + bc] = Voxel.Empty;
                         }
 
                         if ((i & Right) != 0)
                         {
-                            stone[mv, bc - 5, z] = 0;
-                            stone[mv, bc - 4, z] = 0;
-                            stone[mv, bc - 3, z] = 0;
+                            stone[mv, bc - 5, z] = Voxel.Empty;
+                            stone[mv, bc - 4, z] = Voxel.Empty;
+                            stone[mv, bc - 3, z] = Voxel.Empty;
 
-                            stone[mv, bc + 3, z + bc] = 0;
-                            stone[mv, bc + 4, z + bc] = 0;
-                            stone[mv, bc + 5, z + bc] = 0;
+                            stone[mv, bc + 3, z + bc] = Voxel.Empty;
+                            stone[mv, bc + 4, z + bc] = Voxel.Empty;
+                            stone[mv, bc + 5, z + bc] = Voxel.Empty;
                         }
 
                         ReplaceVoxel(stone, bc - 4, n, z, mortarColor);
@@ -164,17 +164,17 @@ namespace ProdigalSoftware.ProjectM.Plugins
                         {
                             if (random.NextDouble() < 0.5 - z / 50.0 && (z == 0 || GrassVoxelUnder(grass, x, y, z)))
                             {
-                                grass[x, y, z] = CreateColorFromColor(grassColor, 0.1f).ToArgb();
+                                grass[x, y, z] = CreateVoxelFromColor(grassColor, 0.1f);
                                 if (z == Block.VoxelSize - 1 && random.NextDouble() < 0.2 &&
                                     x > 0 && x < Block.VoxelSize - 1 && y > 0 && y < Block.VoxelSize - 1)
                                 {
                                     // Make a flower
                                     Color4f flowerColor = CreateRandomFlowerColor();
-                                    grass[x, y, z] = CreateColorFromColor(flowerColor).ToArgb();
-                                    grass[x - 1, y, z - 1] = CreateColorFromColor(flowerColor).ToArgb();
-                                    grass[x + 1, y, z - 1] = CreateColorFromColor(flowerColor).ToArgb();
-                                    grass[x, y - 1, z - 1] = CreateColorFromColor(flowerColor).ToArgb();
-                                    grass[x, y + 1, z - 1] = CreateColorFromColor(flowerColor).ToArgb();
+                                    grass[x, y, z] = CreateVoxelFromColor(flowerColor);
+                                    grass[x - 1, y, z - 1] = CreateVoxelFromColor(flowerColor);
+                                    grass[x + 1, y, z - 1] = CreateVoxelFromColor(flowerColor);
+                                    grass[x, y - 1, z - 1] = CreateVoxelFromColor(flowerColor);
+                                    grass[x, y + 1, z - 1] = CreateVoxelFromColor(flowerColor);
                                 }
                             }
                         }
@@ -234,7 +234,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
         }
 
 
-        private static void ReplaceVoxel(Block block, int x, int y, int z, uint newVoxel)
+        private static void ReplaceVoxel(Block block, int x, int y, int z, Voxel newVoxel)
         {
             if (block[x, y, z] != 0)
                 block[x, y, z] = newVoxel;
@@ -272,7 +272,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
         private static Block CreateRoundedBlockInfo(string name, Color4f color, float voxelDensity, int sides, LightComponent light = null)
         {
             const float mid = Block.VoxelSize / 2.0f - 0.5f;
-            float sphereSize = Block.VoxelSize / 2.0f;
+            const float sphereSize = Block.VoxelSize / 2.0f;
 
             Block block = Factory.CreateBlock(name);
             if (light != null)
@@ -333,7 +333,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
                         }
 
                         if (random.NextDouble() < voxelDensity)
-                            block[x, y, z] = CreateColorFromColor(color).ToArgb();
+                            block[x, y, z] = CreateVoxelFromColor(color);
                     }
                 }
             }
@@ -372,7 +372,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
                         }
 
                         if (random.NextDouble() < voxelDensity)
-                            block[x, y, z] = (light == null) ? CreateColorFromColor(color, colorVariation).ToArgb() : ((Color4b)color).ToArgb();
+                            block[x, y, z] = (light == null) ? CreateVoxelFromColor(color, colorVariation) : (Voxel)(Color4b)color;
                     }
                 }
             }
@@ -380,10 +380,10 @@ namespace ProdigalSoftware.ProjectM.Plugins
             return block;
         }
 
-        private static Color4b CreateColorFromColor(Color4f seed, float variation = 0.2f)
+        private static Voxel CreateVoxelFromColor(Color4f seed, float variation = 0.2f)
         {
             float scale = (float)(random.NextDouble() * variation + (1.0 - variation / 2.0f));
-            return new Color4b(Math.Min(seed.R * scale, 1.0f), Math.Min(seed.G * scale, 1.0f), 
+            return (Voxel)new Color4b(Math.Min(seed.R * scale, 1.0f), Math.Min(seed.G * scale, 1.0f), 
                 Math.Min(seed.B * scale, 1.0f), seed.A);
         }
     }

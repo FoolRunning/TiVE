@@ -26,7 +26,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Voxels
     {
         private static readonly MeshBuilder meshBuilder = new MeshBuilder(10000, 50000);
 
-        protected readonly uint[] voxels;
+        protected readonly Voxel[] voxels;
 
         private readonly Vector3i size;
         private int polygonCount;
@@ -37,7 +37,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Voxels
         public VoxelGroup(int sizeX, int sizeY, int sizeZ)
         {
             size = new Vector3i(sizeX, sizeY, sizeZ);
-            voxels = new uint[sizeX * sizeY * sizeZ];
+            voxels = new Voxel[sizeX * sizeY * sizeZ];
         }
 
         public VoxelGroup(BlockImpl block) : this(Block.VoxelSize, Block.VoxelSize, Block.VoxelSize)
@@ -58,7 +58,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Voxels
             get { return size; }
         }
 
-        public uint this[int x, int y, int z]
+        public Voxel this[int x, int y, int z]
         {
             get { return voxels[GetBlockOffset(x, y, z)]; }
             set { voxels[GetBlockOffset(x, y, z)] = value; }
@@ -97,7 +97,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Voxels
                 {
                     for (byte y = 0; y < size.Y; y++)
                     {
-                        uint color = this[x, y, z];
+                        Voxel color = this[x, y, z];
                         if (color == 0)
                             continue;
 
@@ -119,9 +119,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Voxels
 
                         if (sides != VoxelSides.None)
                         {
-                            polygonCount += meshHelper.AddVoxel(meshBuilder, sides, x, y, z, 
-                                new Color4b((byte)((color >> 16) & 0xFF), (byte)((color >> 8) & 0xFF), (byte)((color >> 0) & 0xFF), 
-                                    (byte)((color >> 24) & 0xFF)));
+                            polygonCount += meshHelper.AddVoxel(meshBuilder, sides, x, y, z, (Color4b)color);
                             renderedVoxelCount++;
                         }
                     }

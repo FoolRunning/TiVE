@@ -96,7 +96,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
                     {
                         BlockImpl block = new BlockImpl(blockName);
                         for (int i = 0; i < block.VoxelsArray.Length; i++)
-                            block.VoxelsArray[i] = reader.ReadUInt32();
+                            block.VoxelsArray[i] = (Voxel)reader.ReadUInt32();
                         
                         if (fileVersion >= 2 && reader.ReadBoolean()) // Light added in version 2
                         {
@@ -146,7 +146,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
                     using (BinaryWriter writer = new BinaryWriter(memStream, Encoding.ASCII))
                     {
                         for (int i = 0; i < block.VoxelsArray.Length; i++)
-                            writer.Write(block.VoxelsArray[i]);
+                            writer.Write((uint)block.VoxelsArray[i]);
 
                         // Write out the information about the light (added in version 2)
                         LightComponent light = block.GetComponent<LightComponent>();

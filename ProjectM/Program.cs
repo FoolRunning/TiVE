@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Windows.Forms;
 using ProdigalSoftware.TiVE;
 
@@ -28,7 +29,7 @@ namespace ProdigalSoftware.ProjectM
             TiVEController.RunStarter();
         }
 
-        //#region Test struct vs. class access speed
+        #region Test struct vs. class access speed
         //private static void TestStructClassAccess()
         //{
         //    Console.WriteLine();
@@ -157,9 +158,9 @@ namespace ProdigalSoftware.ProjectM
         //    public float Item6;
         //    public int Item7;
         //}
-        //#endregion
+        #endregion
 
-        //#region Test array-type speeds
+        #region Test array-type speeds
         //private static void TestArrayMethods()
         //{
         //    Console.WriteLine();
@@ -240,9 +241,9 @@ namespace ProdigalSoftware.ProjectM
         //    }
         //    Console.WriteLine(Format, "Single array", total / PassCount);
         //}
-        //#endregion
+        #endregion
 
-        //#region Test multiple arrays vs. array of struct
+        #region Test multiple arrays vs. array of struct
         //private static void TestSingleItemVersusMultipleArray()
         //{
         //    Console.WriteLine();
@@ -339,9 +340,9 @@ namespace ProdigalSoftware.ProjectM
         //        Bla = bla;
         //    }
         //}
-        //#endregion
+        #endregion
 
-        //#region Test array creation speed
+        #region Test array creation speed
         //private static void TestArrayCreationSpeed()
         //{
         //    Console.WriteLine();
@@ -397,6 +398,6 @@ namespace ProdigalSoftware.ProjectM
         //{
         //    public int value;
         //}
-        //#endregion
+        #endregion
     }
 }

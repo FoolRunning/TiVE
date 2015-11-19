@@ -17,9 +17,6 @@ namespace ProdigalSoftware.TiVE.Core
         }
 
         #region Implementation of IFactoryImpl
-        /// <summary>
-        /// Creates a new instance of the specified interface
-        /// </summary>
         public T Create<T>()
         {
             Delegate creator;

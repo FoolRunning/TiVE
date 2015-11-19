@@ -1,11 +1,12 @@
 ﻿using ProdigalSoftware.TiVE.RenderSystem.Meshes;
+using ProdigalSoftware.TiVEPluginFramework;
 using ProdigalSoftware.Utils;
 
 namespace ProdigalSoftware.TiVE.RenderSystem.Voxels
 {
     internal static class VoxelMeshUtils
     {
-        public static void GenerateMesh(uint[,,] voxels, MeshBuilder meshBuilder, bool forInstances, 
+        public static void GenerateMesh(Voxel[,,] voxels, MeshBuilder meshBuilder, bool forInstances, 
             out int voxelCount, out int renderedVoxelCount, out int polygonCount)
         {
             voxelCount = 0;
@@ -23,7 +24,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Voxels
                 {
                     for (byte y = 0; y < ySize; y++)
                     {
-                        uint color = voxels[x, y, z];
+                        Voxel color = voxels[x, y, z];
                         if (color == 0)
                             continue;
 
@@ -45,8 +46,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Voxels
 
                         if (sides != VoxelSides.None)
                         {
-                            polygonCount += meshHelper.AddVoxel(meshBuilder, sides, x, y, z,
-                                new Color4b((byte)((color >> 16) & 0xFF), (byte)((color >> 8) & 0xFF), (byte)((color >> 0) & 0xFF), (byte)((color >> 24) & 0xFF)));
+                            polygonCount += meshHelper.AddVoxel(meshBuilder, sides, x, y, z, (Color4b)color);
                             renderedVoxelCount++;
                         }
                     }

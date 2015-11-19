@@ -10,7 +10,7 @@
         /// <summary>
         /// Gets/sets the voxel at the specified position within the block
         /// </summary>
-        public abstract uint this[int x, int y, int z] { get; set; }
+        public abstract Voxel this[int x, int y, int z] { get; set; }
 
         public abstract void AddComponent(IBlockComponent component);
 

@@ -1,4 +1,5 @@
-﻿using ProdigalSoftware.TiVEPluginFramework.Internal;
+﻿using JetBrains.Annotations;
+using ProdigalSoftware.TiVEPluginFramework.Internal;
 using ProdigalSoftware.Utils;
 
 namespace ProdigalSoftware.TiVEPluginFramework.Components
@@ -24,6 +25,7 @@ namespace ProdigalSoftware.TiVEPluginFramework.Components
         internal readonly object SyncLock = new object();
         #endregion
 
+        [UsedImplicitly]
         public Vector3f Location;
 
         protected VoxelMeshComponent(Vector3f location)

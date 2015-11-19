@@ -18,7 +18,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
         private readonly ushort[] blocks;
         private readonly BlockState[] blockStates;
 
-        private uint[] blockVoxels;
+        private Voxel[] blockVoxels;
         private bool[] blockVoxelsEmptyForLighting;
         private bool[] blockLightPassThrough;
 
@@ -71,7 +71,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
         public void Initialize(BlockList blockList)
         {
             blockVoxelsEmptyForLighting = new bool[blockList.BlockCount * BlockTotalVoxelCount];
-            blockVoxels = new uint[blockList.BlockCount * BlockTotalVoxelCount];
+            blockVoxels = new Voxel[blockList.BlockCount * BlockTotalVoxelCount];
             blockLightPassThrough = new bool[blockList.BlockCount];
             for (int blockIndex = 0; blockIndex < blockList.BlockCount; blockIndex++)
             {
@@ -83,7 +83,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
                 int offset = blockIndex * BlockTotalVoxelCount;
                 bool forceEveryVoxelEmpty = block.HasComponent<LightComponent>();
                 for (int i = 0; i < BlockTotalVoxelCount; i++)
-                    blockVoxelsEmptyForLighting[offset + i] = forceEveryVoxelEmpty || block.VoxelsArray[i] == 0;
+                    blockVoxelsEmptyForLighting[offset + i] = forceEveryVoxelEmpty || block.VoxelsArray[i].A < 0xFF;
             }
         }
 
@@ -102,7 +102,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
         /// </summary>
         /// <remarks>Very performance-critical method</remarks>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public uint GetVoxel(int voxelX, int voxelY, int voxelZ)
+        public Voxel GetVoxel(int voxelX, int voxelY, int voxelZ)
         {
             MiscUtils.CheckConstraints(voxelX, voxelY, voxelZ, voxelSize);
 
@@ -111,7 +111,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
             int blockZ = voxelZ / Block.VoxelSize;
             ushort block = blocks[GetBlockOffset(blockX, blockY, blockZ)];
             if (block == 0)
-                return 0;
+                return Voxel.Empty;
 
             int blockVoxelX = voxelX % Block.VoxelSize;
             int blockVoxelY = voxelY % Block.VoxelSize;

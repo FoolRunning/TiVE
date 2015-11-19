@@ -53,11 +53,11 @@ namespace ProdigalSoftware.TiVEEditor.BlockLists
                     {
                         for (int z = 0; z < Block.VoxelSize; z++)
                         {
-                            int color = (int)block[x, y, z];
+                            Voxel color = block[x, y, z];
                             if (color == 0)
                                 continue;
 
-                            brush.Color = Color.FromArgb(color);
+                            brush.Color = Color.FromArgb(color.A, color.R, color.G, color.B);
                             //g.FillRectangle(brush, x * 2 + 18 - BlockInformation.VoxelSize + y, 28 - y - z * 2 + x, 3, 3);
                             g.FillRectangle(brush, x * 2 + 24 - Block.VoxelSize + y, 42 - y - z * 2 + x, 3, 3);
                         }

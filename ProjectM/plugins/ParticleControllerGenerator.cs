@@ -35,9 +35,9 @@ namespace ProdigalSoftware.ProjectM.Plugins
             }
 
             #region Implementation of ParticleController
-            public override uint[, ,] ParticleVoxels
+            public override Voxel[, ,] ParticleVoxels
             {
-                get { return new[, ,] { { { 0xFFFFFFFF } } }; }
+                get { return new[, ,] { { { Voxel.White } } }; }
             }
 
             public override void Update(Particle particle, float timeSinceLastFrame, Vector3i systemLocation)
@@ -110,9 +110,9 @@ namespace ProdigalSoftware.ProjectM.Plugins
             }
 
             #region Implementation of ParticleController
-            public override uint[, ,] ParticleVoxels
+            public override Voxel[, ,] ParticleVoxels
             {
-                get { return new[, ,] { { { 0xFFFFFFFF } } }; }
+                get { return new[, ,] { { { Voxel.White } } }; }
             }
 
             public override void Update(Particle particle, float timeSinceLastFrame, Vector3i systemLocation)
@@ -184,18 +184,18 @@ namespace ProdigalSoftware.ProjectM.Plugins
             }
 
             #region Implementation of ParticleController
-            public override uint[, ,] ParticleVoxels
+            public override Voxel[, ,] ParticleVoxels
             {
                 get
                 {
-                    uint[, ,] particleVoxels = new uint[3, 3, 3];
-                    particleVoxels[1, 1, 1] = 0xFFFFFFFF;
-                    particleVoxels[0, 1, 1] = 0xFFFFFFFF;
-                    particleVoxels[2, 1, 1] = 0xFFFFFFFF;
-                    particleVoxels[1, 0, 1] = 0xFFFFFFFF;
-                    particleVoxels[1, 2, 1] = 0xFFFFFFFF;
-                    particleVoxels[1, 1, 0] = 0xFFFFFFFF;
-                    particleVoxels[1, 1, 2] = 0xFFFFFFFF;
+                    Voxel[, ,] particleVoxels = new Voxel[3, 3, 3];
+                    particleVoxels[1, 1, 1] = Voxel.White;
+                    particleVoxels[0, 1, 1] = Voxel.White;
+                    particleVoxels[2, 1, 1] = Voxel.White;
+                    particleVoxels[1, 0, 1] = Voxel.White;
+                    particleVoxels[1, 2, 1] = Voxel.White;
+                    particleVoxels[1, 1, 0] = Voxel.White;
+                    particleVoxels[1, 1, 2] = Voxel.White;
                     return particleVoxels;
                 }
             }
@@ -244,9 +244,9 @@ namespace ProdigalSoftware.ProjectM.Plugins
             }
 
             #region Implementation of ParticleController
-            public override uint[,,] ParticleVoxels
+            public override Voxel[,,] ParticleVoxels
             {
-                get { return new[, ,] { { { 0xFFFFFFFF } } }; }
+                get { return new[, ,] { { { Voxel.White } } }; }
             }
 
             public override void Update(Particle particle, float timeSinceLastFrame, Vector3i systemLocation)

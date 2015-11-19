@@ -83,8 +83,13 @@ namespace ProdigalSoftware.TiVE.GUISystem
         {
         }
 
-        public void DrawText(string text, int x, int y, int font, int color)
+        public void DrawText(string text, int x, int y, int fontId, int color)
         {
+            Font font;
+            if (!idToFontMap.TryGetValue(fontId, out font))
+                return;
+
+            font.DrawText(text);
         }
 
         public void DrawTexture(int texture, int x, int y, int width, int height, Rectangle source, int color)
