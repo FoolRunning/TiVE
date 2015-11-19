@@ -23,7 +23,7 @@ namespace TiVETests.World
                 for (int y = 0; y < Block.VoxelSize; y++)
                 {
                     for (int z = 0; z < Block.VoxelSize; z++)
-                        block[x, y, z] = index++;
+                        block[x, y, z] = (Voxel)index++;
                 }
             }
 
@@ -33,7 +33,7 @@ namespace TiVETests.World
                 for (int y = 0; y < Block.VoxelSize; y++)
                 {
                     for (int z = 0; z < Block.VoxelSize; z++)
-                        Assert.That(block[x, y, z], Is.EqualTo(testIndex++));
+                        Assert.That(block[x, y, z], Is.EqualTo((Voxel)testIndex++));
                 }
             }
         }

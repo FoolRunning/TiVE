@@ -1,4 +1,5 @@
-﻿using ProdigalSoftware.TiVEPluginFramework;
+﻿using System.Runtime.CompilerServices;
+using ProdigalSoftware.TiVEPluginFramework;
 using ProdigalSoftware.Utils;
 
 namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
@@ -43,6 +44,24 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
             ReflectiveAmbientLighting = light.ReflectiveAmbientLighting;
         }
 
+        /// <summary>
+        /// Gets the amount of light (0.0 - 1.0) that this light would produce for the voxel at the specified location
+        /// </summary>
+        public float GetLightPercentage(int voxelX, int voxelY, int voxelZ, LightingModel lightingModel)
+        {
+            float distSquared = DistanceSquared(voxelX, voxelY, voxelZ);
+            return lightingModel.GetLightPercentage(distSquared, CachedLightCalc);
+        }
+
+        /// <summary>
+        /// Gets the amount of light (0.0 - 1.0) that this light would produce for the voxel at the specified location when in a shadow
+        /// </summary>
+        public float GetLightPercentageShadow(int voxelX, int voxelY, int voxelZ, LightingModel lightingModel)
+        {
+            float distSquared = DistanceSquared(voxelX, voxelY, voxelZ);
+            return lightingModel.GetLightPercentage(distSquared, CachedLightCalcShadow);
+        }
+
         public int BlockX
         {
             get { return VoxelLocX / Block.VoxelSize; }
@@ -56,6 +75,15 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
         public int BlockZ
         {
             get { return VoxelLocZ / Block.VoxelSize; }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private float DistanceSquared(int voxelX, int voxelY, int voxelZ)
+        {
+            int lightDistX = VoxelLocX - voxelX;
+            int lightDistY = VoxelLocY - voxelY;
+            int lightDistZ = VoxelLocZ - voxelZ;
+            return lightDistX * lightDistX + lightDistY * lightDistY + lightDistZ * lightDistZ;
         }
     }
 }

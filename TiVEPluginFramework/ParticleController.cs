@@ -47,7 +47,7 @@ namespace ProdigalSoftware.TiVEPluginFramework
             get { return particlesPerSecond; }
         }
 
-        public abstract uint[, ,] ParticleVoxels { get; }
+        public abstract Voxel[, ,] ParticleVoxels { get; }
 
         public abstract void Update(Particle particle, float timeSinceLastUpdate, Vector3i location);
 

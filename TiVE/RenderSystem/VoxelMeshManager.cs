@@ -39,7 +39,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem
         private const byte VoxelDetailLevelSections = 3; // 16x16x16 = 4096v, 8x8x8 = 512v, 4x4x4 = 64v, not worth going to 2x2x2 = 8v.
         private const byte BestVoxelDetailLevel = 0;
         private const byte WorstVoxelDetailLevel = VoxelDetailLevelSections - 1;
-        private const int TotalMeshBuilders = 20;
+        private const int TotalMeshBuilders = 40;
         private const int MaxQueueSize = 5000;
         #endregion
 
@@ -63,7 +63,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem
         {
             meshBuilders = new List<MeshBuilder>(TotalMeshBuilders);
             for (int i = 0; i < TotalMeshBuilders; i++)
-                meshBuilders.Add(new MeshBuilder(1700000, 3500000));
+                meshBuilders.Add(new MeshBuilder(2000000, 4000000));
 
             for (int i = 0; i < maxThreads; i++)
                 meshCreationThreads.Add(StartMeshCreateThread(i + 1));
@@ -322,12 +322,9 @@ namespace ProdigalSoftware.TiVE.RenderSystem
                     {
                         ushort blockIndex = gameWorld[blockX, blockY, blockZ];
                         if (blockIndex == 0)
-                            continue;
+                            continue; // Empty block so there are no voxels to process
 
                         BlockImpl block = (BlockImpl)blockList[blockIndex];
-                        //if (block.TotalVoxels == 0)
-                        //    continue;
-
                         voxelCount += block.TotalVoxels;
 
                         CreateMeshForBlockInChunk(block, blockX, blockY, blockZ, voxelStartX, voxelStartY, voxelStartZ, voxelDetailLevel, scene,
@@ -384,7 +381,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem
             int maxBlockVoxelSize = Block.VoxelSize - voxelSize;
 
             bool blockIsLit = !block.HasComponent(UnlitComponent.Instance);
-            //for (int bz = BlockInformation.VoxelSize - 1; bz >= 0; bz -= voxelSize)
+            //for (int bvz = Block.VoxelSize - 1; bvz >= 0; bvz -= voxelSize)
             for (int bvz = 0; bvz < Block.VoxelSize; bvz += voxelSize)
             {
                 int voxelZ = blockZ * Block.VoxelSize + bvz;
@@ -395,8 +392,8 @@ namespace ProdigalSoftware.TiVE.RenderSystem
                     byte chunkVoxelX = (byte)(voxelX - voxelStartX);
                     for (int bvy = 0; bvy < Block.VoxelSize; bvy += voxelSize)
                     {
-                        uint color = voxelSize == 1 ? block.GetVoxelFast(bvx, bvy, bvz) : GetLODVoxelColor(block, bvz, bvx, bvy, voxelSize);
-                        if (color == 0)
+                        Voxel vox = voxelSize == 1 ? block.GetVoxelFast(bvx, bvy, bvz) : GetLODVoxel(block, bvz, bvx, bvy, voxelSize);
+                        if (vox == 0)
                             continue;
 
                         int voxelY = blockY * Block.VoxelSize + bvy;
@@ -459,15 +456,20 @@ namespace ProdigalSoftware.TiVE.RenderSystem
 
                         if (sides != VoxelSides.None)
                         {
-                            Color3f lightColor = blockIsLit ?
-                                lightProvider.GetLightAt(voxelX, voxelY, voxelZ, voxelSize, blockX, blockY, blockZ, sides) : Color3f.White;
-                            byte a = (byte)((color >> 24) & 0xFF);
-                            byte r = (byte)Math.Min(255, (int)(((color >> 16) & 0xFF) * lightColor.R));
-                            byte g = (byte)Math.Min(255, (int)(((color >> 8) & 0xFF) * lightColor.G));
-                            byte b = (byte)Math.Min(255, (int)(((color >> 0) & 0xFF) * lightColor.B));
+                            Color4b voxelColor;
+                            if (!blockIsLit)
+                                voxelColor = (Color4b)vox;
+                            else
+                            {
+                                Color3f lightColor = lightProvider.GetLightAt(voxelX, voxelY, voxelZ, voxelSize, blockX, blockY, blockZ, sides);
+                                byte a = vox.A;
+                                byte r = (byte)Math.Min(255, (int)(vox.R * lightColor.R));
+                                byte g = (byte)Math.Min(255, (int)(vox.G * lightColor.G));
+                                byte b = (byte)Math.Min(255, (int)(vox.B * lightColor.B));
+                                voxelColor = new Color4b(r, g, b, a);
+                            }
 
-                            polygonCount += meshHelper.AddVoxel(meshBuilder, sides,
-                                chunkVoxelX, (byte)(voxelY - voxelStartY), chunkVoxelZ, new Color4b(r, g, b, a), voxelSize);
+                            polygonCount += meshHelper.AddVoxel(meshBuilder, sides, chunkVoxelX, (byte)(voxelY - voxelStartY), chunkVoxelZ, voxelColor, voxelSize);
                             renderedVoxelCount++;
                         }
                     }
@@ -475,9 +477,8 @@ namespace ProdigalSoftware.TiVE.RenderSystem
             }
         }
 
-        private static uint GetLODVoxelColor(BlockImpl block, int bvz, int bvx, int bvy, int voxelSize)
+        private static Voxel GetLODVoxel(BlockImpl block, int bvz, int bvx, int bvy, int voxelSize)
         {
-            uint color;
             int voxelsFound = 0;
             int totalA = 0;
             int totalR = 0;
@@ -493,29 +494,26 @@ namespace ProdigalSoftware.TiVE.RenderSystem
                 {
                     for (int y = bvy; y < maxY; y++)
                     {
-                        uint otherColor = block.GetVoxelFast(x, y, z);
+                        Voxel otherColor = block.GetVoxelFast(x, y, z);
                         if (otherColor == 0)
                             continue;
 
                         voxelsFound++;
-                        totalA += (int)((otherColor >> 24) & 0xFF);
-                        totalR += (int)((otherColor >> 16) & 0xFF);
-                        totalG += (int)((otherColor >> 8) & 0xFF);
-                        totalB += (int)((otherColor >> 0) & 0xFF);
+                        totalA += otherColor.A;
+                        totalR += otherColor.R;
+                        totalG += otherColor.G;
+                        totalB += otherColor.B;
                     }
                 }
             }
 
             if (voxelsFound == 0) // Prevent divide-by-zero
-                color = 0;
-            else
-            {
-                color = (uint)(((totalA / voxelsFound) & 0xFF) << 24 |
-                    ((totalR / voxelsFound) & 0xFF) << 16 |
-                    ((totalG / voxelsFound) & 0xFF) << 8 |
-                    ((totalB / voxelsFound) & 0xFF));
-            }
-            return color;
+                return Voxel.Empty;
+
+            return new Voxel((byte)((totalR / voxelsFound) & 0xFF), 
+                (byte)((totalG / voxelsFound) & 0xFF), 
+                (byte)((totalB / voxelsFound) & 0xFF),
+                (byte)((totalA / voxelsFound) & 0xFF));
         }
         #endregion
 
@@ -576,11 +574,11 @@ namespace ProdigalSoftware.TiVE.RenderSystem
             int distancePerLevel;
             switch (currentVoxelDetalLevelSetting)
             {
-                case VoxelDetailLevelDistance.Closest: distancePerLevel = 350; break;
-                case VoxelDetailLevelDistance.Close: distancePerLevel = 500; break;
-                case VoxelDetailLevelDistance.Mid: distancePerLevel = 750; break;
-                case VoxelDetailLevelDistance.Far: distancePerLevel = 1000; break;
-                default: distancePerLevel = 1500; break;
+                case VoxelDetailLevelDistance.Closest: distancePerLevel = 250; break;
+                case VoxelDetailLevelDistance.Close: distancePerLevel = 400; break;
+                case VoxelDetailLevelDistance.Mid: distancePerLevel = 700; break;
+                case VoxelDetailLevelDistance.Far: distancePerLevel = 900; break;
+                default: distancePerLevel = 1400; break;
             }
 
             for (byte i = BestVoxelDetailLevel; i <= WorstVoxelDetailLevel; i++)

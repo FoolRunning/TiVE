@@ -7,15 +7,15 @@ namespace ProdigalSoftware.TiVEPluginFramework
     {
         public readonly Vector3i Size;
 
-        private readonly uint[] voxels;
+        private readonly Voxel[] voxels;
 
         public VoxelSprite(int sizeX, int sizeY, int sizeZ)
         {
             Size = new Vector3i(sizeX, sizeY, sizeZ);
-            voxels = new uint[sizeX * sizeY * sizeZ];
+            voxels = new Voxel[sizeX * sizeY * sizeZ];
         }
 
-        public uint this[int x, int y, int z]
+        public Voxel this[int x, int y, int z]
         {
             get { return voxels[GetBlockOffset(x, y, z)]; }
             set { voxels[GetBlockOffset(x, y, z)] = value; }

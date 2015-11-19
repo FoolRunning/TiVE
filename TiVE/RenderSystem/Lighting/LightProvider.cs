@@ -93,7 +93,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
             Messages.Print("Calculating static lighting...");
             Stopwatch sw = Stopwatch.StartNew();
             for (int i = 0; i < chunkLightInfo.Length; i++)
-                chunkLightInfo[i] = new ChunkLights(200);
+                chunkLightInfo[i] = new ChunkLights(100);
             
             int numThreads = Environment.ProcessorCount > 3 ? Environment.ProcessorCount / 2 : 1;
             Thread[] threads = new Thread[numThreads];
@@ -132,9 +132,12 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
             int startX = chunkData.ChunkBlockLoc.X;
             int startY = chunkData.ChunkBlockLoc.Y;
             int startZ = chunkData.ChunkBlockLoc.Z;
-            int endX = Math.Min(gameWorld.BlockSize.X, startX + ChunkComponent.BlockSize);
-            int endY = Math.Min(gameWorld.BlockSize.Y, startY + ChunkComponent.BlockSize);
-            int endZ = Math.Min(gameWorld.BlockSize.Z, startZ + ChunkComponent.BlockSize);
+            int sizeX = gameWorld.BlockSize.X;
+            int sizeY = gameWorld.BlockSize.Y;
+            int sizeZ = gameWorld.BlockSize.Z;
+            int endX = Math.Min(sizeX, startX + ChunkComponent.BlockSize);
+            int endY = Math.Min(sizeY, startY + ChunkComponent.BlockSize);
+            int endZ = Math.Min(sizeZ, startZ + ChunkComponent.BlockSize);
             bool doLightCulling = scene.GameWorld.DoLightCulling;
             for (int lightIndex = 0; lightIndex < lightsAffectingChunk.Count; lightIndex++)
             {
@@ -143,7 +146,6 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
                 int blockX = lightData.BlockX;
                 int blockY = lightData.BlockY;
                 int blockZ = lightData.BlockZ;
-                const int maxBlockCount = 2;
                 for (int bz = startZ; bz < endZ; bz++)
                 {
                     int vz = bz * Block.VoxelSize + HalfBlockVoxelSize;
@@ -152,42 +154,23 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
                         int vx = bx * Block.VoxelSize + HalfBlockVoxelSize;
                         for (int by = startY; by < endY; by++)
                         {
+                            const int maxBlockCount = 2;
                             if (doLightCulling && !gameWorld.LessThanBlockCountInLine(blockX, blockY, blockZ, bx, by, bz, maxBlockCount) &&
                                 !gameWorld.LessThanBlockCountInLine(bx, by, bz, blockX, blockY, blockZ, maxBlockCount))
                             {
                                 continue; // Unlikely the light will actually hit the block at all
                             }
 
-                            // TODO: The code below should produce much better accuracy (with a maxBlockCount of 1) when determining whether a light can affect a block.
-                            // However, this seems to produce some other bugs (which I haven't been able to track down) and makes lighting calculate 10x slower.
-
-                            //if (doLightCulling && !gameWorld.LessThanBlockCountInLine(blockX, blockY, blockZ, bx, by, bz, maxBlockCount) &&
-                            //    (bx == 0 || (!gameWorld.LessThanBlockCountInLine(blockX, blockY, blockZ, bx - 1, by, bz, maxBlockCount) &&
-                            //        !gameWorld.LessThanBlockCountInLine(bx - 1, by, bz, blockX, blockY, blockZ, maxBlockCount))) &&
-                            //    (bx == sizeX - 1 || (!gameWorld.LessThanBlockCountInLine(blockX, blockY, blockZ, bx + 1, by, bz, maxBlockCount) &&
-                            //        !gameWorld.LessThanBlockCountInLine(bx + 1, by, bz, blockX, blockY, blockZ, maxBlockCount))) &&
-                            //    (by == 0 || (!gameWorld.LessThanBlockCountInLine(blockX, blockY, blockZ, bx, by - 1, bz, maxBlockCount) &&
-                            //        !gameWorld.LessThanBlockCountInLine(bx, by - 1, bz, blockX, blockY, blockZ, maxBlockCount))) &&
-                            //    (by == sizeY - 1 || (!gameWorld.LessThanBlockCountInLine(blockX, blockY, blockZ, bx, by + 1, bz, maxBlockCount) &&
-                            //        !gameWorld.LessThanBlockCountInLine(bx, by + 1, bz, blockX, blockY, blockZ, maxBlockCount))) &&
-                            //    (bz == 0 || (!gameWorld.LessThanBlockCountInLine(blockX, blockY, blockZ, bx, by, bz - 1, maxBlockCount) &&
-                            //        !gameWorld.LessThanBlockCountInLine(bx, by, bz - 1, blockX, blockY, blockZ, maxBlockCount))) &&
-                            //    (bz == sizeZ - 1 || (!gameWorld.LessThanBlockCountInLine(blockX, blockY, blockZ, bx, by, bz + 1, maxBlockCount) &&
-                            //        !gameWorld.LessThanBlockCountInLine(bx, by, bz + 1, blockX, blockY, blockZ, maxBlockCount))))
-                            //{
-                            //    continue; // Unlikely the light will actually hit the block at all
-                            //}
-
                             int vy = by * Block.VoxelSize + HalfBlockVoxelSize;
                             ushort[] blockLights = blocksLights[GetBlockLightOffset(bx - startX, by - startY, bz - startZ)];
 
                             // Calculate lighting information
                             // Sort lights by highest percentage to lowest
-                            float newLightPercentage = GetLightPercentage(lightData, vx, vy, vz);
+                            float newLightPercentage = lightData.GetLightPercentage(vx, vy, vz, lightingModel);
                             int leastLightIndex = blockLights.Length;
                             for (int i = 0; i < blockLights.Length; i++)
                             {
-                                if (blockLights[i] == 0 || GetLightPercentage(lightInfoList[blockLights[i]], vx, vy, vz) < newLightPercentage)
+                                if (blockLights[i] == 0 || lightInfoList[blockLights[i]].GetLightPercentage(vx, vy, vz, lightingModel) < newLightPercentage)
                                 {
                                     leastLightIndex = i;
                                     break;
@@ -216,32 +199,6 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
         #endregion
 
         #region Private helper methods
-        /// <summary>
-        /// Gets the amount of light (0.0 - 1.0) that would the specified light would produce for the voxel at the specified location
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private float GetLightPercentage(LightInfo lightInfo, int voxelX, int voxelY, int voxelZ)
-        {
-            int lightDistX = lightInfo.VoxelLocX - voxelX;
-            int lightDistY = lightInfo.VoxelLocY - voxelY;
-            int lightDistZ = lightInfo.VoxelLocZ - voxelZ;
-            float distSquared = lightDistX * lightDistX + lightDistY * lightDistY + lightDistZ * lightDistZ;
-            return lightingModel.GetLightPercentage(distSquared, lightInfo.CachedLightCalc);
-        }
-
-        /// <summary>
-        /// Gets the amount of light (0.0 - 1.0) that would the specified light would produce for the voxel at the specified location
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private float GetLightPercentageShadow(LightInfo lightInfo, int voxelX, int voxelY, int voxelZ)
-        {
-            int lightDistX = lightInfo.VoxelLocX - voxelX;
-            int lightDistY = lightInfo.VoxelLocY - voxelY;
-            int lightDistZ = lightInfo.VoxelLocZ - voxelZ;
-            float distSquared = lightDistX * lightDistX + lightDistY * lightDistY + lightDistZ * lightDistZ;
-            return lightingModel.GetLightPercentage(distSquared, lightInfo.CachedLightCalcShadow);
-        }
-
         private Thread StartLightCalculationThread(string threadName, List<LightInfo> lightInfos, int startX, int endX)
         {
             Thread thread = new Thread(() =>
@@ -293,8 +250,11 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
             ushort lightIndex;
             lock (lightInfos)
             {
-                if (lightInfos.Count >= ushort.MaxValue)
+                if (lightInfos.Count == ushort.MaxValue)
+                {
+                    Messages.AddWarning("Too many lights in game world");
                     return; // Too many lights in the world
+                }
                 lightIndex = (ushort)lightInfos.Count;
                 lightInfos.Add(new LightInfo(blockX, blockY, blockZ, light, lightingModel.GetCacheLightCalculation(light),
                     lightingModel.GetCacheLightCalculationForShadow(light)));
@@ -308,17 +268,11 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
                     {
                         List<ushort> lightsInChunk = chunkLightInfo[GetLightsAffectingChunksOffset(cx, cy, cz)].LightsAffectingChunks;
                         lock (lightsInChunk)
-                        {
                             lightsInChunk.Add(lightIndex);
-                            if (lightsInChunk.Count > maxLightsInChunk)
-                                maxLightsInChunk = lightsInChunk.Count;
-                        }
                     }
                 }
             }
         }
-
-        volatile int maxLightsInChunk = 0;
 
         /// <summary>
         /// Gets the offset into the block lights array of a chunk for the block at the specified location
@@ -376,12 +330,12 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
 
                     LightInfo lightInfo = lights[lightIndex];
                     if (world.NoVoxelInLine(voxelX, voxelY, voxelZ, lightInfo.VoxelLocX, lightInfo.VoxelLocY, lightInfo.VoxelLocZ))
-                        color += lightInfo.LightColor * GetLightPercentage(lightInfo, voxelX, voxelY, voxelZ);
+                        color += lightInfo.LightColor * lightInfo.GetLightPercentage(voxelX, voxelY, voxelZ, lightingModel);
                     else if (lightInfo.ReflectiveAmbientLighting)
                     {
                         // Simulate a very crude and simple reflective ambient lighting model by using the light reduced by a small 
                         // amount for voxels in a "shadow".
-                        color += lightInfo.LightColor * GetLightPercentageShadow(lightInfo, voxelX, voxelY, voxelZ);
+                        color += lightInfo.LightColor * lightInfo.GetLightPercentageShadow(voxelX, voxelY, voxelZ, lightingModel);
                     }
                 }
                 return color;
@@ -423,6 +377,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
                     int lx = lightInfo.VoxelLocX;
                     int ly = lightInfo.VoxelLocY;
                     int lz = lightInfo.VoxelLocZ;
+
                     if ((availableMinusX && lx <= voxelX && world.NoVoxelInLine(voxelX - 1, voxelY, voxelZ, lx, ly, lz)) ||
                         (availableMinusY && ly <= voxelY && world.NoVoxelInLine(voxelX, voxelY - 1, voxelZ, lx, ly, lz)) ||
                         (availableMinusZ && lz <= voxelZ && world.NoVoxelInLine(voxelX, voxelY, voxelZ - 1, lx, ly, lz)) ||
@@ -430,7 +385,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
                         (availablePlusY && ly >= voxelY && world.NoVoxelInLine(voxelX, voxelY + voxelSize, voxelZ, lx, ly, lz)) ||
                         (availablePlusZ && lz >= voxelZ && world.NoVoxelInLine(voxelX, voxelY, voxelZ + voxelSize, lx, ly, lz)))
                     {
-                        color += lightInfo.LightColor * GetLightPercentage(lightInfo, voxelX, voxelY, voxelZ);
+                        color += lightInfo.LightColor * lightInfo.GetLightPercentage(voxelX, voxelY, voxelZ, lightingModel);
                     }
                     else if (blockGetsReflectiveLighting && lightInfo.ReflectiveAmbientLighting &&
                         ((availableMinusX && lx <= voxelX) || (availableMinusY && ly <= voxelY) || (availableMinusZ && lz <= voxelZ) ||
@@ -438,7 +393,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
                     {
                         // Simulate a very crude and simple reflective ambient lighting model by using the light reduced by a small 
                         // amount for voxels in a "shadow".
-                        color += lightInfo.LightColor * GetLightPercentageShadow(lightInfo, voxelX, voxelY, voxelZ);
+                        color += lightInfo.LightColor * lightInfo.GetLightPercentageShadow(voxelX, voxelY, voxelZ, lightingModel);
                     }
                 }
                 return color;
@@ -479,7 +434,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
                         break;
 
                     LightInfo lightInfo = lights[lightIndex];
-                    color += lightInfo.LightColor * GetLightPercentage(lightInfo, voxelX, voxelY, voxelZ);
+                    color += lightInfo.LightColor * lightInfo.GetLightPercentage(voxelX, voxelY, voxelZ, lightingModel);
                 }
                 return color;
             }
@@ -521,7 +476,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
                     if ((availableMinusX && lx <= voxelX) || (availableMinusY && ly <= voxelY) || (availableMinusZ && lz <= voxelZ) ||
                         (availablePlusX && lx >= voxelX) || (availablePlusY && ly >= voxelY) || (availablePlusZ && lz >= voxelZ))
                     {
-                        color += lightInfo.LightColor * GetLightPercentage(lightInfo, voxelX, voxelY, voxelZ);
+                        color += lightInfo.LightColor * lightInfo.GetLightPercentage(voxelX, voxelY, voxelZ, lightingModel);
                     }
                 }
                 return color;

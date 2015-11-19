@@ -27,8 +27,6 @@ namespace ProdigalSoftware.ProjectM.Plugins
 
             byte blockCenter = Block.VoxelSize / 2;
             Vector3b blockCenterVector = new Vector3b(blockCenter, blockCenter, blockCenter);
-            uint[, ,] particleVoxels = new uint[1, 1, 1];
-            particleVoxels[0, 0, 0] = 0xFFFFFFFF;
             for (int i = 0; i < 64; i++)
             {
                 yield return CreateBlockInfo("lava" + i, new Color4f(200, 15, 8, 255), 1.0f, i,
@@ -64,14 +62,6 @@ namespace ProdigalSoftware.ProjectM.Plugins
             yield return CreateBlockInfo("light6", false, 2, new Color4f(255, 255, 255, 255), 1.0f, null,
                 new LightComponent(blockCenterVector, new Color3f(1.0f, 1.0f, 1.0f), forFantasyLighting ? 10 : 20));
 
-            particleVoxels = new uint[3, 3, 3];
-            particleVoxels[1, 1, 1] = 0xFFFFFFFF;
-            particleVoxels[0, 1, 1] = 0xFFFFFFFF;
-            particleVoxels[2, 1, 1] = 0xFFFFFFFF;
-            particleVoxels[1, 0, 1] = 0xFFFFFFFF;
-            particleVoxels[1, 2, 1] = 0xFFFFFFFF;
-            particleVoxels[1, 1, 0] = 0xFFFFFFFF;
-            particleVoxels[1, 1, 2] = 0xFFFFFFFF;
             yield return CreateBlockInfo("fountain", false, Block.VoxelSize / 2, new Color4f(20, 20, 150, 255), 1.0f,
                 new ParticleComponent("Fountain", new Vector3i(blockCenter, blockCenter, 13)));
         }
@@ -143,7 +133,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
                         }
 
                         if (random.NextDouble() < voxelDensity)
-                            block[x, y, z] = CreateColorFromColor(color).ToArgb();
+                            block[x, y, z] = CreateVoxelFromColor(color);
                     }
                 }
             }
@@ -181,7 +171,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
                         }
 
                         if (random.NextDouble() < voxelDensity)
-                            block[x, y, z] = (light == null) ? CreateColorFromColor(color).ToArgb() : ((Color4b)color).ToArgb();
+                            block[x, y, z] = (light == null) ? CreateVoxelFromColor(color) : (Voxel)(Color4b)color;
                     }
                 }
             }
@@ -189,10 +179,10 @@ namespace ProdigalSoftware.ProjectM.Plugins
             return block;
         }
 
-        private static Color4b CreateColorFromColor(Color4f seed)
+        private static Voxel CreateVoxelFromColor(Color4f seed)
         {
             float scale = (float)(random.NextDouble() * 0.1 + 0.95);
-            return new Color4b(Math.Min(seed.R * scale, 1.0f), Math.Min(seed.G * scale, 1.0f), 
+            return (Voxel)new Color4b(Math.Min(seed.R * scale, 1.0f), Math.Min(seed.G * scale, 1.0f), 
                 Math.Min(seed.B * scale, 1.0f), seed.A);
         }
     }

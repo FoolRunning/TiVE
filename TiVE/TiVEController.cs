@@ -74,8 +74,10 @@ namespace ProdigalSoftware.TiVE
                 if (success)
                     starterForm.AfterInitialLoad();
 
+                //TestIntStructAccess();
                 DoVoxelRayCastTest();
                 DoBlockLineTest();
+
             });
             initialLoadThread.IsBackground = true;
             initialLoadThread.Name = "InitialLoad";
@@ -88,6 +90,7 @@ namespace ProdigalSoftware.TiVE
             UserSettings.Save();
         }
 
+        #region Ray cast speed tests
         private static void DoVoxelRayCastTest()
         {
             GameWorld gameWorld = new GameWorld(100, 100, 100);
@@ -151,5 +154,75 @@ namespace ProdigalSoftware.TiVE
             }
             Messages.Println(string.Format("10,000 block lines took average of {0}ms", totalMs / 20.0f), Color.Chocolate);
         }
+        #endregion
+
+        #region Struct with int vs. int speed
+        //private static void TestIntStructAccess()
+        //{
+        //    Console.WriteLine();
+        //    StructInt();
+        //    Int();
+        //}
+
+        //private static void StructInt()
+        //{
+        //    IntStruct[] values = new IntStruct[1000000];
+
+        //    double total = 0.0;
+        //    var timer = new Stopwatch();
+        //    for (int passes = 0; passes < 300; passes++)
+        //    {
+        //        timer.Restart();
+        //        for (int i = 0; i < values.Length; i++)
+        //            values[i] = new IntStruct(i % 20);
+        //        int totalValue = 0;
+        //        for (int i = 0; i < values.Length; i++)
+        //            totalValue += values[i];
+        //        timer.Stop();
+        //        total += timer.ElapsedTicks * 1000.0 / Stopwatch.Frequency;
+        //        //Console.WriteLine("values: {0}, {1}, {2}, {3}, {4}, {5}, {6}", 
+        //        //    values[0].Item1, values[0].Item2, values[0].Item3, values[0].Item4, values[0].Item5, values[0].Item6, values[0].Item7);
+        //    }
+        //    Messages.Println(string.Format("{0}: {1,7:0.000} ", "Struct", total / 300), Color.Chocolate);
+        //}
+
+        //private static void Int()
+        //{
+        //    int[] values = new int[1000000];
+
+        //    double total = 0.0;
+        //    var timer = new Stopwatch();
+        //    for (int passes = 0; passes < 300; passes++)
+        //    {
+        //        timer.Restart();
+        //        for (int i = 0; i < values.Length; i++)
+        //            values[i] = i % 20;
+        //        int totalValue = 0;
+        //        for (int i = 0; i < values.Length; i++)
+        //            totalValue += values[i];
+        //        timer.Stop();
+        //        total += timer.ElapsedTicks * 1000.0 / Stopwatch.Frequency;
+        //        //Console.WriteLine("values: {0}, {1}, {2}, {3}, {4}, {5}, {6}", 
+        //        //    values[0].Item1, values[0].Item2, values[0].Item3, values[0].Item4, values[0].Item5, values[0].Item6, values[0].Item7);
+        //    }
+
+        //    Messages.Println(string.Format("{0}: {1,7:0.000} ", "Int", total / 300), Color.Chocolate);
+        //}
+
+        //private struct IntStruct
+        //{
+        //    public readonly int Value;
+
+        //    public IntStruct(int value)
+        //    {
+        //        Value = value;
+        //    }
+
+        //    public static implicit operator int(IntStruct val)
+        //    {
+        //        return val.Value;
+        //    }
+        //}
+        #endregion
     }
 }

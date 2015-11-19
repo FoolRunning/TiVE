@@ -13,7 +13,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
         public static readonly BlockImpl Empty = new BlockImpl("Empty");
 
         private readonly List<IBlockComponent> components = new List<IBlockComponent>();
-        private readonly uint[] voxels = new uint[VoxelSize * VoxelSize * VoxelSize];
+        private readonly Voxel[] voxels = new Voxel[VoxelSize * VoxelSize * VoxelSize];
         private string name;
         private int totalVoxels = -1;
         #endregion
@@ -35,7 +35,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
         #endregion
 
         #region Properties
-        public uint[] VoxelsArray
+        public Voxel[] VoxelsArray
         {
             get { return voxels; }
         }
@@ -60,7 +60,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
         /// <summary>
         /// Gets/sets the voxel at the specified location
         /// </summary>
-        public override uint this[int x, int y, int z]
+        public override Voxel this[int x, int y, int z]
         {
             get { return voxels[GetOffset(x, y, z)]; }
             set 
@@ -162,7 +162,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
 
         #region Public methods
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public uint GetVoxelFast(int x, int y, int z)
+        internal Voxel GetVoxelFast(int x, int y, int z)
         {
             return voxels[GetOffset(x, y, z)];
         }

@@ -73,15 +73,15 @@ namespace ProdigalSoftware.TiVEEditor.BlockLists
                 for (int x = 0; x < Block.VoxelSize; x++)
                 {
                     for (int y = 0; y < Block.VoxelSize; y++)
-                        floorBlocks[i][x, y, Block.VoxelSize - 1] = ((uint)random.Next(0xFFFFFF) | 0xFF000000);
+                        floorBlocks[i][x, y, Block.VoxelSize - 1] = (Voxel)((uint)random.Next(0xFFFFFF) | 0xFF000000);
                 }
 
                 for (int s = 0; s < Block.VoxelSize; s++)
                 {
-                    floorBlocks[i][s, 0, Block.VoxelSize - 1] = 0xFFFFFFFF;
-                    floorBlocks[i][s, Block.VoxelSize - 1, Block.VoxelSize - 1] = 0xFFFFFFFF;
-                    floorBlocks[i][0, s, Block.VoxelSize - 1] = 0xFFFFFFFF;
-                    floorBlocks[i][Block.VoxelSize - 1, s, Block.VoxelSize - 1] = 0xFFFFFFFF;
+                    floorBlocks[i][s, 0, Block.VoxelSize - 1] = Voxel.White;
+                    floorBlocks[i][s, Block.VoxelSize - 1, Block.VoxelSize - 1] = Voxel.White;
+                    floorBlocks[i][0, s, Block.VoxelSize - 1] = Voxel.White;
+                    floorBlocks[i][Block.VoxelSize - 1, s, Block.VoxelSize - 1] = Voxel.White;
                 }
             }
             

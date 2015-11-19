@@ -6,7 +6,6 @@ namespace ProdigalSoftware.TiVE.GUISystem
 {
     internal class GUISystem : EngineSystem
     {
-        private Scene lastDrawnScene;
         private Desktop desktop;
 
         public GUISystem() : base("GUI")
@@ -19,7 +18,6 @@ namespace ProdigalSoftware.TiVE.GUISystem
             Gui.Renderer.Dispose();
             Gui.Renderer = null;
             desktop = null;
-            lastDrawnScene = null;
         }
 
         public override bool Initialize()
@@ -45,7 +43,6 @@ namespace ProdigalSoftware.TiVE.GUISystem
             desktop.Update();
             desktop.Draw();
 
-            lastDrawnScene = currentScene;
             return true;
         }
         #endregion

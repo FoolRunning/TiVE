@@ -141,7 +141,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
                         }
 
                         if (random.NextDouble() < voxelDensity)
-                            block[x, y, z] = CreateColorFromColor(color).ToArgb();
+                            block[x, y, z] = CreateVoxelFromColor(color);
                     }
                 }
             }
@@ -179,7 +179,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
                         }
 
                         if (random.NextDouble() < voxelDensity)
-                            block[x, y, z] = (light == null) ? CreateColorFromColor(color).ToArgb() : ((Color4b)color).ToArgb();
+                            block[x, y, z] = (light == null) ? CreateVoxelFromColor(color) : (Voxel)(Color4b)color;
                     }
                 }
             }
@@ -187,10 +187,10 @@ namespace ProdigalSoftware.ProjectM.Plugins
             return block;
         }
 
-        private static Color4b CreateColorFromColor(Color4f seed)
+        private static Voxel CreateVoxelFromColor(Color4f seed)
         {
             float scale = (float)(random.NextDouble() * 0.1 + 0.95);
-            return new Color4b(Math.Min(seed.R * scale, 1.0f), Math.Min(seed.G * scale, 1.0f), 
+            return (Voxel)new Color4b(Math.Min(seed.R * scale, 1.0f), Math.Min(seed.G * scale, 1.0f), 
                 Math.Min(seed.B * scale, 1.0f), seed.A);
         }
     }

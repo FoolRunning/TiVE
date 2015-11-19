@@ -1,5 +1,6 @@
 ﻿using System.Drawing;
 using ProdigalSoftware.TiVE.RenderSystem.Voxels;
+using ProdigalSoftware.TiVEPluginFramework;
 using ProdigalSoftware.Utils;
 
 namespace ProdigalSoftware.TiVE.RenderSystem
@@ -28,11 +29,10 @@ namespace ProdigalSoftware.TiVE.RenderSystem
                 for (int y = 0; y < ySize; y++)
                 {
                     Color color = image.GetPixel(x, ySize - y - 1);
-                    Color4b c = new Color4b(color.R, color.G, color.B, color.A);
-                    if (c.A > 0)
+                    if (color.A > 0)
                     {
                         for (int z = 0; z < 3; z++)
-                            newSprite.voxels[x, y, z] = c.ToArgb();
+                            newSprite.voxels[x, y, z] = new Voxel(color.R, color.G, color.B, color.A);
                     }
                 }
             }
