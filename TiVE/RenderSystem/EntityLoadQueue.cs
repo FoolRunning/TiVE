@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using ProdigalSoftware.TiVEPluginFramework;
 using ProdigalSoftware.TiVEPluginFramework.Components;
 
@@ -11,11 +12,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem
     internal sealed class EntityLoadQueue
     {
         #region Member variables
-        private readonly Dictionary<IEntity, QueueItem> entityLocations;
-        private readonly int maxCapacity;
-        private volatile int size;
-        private QueueItem root;
-        private QueueItem tail;
+        private readonly EntityQueue[] entityQueues = new EntityQueue[VoxelMeshManager.VoxelDetailLevelSections];
         #endregion
 
         #region Constructor
@@ -24,29 +21,26 @@ namespace ProdigalSoftware.TiVE.RenderSystem
         /// </summary>
         public EntityLoadQueue(int maxCapacity)
         {
-            this.maxCapacity = maxCapacity;
-            entityLocations = new Dictionary<IEntity, QueueItem>(maxCapacity);
-            QueueItem prevItem = null;
-            for (int i = 0; i < maxCapacity; i++)
-            {
-                QueueItem item = new QueueItem(prevItem);
-                if (prevItem == null)
-                    root = item;
-                else
-                    prevItem.NextItem = item;
-                prevItem = item;
-            }
-            tail = prevItem;
+            for (int i = 0; i < entityQueues.Length; i++)
+                entityQueues[i] = new EntityQueue(maxCapacity);
         }
         #endregion
 
         #region Properties
         /// <summary>
+        /// Gets whether the queue is empty
+        /// </summary>
+        public bool IsEmpty
+        {
+            get { return entityQueues.All(equ => equ.Size == 0); }
+        }
+
+        /// <summary>
         /// Gets the number of entities that are currently in the queue
         /// </summary>
         public int Size
         {
-            get { return size; }
+            get { return entityQueues.Sum(equ => equ.Size); }
         }
         #endregion
 
@@ -57,33 +51,8 @@ namespace ProdigalSoftware.TiVE.RenderSystem
         /// </summary>
         public void Enqueue(IEntity entity, byte detailLevel)
         {
-            if (size == maxCapacity)
-                throw new InvalidOperationException("Queue is full.");
-
             Remove(entity);
-
-            // Favor lowest-detail chunks first. This allows chunks that just got into view to load really quickly, then
-            // load in higher-detail versions when the load becomes less.
-            QueueItem item = root;
-            while (item.Entity != null && item.DetailLevel >= detailLevel)
-                item = item.NextItem;
-
-            if (item.Entity != null)
-            {
-                // Item needs to be inserted before the item we found. Pull the item to insert from the tail.
-                QueueItem itemToInsert = tail;
-                QueueItem prevTail = tail.PrevItem;
-                prevTail.NextItem = null;
-                tail = prevTail;
-
-                InsertItemAt(itemToInsert, item);
-                item = itemToInsert;
-            }
-
-            item.Entity = entity;
-            item.DetailLevel = detailLevel;
-            entityLocations.Add(entity, item);
-            size++;
+            entityQueues[detailLevel].Enqueue(entity);
         }
 
         /// <summary>
@@ -91,17 +60,18 @@ namespace ProdigalSoftware.TiVE.RenderSystem
         /// </summary>
         public IEntity Dequeue(out byte detailLevel)
         {
-            if (size == 0)
+            for (int i = entityQueues.Length - 1; i >= 0; i--)
             {
-                detailLevel = VoxelMeshComponent.BlankDetailLevel;
-                return null;
+                IEntity entity = entityQueues[i].Dequeue();
+                if (entity != null)
+                {
+                    detailLevel = (byte)i;
+                    return entity;
+                }
             }
 
-            QueueItem itemToDequeue = root;
-            IEntity chunk = itemToDequeue.Entity;
-            detailLevel = itemToDequeue.DetailLevel;
-            RemoveFromQueue(itemToDequeue);
-            return chunk;
+            detailLevel = VoxelMeshComponent.BlankDetailLevel;
+            return null;
         }
 
         /// <summary>
@@ -109,14 +79,8 @@ namespace ProdigalSoftware.TiVE.RenderSystem
         /// </summary>
         public void Clear()
         {
-            QueueItem item = root;
-            while (item != null && item.Entity != null)
-            {
-                item.RemoveEntity();
-                item = item.NextItem;
-            }
-            entityLocations.Clear();
-            size = 0;
+            for (int i = 0; i < entityQueues.Length; i++)
+                entityQueues[i].Clear();
         }
 
         /// <summary>
@@ -124,8 +88,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem
         /// </summary>
         public bool Contains(IEntity entity, byte detailLevel)
         {
-            QueueItem item;
-            return entityLocations.TryGetValue(entity, out item) && item.DetailLevel == detailLevel;
+            return entityQueues[detailLevel].Contains(entity);
         }
 
         /// <summary>
@@ -133,64 +96,144 @@ namespace ProdigalSoftware.TiVE.RenderSystem
         /// </summary>
         public void Remove(IEntity entity)
         {
-            QueueItem item;
-            if (!entityLocations.TryGetValue(entity, out item))
-                return;
-
-            RemoveFromQueue(item);
+            for (int i = 0; i < entityQueues.Length; i++)
+                entityQueues[i].Remove(entity);
         }
         #endregion
 
-        #region Private helper methods
-        /// <summary>
-        /// Removes the specified item from the queue and move it to the tail
-        /// </summary>
-        private void RemoveFromQueue(QueueItem item)
+        #region EntityQueue class
+        private sealed class EntityQueue
         {
-            if (item == root)
+            private readonly Dictionary<IEntity, QueueItem> entityLocations;
+            private readonly int maxCapacity;
+            private volatile int size;
+            private QueueItem lastQueuedItem;
+            private QueueItem root;
+            private QueueItem tail;
+
+            public EntityQueue(int maxCapacity)
             {
-                QueueItem newRootItem = item.NextItem;
-                newRootItem.PrevItem = null;
-                root = newRootItem;
-            }
-            else
-            {
-                QueueItem prevItem = item.PrevItem;
-                QueueItem nextItem = item.NextItem;
-                prevItem.NextItem = nextItem;
-                nextItem.PrevItem = prevItem;
+                this.maxCapacity = maxCapacity;
+                entityLocations = new Dictionary<IEntity, QueueItem>(maxCapacity);
+                QueueItem prevItem = null;
+                for (int i = 0; i < maxCapacity; i++)
+                {
+                    QueueItem item = new QueueItem(prevItem);
+                    if (prevItem == null)
+                        root = item;
+                    else
+                        prevItem.NextItem = item;
+                    prevItem = item;
+                }
+                tail = prevItem;
             }
 
-            // Move the removed item to the end of the chain
-            tail.NextItem = item;
-            item.PrevItem = tail;
-            item.NextItem = null;
-            tail = item;
-
-            // Kill the item and update the size
-            entityLocations.Remove(item.Entity);
-            item.RemoveEntity(); // Must happen after the remove
-            size--;
-        }
-
-        /// <summary>
-        /// Inserts the specified item into the chain before the specified item
-        /// </summary>
-        private void InsertItemAt(QueueItem itemToInsert, QueueItem whereToInsert)
-        {
-            if (whereToInsert == root)
+            /// <summary>
+            /// Gets the number of entities that are currently in the queue
+            /// </summary>
+            public int Size
             {
-                root.PrevItem = itemToInsert;
-                itemToInsert.PrevItem = null;
-                itemToInsert.NextItem = root;
-                root = itemToInsert;
+                get { return size; }
             }
-            else
+
+            /// <summary>
+            /// Adds the specified entity to the queue to be loaded at the specified detail level. If the entity is already in the queue at a 
+            /// different detail level, then the entity is removed from the queue and added at the specifed new detail level.
+            /// </summary>
+            public void Enqueue(IEntity entity)
             {
-                itemToInsert.NextItem = whereToInsert;
-                itemToInsert.PrevItem = whereToInsert.PrevItem;
-                whereToInsert.PrevItem.NextItem = itemToInsert;
-                whereToInsert.PrevItem = itemToInsert;
+                if (size == maxCapacity)
+                    throw new InvalidOperationException("Queue is full.");
+
+                QueueItem item = (lastQueuedItem == null) ? root : lastQueuedItem.NextItem;
+                item.Entity = entity;
+                entityLocations.Add(entity, item);
+                lastQueuedItem = item;
+                size++;
+            }
+
+            /// <summary>
+            /// Gets the next entity in the queue or null if the queue is empty
+            /// </summary>
+            public IEntity Dequeue()
+            {
+                if (size == 0)
+                    return null;
+
+                QueueItem itemToDequeue = root;
+                IEntity entity = itemToDequeue.Entity;
+                RemoveFromQueue(itemToDequeue);
+                return entity;
+            }
+
+            /// <summary>
+            /// Clears the queue of all entities waiting to be loaded
+            /// </summary>
+            public void Clear()
+            {
+                QueueItem item = root;
+                while (item != null && item.Entity != null)
+                {
+                    item.RemoveEntity();
+                    item = item.NextItem;
+                }
+                entityLocations.Clear();
+                size = 0;
+                lastQueuedItem = null;
+            }
+
+            /// <summary>
+            /// Gets whether the specified entity is already in the queue at the specified detail level
+            /// </summary>
+            public bool Contains(IEntity entity)
+            {
+                return entityLocations.ContainsKey(entity);
+            }
+
+            /// <summary>
+            /// Removes the specified entity from the queue
+            /// </summary>
+            public void Remove(IEntity entity)
+            {
+                QueueItem item;
+                if (!entityLocations.TryGetValue(entity, out item))
+                    return;
+
+                RemoveFromQueue(item);
+            }
+
+            /// <summary>
+            /// Removes the specified item from the queue and move it to the tail
+            /// </summary>
+            private void RemoveFromQueue(QueueItem item)
+            {
+                if (item == root)
+                {
+                    QueueItem newRootItem = item.NextItem;
+                    newRootItem.PrevItem = null;
+                    root = newRootItem;
+                }
+                else
+                {
+                    QueueItem prevItem = item.PrevItem;
+                    QueueItem nextItem = item.NextItem;
+                    prevItem.NextItem = nextItem;
+                    nextItem.PrevItem = prevItem;
+                }
+
+                if (item == lastQueuedItem)
+                    lastQueuedItem = item.PrevItem;
+
+                // Move the removed item to the end of the chain
+                tail.NextItem = item;
+                item.PrevItem = tail;
+                item.NextItem = null;
+                tail = item;
+
+                // Kill the item and update the size
+                entityLocations.Remove(item.Entity);
+                item.RemoveEntity(); // Must happen after the remove
+                size--;
             }
         }
         #endregion
@@ -204,8 +247,6 @@ namespace ProdigalSoftware.TiVE.RenderSystem
             public QueueItem PrevItem;
             /// <summary>Entity in the queue at this spot</summary>
             public IEntity Entity;
-            /// <summary>Requested load detail level of the entity at this spot</summary>
-            public byte DetailLevel = VoxelMeshComponent.BlankDetailLevel;
 
             /// <summary>
             /// Creates a new link in the chain with the specified previous item
@@ -221,7 +262,6 @@ namespace ProdigalSoftware.TiVE.RenderSystem
             public void RemoveEntity()
             {
                 Entity = null;
-                DetailLevel = VoxelMeshComponent.BlankDetailLevel;
             }
 
             public override string ToString()

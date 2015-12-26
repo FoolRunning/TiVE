@@ -36,7 +36,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem
     internal sealed class VoxelMeshManager : IDisposable
     {
         #region Constants
-        private const byte VoxelDetailLevelSections = 3; // 16x16x16 = 4096v, 8x8x8 = 512v, 4x4x4 = 64v, not worth going to 2x2x2 = 8v.
+        public const byte VoxelDetailLevelSections = 3; // 16x16x16 = 4096v, 8x8x8 = 512v, 4x4x4 = 64v, not worth going to 2x2x2 = 8v.
         private const byte BestVoxelDetailLevel = 0;
         private const byte WorstVoxelDetailLevel = VoxelDetailLevelSections - 1;
         private const int TotalMeshBuilders = 40;
@@ -224,7 +224,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem
             {
                 bool hasItemToLoad;
                 using (new PerformanceLock(entityLoadQueue))
-                    hasItemToLoad = entityLoadQueue.Size > 0;
+                    hasItemToLoad = !entityLoadQueue.IsEmpty;
 
                 if (!hasItemToLoad)
                 {
