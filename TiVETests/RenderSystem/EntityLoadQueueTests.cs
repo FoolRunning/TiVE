@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using NUnit.Framework;
 using ProdigalSoftware.TiVE.RenderSystem;
 using ProdigalSoftware.TiVEPluginFramework;
@@ -19,6 +20,23 @@ namespace TiVETests.RenderSystem
         public void Setup()
         {
             queue = new EntityLoadQueue(5);
+        }
+
+        [Test]
+        public void Enqueue_SpeedTest()
+        {
+            queue = new EntityLoadQueue(5000);
+            Random random = new Random(582754736);
+            queue.Enqueue(new DummyEntity(), (byte)random.Next(3));
+
+            Stopwatch sw = Stopwatch.StartNew();
+            for (int i = 0; i < 4999; i++)
+                queue.Enqueue(new DummyEntity(), (byte)random.Next(3));
+
+            sw.Stop();
+            float elapsedTime = sw.ElapsedTicks * 1000.0f / Stopwatch.Frequency;
+            Console.WriteLine("took " + elapsedTime + "ms to enqueue " + queue.Size + " items");
+            Assert.That(elapsedTime, Is.LessThanOrEqualTo(1.0f));
         }
 
         [Test]

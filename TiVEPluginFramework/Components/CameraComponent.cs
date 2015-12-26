@@ -31,7 +31,7 @@ namespace ProdigalSoftware.TiVEPluginFramework.Components
         [UsedImplicitly] public bool Enabled = true;
         [UsedImplicitly] public float FarDistance = 500.0f;
         [UsedImplicitly] public float AspectRatio = 16 / 9.0f;
-        [UsedImplicitly] public float FieldOfView = (float)Math.PI / 3; // 60 degrees
+        [UsedImplicitly] public float FieldOfView = (float)Math.PI / 4; // 60 degrees
         [UsedImplicitly] public Vector3f UpVector = Vector3f.UnitY;
         [UsedImplicitly] public Vector3f Location;
         [UsedImplicitly] public Vector3f LookAtLocation;
