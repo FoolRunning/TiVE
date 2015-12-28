@@ -1,4 +1,5 @@
-﻿using ProdigalSoftware.Utils;
+﻿using System;
+using ProdigalSoftware.Utils;
 
 namespace ProdigalSoftware.TiVEPluginFramework
 {
@@ -27,6 +28,32 @@ namespace ProdigalSoftware.TiVEPluginFramework
         {
             AnimationFrameTime = animationFrameTimeMs / 1000.0f;
             NextBlockName = nextBlockName;
+        }
+    }
+
+    public sealed class VoxelAdjusterComponent : IBlockComponent
+    {
+        public readonly Func<Voxel, Voxel> Adjuster;
+
+        public VoxelAdjusterComponent(Func<Voxel, Voxel> adjuster)
+        {
+            Adjuster = adjuster;
+        }
+
+        public VoxelAdjusterComponent(float variationPercentage)
+        {
+            Random random = new Random();
+            Adjuster = voxel => LightBrightnessAdjustment(voxel, variationPercentage, random);
+        }
+
+        public static Voxel LightBrightnessAdjustment(Voxel voxel, float variationPercentage, Random random)
+        {
+            float rnd;
+            lock (random) // The Random class is not thread-safe, so lock it just in case
+                rnd = (float)random.NextDouble();
+            float scale = rnd * variationPercentage + (1.0f - variationPercentage / 2.0f);
+            return new Voxel(Math.Min(voxel.R / 255f * scale, 1.0f), Math.Min(voxel.G / 255f * scale, 1.0f),
+                Math.Min(voxel.B / 255f * scale, 1.0f), voxel.A / 255f);
         }
     }
 

@@ -82,29 +82,6 @@ namespace ProdigalSoftware.TiVE.Core
             for (int i = 0; i < 3; i++)
                 GC.Collect();
         }
-
-        private void CreateEntitiesForBlockComponents(GameWorld gameWorld, BlockList blockList)
-        {
-            for (int z = 0; z < gameWorld.BlockSize.Z; z++)
-            {
-                for (int x = 0; x < gameWorld.BlockSize.X; x++)
-                {
-                    for (int y = 0; y < gameWorld.BlockSize.Y; y++)
-                    {
-                        BlockImpl block = (BlockImpl)blockList[gameWorld[x, y, z]];
-                        ParticleComponent particleData = block.GetComponent<ParticleComponent>();
-                        if (particleData != null)
-                        {
-                            IEntity entity = CreateNewEntity(string.Format("BlockParticles({0}, {1}, {2})", x, y, z));
-                            entity.AddComponent(new ParticleComponent(particleData.ControllerName, 
-                                new Vector3i(x * Block.VoxelSize + particleData.Location.X,
-                                    y * Block.VoxelSize + particleData.Location.Y,
-                                    z * Block.VoxelSize + particleData.Location.Z)));
-                        }
-                    }
-                }
-            }
-        }
         #endregion
 
         #region Public methods
@@ -127,6 +104,29 @@ namespace ProdigalSoftware.TiVE.Core
         #endregion
 
         #region Private helper methods
+        private void CreateEntitiesForBlockComponents(GameWorld gameWorld, BlockList blockList)
+        {
+            for (int z = 0; z < gameWorld.BlockSize.Z; z++)
+            {
+                for (int x = 0; x < gameWorld.BlockSize.X; x++)
+                {
+                    for (int y = 0; y < gameWorld.BlockSize.Y; y++)
+                    {
+                        BlockImpl block = (BlockImpl)blockList[gameWorld[x, y, z]];
+                        ParticleComponent particleData = block.GetComponent<ParticleComponent>();
+                        if (particleData != null)
+                        {
+                            IEntity entity = CreateNewEntity(string.Format("BlockParticles({0}, {1}, {2})", x, y, z));
+                            entity.AddComponent(new ParticleComponent(particleData.ControllerName,
+                                new Vector3i(x * Block.VoxelSize + particleData.Location.X,
+                                    y * Block.VoxelSize + particleData.Location.Y,
+                                    z * Block.VoxelSize + particleData.Location.Z)));
+                        }
+                    }
+                }
+            }
+        }
+
         private void AddEntityToTypeMap(IEntity entity, IComponent component)
         {
             Type componentType = component.GetType();

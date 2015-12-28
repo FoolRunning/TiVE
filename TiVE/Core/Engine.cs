@@ -37,6 +37,8 @@ namespace ProdigalSoftware.TiVE.Core
             timePerUpdate = 1.0f / updatesPerSecond;
         }
 
+        public Rectangle WindowClientBounds { get; private set; }
+
         public void AddSystem(EngineSystemBase system)
         {
             systems.Add(system);
@@ -252,8 +254,8 @@ namespace ProdigalSoftware.TiVE.Core
 
         private void NativeDisplayResized(Rectangle newClientBounds)
         {
+            WindowClientBounds = newClientBounds;
             TiVEController.Backend.WindowResized(newClientBounds);
-            //renderer.Camera.AspectRatio = newClientBounds.Width / (float)newClientBounds.Height;
         }
     }
 }

@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using JetBrains.Annotations;
 using ProdigalSoftware.TiVEPluginFramework;
 using ProdigalSoftware.TiVEPluginFramework.Generators;
@@ -9,8 +8,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
     [UsedImplicitly]
     public class LoadingGenerateWorld : IWorldGenerator
     {
-        byte[,] loadingLevel = new byte[,] 
-        {
+        byte[,] loadingLevel = {
             { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
             { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
             { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
@@ -54,17 +52,16 @@ namespace ProdigalSoftware.ProjectM.Plugins
             IGameWorld gameWorld = Factory.CreateGameWorld(worldSizeX, worldSizeY, 8);
             gameWorld.LightingModelType = LightingModelType.Realistic;
 
-            BlockRandomizer dirts = new BlockRandomizer(blockList, "dirt", 6);
             BlockRandomizer grasses = new BlockRandomizer(blockList, "grass", 50);
-            BlockRandomizer stoneBacks = new BlockRandomizer(blockList, "backStone", 6);
-
+            ushort dirt = blockList["dirt"];
+            ushort stoneBack = blockList["backStone"];
             ushort stone = blockList["ston0"];
             ushort light = blockList["loadingLight"];
             for (int x = 0; x < worldSizeX; x++)
             {
                 for (int y = 0; y < worldSizeY; y++)
                 {
-                    gameWorld[x, y, 0] = dirts.NextBlock();
+                    gameWorld[x, y, 0] = dirt;
                     gameWorld[x, y, 1] = grasses.NextBlock();
                 }
             }
@@ -82,14 +79,14 @@ namespace ProdigalSoftware.ProjectM.Plugins
                         gameWorld[x, y, 6] = light;
                     else if (levelData == 88)
                     {
-                        gameWorld[x, y, 0] = stoneBacks.NextBlock();
+                        gameWorld[x, y, 0] = stoneBack;
                         gameWorld[x, y, 1] = stone;
                         gameWorld[x, y, 2] = stone;
                         gameWorld[x, y, 3] = stone;
                     }
                     else if (levelData == 99)
                     {
-                        gameWorld[x, y, 0] = stoneBacks.NextBlock();
+                        gameWorld[x, y, 0] = stoneBack;
                         gameWorld[x, y, 1] = stone;
                         gameWorld[x, y, 2] = stone;
                     }

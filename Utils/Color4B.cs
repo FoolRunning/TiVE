@@ -21,10 +21,10 @@ namespace ProdigalSoftware.Utils
 
         public Color4b(float r, float g, float b, float a)
         {
-            R = (byte)(Math.Max(0, Math.Min(255, r * 255)));
-            G = (byte)(Math.Max(0, Math.Min(255, g * 255)));
-            B = (byte)(Math.Max(0, Math.Min(255, b * 255)));
-            A = (byte)(Math.Max(0, Math.Min(255, a * 255)));
+            R = (byte)Math.Max(0, Math.Min(255, (int)(r * 255)));
+            G = (byte)Math.Max(0, Math.Min(255, (int)(g * 255)));
+            B = (byte)Math.Max(0, Math.Min(255, (int)(b * 255)));
+            A = (byte)Math.Max(0, Math.Min(255, (int)(a * 255)));
         }
 
         public uint ToArgb()

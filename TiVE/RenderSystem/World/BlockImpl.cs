@@ -83,7 +83,8 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
 
         public override void RemoveComponent<T>()
         {
-            components.RemoveAll(c => c.GetType() == typeof(T));
+            Type tType = typeof(T);
+            components.RemoveAll(c => c.GetType() == tType);
         }
 
         public override bool HasComponent(IBlockComponent component)
@@ -111,10 +112,11 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
         {
             for (int i = 0; i < components.Count; i++)
             {
-                if (components[i] is T)
-                    return (T)components[i];
+                T component = components[i] as T;
+                if (component != null)
+                    return component;
             }
-            return default(T);
+            return null;
         }
 
         public override Block CreateRotated(BlockRotation rotation)

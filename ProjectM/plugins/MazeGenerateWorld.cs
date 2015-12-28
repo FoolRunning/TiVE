@@ -40,11 +40,11 @@ namespace ProdigalSoftware.ProjectM.Plugins
             Random random = new Random();
 
             MazeCell[,] dungeonMap = new MazeCell[gameWorld.BlockSize.X / 3, gameWorld.BlockSize.Y / 3];
-            List<Vector3i> rooms = CreateRandomRooms(150, random, 3, 11, 3, 11).ToList();
+            List<Vector3i> rooms = CreateRandomRooms(100, random, 3, 11, 3, 11).ToList();
             int mazeStartAreaId = PlaceRooms(rooms, dungeonMap, 25, random);
             int lastUsedId = FillBlankWithMaze(dungeonMap, random, mazeStartAreaId);
             CreateDoors(dungeonMap, random, lastUsedId);
-            CleanUpDeadEnds(dungeonMap, 10);
+            CleanUpDeadEnds(dungeonMap, 100);
 
             //Console.WriteLine("\n\nFinished Maze:");
             //PrintDungeon(dungeonMap);
@@ -412,9 +412,9 @@ namespace ProdigalSoftware.ProjectM.Plugins
         #region 3D world creation methods
         private static void FillWorld(IGameWorld gameWorld, IBlockList blockList, MazeCell[,] dungeonMap, int mazeStartAreaId)
         {
-            BlockRandomizer dirts = new BlockRandomizer(blockList, "dirt", 6);
             BlockRandomizer grasses = new BlockRandomizer(blockList, "grass", 50);
-            BlockRandomizer stoneBacks = new BlockRandomizer(blockList, "backStone", 6);
+            ushort dirt = blockList["dirt"];
+            ushort stoneBack = blockList["backStone"];
             ushort stone = blockList["ston0"];
             //ushort fire = blockList["fire"];
             //ushort lava = blockList["lava0"];
@@ -449,19 +449,17 @@ namespace ProdigalSoftware.ProjectM.Plugins
                         //}
                     }
                     else if (areaId == DoorAreaId)
-                    {
-                        gameWorld[x, y, 2] = stoneBacks.NextBlock();
-                    }
+                        gameWorld[x, y, 2] = stoneBack;
                     else if (areaId >= mazeStartAreaId)
                     {
                         // Maze
-                        gameWorld[x, y, 2] = dirts.NextBlock();
+                        gameWorld[x, y, 2] = dirt;
                         gameWorld[x, y, 3] = grasses.NextBlock();
                     }
                     else
                     {
                         // Room
-                        gameWorld[x, y, 2] = stoneBacks.NextBlock();
+                        gameWorld[x, y, 2] = stoneBack;
                     }
 
                     int lightId = dungeonMap[mazeLocX, mazeLocY].LightId;
@@ -526,11 +524,11 @@ namespace ProdigalSoftware.ProjectM.Plugins
 
                         int sides = 0;
 
-                        if (z == 0 || blocksToConsiderEmpty.Contains(gameWorld[x, y, z - 1]))
-                            sides |= Back;
-
                         if (z == gameWorld.BlockSize.Z - 1 || blocksToConsiderEmpty.Contains(gameWorld[x, y, z + 1]))
                             sides |= Front;
+
+                        if (z == 0 || blocksToConsiderEmpty.Contains(gameWorld[x, y, z - 1]))
+                            sides |= Back;
 
                         if (x == 0 || blocksToConsiderEmpty.Contains(gameWorld[x - 1, y, z]))
                             sides |= Left;
@@ -538,11 +536,11 @@ namespace ProdigalSoftware.ProjectM.Plugins
                         if (x == gameWorld.BlockSize.X - 1 || blocksToConsiderEmpty.Contains(gameWorld[x + 1, y, z]))
                             sides |= Right;
 
-                        if (y == 0 || blocksToConsiderEmpty.Contains(gameWorld[x, y - 1, z]))
-                            sides |= Bottom;
-
                         if (y == gameWorld.BlockSize.Y - 1 || blocksToConsiderEmpty.Contains(gameWorld[x, y + 1, z]))
                             sides |= Top;
+
+                        if (y == 0 || blocksToConsiderEmpty.Contains(gameWorld[x, y - 1, z]))
+                            sides |= Bottom;
 
                         gameWorld[x, y, z] = stoneBlocks[sides];
                     }

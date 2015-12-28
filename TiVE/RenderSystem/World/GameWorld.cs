@@ -268,9 +268,8 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private int GetBlockOffset(int x, int y, int z)
         {
-            Vector3i size = blockSize;
-            MiscUtils.CheckConstraints(x, y, z, size);
-            return (x * size.Z + z) * size.Y + y; // y-axis major for speed
+            MiscUtils.CheckConstraints(x, y, z, blockSize);
+            return (x * blockSize.Z + z) * blockSize.Y + y; // y-axis major for speed
         }
 
         /// <summary>
