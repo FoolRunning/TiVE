@@ -39,7 +39,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem
         public const byte VoxelDetailLevelSections = 3; // 16x16x16 = 4096v, 8x8x8 = 512v, 4x4x4 = 64v, not worth going to 2x2x2 = 8v.
         private const byte BestVoxelDetailLevel = 0;
         private const byte WorstVoxelDetailLevel = VoxelDetailLevelSections - 1;
-        private const int TotalMeshBuilders = 40;
+        private const int TotalMeshBuilders = 30;
         private const int MaxQueueSize = 5000;
         #endregion
 
@@ -235,7 +235,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem
                 MeshBuilder meshBuilder;
                 using (new PerformanceLock(meshBuilders))
                 {
-                    meshBuilder = meshBuilders.Find(NotLocked);
+                    meshBuilder = meshBuilders.Find(mb => !mb.IsLocked);
                     if (meshBuilder != null)
                         meshBuilder.StartNewMesh(); // Found a mesh builder - grab it quick!
                 }
@@ -274,11 +274,6 @@ namespace ProdigalSoftware.TiVE.RenderSystem
                 else
                     LoadMesh(entity, renderData, meshBuilder, foundEntityDetailLevel);
             }
-        }
-
-        private static bool NotLocked(MeshBuilder meshBuilder)
-        {
-            return !meshBuilder.IsLocked;
         }
         #endregion
 
@@ -381,6 +376,8 @@ namespace ProdigalSoftware.TiVE.RenderSystem
             int maxBlockVoxelSize = Block.VoxelSize - voxelSize;
 
             bool blockIsLit = !block.HasComponent(UnlitComponent.Instance);
+            VoxelAdjusterComponent voxelAdjusterComponent = block.GetComponent<VoxelAdjusterComponent>();
+
             //for (int bvz = Block.VoxelSize - 1; bvz >= 0; bvz -= voxelSize)
             for (int bvz = 0; bvz < Block.VoxelSize; bvz += voxelSize)
             {
@@ -456,6 +453,9 @@ namespace ProdigalSoftware.TiVE.RenderSystem
 
                         if (sides != VoxelSides.None)
                         {
+                            if (voxelAdjusterComponent != null)
+                                vox = voxelAdjusterComponent.Adjuster(vox);
+
                             Color4b voxelColor;
                             if (!blockIsLit)
                                 voxelColor = (Color4b)vox;

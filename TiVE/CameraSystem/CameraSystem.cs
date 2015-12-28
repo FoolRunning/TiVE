@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
+using System.Linq;
 using ProdigalSoftware.TiVE.Core;
 using ProdigalSoftware.TiVE.RenderSystem;
+using ProdigalSoftware.TiVE.Starter;
 using ProdigalSoftware.TiVEPluginFramework;
 using ProdigalSoftware.TiVEPluginFramework.Components;
 using ProdigalSoftware.Utils;
@@ -36,34 +37,44 @@ namespace ProdigalSoftware.TiVE.CameraSystem
 
         protected override bool UpdateInternal(int ticksSinceLastUpdate, float timeBlendFactor, Scene currentScene)
         {
-            foreach (IEntity entity in currentScene.GetEntitiesWithComponent<CameraComponent>())
+            CameraComponent cameraData;
+            try
             {
-                CameraComponent cameraData = entity.GetComponent<CameraComponent>();
-                Debug.Assert(cameraData != null);
-
-                if (!cameraData.Enabled || cameraData.Location == cameraData.LookAtLocation)
-                    continue; // Camera not enabled or probably hasn't been initialized yet
-
-                UpdateFrustrum(cameraData);
-
-                // Calculate the projection matrix
-                Matrix4f projectionMatrix;
-                Matrix4f.CreatePerspectiveFieldOfView(cameraData.FieldOfView, cameraData.AspectRatio,
-                    CameraComponent.NearDist, cameraData.FarDistance, out projectionMatrix);
-
-                // Calculate the view matrix
-                Matrix4f viewMatrix;
-                Vector3f blendedLocation = cameraData.Location * timeBlendFactor + cameraData.PrevLocation * (1.0f - timeBlendFactor);
-                Vector3f blendedLookAtLocation = cameraData.LookAtLocation * timeBlendFactor + cameraData.PrevLookAtLocation * (1.0f - timeBlendFactor);
-                Matrix4f.LookAt(blendedLocation, blendedLookAtLocation, cameraData.UpVector, out viewMatrix);
-
-                // Create and cache the view projection matrix
-                Matrix4f.Mult(ref viewMatrix, ref projectionMatrix, out cameraData.ViewProjectionMatrix);
-
-                // Determine what entities are visible from this camera
-                cameraData.VisibleEntitites.Clear();
-                FindVisibleEntities(cameraData.VisibleEntitites, cameraData, currentScene.RenderNode);
+                cameraData = currentScene.GetEntitiesWithComponent<CameraComponent>()
+                .Select(entity => entity.GetComponent<CameraComponent>())
+                .SingleOrDefault(c => c.Enabled && c.Location != c.LookAtLocation); // Make sure camera is enabled and has been initialized
             }
+            catch (InvalidOperationException)
+            {
+                Messages.AddError("More than one enabled camera found in scene");
+                return false;
+            }
+            
+            if (cameraData == null)
+                return true;
+
+            // Calculate the projection matrix
+            float aspectRatio = cameraData.AspectRatio;
+            if (aspectRatio == 0.0f)
+                aspectRatio = TiVEController.Engine.WindowClientBounds.Width / (float)TiVEController.Engine.WindowClientBounds.Height;
+
+            UpdateFrustrum(cameraData, aspectRatio);
+
+            Matrix4f projectionMatrix;
+            Matrix4f.CreatePerspectiveFieldOfView(cameraData.FieldOfView, aspectRatio, CameraComponent.NearDist, cameraData.FarDistance, out projectionMatrix);
+
+            // Calculate the view matrix
+            Matrix4f viewMatrix;
+            Vector3f blendedLocation = cameraData.Location * timeBlendFactor + cameraData.PrevLocation * (1.0f - timeBlendFactor);
+            Vector3f blendedLookAtLocation = cameraData.LookAtLocation * timeBlendFactor + cameraData.PrevLookAtLocation * (1.0f - timeBlendFactor);
+            Matrix4f.LookAt(blendedLocation, blendedLookAtLocation, cameraData.UpVector, out viewMatrix);
+
+            // Create and cache the view projection matrix
+            Matrix4f.Mult(ref viewMatrix, ref projectionMatrix, out cameraData.ViewProjectionMatrix);
+
+            // Determine what entities are visible from this camera
+            cameraData.VisibleEntitites.Clear();
+            FindVisibleEntities(cameraData.VisibleEntitites, cameraData, currentScene.RenderNode);
 
             return true;
         }
@@ -73,10 +84,10 @@ namespace ProdigalSoftware.TiVE.CameraSystem
         /// <summary>
         /// Updates the cached frustrum data with the data from the specified camera
         /// </summary>
-        private static void UpdateFrustrum(CameraComponent cameraData)
+        private static void UpdateFrustrum(CameraComponent cameraData, float aspectRatio)
         {
             float nearHeight = CameraComponent.NearDist * (float)Math.Tan(cameraData.FieldOfView * 0.5f);
-            float nearWidth = nearHeight * cameraData.AspectRatio;
+            float nearWidth = nearHeight * aspectRatio;
 
             Vector3f zAxis = cameraData.Location - cameraData.LookAtLocation;
             zAxis.Normalize();

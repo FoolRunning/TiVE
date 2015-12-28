@@ -11,7 +11,7 @@ namespace ProdigalSoftware.TiVEPluginFramework.Components
     [PublicAPI]
     public sealed class CameraComponent : IComponent
     {
-        public const float NearDist = 0.1f;
+        public const float NearDist = 0.2f;
 
         #region Internal data
         internal const int TopFrustrum = 0;
@@ -30,7 +30,7 @@ namespace ProdigalSoftware.TiVEPluginFramework.Components
 
         [UsedImplicitly] public bool Enabled = true;
         [UsedImplicitly] public float FarDistance = 500.0f;
-        [UsedImplicitly] public float AspectRatio = 16 / 9.0f;
+        [UsedImplicitly] public float AspectRatio; // 0.0f means use the aspect ratio of the client window
         [UsedImplicitly] public float FieldOfView = (float)Math.PI / 4; // 60 degrees
         [UsedImplicitly] public Vector3f UpVector = Vector3f.UnitY;
         [UsedImplicitly] public Vector3f Location;

@@ -1,4 +1,6 @@
-﻿using JetBrains.Annotations;
+﻿using System;
+using System.Runtime.InteropServices;
+using JetBrains.Annotations;
 using ProdigalSoftware.Utils;
 
 namespace ProdigalSoftware.TiVEPluginFramework
@@ -6,6 +8,7 @@ namespace ProdigalSoftware.TiVEPluginFramework
     /// <summary>
     /// Represents a single voxel in TiVE.
     /// </summary>
+    [StructLayout(LayoutKind.Sequential)]
     public struct Voxel
     {
         /// <summary>Represents a voxel location that is not filled in.</summary>
@@ -20,6 +23,14 @@ namespace ProdigalSoftware.TiVEPluginFramework
         private readonly uint value;
 
         #region Constructors
+        public Voxel(float r, float g, float b, float a = 1.0f)
+        {
+            value = (uint)((byte)Math.Max(0, Math.Min(255, (int)(r * 255))) << 24 |
+                (byte)Math.Max(0, Math.Min(255, (int)(g * 255))) << 16 |
+                (byte)Math.Max(0, Math.Min(255, (int)(b * 255))) << 8 |
+                (byte)Math.Max(0, Math.Min(255, (int)(a * 255))));
+        }
+
         public Voxel(byte r, byte g, byte b, byte a = byte.MaxValue)
         {
             value = (uint)(r << 24 | g << 16 | b << 8 | a);

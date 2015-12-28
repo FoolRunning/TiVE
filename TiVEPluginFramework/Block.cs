@@ -1,27 +1,38 @@
-﻿namespace ProdigalSoftware.TiVEPluginFramework
+﻿using JetBrains.Annotations;
+
+namespace ProdigalSoftware.TiVEPluginFramework
 {
     public abstract class Block
     {
         /// <summary>Number of voxels that make up a block on each axis</summary>
+        [PublicAPI]
         public const int VoxelSize = 16;
 
+        [PublicAPI]
         public abstract string Name { get; }
 
         /// <summary>
         /// Gets/sets the voxel at the specified position within the block
         /// </summary>
+        [PublicAPI]
         public abstract Voxel this[int x, int y, int z] { get; set; }
 
+        [PublicAPI]
         public abstract void AddComponent(IBlockComponent component);
 
-        public abstract void RemoveComponent<T>() where T : IBlockComponent;
+        [PublicAPI]
+        public abstract void RemoveComponent<T>() where T : class, IBlockComponent;
 
+        [PublicAPI]
         public abstract bool HasComponent(IBlockComponent component);
 
-        public abstract bool HasComponent<T>() where T : IBlockComponent;
+        [PublicAPI]
+        public abstract bool HasComponent<T>() where T : class, IBlockComponent;
 
-        public abstract T GetComponent<T>() where T : IBlockComponent;
+        [PublicAPI]
+        public abstract T GetComponent<T>() where T : class, IBlockComponent;
 
+        [PublicAPI]
         public abstract Block CreateRotated(BlockRotation rotation);
     }
 
