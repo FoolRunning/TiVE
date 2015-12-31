@@ -35,12 +35,11 @@ namespace ProdigalSoftware.ProjectM.Plugins
 
             IGameWorld gameWorld = Factory.CreateGameWorld(513, 513, 12); // x-axis and y-axis must be divisible by 3
             gameWorld.LightingModelType = LightingModelType.Realistic;
-            gameWorld.DoLightCulling = true;
 
             Random random = new Random();
 
             MazeCell[,] dungeonMap = new MazeCell[gameWorld.BlockSize.X / 3, gameWorld.BlockSize.Y / 3];
-            List<Vector3i> rooms = CreateRandomRooms(100, random, 3, 11, 3, 11).ToList();
+            List<Vector3i> rooms = CreateRandomRooms(110, random, 3, 11, 3, 11).ToList();
             int mazeStartAreaId = PlaceRooms(rooms, dungeonMap, 25, random);
             int lastUsedId = FillBlankWithMaze(dungeonMap, random, mazeStartAreaId);
             CreateDoors(dungeonMap, random, lastUsedId);

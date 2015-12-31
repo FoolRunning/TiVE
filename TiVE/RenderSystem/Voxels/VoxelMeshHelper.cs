@@ -9,22 +9,22 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Voxels
         private const int SmallColorDiff = 7;
         private const int BigColorDiff = 14;
 
-        private static readonly VoxelMeshHelper shadedNonInstanced = new ShadedNonInstancedVoxelMeshHelper();
-        private static readonly VoxelMeshHelper shadedInstanced = new ShadedInstancedVoxelMeshHelper();
-        private static readonly VoxelMeshHelper nonShadedNonInstanced = new NonShadedNonInstancedVoxelMeshHelper();
-        private static readonly VoxelMeshHelper nonShadedInstanced = new NonShadedInstancedVoxelMeshHelper();
-        private static bool useShadedVoxels;
+        private static readonly VoxelMeshHelper cubifyNonInstanced = new CubifyNonInstancedVoxelMeshHelper();
+        private static readonly VoxelMeshHelper cubifyInstanced = new CubifyInstancedVoxelMeshHelper();
+        private static readonly VoxelMeshHelper nonCubifyNonInstanced = new NonCubifyNonInstancedVoxelMeshHelper();
+        private static readonly VoxelMeshHelper nonCubifyInstanced = new NonCubifyInstancedVoxelMeshHelper();
+        private static bool cubifyVoxels;
 
         static VoxelMeshHelper()
         {
-            useShadedVoxels = TiVEController.UserSettings.Get(UserSettings.ShadedVoxelsKey);
+            cubifyVoxels = TiVEController.UserSettings.Get(UserSettings.CubifyVoxels);
             TiVEController.UserSettings.SettingChanged += UserSettings_SettingChanged;
         }
 
         static void UserSettings_SettingChanged(string settingName)
         {
-            if (settingName == UserSettings.ShadedVoxelsKey)
-                useShadedVoxels = TiVEController.UserSettings.Get(UserSettings.ShadedVoxelsKey);
+            if (settingName == UserSettings.CubifyVoxels)
+                cubifyVoxels = TiVEController.UserSettings.Get(UserSettings.CubifyVoxels);
         }
 
         /// <summary>
@@ -32,18 +32,18 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Voxels
         /// </summary>
         public static VoxelMeshHelper Get(bool forInstances)
         {
-            if (useShadedVoxels)
-                return forInstances ? shadedInstanced : shadedNonInstanced;
+            if (cubifyVoxels)
+                return forInstances ? cubifyInstanced : cubifyNonInstanced;
 
-            return forInstances ? nonShadedInstanced : nonShadedNonInstanced;
+            return forInstances ? nonCubifyInstanced : nonCubifyNonInstanced;
         }
 
         public abstract string ShaderName { get; }
 
         public abstract int AddVoxel(MeshBuilder meshBuilder, VoxelSides sides, byte x, byte y, byte z, Color4b color, int voxelSize = 1);
 
-        #region NonShadedNonInstancedVoxelMeshHelper class
-        private sealed class NonShadedNonInstancedVoxelMeshHelper : VoxelMeshHelper
+        #region NonCubifyNonInstancedVoxelMeshHelper class
+        private sealed class NonCubifyNonInstancedVoxelMeshHelper : VoxelMeshHelper
         {
             public override string ShaderName
             {
@@ -142,8 +142,8 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Voxels
         }
         #endregion
 
-        #region NonShadedInstancedVoxelMeshHelper class
-        private sealed class NonShadedInstancedVoxelMeshHelper : VoxelMeshHelper
+        #region NonCubifyInstancedVoxelMeshHelper class
+        private sealed class NonCubifyInstancedVoxelMeshHelper : VoxelMeshHelper
         {
             public override string ShaderName
             {
@@ -233,8 +233,8 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Voxels
         }
         #endregion
 
-        #region ShadedNonInstancedVoxelMeshHelper class
-        private sealed class ShadedNonInstancedVoxelMeshHelper : VoxelMeshHelper
+        #region CubifyNonInstancedVoxelMeshHelper class
+        private sealed class CubifyNonInstancedVoxelMeshHelper : VoxelMeshHelper
         {
             public override string ShaderName
             {
@@ -358,8 +358,8 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Voxels
         }
         #endregion
 
-        #region ShadedInstancedVoxelMeshHelper class
-        private sealed class ShadedInstancedVoxelMeshHelper : VoxelMeshHelper
+        #region CubifyInstancedVoxelMeshHelper class
+        private sealed class CubifyInstancedVoxelMeshHelper : VoxelMeshHelper
         {
             public override string ShaderName
             {

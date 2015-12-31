@@ -224,7 +224,9 @@ namespace ProdigalSoftware.Utils
         /// <returns>min, if n is lower than min; max, if n is higher than max; n otherwise.</returns>
         public static int Clamp(int n, int min, int max)
         {
-            return Math.Max(Math.Min(n, max), min);
+            if (n > max)
+                return max;
+            return n < min ? min : n;
         }
 
         /// <summary>
@@ -236,7 +238,9 @@ namespace ProdigalSoftware.Utils
         /// <returns>min, if n is lower than min; max, if n is higher than max; n otherwise.</returns>
         public static float Clamp(float n, float min, float max)
         {
-            return Math.Max(Math.Min(n, max), min);
+            if (n > max)
+                return max;
+            return n < min ? min : n;
         }
 
         #endregion

@@ -17,7 +17,8 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
     internal enum LightComplexity
     {
         Simple,
-        Realistic
+        Realistic,
+        RealisticWithShadows
     }
     #endregion
 
@@ -63,12 +64,15 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
             switch ((LightComplexity)(int)TiVEController.UserSettings.Get(UserSettings.LightingComplexityKey))
             {
                 case LightComplexity.Realistic: return new RealisticLightProvider(scene);
+                case LightComplexity.RealisticWithShadows: return new RealisticWithShadowsLightProvider(scene);
                 default: return new SimpleLightProvider(scene);
             }
         }
         #endregion
 
         #region Properties
+        protected abstract int MaxBlocksBeforeCull { get; }
+
         public Color3f AmbientLight { get; set; }
         #endregion
 
@@ -138,14 +142,14 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
             int endX = Math.Min(sizeX, startX + ChunkComponent.BlockSize);
             int endY = Math.Min(sizeY, startY + ChunkComponent.BlockSize);
             int endZ = Math.Min(sizeZ, startZ + ChunkComponent.BlockSize);
-            bool doLightCulling = scene.GameWorld.DoLightCulling;
+            int maxBlockCount = MaxBlocksBeforeCull;
             for (int lightIndex = 0; lightIndex < lightsAffectingChunk.Count; lightIndex++)
             {
                 ushort lightId = lightsAffectingChunk[lightIndex];
-                LightInfo lightData = lightInfoList[lightId];
-                int blockX = lightData.BlockX;
-                int blockY = lightData.BlockY;
-                int blockZ = lightData.BlockZ;
+                LightInfo lightInfo = lightInfoList[lightId];
+                int blockX = lightInfo.BlockX;
+                int blockY = lightInfo.BlockY;
+                int blockZ = lightInfo.BlockZ;
                 for (int bz = startZ; bz < endZ; bz++)
                 {
                     int vz = bz * Block.VoxelSize + HalfBlockVoxelSize;
@@ -154,8 +158,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
                         int vx = bx * Block.VoxelSize + HalfBlockVoxelSize;
                         for (int by = startY; by < endY; by++)
                         {
-                            const int maxBlockCount = 2;
-                            if (doLightCulling && !gameWorld.LessThanBlockCountInLine(blockX, blockY, blockZ, bx, by, bz, maxBlockCount) &&
+                            if (!gameWorld.LessThanBlockCountInLine(blockX, blockY, blockZ, bx, by, bz, maxBlockCount) &&
                                 !gameWorld.LessThanBlockCountInLine(bx, by, bz, blockX, blockY, blockZ, maxBlockCount))
                             {
                                 continue; // Unlikely the light will actually hit the block at all
@@ -166,7 +169,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
 
                             // Calculate lighting information
                             // Sort lights by highest percentage to lowest
-                            float newLightPercentage = lightData.GetLightPercentage(vx, vy, vz, lightingModel);
+                            float newLightPercentage = lightInfo.GetLightPercentage(vx, vy, vz, lightingModel);
                             int leastLightIndex = blockLights.Length;
                             for (int i = 0; i < blockLights.Length; i++)
                             {
@@ -274,6 +277,30 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
             }
         }
 
+        private static Vector3f GetVoxelNormal(VoxelSides visibleSides)
+        {
+            if (visibleSides == VoxelSides.All)
+                return Vector3f.Zero;
+
+            Vector3f vector = new Vector3f();
+            if ((visibleSides & VoxelSides.Left) != 0)
+                vector.X -= 1.0f;
+            if ((visibleSides & VoxelSides.Bottom) != 0)
+                vector.Y -= 1.0f;
+            if ((visibleSides & VoxelSides.Back) != 0)
+                vector.Z -= 1.0f;
+
+            if ((visibleSides & VoxelSides.Right) != 0)
+                vector.X += 1.0f;
+            if ((visibleSides & VoxelSides.Top) != 0)
+                vector.Y += 1.0f;
+            if ((visibleSides & VoxelSides.Front) != 0)
+                vector.Z += 1.0f;
+
+            vector.NormalizeFast();
+            return vector;
+        }
+
         /// <summary>
         /// Gets the offset into the block lights array of a chunk for the block at the specified location
         /// </summary>
@@ -295,117 +322,16 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
         }
         #endregion
 
-        #region RealisticLightProvider class
-        private sealed class RealisticLightProvider : LightProvider
-        {
-            public RealisticLightProvider(Scene scene) : base(scene)
-            {
-            }
-
-            public override Color3f GetLightAtFast(int voxelX, int voxelY, int voxelZ)
-            {
-                int worldBlockX = voxelX / Block.VoxelSize;
-                int worldBlockY = voxelY / Block.VoxelSize;
-                int worldBlockZ = voxelZ / Block.VoxelSize;
-                int chunkX = worldBlockX / ChunkComponent.BlockSize;
-                int chunkY = worldBlockY / ChunkComponent.BlockSize;
-                int chunkZ = worldBlockZ / ChunkComponent.BlockSize;
-
-                ushort[][] chunkLights = chunkLightInfo[GetLightsAffectingChunksOffset(chunkX, chunkY, chunkZ)].BlockLights;
-                if (chunkLights == null)
-                    return Color3f.Empty; // Probably unloaded the chunk while loading
-
-                int chunkBlockX = worldBlockX % ChunkComponent.BlockSize;
-                int chunkBlockY = worldBlockY % ChunkComponent.BlockSize;
-                int chunkBlockZ = worldBlockZ % ChunkComponent.BlockSize;
-                GameWorld world = scene.GameWorld;
-                Color3f color = AmbientLight;
-                LightInfo[] lights = lightInfoList;
-                ushort[] lightsInBlock = chunkLights[GetBlockLightOffset(chunkBlockX, chunkBlockY, chunkBlockZ)];
-                for (int i = 0; i < lightsInBlock.Length; i++)
-                {
-                    ushort lightIndex = lightsInBlock[i];
-                    if (lightIndex == 0)
-                        break;
-
-                    LightInfo lightInfo = lights[lightIndex];
-                    if (world.NoVoxelInLine(voxelX, voxelY, voxelZ, lightInfo.VoxelLocX, lightInfo.VoxelLocY, lightInfo.VoxelLocZ))
-                        color += lightInfo.LightColor * lightInfo.GetLightPercentage(voxelX, voxelY, voxelZ, lightingModel);
-                    else if (lightInfo.ReflectiveAmbientLighting)
-                    {
-                        // Simulate a very crude and simple reflective ambient lighting model by using the light reduced by a small 
-                        // amount for voxels in a "shadow".
-                        color += lightInfo.LightColor * lightInfo.GetLightPercentageShadow(voxelX, voxelY, voxelZ, lightingModel);
-                    }
-                }
-                return color;
-            }
-
-            public override Color3f GetLightAt(int voxelX, int voxelY, int voxelZ, 
-                int voxelSize, int worldBlockX, int worldBlockY, int worldBlockZ, VoxelSides visibleSides)
-            {
-                bool availableMinusX = (visibleSides & VoxelSides.Left) != 0;
-                bool availableMinusY = (visibleSides & VoxelSides.Bottom) != 0;
-                bool availableMinusZ = (visibleSides & VoxelSides.Back) != 0;
-                bool availablePlusX = (visibleSides & VoxelSides.Right) != 0;
-                bool availablePlusY = (visibleSides & VoxelSides.Top) != 0;
-                bool availablePlusZ = (visibleSides & VoxelSides.Front) != 0;
-
-                int chunkX = worldBlockX / ChunkComponent.BlockSize;
-                int chunkY = worldBlockY / ChunkComponent.BlockSize;
-                int chunkZ = worldBlockZ / ChunkComponent.BlockSize;
-                int chunkBlockX = worldBlockX % ChunkComponent.BlockSize;
-                int chunkBlockY = worldBlockY % ChunkComponent.BlockSize;
-                int chunkBlockZ = worldBlockZ % ChunkComponent.BlockSize;
-
-                ushort[][] chunkLights = chunkLightInfo[GetLightsAffectingChunksOffset(chunkX, chunkY, chunkZ)].BlockLights;
-                if (chunkLights == null)
-                    return Color3f.Empty; // Probably unloaded the chunk while loading
-
-                ushort[] lightsInBlock = chunkLights[GetBlockLightOffset(chunkBlockX, chunkBlockY, chunkBlockZ)];
-                GameWorld world = scene.GameWorld;
-                Color3f color = AmbientLight;
-                LightInfo[] lights = lightInfoList;
-                bool blockGetsReflectiveLighting = scene.BlockList[world[worldBlockX, worldBlockY, worldBlockZ]].HasComponent(ReflectiveLightComponent.Instance);
-                for (int i = 0; i < lightsInBlock.Length; i++)
-                {
-                    ushort lightIndex = lightsInBlock[i];
-                    if (lightIndex == 0)
-                        break;
-
-                    LightInfo lightInfo = lights[lightIndex];
-                    int lx = lightInfo.VoxelLocX;
-                    int ly = lightInfo.VoxelLocY;
-                    int lz = lightInfo.VoxelLocZ;
-
-                    if ((availableMinusX && lx <= voxelX && world.NoVoxelInLine(voxelX - 1, voxelY, voxelZ, lx, ly, lz)) ||
-                        (availableMinusY && ly <= voxelY && world.NoVoxelInLine(voxelX, voxelY - 1, voxelZ, lx, ly, lz)) ||
-                        (availableMinusZ && lz <= voxelZ && world.NoVoxelInLine(voxelX, voxelY, voxelZ - 1, lx, ly, lz)) ||
-                        (availablePlusX && lx >= voxelX && world.NoVoxelInLine(voxelX + voxelSize, voxelY, voxelZ, lx, ly, lz)) ||
-                        (availablePlusY && ly >= voxelY && world.NoVoxelInLine(voxelX, voxelY + voxelSize, voxelZ, lx, ly, lz)) ||
-                        (availablePlusZ && lz >= voxelZ && world.NoVoxelInLine(voxelX, voxelY, voxelZ + voxelSize, lx, ly, lz)))
-                    {
-                        color += lightInfo.LightColor * lightInfo.GetLightPercentage(voxelX, voxelY, voxelZ, lightingModel);
-                    }
-                    else if (blockGetsReflectiveLighting && lightInfo.ReflectiveAmbientLighting &&
-                        ((availableMinusX && lx <= voxelX) || (availableMinusY && ly <= voxelY) || (availableMinusZ && lz <= voxelZ) ||
-                        (availablePlusX && lx >= voxelX) || (availablePlusY && ly >= voxelY) || (availablePlusZ && lz >= voxelZ)))
-                    {
-                        // Simulate a very crude and simple reflective ambient lighting model by using the light reduced by a small 
-                        // amount for voxels in a "shadow".
-                        color += lightInfo.LightColor * lightInfo.GetLightPercentageShadow(voxelX, voxelY, voxelZ, lightingModel);
-                    }
-                }
-                return color;
-            }
-        }
-        #endregion
-
         #region SimpleLightProvider class
         private sealed class SimpleLightProvider : LightProvider
         {
             public SimpleLightProvider(Scene scene) : base(scene)
             {
+            }
+
+            protected override int MaxBlocksBeforeCull
+            {
+                get { return 2; }
             }
 
             public override Color3f GetLightAtFast(int voxelX, int voxelY, int voxelZ)
@@ -476,8 +402,212 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
                     if ((availableMinusX && lx <= voxelX) || (availableMinusY && ly <= voxelY) || (availableMinusZ && lz <= voxelZ) ||
                         (availablePlusX && lx >= voxelX) || (availablePlusY && ly >= voxelY) || (availablePlusZ && lz >= voxelZ))
                     {
-                        color += lightInfo.LightColor * lightInfo.GetLightPercentage(voxelX, voxelY, voxelZ, lightingModel);
+                        color += lightInfo.LightColor * (lightInfo.GetLightPercentage(voxelX, voxelY, voxelZ, lightingModel) * 0.9f);
                     }
+                }
+                return color;
+            }
+        }
+        #endregion
+
+        #region RealisticLightProvider class
+        private sealed class RealisticLightProvider : LightProvider
+        {
+            public RealisticLightProvider(Scene scene) : base(scene)
+            {
+            }
+
+            protected override int MaxBlocksBeforeCull
+            {
+                get { return 2; }
+            }
+
+            public override Color3f GetLightAtFast(int voxelX, int voxelY, int voxelZ)
+            {
+                int worldBlockX = voxelX / Block.VoxelSize;
+                int worldBlockY = voxelY / Block.VoxelSize;
+                int worldBlockZ = voxelZ / Block.VoxelSize;
+                int chunkX = worldBlockX / ChunkComponent.BlockSize;
+                int chunkY = worldBlockY / ChunkComponent.BlockSize;
+                int chunkZ = worldBlockZ / ChunkComponent.BlockSize;
+
+                ushort[][] chunkLights = chunkLightInfo[GetLightsAffectingChunksOffset(chunkX, chunkY, chunkZ)].BlockLights;
+                if (chunkLights == null)
+                    return Color3f.Empty; // Probably unloaded the chunk while loading
+
+                int chunkBlockX = worldBlockX % ChunkComponent.BlockSize;
+                int chunkBlockY = worldBlockY % ChunkComponent.BlockSize;
+                int chunkBlockZ = worldBlockZ % ChunkComponent.BlockSize;
+                Color3f color = AmbientLight;
+                LightInfo[] lights = lightInfoList;
+                ushort[] lightsInBlock = chunkLights[GetBlockLightOffset(chunkBlockX, chunkBlockY, chunkBlockZ)];
+                for (int i = 0; i < lightsInBlock.Length; i++)
+                {
+                    ushort lightIndex = lightsInBlock[i];
+                    if (lightIndex == 0)
+                        break;
+
+                    LightInfo lightInfo = lights[lightIndex];
+                    color += lightInfo.LightColor * lightInfo.GetLightPercentage(voxelX, voxelY, voxelZ, lightingModel);
+                }
+                return color;
+            }
+
+            public override Color3f GetLightAt(int voxelX, int voxelY, int voxelZ, int voxelSize, int worldBlockX, int worldBlockY, int worldBlockZ, VoxelSides visibleSides)
+            {
+                Vector3f voxelNormal = GetVoxelNormal(visibleSides);
+                int chunkX = worldBlockX / ChunkComponent.BlockSize;
+                int chunkY = worldBlockY / ChunkComponent.BlockSize;
+                int chunkZ = worldBlockZ / ChunkComponent.BlockSize;
+
+                ushort[][] chunkLights = chunkLightInfo[GetLightsAffectingChunksOffset(chunkX, chunkY, chunkZ)].BlockLights;
+                if (chunkLights == null)
+                    return Color3f.Empty; // Probably unloaded the chunk while loading
+
+                int chunkBlockX = worldBlockX % ChunkComponent.BlockSize;
+                int chunkBlockY = worldBlockY % ChunkComponent.BlockSize;
+                int chunkBlockZ = worldBlockZ % ChunkComponent.BlockSize;
+                ushort[] lightsInBlock = chunkLights[GetBlockLightOffset(chunkBlockX, chunkBlockY, chunkBlockZ)];
+                Color3f color = AmbientLight;
+                LightInfo[] lights = lightInfoList;
+                for (int i = 0; i < lightsInBlock.Length; i++)
+                {
+                    ushort lightIndex = lightsInBlock[i];
+                    if (lightIndex == 0)
+                        break;
+
+                    LightInfo lightInfo = lights[lightIndex];
+
+                    int lx = lightInfo.VoxelLocX;
+                    int ly = lightInfo.VoxelLocY;
+                    int lz = lightInfo.VoxelLocZ;
+
+                    float brightness;
+                    if (voxelNormal == Vector3f.Zero)
+                        brightness = 1.0f;
+                    else
+                    {
+                        Vector3f surfaceToLight = new Vector3f(lx - voxelX, ly - voxelY, lz - voxelZ);
+                        float dot = voxelNormal.X * surfaceToLight.X + voxelNormal.Y * surfaceToLight.Y + voxelNormal.Z * surfaceToLight.Z;
+                        brightness = MathHelper.Clamp(dot / surfaceToLight.LengthFast, 0.0f, 1.0f);
+                    }
+                    color += lightInfo.LightColor * (brightness * lightInfo.GetLightPercentage(voxelX, voxelY, voxelZ, lightingModel));
+                }
+                return color;
+            }
+        }
+        #endregion
+
+        #region RealisticWithShadowsLightProvider class
+        private sealed class RealisticWithShadowsLightProvider : LightProvider
+        {
+            public RealisticWithShadowsLightProvider(Scene scene) : base(scene)
+            {
+            }
+
+            protected override int MaxBlocksBeforeCull
+            {
+                get { return 3; }
+            }
+
+            public override Color3f GetLightAtFast(int voxelX, int voxelY, int voxelZ)
+            {
+                int worldBlockX = voxelX / Block.VoxelSize;
+                int worldBlockY = voxelY / Block.VoxelSize;
+                int worldBlockZ = voxelZ / Block.VoxelSize;
+                int chunkX = worldBlockX / ChunkComponent.BlockSize;
+                int chunkY = worldBlockY / ChunkComponent.BlockSize;
+                int chunkZ = worldBlockZ / ChunkComponent.BlockSize;
+
+                ushort[][] chunkLights = chunkLightInfo[GetLightsAffectingChunksOffset(chunkX, chunkY, chunkZ)].BlockLights;
+                if (chunkLights == null)
+                    return Color3f.Empty; // Probably unloaded the chunk while loading
+
+                int chunkBlockX = worldBlockX % ChunkComponent.BlockSize;
+                int chunkBlockY = worldBlockY % ChunkComponent.BlockSize;
+                int chunkBlockZ = worldBlockZ % ChunkComponent.BlockSize;
+                GameWorld world = scene.GameWorld;
+                Color3f color = AmbientLight;
+                LightInfo[] lights = lightInfoList;
+                ushort[] lightsInBlock = chunkLights[GetBlockLightOffset(chunkBlockX, chunkBlockY, chunkBlockZ)];
+                for (int i = 0; i < lightsInBlock.Length; i++)
+                {
+                    ushort lightIndex = lightsInBlock[i];
+                    if (lightIndex == 0)
+                        break;
+
+                    LightInfo lightInfo = lights[lightIndex];
+                    if (world.NoVoxelInLine(voxelX, voxelY, voxelZ, lightInfo.VoxelLocX, lightInfo.VoxelLocY, lightInfo.VoxelLocZ))
+                        color += lightInfo.LightColor * lightInfo.GetLightPercentage(voxelX, voxelY, voxelZ, lightingModel);
+
+                    color += lightInfo.LightColor * lightInfo.GetLightPercentageShadow(voxelX, voxelY, voxelZ, lightingModel);
+                }
+                return color;
+            }
+
+            public override Color3f GetLightAt(int voxelX, int voxelY, int voxelZ, 
+                int voxelSize, int worldBlockX, int worldBlockY, int worldBlockZ, VoxelSides visibleSides)
+            {
+                bool availableMinusX = (visibleSides & VoxelSides.Left) != 0;
+                bool availableMinusY = (visibleSides & VoxelSides.Bottom) != 0;
+                bool availableMinusZ = (visibleSides & VoxelSides.Back) != 0;
+                bool availablePlusX = (visibleSides & VoxelSides.Right) != 0;
+                bool availablePlusY = (visibleSides & VoxelSides.Top) != 0;
+                bool availablePlusZ = (visibleSides & VoxelSides.Front) != 0;
+
+                int chunkX = worldBlockX / ChunkComponent.BlockSize;
+                int chunkY = worldBlockY / ChunkComponent.BlockSize;
+                int chunkZ = worldBlockZ / ChunkComponent.BlockSize;
+                int chunkBlockX = worldBlockX % ChunkComponent.BlockSize;
+                int chunkBlockY = worldBlockY % ChunkComponent.BlockSize;
+                int chunkBlockZ = worldBlockZ % ChunkComponent.BlockSize;
+
+                // For thread-safety copy all member variables
+                ushort[][] chunkLights = chunkLightInfo[GetLightsAffectingChunksOffset(chunkX, chunkY, chunkZ)].BlockLights;
+                if (chunkLights == null)
+                    return Color3f.Empty; // Probably unloaded the scene while loading the chunk
+
+                ushort[] lightsInBlock = chunkLights[GetBlockLightOffset(chunkBlockX, chunkBlockY, chunkBlockZ)];
+                GameWorld world = scene.GameWorld;
+                Color3f color = AmbientLight;
+                LightInfo[] lights = lightInfoList;
+
+                Vector3f voxelNormal = GetVoxelNormal(visibleSides);
+                
+                for (int i = 0; i < lightsInBlock.Length; i++)
+                {
+                    ushort lightIndex = lightsInBlock[i];
+                    if (lightIndex == 0)
+                        break;
+
+                    LightInfo lightInfo = lights[lightIndex];
+                    int lx = lightInfo.VoxelLocX;
+                    int ly = lightInfo.VoxelLocY;
+                    int lz = lightInfo.VoxelLocZ;
+
+                    float lightPercentage;
+                    if (voxelNormal == Vector3f.Zero)
+                        lightPercentage = 1.0f;
+                    else
+                    {
+                        Vector3f surfaceToLight = new Vector3f(lx - voxelX, ly - voxelY, lz - voxelZ);
+                        float dot = voxelNormal.X * surfaceToLight.X + voxelNormal.Y * surfaceToLight.Y + voxelNormal.Z * surfaceToLight.Z;
+                        lightPercentage = MathHelper.Clamp(dot / surfaceToLight.LengthFast, 0.0f, 1.0f);
+                    }
+
+                    if (lightPercentage > 0.0f && ((availableMinusX && world.NoVoxelInLine(voxelX - 1, voxelY, voxelZ, lx, ly, lz)) ||
+                        (availableMinusY && world.NoVoxelInLine(voxelX, voxelY - 1, voxelZ, lx, ly, lz)) ||
+                        (availableMinusZ && world.NoVoxelInLine(voxelX, voxelY, voxelZ - 1, lx, ly, lz)) ||
+                        (availablePlusX && world.NoVoxelInLine(voxelX + voxelSize, voxelY, voxelZ, lx, ly, lz)) ||
+                        (availablePlusY && world.NoVoxelInLine(voxelX, voxelY + voxelSize, voxelZ, lx, ly, lz)) ||
+                        (availablePlusZ && world.NoVoxelInLine(voxelX, voxelY, voxelZ + voxelSize, lx, ly, lz))))
+                    {
+                        color += lightInfo.LightColor * (lightPercentage * lightInfo.GetLightPercentage(voxelX, voxelY, voxelZ, lightingModel));
+                    }
+
+                    lightPercentage = 1.0f - lightPercentage;
+                    if (lightPercentage > 0.0f)
+                        color += lightInfo.LightColor * (lightPercentage * lightInfo.GetLightPercentageShadow(voxelX, voxelY, voxelZ, lightingModel));
                 }
                 return color;
             }

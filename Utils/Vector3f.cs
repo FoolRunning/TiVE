@@ -629,10 +629,9 @@ namespace ProdigalSoftware.Utils
         /// </summary>
         /// <param name="left">First operand</param>
         /// <param name="right">Second operand</param>
-        /// <param name="result">The dot product of the two inputs</param>
-        public static void Dot(ref Vector3f left, ref Vector3f right, out float result)
+        public static float Dot(ref Vector3f left, ref Vector3f right)
         {
-            result = left.X * right.X + left.Y * right.Y + left.Z * right.Z;
+            return left.X * right.X + left.Y * right.Y + left.Z * right.Z;
         }
 
         #endregion
@@ -914,21 +913,18 @@ namespace ProdigalSoftware.Utils
         /// <remarks>Note that the returned angle is never bigger than the constant Pi.</remarks>
         public static float CalculateAngle(Vector3f first, Vector3f second)
         {
-            float result;
-            CalculateAngle(ref first, ref second, out result);
-            return result;
+            return CalculateAngle(ref first, ref second);
         }
 
         /// <summary>Calculates the angle (in radians) between two vectors.</summary>
         /// <param name="first">The first vector.</param>
         /// <param name="second">The second vector.</param>
-        /// <param name="result">Angle (in radians) between the vectors.</param>
+        /// <returns>Angle (in radians) between the vectors.</returns>
         /// <remarks>Note that the returned angle is never bigger than the constant Pi.</remarks>
-        public static void CalculateAngle(ref Vector3f first, ref Vector3f second, out float result)
+        public static float CalculateAngle(ref Vector3f first, ref Vector3f second)
         {
-            float temp;
-            Dot(ref first, ref second, out temp);
-            result = (float)Math.Acos(MathHelper.Clamp(temp / (first.Length * second.Length), -1.0f, 1.0f));
+            float temp = Dot(ref first, ref second);
+            return (float)Math.Acos(MathHelper.Clamp(temp / (first.Length * second.Length), -1.0f, 1.0f));
         }
 
         #endregion

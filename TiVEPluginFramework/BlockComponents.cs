@@ -1,21 +1,20 @@
 ﻿using System;
+using JetBrains.Annotations;
 using ProdigalSoftware.Utils;
 
 namespace ProdigalSoftware.TiVEPluginFramework
 {
     public sealed class LightComponent : IBlockComponent
     {
-        public readonly Vector3b Location;
-        public readonly int LightBlockDist;
-        public readonly Color3f Color;
-        public readonly bool ReflectiveAmbientLighting;
+        [PublicAPI] public readonly Vector3b Location;
+        [PublicAPI] public readonly int LightBlockDist;
+        [PublicAPI] public readonly Color3f Color;
 
-        public LightComponent(Vector3b location, Color3f color, int lightBlockDist, bool reflectiveAmbientLighting = false)
+        public LightComponent(Vector3b location, Color3f color, int lightBlockDist)
         {
             Location = location;
             Color = color;
             LightBlockDist = lightBlockDist;
-            ReflectiveAmbientLighting = reflectiveAmbientLighting;
         }
     }
 
@@ -33,7 +32,7 @@ namespace ProdigalSoftware.TiVEPluginFramework
 
     public sealed class VoxelAdjusterComponent : IBlockComponent
     {
-        public readonly Func<Voxel, Voxel> Adjuster;
+        internal readonly Func<Voxel, Voxel> Adjuster;
 
         public VoxelAdjusterComponent(Func<Voxel, Voxel> adjuster)
         {
@@ -71,15 +70,6 @@ namespace ProdigalSoftware.TiVEPluginFramework
         public static readonly IBlockComponent Instance = new TransparentComponent();
 
         private TransparentComponent()
-        {
-        }
-    }
-
-    public sealed class ReflectiveLightComponent : IBlockComponent
-    {
-        public static readonly IBlockComponent Instance = new ReflectiveLightComponent();
-
-        private ReflectiveLightComponent()
         {
         }
     }
