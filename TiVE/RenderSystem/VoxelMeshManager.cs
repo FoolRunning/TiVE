@@ -39,7 +39,8 @@ namespace ProdigalSoftware.TiVE.RenderSystem
         public const byte VoxelDetailLevelSections = 3; // 16x16x16 = 4096v, 8x8x8 = 512v, 4x4x4 = 64v, not worth going to 2x2x2 = 8v.
         private const byte BestVoxelDetailLevel = 0;
         private const byte WorstVoxelDetailLevel = VoxelDetailLevelSections - 1;
-        private const int TotalMeshBuilders = 30;
+        private const int TotalChunkMeshBuilders = 30;
+        private const int TotalSpriteMeshBuilders = 3;
         private const int MaxQueueSize = 5000;
         #endregion
 
@@ -51,7 +52,8 @@ namespace ProdigalSoftware.TiVE.RenderSystem
 
         private readonly List<Thread> meshCreationThreads = new List<Thread>();
         private readonly EntityLoadQueue entityLoadQueue = new EntityLoadQueue(MaxQueueSize);
-        private readonly List<MeshBuilder> meshBuilders;
+        private readonly List<MeshBuilder> chunkMeshBuilders = new List<MeshBuilder>(TotalChunkMeshBuilders);
+        private readonly List<MeshBuilder> spriteMeshBuilders = new List<MeshBuilder>(TotalSpriteMeshBuilders);
 
         private Scene loadedScene;
 
@@ -61,9 +63,11 @@ namespace ProdigalSoftware.TiVE.RenderSystem
         #region Constructor/Dispose
         public VoxelMeshManager(int maxThreads)
         {
-            meshBuilders = new List<MeshBuilder>(TotalMeshBuilders);
-            for (int i = 0; i < TotalMeshBuilders; i++)
-                meshBuilders.Add(new MeshBuilder(2000000, 4000000));
+            for (int i = 0; i < TotalChunkMeshBuilders; i++)
+                chunkMeshBuilders.Add(new MeshBuilder(2000000, 4000000));
+
+            for (int i = 0; i < TotalSpriteMeshBuilders; i++)
+                spriteMeshBuilders.Add(new MeshBuilder(6000000, 12000000)); // Sprites can be max of 255x255x255 and contain a lot of voxels
 
             for (int i = 0; i < maxThreads; i++)
                 meshCreationThreads.Add(StartMeshCreateThread(i + 1));
@@ -233,9 +237,9 @@ namespace ProdigalSoftware.TiVE.RenderSystem
                 }
 
                 MeshBuilder meshBuilder;
-                using (new PerformanceLock(meshBuilders))
+                using (new PerformanceLock(chunkMeshBuilders))
                 {
-                    meshBuilder = meshBuilders.Find(mb => !mb.IsLocked);
+                    meshBuilder = chunkMeshBuilders.Find(mb => !mb.IsLocked);
                     if (meshBuilder != null)
                         meshBuilder.StartNewMesh(); // Found a mesh builder - grab it quick!
                 }

@@ -8,7 +8,7 @@ namespace ProdigalSoftware.TiVEEditor.BlockLists
     /// <summary>
     /// Taken from http://www.giawa.com/magicavoxel-c-importer/
     /// </summary>
-    internal class MagicaVoxelImporter
+    internal static class MagicaVoxelImporter
     {
         #region Constants
         // this is the default palette of voxel colors (the RGBA chunk is only included if the palette is different)

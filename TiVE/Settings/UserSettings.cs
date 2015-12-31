@@ -17,7 +17,7 @@ namespace ProdigalSoftware.TiVE.Settings
 
         public const string FullScreenModeKey = "fullScreenMode";
         public const string LightingComplexityKey = "lightingComplexity";
-        public const string ShadedVoxelsKey = "shadedVoxels";
+        public const string CubifyVoxels = "cubifyVoxels";
         public const string EnableVSyncKey = "enbaleVSync";
         public const string LightsPerBlockKey = "lightsPerBlock";
         public const string AntiAliasAmountKey = "antiAliasAmount";
@@ -41,10 +41,10 @@ namespace ProdigalSoftware.TiVE.Settings
                 new UserSettingOption("Window", new EnumSetting<FullScreenMode>(FullScreenMode.Windowed))));
 
             UserSettingOption[] availableSettings = TiVEController.Backend.AvailableDisplaySettings.Distinct()
-                .OrderBy(d => d.Width).ThenBy(d => d.Height).ThenBy(d => d.RefreshRate)
+                .OrderBy(d => d.Width * d.Height).ThenBy(d => d.RefreshRate)
                 .Select(d => new UserSettingOption(string.Format("{0}x{1} - {2}Hz", d.Width, d.Height, d.RefreshRate), new ResolutionSetting(d))).ToArray();
             settingOptions.Add(new UserSettingOptions(DisplayResolutionKey, "Resolution", UserOptionTab.Display, 
-                availableSettings[0].Value, availableSettings));
+                availableSettings[availableSettings.Length - 1].Value, availableSettings));
 
             settingOptions.Add(new UserSettingOptions(EnableVSyncKey, "V-sync", UserOptionTab.Display, new BoolSetting(true),
                 new UserSettingOption("True", new BoolSetting(true)),
@@ -65,9 +65,9 @@ namespace ProdigalSoftware.TiVE.Settings
                 new UserSettingOption("Far", new EnumSetting<VoxelDetailLevelDistance>(VoxelDetailLevelDistance.Far)),
                 new UserSettingOption("Furthest", new EnumSetting<VoxelDetailLevelDistance>(VoxelDetailLevelDistance.Furthest))));
 
-            settingOptions.Add(new UserSettingOptions(ShadedVoxelsKey, "Shade voxels", UserOptionTab.Display, new BoolSetting(false),
-                new UserSettingOption("True", new BoolSetting(true)),
-                new UserSettingOption("False", new BoolSetting(false))));
+            settingOptions.Add(new UserSettingOptions(CubifyVoxels, "Cubify voxels", UserOptionTab.Display, new BoolSetting(false),
+                new UserSettingOption("False", new BoolSetting(false)),
+                new UserSettingOption("True", new BoolSetting(true))));
 
             settingOptions.Add(new UserSettingOptions(LightsPerBlockKey, "Max lights per block", UserOptionTab.Display, new IntSetting(10),
                 new UserSettingOption(new IntSetting(2)),
@@ -75,18 +75,19 @@ namespace ProdigalSoftware.TiVE.Settings
                 new UserSettingOption(new IntSetting(10)),
                 new UserSettingOption(new IntSetting(20))));
 
-            settingOptions.Add(new UserSettingOptions(LightingComplexityKey, "Lighting complexity", UserOptionTab.Display,
-                new EnumSetting<LightComplexity>(LightComplexity.Simple),
-                new UserSettingOption("Simple", new EnumSetting<LightComplexity>(LightComplexity.Simple)),
-                new UserSettingOption("Realistic", new EnumSetting<LightComplexity>(LightComplexity.Realistic))));
-
             int totalCores = Environment.ProcessorCount;
+            settingOptions.Add(new UserSettingOptions(LightingComplexityKey, "Lighting complexity", UserOptionTab.Display,
+                new EnumSetting<LightComplexity>(totalCores > 3 ? LightComplexity.Realistic : LightComplexity.Simple),
+                new UserSettingOption("Simple", new EnumSetting<LightComplexity>(LightComplexity.Simple)),
+                new UserSettingOption("Realistic", new EnumSetting<LightComplexity>(LightComplexity.Realistic)),
+                new UserSettingOption("Realistic with shadows", new EnumSetting<LightComplexity>(LightComplexity.RealisticWithShadows))));
+
             int numThreadOptions = totalCores > 3 ? totalCores - 1 : 1;
             UserSettingOption[] threadOptions = new UserSettingOption[numThreadOptions];
             for (int i = 0; i < numThreadOptions; i++)
                 threadOptions[i] = new UserSettingOption(new IntSetting(i + 1));
             settingOptions.Add(new UserSettingOptions(ChunkCreationThreadsKey, "Chunk creation threads", UserOptionTab.Advanced,
-                new IntSetting(totalCores > 3 ? totalCores / 2 + 1 : 1), threadOptions));
+                new IntSetting(totalCores > 3 ? totalCores - 1 : 1), threadOptions));
 
             settingOptions.Add(new UserSettingOptions(UseThreadedParticlesKey, "Threaded particles", UserOptionTab.Advanced, new BoolSetting(totalCores > 3),
                 new UserSettingOption("True", new BoolSetting(true)),

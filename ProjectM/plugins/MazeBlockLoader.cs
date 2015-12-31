@@ -36,7 +36,6 @@ namespace ProdigalSoftware.ProjectM.Plugins
                     new LightComponent(new Vector3b(bc, bc, bc), new Color3f(0.2f, 0.01f, 0.005f), 4));
 
                 Block stone = CreateRoundedBlockInfo("ston" + i, new Voxel(220, 220, 220), 1.0f, i);
-                stone.AddComponent(ReflectiveLightComponent.Instance);
                 for (int x = 0; x <= mv; x++)
                 {
                     for (int y = 0; y <= mv; y++)
@@ -153,7 +152,6 @@ namespace ProdigalSoftware.ProjectM.Plugins
             {
                 Block grass = Factory.CreateBlock("grass" + i);
                 grass.AddComponent(TransparentComponent.Instance);
-                grass.AddComponent(ReflectiveLightComponent.Instance);
                 grass.AddComponent(new VoxelAdjusterComponent(0.1f));
 
                 for (int z = 0; z < Block.VoxelSize; z++)
@@ -170,6 +168,15 @@ namespace ProdigalSoftware.ProjectM.Plugins
                                 {
                                     // Make a flower
                                     Voxel flowerVoxel = CreateRandomFlowerVoxel();
+                                    // Clear out space for the flower to keep the voxel normals from being strange
+                                    for (int fx = x - 1; fx <= x + 1; fx++)
+                                    {
+                                        for (int fy = y - 1; fy <= y + 1; fy++)
+                                        {
+                                            grass[fx, fy, z] = Voxel.Empty;
+                                            grass[fx, fy, z - 1] = Voxel.Empty;
+                                        }
+                                    }
                                     grass[x, y, z] = flowerVoxel;
                                     grass[x - 1, y, z - 1] = flowerVoxel;
                                     grass[x + 1, y, z - 1] = flowerVoxel;
@@ -186,10 +193,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
 
             // allowing light to pass through the back blocks is to work around a bug in the lighting calculations
             yield return CreateBlockInfo("backStone", 0, new Color4f(240, 240, 240, 255), 1.0f, allowLightPassthrough: true, colorVariation: 0.3f);
-
-            Block dirt = CreateBlockInfo("dirt", 0, new Color4f(0.6f, 0.45f, 0.25f, 1.0f), 1.0f, allowLightPassthrough: true, colorVariation: 0.3f);
-            dirt.AddComponent(ReflectiveLightComponent.Instance);
-            yield return dirt;
+            yield return CreateBlockInfo("dirt", 0, new Color4f(0.6f, 0.45f, 0.25f, 1.0f), 1.0f, allowLightPassthrough: true, colorVariation: 0.3f);
 
             Block fireBlock = Factory.CreateBlock("fire");
             fireBlock.AddComponent(new ParticleComponent("Fire", new Vector3i(bc, bc, 1)));
@@ -197,39 +201,38 @@ namespace ProdigalSoftware.ProjectM.Plugins
             yield return fireBlock;
 
             yield return CreateBlockInfo("loadingLight", 3, new Color4f(1.0f, 1.0f, 1.0f, 1.0f), 1.0f, null,
-                new LightComponent(blockCenterVector, new Color3f(1.0f, 1.0f, 1.0f), 80, true));
+                new LightComponent(blockCenterVector, new Color3f(1.0f, 1.0f, 1.0f), 80));
 
             const bool forFantasy = false;
             yield return CreateBlockInfo("roomLight", 5, new Color4f(1.0f, 1.0f, 1.0f, 1.0f), 1.0f, null,
-                new LightComponent(blockCenterVector, new Color3f(forFantasy ? 0.5f : 0.7f, forFantasy ? 0.5f : 0.7f, forFantasy ? 0.5f : 0.7f), forFantasy ? 25 : 60, true));
+                new LightComponent(blockCenterVector, new Color3f(forFantasy ? 0.5f : 0.8f, forFantasy ? 0.5f : 0.8f, forFantasy ? 0.5f : 0.8f), forFantasy ? 35 : 50));
 
-            const int lightDist = forFantasy ? 20 : 45;
+            const int lightDist = forFantasy ? 25 : 45;
             const float bright = forFantasy ? 0.6f : 1.0f;
             const float mid = forFantasy ? 0.45f : 0.8f;
             const float dim = forFantasy ? 0.3f : 0.5f;
             ParticleComponent bugInformation = new ParticleComponent("LightBugs", new Vector3i(bc, bc, bc));
 
             yield return CreateBlockInfo("light0", 2, new Color4f(0.5f, 0.8f, 1.0f, 1.0f), 1.0f, bugInformation,
-                new LightComponent(blockCenterVector, new Color3f(dim, mid, bright), lightDist, true));
+                new LightComponent(blockCenterVector, new Color3f(dim, mid, bright), lightDist));
 
             yield return CreateBlockInfo("light1", 2, new Color4f(0.8f, 0.5f, 1.0f, 1.0f), 1.0f, bugInformation,
-                new LightComponent(blockCenterVector, new Color3f(mid, dim, bright), lightDist, true));
+                new LightComponent(blockCenterVector, new Color3f(mid, dim, bright), lightDist));
 
             yield return CreateBlockInfo("light2", 2, new Color4f(1.0f, 0.5f, 0.8f, 1.0f), 1.0f, bugInformation,
-                new LightComponent(blockCenterVector, new Color3f(bright, dim, mid), lightDist, true));
+                new LightComponent(blockCenterVector, new Color3f(bright, dim, mid), lightDist));
 
             yield return CreateBlockInfo("light3", 2, new Color4f(1.0f, 0.8f, 0.5f, 1.0f), 1.0f, bugInformation,
-                new LightComponent(blockCenterVector, new Color3f(bright, mid, dim), lightDist, true));
+                new LightComponent(blockCenterVector, new Color3f(bright, mid, dim), lightDist));
 
             yield return CreateBlockInfo("light4", 2, new Color4f(0.5f, 1.0f, 0.8f, 1.0f), 1.0f, bugInformation,
-                new LightComponent(blockCenterVector, new Color3f(dim, bright, mid), lightDist, true));
+                new LightComponent(blockCenterVector, new Color3f(dim, bright, mid), lightDist));
 
             yield return CreateBlockInfo("light5", 2, new Color4f(0.8f, 1.0f, 0.5f, 1.0f), 1.0f, bugInformation,
-                new LightComponent(blockCenterVector, new Color3f(mid, bright, dim), lightDist, true));
+                new LightComponent(blockCenterVector, new Color3f(mid, bright, dim), lightDist));
 
             yield return CreateBlockInfo("fountain", bc, new Color4f(20, 20, 150, 255), 1.0f, new ParticleComponent("Fountain", new Vector3i(bc, bc, 13)));
         }
-
 
         private static void ReplaceVoxel(Block block, int x, int y, int z, Voxel newVoxel)
         {
