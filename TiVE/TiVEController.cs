@@ -56,10 +56,11 @@ namespace ProdigalSoftware.TiVE
         {
             Engine = new Engine(60);
             Engine.AddSystem(new RenderSystem.RenderSystem());
+            Engine.AddSystem(new ParticleSystem.ParticleSystem());
             Engine.AddSystem(new GUISystem.GUISystem());
+
             Engine.AddSystem(new ScriptSystem.ScriptSystem(Backend.Keyboard, Backend.Mouse));
             Engine.AddSystem(new CameraSystem.CameraSystem());
-            Engine.AddSystem(new ParticleSystem.ParticleSystem());
 
             Engine.MainLoop(sceneToLoad);
         }
@@ -148,7 +149,7 @@ namespace ProdigalSoftware.TiVE
             {
                 sw.Restart();
                 for (int i = 0; i < 10000; i++)
-                    gameWorld.LessThanBlockCountInLine(center, center, center, i % center + 98, i % center + 98, i % center + 98, 2);
+                    gameWorld.NoBlocksInLine(center, center, center, i % center + 98, i % center + 98, i % center + 98);
                 sw.Stop();
                 totalMs += sw.ElapsedMilliseconds;
             }

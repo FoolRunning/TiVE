@@ -32,7 +32,7 @@ namespace ProdigalSoftware.TiVEPluginFramework.Components
         [UsedImplicitly] public float FarDistance = 500.0f;
         [UsedImplicitly] public float AspectRatio; // 0.0f means use the aspect ratio of the client window
         [UsedImplicitly] public float FieldOfView = (float)Math.PI / 4; // 60 degrees
-        [UsedImplicitly] public Vector3f UpVector = Vector3f.UnitY;
+        [UsedImplicitly] public Vector3f UpVector = Vector3f.UnitZ;
         [UsedImplicitly] public Vector3f Location;
         [UsedImplicitly] public Vector3f LookAtLocation;
     }

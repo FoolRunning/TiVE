@@ -60,7 +60,7 @@ namespace ProdigalSoftware.TiVE.ParticleSystem
                 out voxelsPerParticle, out renderedVoxelsPerParticle, out polysPerParticle);
 
             voxelInstanceLocationData = voxelInstanceBuilder.GetLocationData();
-            if (TiVEController.UserSettings.Get(UserSettings.CubifyVoxels))
+            if (TiVEController.UserSettings.Get(UserSettings.CubifyVoxelsKey))
                 voxelInstanceColorData = voxelInstanceBuilder.GetColorData();
 
             locations = new Vector3us[controller.MaxParticles * 5];
@@ -212,7 +212,7 @@ namespace ProdigalSoftware.TiVE.ParticleSystem
         {
             IVertexDataCollection instanceData = TiVEController.Backend.CreateVertexDataCollection();
             instanceData.AddBuffer(voxelInstanceLocationData);
-            if (TiVEController.UserSettings.Get(UserSettings.CubifyVoxels))
+            if (TiVEController.UserSettings.Get(UserSettings.CubifyVoxelsKey))
                 instanceData.AddBuffer(voxelInstanceColorData);
 
             locData = TiVEController.Backend.CreateData(locations, 0, 3, DataType.Instance, DataValueType.UShort, false, true);

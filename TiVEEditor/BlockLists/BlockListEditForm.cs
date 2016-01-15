@@ -8,6 +8,7 @@ using System.Windows.Forms;
 using Cyotek.Windows.Forms;
 using JetBrains.Annotations;
 using ProdigalSoftware.TiVE.RenderSystem.World;
+using ProdigalSoftware.TiVEEditor.Importers;
 using ProdigalSoftware.TiVEEditor.Properties;
 using ProdigalSoftware.TiVEPluginFramework;
 using ProdigalSoftware.Utils;
@@ -34,7 +35,6 @@ namespace ProdigalSoftware.TiVEEditor.BlockLists
         private readonly GameWorld gameWorld;
         private readonly BlockList blockList;
         private readonly string titleFormatString;
-        private readonly Block[] floorBlocks = new Block[10];
 
         private Point prevMouseLocation;
         private bool draggingMouse;
@@ -64,9 +64,10 @@ namespace ProdigalSoftware.TiVEEditor.BlockLists
             spnLightLocZ.Maximum = Block.VoxelSize - 1;
 
             blockList = BlockList.FromFile(filePath) ?? new BlockList();
-            gameWorld = new GameWorld(WorldSize, WorldSize, 5);
+            gameWorld = new GameWorld(WorldSize, WorldSize, ChunkComponent.BlockSize);
 
             Random random = new Random();
+            Block[] floorBlocks = new Block[10];
             for (int i = 0; i < floorBlocks.Length; i++)
             {
                 floorBlocks[i] = new BlockImpl("Floor" + i);
@@ -198,25 +199,22 @@ namespace ProdigalSoftware.TiVEEditor.BlockLists
                     List<Block> blocks = new List<Block>();
                     foreach (string file in files)
                     {
-                        using (BinaryReader reader = new BinaryReader(new FileStream(file, FileMode.Open)))
+                        string blockName = Path.GetFileNameWithoutExtension(file);
+                        if (blockList.AllBlocks.Any(b => b.Name == blockName))
                         {
-                            string blockName = Path.GetFileNameWithoutExtension(file);
-                            if (blockList.AllBlocks.Any(b => b.Name == blockName))
+                            DialogResult result = MessageBox.Show(this,
+                                string.Format("Block with the name {0} already exists.\n\nDo you want to replace it?\n(Clicking new will create a new name)", blockName),
+                                messageBoxCaption, MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+                            if (result == DialogResult.No)
                             {
-                                DialogResult result = MessageBox.Show(this, 
-                                    string.Format("Block with the name {0} already exists.\nDo you want to replace it?", blockName),
-                                    messageBoxCaption, MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
-                                if (result == DialogResult.No)
-                                {
-                                    blockName += "2";
-                                    int num = 3;
-                                    while (blockList.AllBlocks.Any(b => b.Name == blockName))
-                                        blockName = blockName.Substring(0, blockName.Length - 1) + (num++);
-                                }
+                                blockName += "2";
+                                int num = 3;
+                                while (blockList.AllBlocks.Any(b => b.Name == blockName))
+                                    blockName = blockName.Substring(0, blockName.Length - 1) + (num++);
                             }
-                            Block block = MagicaVoxelImporter.CreateBlock(reader, blockName);
-                            blocks.Add(block);
                         }
+
+                        blocks.Add(MagicaVoxelImporter.CreateBlock(file, blockName));
                     }
                     settings.BlockEditorImportLastDir = Path.GetDirectoryName(dialog.FileName);
                     settings.Save();

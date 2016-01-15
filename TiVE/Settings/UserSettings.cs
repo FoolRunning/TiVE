@@ -17,7 +17,9 @@ namespace ProdigalSoftware.TiVE.Settings
 
         public const string FullScreenModeKey = "fullScreenMode";
         public const string LightingComplexityKey = "lightingComplexity";
-        public const string CubifyVoxels = "cubifyVoxels";
+        //public const string PreLoadLightingKey = "preLoadLighting";
+        public const string LightCullingTypeKey = "lightCullType";
+        public const string CubifyVoxelsKey = "cubifyVoxels";
         public const string EnableVSyncKey = "enbaleVSync";
         public const string LightsPerBlockKey = "lightsPerBlock";
         public const string AntiAliasAmountKey = "antiAliasAmount";
@@ -65,7 +67,7 @@ namespace ProdigalSoftware.TiVE.Settings
                 new UserSettingOption("Far", new EnumSetting<VoxelDetailLevelDistance>(VoxelDetailLevelDistance.Far)),
                 new UserSettingOption("Furthest", new EnumSetting<VoxelDetailLevelDistance>(VoxelDetailLevelDistance.Furthest))));
 
-            settingOptions.Add(new UserSettingOptions(CubifyVoxels, "Cubify voxels", UserOptionTab.Display, new BoolSetting(false),
+            settingOptions.Add(new UserSettingOptions(CubifyVoxelsKey, "Cubify voxels", UserOptionTab.Display, new BoolSetting(false),
                 new UserSettingOption("False", new BoolSetting(false)),
                 new UserSettingOption("True", new BoolSetting(true))));
 
@@ -80,7 +82,12 @@ namespace ProdigalSoftware.TiVE.Settings
                 new EnumSetting<LightComplexity>(totalCores > 3 ? LightComplexity.Realistic : LightComplexity.Simple),
                 new UserSettingOption("Simple", new EnumSetting<LightComplexity>(LightComplexity.Simple)),
                 new UserSettingOption("Realistic", new EnumSetting<LightComplexity>(LightComplexity.Realistic)),
-                new UserSettingOption("Realistic with shadows", new EnumSetting<LightComplexity>(LightComplexity.RealisticWithShadows))));
+                new UserSettingOption("Realistic with shadows", new EnumSetting<LightComplexity>(LightComplexity.RealisticWithShadows)),
+                new UserSettingOption("Light debug view", new EnumSetting<LightComplexity>(LightComplexity.Debug))));
+
+            //settingOptions.Add(new UserSettingOptions(PreLoadLightingKey, "Pre-load lighting", UserOptionTab.Advanced, new BoolSetting(true),
+            //    new UserSettingOption("True", new BoolSetting(true)),
+            //    new UserSettingOption("False", new BoolSetting(false))));
 
             int numThreadOptions = totalCores > 3 ? totalCores - 1 : 1;
             UserSettingOption[] threadOptions = new UserSettingOption[numThreadOptions];
@@ -92,6 +99,11 @@ namespace ProdigalSoftware.TiVE.Settings
             settingOptions.Add(new UserSettingOptions(UseThreadedParticlesKey, "Threaded particles", UserOptionTab.Advanced, new BoolSetting(totalCores > 3),
                 new UserSettingOption("True", new BoolSetting(true)),
                 new UserSettingOption("False", new BoolSetting(false))));
+
+            settingOptions.Add(new UserSettingOptions(LightCullingTypeKey, "Light culling type", UserOptionTab.Advanced,
+                new EnumSetting<LightCullType>(LightCullType.Fast),
+                new UserSettingOption("Fast", new EnumSetting<LightCullType>(LightCullType.Fast)),
+                new UserSettingOption("Accurate", new EnumSetting<LightCullType>(LightCullType.Accurate))));
         }
 
         private static string SettingsFileFolder

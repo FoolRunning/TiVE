@@ -62,5 +62,10 @@ namespace ProdigalSoftware.TiVE.Debugging
                     maxTime = newTime;
             }
         }
+
+        public override string ToString()
+        {
+            return DisplayedValue;
+        }
     }
 }

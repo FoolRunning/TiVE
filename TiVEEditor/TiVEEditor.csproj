@@ -83,6 +83,10 @@
       <HintPath>..\packages\MoonSharp.0.9.2.0\lib\net40-client\MoonSharp.Interpreter.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="Newtonsoft.Json, Version=8.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.8.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="OpenTK">
       <HintPath>..\packages\OpenTK.1.1.1589.5942\lib\NET40\OpenTK.dll</HintPath>
     </Reference>
@@ -108,10 +112,11 @@
       <DependentUpon>BlockListEditForm.cs</DependentUpon>
     </Compile>
     <Compile Include="BlockLists\BlockPreviewCache.cs" />
-    <Compile Include="BlockLists\MagicaVoxelImporter.cs" />
+    <Compile Include="Importers\MagicaVoxelImporter.cs" />
     <Compile Include="Common\TiVEGameControl.cs">
       <SubType>UserControl</SubType>
     </Compile>
+    <Compile Include="Importers\ZoxelImporter.cs" />
     <Compile Include="MapListEditForm.cs">
       <SubType>Form</SubType>
     </Compile>

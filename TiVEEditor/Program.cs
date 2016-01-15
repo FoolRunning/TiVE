@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading;
 using System.Windows.Forms;
+using ProdigalSoftware.TiVEEditor.Importers;
 
 namespace ProdigalSoftware.TiVEEditor
 {
@@ -15,6 +16,8 @@ namespace ProdigalSoftware.TiVEEditor
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             Thread.CurrentThread.Name = "Main UI";
+            ZoxelImporter.Import();
+
             Application.Run(new TiVEEditorForm());
         }
     }

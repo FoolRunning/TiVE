@@ -17,14 +17,14 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Voxels
 
         static VoxelMeshHelper()
         {
-            cubifyVoxels = TiVEController.UserSettings.Get(UserSettings.CubifyVoxels);
+            cubifyVoxels = TiVEController.UserSettings.Get(UserSettings.CubifyVoxelsKey);
             TiVEController.UserSettings.SettingChanged += UserSettings_SettingChanged;
         }
 
         static void UserSettings_SettingChanged(string settingName)
         {
-            if (settingName == UserSettings.CubifyVoxels)
-                cubifyVoxels = TiVEController.UserSettings.Get(UserSettings.CubifyVoxels);
+            if (settingName == UserSettings.CubifyVoxelsKey)
+                cubifyVoxels = TiVEController.UserSettings.Get(UserSettings.CubifyVoxelsKey);
         }
 
         /// <summary>

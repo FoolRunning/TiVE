@@ -100,9 +100,9 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
         {
             MiscUtils.CheckConstraints(voxelX, voxelY, voxelZ, voxelSize);
 
-            int blockX = voxelX / Block.VoxelSize;
-            int blockY = voxelY / Block.VoxelSize;
-            int blockZ = voxelZ / Block.VoxelSize;
+            int blockX = voxelX >> Block.VoxelSizeBitShift;
+            int blockY = voxelY >> Block.VoxelSizeBitShift;
+            int blockZ = voxelZ >> Block.VoxelSizeBitShift;
             ushort block = blocks[GetBlockOffset(blockX, blockY, blockZ)];
             if (block == 0)
                 return Voxel.Empty;
@@ -117,6 +117,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
         /// Voxel transversal algorithm taken from: http://www.cse.chalmers.se/edu/year/2011/course/TDA361_Computer_Graphics/grid.pdf
         /// Modified with optimizations for TiVE.
         /// </summary>
+        /// <remarks>Very performance-critical method</remarks>
         public bool NoVoxelInLine(int x, int y, int z, int endX, int endY, int endZ)
         {
             if (x == endX && y == endY && z == endZ)
@@ -135,9 +136,9 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
             float tMaxX = tStepX;
             float tMaxY = tStepY;
             float tMaxZ = tStepZ;
-            int blockX = x / Block.VoxelSize;
-            int blockY = y / Block.VoxelSize;
-            int blockZ = z / Block.VoxelSize;
+            int blockX = x >> Block.VoxelSizeBitShift;
+            int blockY = y >> Block.VoxelSizeBitShift;
+            int blockZ = z >> Block.VoxelSizeBitShift;
             int blockVoxelX = x % Block.VoxelSize;
             int blockVoxelY = y % Block.VoxelSize;
             int blockVoxelZ = z % Block.VoxelSize;
@@ -154,7 +155,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
                     {
                         x = x + stepX;
                         tMaxX = tMaxX + tStepX;
-                        blockX = x / Block.VoxelSize;
+                        blockX = x >> Block.VoxelSizeBitShift;
                         blockVoxelX = x % Block.VoxelSize;
                         if (blockX != prevBlockX)
                             block = blocks[GetBlockOffset(blockX, blockY, blockZ)];
@@ -164,7 +165,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
                     {
                         z = z + stepZ;
                         tMaxZ = tMaxZ + tStepZ;
-                        blockZ = z / Block.VoxelSize;
+                        blockZ = z >> Block.VoxelSizeBitShift;
                         blockVoxelZ = z % Block.VoxelSize;
                         if (blockZ != prevBlockZ)
                             block = blocks[GetBlockOffset(blockX, blockY, blockZ)];
@@ -175,7 +176,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
                 {
                     y = y + stepY;
                     tMaxY = tMaxY + tStepY;
-                    blockY = y / Block.VoxelSize;
+                    blockY = y >> Block.VoxelSizeBitShift;
                     blockVoxelY = y % Block.VoxelSize;
                     if (blockY != prevBlockY)
                         block = blocks[GetBlockOffset(blockX, blockY, blockZ)];
@@ -185,7 +186,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
                 {
                     z = z + stepZ;
                     tMaxZ = tMaxZ + tStepZ;
-                    blockZ = z / Block.VoxelSize;
+                    blockZ = z >> Block.VoxelSizeBitShift;
                     blockVoxelZ = z % Block.VoxelSize;
                     if (blockZ != prevBlockZ)
                         block = blocks[GetBlockOffset(blockX, blockY, blockZ)];
@@ -201,58 +202,119 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
         }
 
         /// <summary>
-        /// Voxel transversal algorithm taken from: http://www.cse.chalmers.se/edu/year/2011/course/TDA361_Computer_Graphics/grid.pdf
+        /// Taken from ftp://ftp.isc.org/pub/usenet/comp.sources.unix/volume26/line3d originally created by Bob Pendelton
         /// Modified with optimizations for TiVE.
         /// </summary>
-        public bool LessThanBlockCountInLine(int x, int y, int z, int endX, int endY, int endZ, int maxBlocks)
+        /// <remarks>Very performance-critical method</remarks>
+        public bool NoBlocksInLine(int x1, int y1, int z1, int x2, int y2, int z2)
         {
-            if (x == endX && y == endY && z == endZ)
-                return true;
+            int dx = x2 - x1;
+            int dy = y2 - y1;
+            int dz = z2 - z1;
 
-            int stepX = x > endX ? -1 : 1;
-            int stepY = y > endY ? -1 : 1;
-            int stepZ = z > endZ ? -1 : 1;
-            float tStepX = (float)stepX / (endX - x);
-            float tStepY = (float)stepY / (endY - y);
-            float tStepZ = (float)stepZ / (endZ - z);
-            float tMaxX = tStepX;
-            float tMaxY = tStepY;
-            float tMaxZ = tStepZ;
-            int blockCount = 0;
-            do
+            int ax = FastAbs(dx) << 1;
+            int ay = FastAbs(dy) << 1;
+            int az = FastAbs(dz) << 1;
+
+            int sx = FastSign(dx);
+            int sy = FastSign(dy);
+            int sz = FastSign(dz);
+
+            int x = x1;
+            int y = y1;
+            int z = z1;
+
+            int xd, yd, zd;
+            if (ax >= Math.Max(ay, az))            /* x dominant */
             {
-                if (tMaxX < tMaxY)
+                yd = ay - (ax >> 1);
+                zd = az - (ax >> 1);
+                for (;;)
                 {
-                    if (tMaxX < tMaxZ)
+                    if (yd >= 0)
                     {
-                        x = x + stepX;
-                        tMaxX = tMaxX + tStepX;
+                        y += sy;
+                        yd -= ax;
                     }
-                    else
+
+                    if (zd >= 0)
                     {
-                        z = z + stepZ;
-                        tMaxZ = tMaxZ + tStepZ;
+                        z += sz;
+                        zd -= ax;
                     }
+
+                    x += sx;
+                    yd += ay;
+                    zd += az;
+
+                    if (x == x2)
+                        return true;
+
+                    ushort block = blocks[GetBlockOffset(x, y, z)];
+                    if (block != 0 && !blockLightPassThrough[block])
+                        return false;
                 }
-                else if (tMaxY < tMaxZ)
+            }
+            
+            if (ay >= Math.Max(ax, az))            /* y dominant */
+            {
+                xd = ax - (ay >> 1);
+                zd = az - (ay >> 1);
+                for (;;)
                 {
-                    y = y + stepY;
-                    tMaxY = tMaxY + tStepY;
+                    if (xd >= 0)
+                    {
+                        x += sx;
+                        xd -= ay;
+                    }
+
+                    if (zd >= 0)
+                    {
+                        z += sz;
+                        zd -= ay;
+                    }
+
+                    y += sy;
+                    xd += ax;
+                    zd += az;
+
+                    if (y == y2)
+                        return true;
+
+                    ushort block = blocks[GetBlockOffset(x, y, z)];
+                    if (block != 0 && !blockLightPassThrough[block])
+                        return false;
                 }
-                else
+            }
+
+            /* z dominant */
+            xd = ax - (az >> 1);
+            yd = ay - (az >> 1);
+            for (;;)
+            {
+                if (xd >= 0)
                 {
-                    z = z + stepZ;
-                    tMaxZ = tMaxZ + tStepZ;
+                    x += sx;
+                    xd -= az;
                 }
 
-                if (x == endX && y == endY && z == endZ)
+                if (yd >= 0)
+                {
+                    y += sy;
+                    yd -= az;
+                }
+
+                z += sz;
+                xd += ax;
+                yd += ay;
+
+                if (z == z2)
                     return true;
 
                 ushort block = blocks[GetBlockOffset(x, y, z)];
-                if (block != 0 && !blockLightPassThrough[block] && ++blockCount >= maxBlocks)
+                if (block != 0 && !blockLightPassThrough[block])
                     return false;
             }
-            while (true);
         }
 
         #region Private helper methods
@@ -276,7 +338,19 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
             Debug.Assert(y >= 0 && y < Block.VoxelSize);
             Debug.Assert(z >= 0 && z < Block.VoxelSize);
 
-            return blockIndex * BlockTotalVoxelCount + (z * Block.VoxelSize + x) * Block.VoxelSize + y; // y-axis major for speed
+            return blockIndex * BlockTotalVoxelCount + (((z << Block.VoxelSizeBitShift) + x) << Block.VoxelSizeBitShift) + y; // y-axis major for speed
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static int FastAbs(int value)
+        {
+            return value >= 0 ? value : -value;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static int FastSign(int value)
+        {
+            return value == 0 ? 0 : (value < 0 ? -1 : 1);
         }
         #endregion
     }
