@@ -136,6 +136,7 @@
     <Compile Include="GUISystem\GUISystem.cs" />
     <Compile Include="ParticleSystem\ParticleSystem.cs" />
     <Compile Include="RenderSystem\EntityLoadQueue.cs" />
+    <Compile Include="RenderSystem\Lighting\GameWorldLightData.cs" />
     <Compile Include="RenderSystem\Lighting\LightInfo.cs" />
     <Compile Include="RenderSystem\Lighting\LightingModel.cs" />
     <Compile Include="RenderSystem\Lighting\LightProvider.cs" />

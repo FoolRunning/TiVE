@@ -35,9 +35,9 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
         /// <param name="cachedLightCalcShadow">Cached lighting calculation needed by the current light model</param>
         public LightInfo(int blockX, int blockY, int blockZ, LightComponent light, float cachedLightCalc, float cachedLightCalcShadow)
         {
-            VoxelLocX = (ushort)(light.Location.X + blockX * Block.VoxelSize);
-            VoxelLocY = (ushort)(light.Location.Y + blockY * Block.VoxelSize);
-            VoxelLocZ = (ushort)(light.Location.Z + blockZ * Block.VoxelSize);
+            VoxelLocX = (ushort)(light.Location.X + (blockX << Block.VoxelSizeBitShift));
+            VoxelLocY = (ushort)(light.Location.Y + (blockY << Block.VoxelSizeBitShift));
+            VoxelLocZ = (ushort)(light.Location.Z + (blockZ << Block.VoxelSizeBitShift));
             LightColor = light.Color;
             this.cachedLightCalc = cachedLightCalc;
             this.cachedLightCalcShadow = cachedLightCalcShadow;
@@ -63,17 +63,17 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
 
         public int BlockX
         {
-            get { return VoxelLocX / Block.VoxelSize; }
+            get { return VoxelLocX >> Block.VoxelSizeBitShift; }
         }
 
         public int BlockY
         {
-            get { return VoxelLocY / Block.VoxelSize; }
+            get { return VoxelLocY >> Block.VoxelSizeBitShift; }
         }
 
         public int BlockZ
         {
-            get { return VoxelLocZ / Block.VoxelSize; }
+            get { return VoxelLocZ >> Block.VoxelSizeBitShift; }
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

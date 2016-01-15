@@ -46,5 +46,10 @@ namespace ProdigalSoftware.TiVE.Debugging
             if (newCount > maxCount)
                 maxCount = newCount;
         }
+
+        public override string ToString()
+        {
+            return DisplayedValue;
+        }
     }
 }

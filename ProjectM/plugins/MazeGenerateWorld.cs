@@ -11,8 +11,15 @@ namespace ProdigalSoftware.ProjectM.Plugins
     [UsedImplicitly]
     public class MazeGenerateWorld : IWorldGenerator
     {
+        private static readonly Random random = new Random();
+
         private const int RoomLightId = 100;
         private const int DoorAreaId = 2100;
+
+        private const int RoomTreasureChestId = 1;
+        private const int RoomColumnId = 2;
+        private const int RoomFountainId = 3;
+        private const int RoomFireId = 4;
 
         private enum Direction { Up, Down, Left, Right, None }
 
@@ -36,13 +43,11 @@ namespace ProdigalSoftware.ProjectM.Plugins
             IGameWorld gameWorld = Factory.CreateGameWorld(513, 513, 12); // x-axis and y-axis must be divisible by 3
             gameWorld.LightingModelType = LightingModelType.Realistic;
 
-            Random random = new Random();
-
             MazeCell[,] dungeonMap = new MazeCell[gameWorld.BlockSize.X / 3, gameWorld.BlockSize.Y / 3];
-            List<Vector3i> rooms = CreateRandomRooms(110, random, 3, 11, 3, 11).ToList();
-            int mazeStartAreaId = PlaceRooms(rooms, dungeonMap, 25, random);
-            int lastUsedId = FillBlankWithMaze(dungeonMap, random, mazeStartAreaId);
-            CreateDoors(dungeonMap, random, lastUsedId);
+            List<Vector3i> rooms = CreateRandomRooms(110, 3, 11, 3, 11).ToList();
+            int mazeStartAreaId = PlaceRooms(rooms, dungeonMap, 25);
+            int lastUsedId = FillBlankWithMaze(dungeonMap, mazeStartAreaId);
+            CreateDoors(dungeonMap, lastUsedId);
             CleanUpDeadEnds(dungeonMap, 100);
 
             //Console.WriteLine("\n\nFinished Maze:");
@@ -55,8 +60,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
         }
 
         #region Room placement methods
-        private static IEnumerable<Vector3i> CreateRandomRooms(int numOfRooms, Random random,
-            int minWidth, int maxWidth, int minHeight, int maxHeight)
+        private static IEnumerable<Vector3i> CreateRandomRooms(int numOfRooms, int minWidth, int maxWidth, int minHeight, int maxHeight)
         {
             for (int i = 0; i < numOfRooms; i++)
             {
@@ -67,7 +71,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
             }
         }
 
-        private static int PlaceRooms(List<Vector3i> rooms, MazeCell[,] dungeonMap, int maxTries, Random random)
+        private static int PlaceRooms(List<Vector3i> rooms, MazeCell[,] dungeonMap, int maxTries)
         {
             int maxWidth = dungeonMap.GetLength(0) - 2;
             int maxHeight = dungeonMap.GetLength(1) - 2;
@@ -102,6 +106,10 @@ namespace ProdigalSoftware.ProjectM.Plugins
                 }
             }
 
+            bool isBigRoom = room.X >= 9 && room.Y >= 9;
+            int testValue = random.Next(10);
+            bool createFountains = testValue < 4;
+            bool createFire = !createFountains && testValue < 7;
             for (int x = 0; x < room.X; x++)
             {
                 for (int y = 0; y < room.Y; y++)
@@ -110,18 +118,30 @@ namespace ProdigalSoftware.ProjectM.Plugins
 
                     if ((x == 1 || x == room.X - 2) && (y == 1 || y == room.Y - 2))
                         dungeonMap[x + roomX, y + roomY].LightId = RoomLightId;
+                    else if (isBigRoom && (x % 9 == 4 || room.X - x - 1 % 9 == 4) && ((y % 9 == 4 || room.Y - y - 1 % 9 == 4)))
+                    {
+                        if (createFountains)
+                            dungeonMap[x + roomX, y + roomY].ItemId = RoomFountainId;
+                        else if (createFire)
+                            dungeonMap[x + roomX, y + roomY].ItemId = RoomFireId;
+                        else
+                            dungeonMap[x + roomX, y + roomY].ItemId = RoomColumnId;
+                    }
                 }
             }
+
+            if (room.X == 3 && room.Y == 3)
+                dungeonMap[roomX + 1, roomY + 1].ItemId = RoomTreasureChestId; // Very tiny room are considered treasure rooms
             return true;
         }
         #endregion
 
         #region Maze generation methods
-        private static int FillBlankWithMaze(MazeCell[,] dungeonMap, Random random, int mazeAreaId)
+        private static int FillBlankWithMaze(MazeCell[,] dungeonMap, int mazeAreaId)
         {
             List<MazeCellLocation> cellsInMaze = new List<MazeCellLocation>();
 
-            MazeCellLocation cell = FindBlankSpace(dungeonMap, random);
+            MazeCellLocation cell = FindBlankSpace(dungeonMap);
             cellsInMaze.Add(cell);
             dungeonMap[cell.X, cell.Y].AreaId = mazeAreaId;
 
@@ -130,7 +150,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
             int lightId = 0;
             while (cellsInMaze.Count > 0)
             {
-                Direction dir = cell != MazeCellLocation.None ? ChooseRandomDirection(cell, dungeonMap, random) : Direction.None;
+                Direction dir = cell != MazeCellLocation.None ? ChooseRandomDirection(cell, dungeonMap) : Direction.None;
                 if (dir == Direction.None)
                 {
                     // Couldn't continue with current road so find a good place for another one
@@ -154,7 +174,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
                     else
                     {
                         // There are no more cells in the maze path so we need to find a brand new location to start a new maze path
-                        cell = FindBlankSpace(dungeonMap, random);
+                        cell = FindBlankSpace(dungeonMap);
                         if (cell != MazeCellLocation.None)
                         {
                             cellsInMaze.Add(cell);
@@ -202,7 +222,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
             return mazeAreaId;
         }
 
-        private static MazeCellLocation FindBlankSpace(MazeCell[,] dungeonMap, Random random)
+        private static MazeCellLocation FindBlankSpace(MazeCell[,] dungeonMap)
         {
             const int maxTries = 10000;
 
@@ -227,7 +247,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
             return MazeCellLocation.None;
         }
 
-        private static Direction ChooseRandomDirection(MazeCellLocation cell, MazeCell[,] dungeonMap, Random random)
+        private static Direction ChooseRandomDirection(MazeCellLocation cell, MazeCell[,] dungeonMap)
         {
             int maxWidth = dungeonMap.GetLength(0);
             int maxHeight = dungeonMap.GetLength(1);
@@ -255,7 +275,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
         #endregion
 
         #region Door placement methods
-        private static void CreateDoors(MazeCell[,] dungeonMap, Random random, int lastUsedId)
+        private static void CreateDoors(MazeCell[,] dungeonMap, int lastUsedId)
         {
             // Find possible door points at places where rooms and maze (or another room) meet
             FindDoorPoints(dungeonMap);
@@ -415,9 +435,12 @@ namespace ProdigalSoftware.ProjectM.Plugins
             ushort dirt = blockList["dirt"];
             ushort stoneBack = blockList["backStone"];
             ushort stone = blockList["ston0"];
-            //ushort fire = blockList["fire"];
+            ushort wood = blockList["wood0"];
+            ushort fountain = blockList["fountain"];
+            ushort smallLight = blockList["smallLight"];
+            //ushort smallLightHover = blockList["smallLightHover"];
+            ushort fire = blockList["fire"];
             //ushort lava = blockList["lava0"];
-            //ushort fountain = blockList["fountain"];
 
             for (int x = 0; x < gameWorld.BlockSize.X; x++)
             {
@@ -426,6 +449,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
                     int mazeLocX = x / 3;
                     int mazeLocY = y / 3;
                     int areaId = dungeonMap[mazeLocX, mazeLocY].AreaId;
+                    int itemId = dungeonMap[mazeLocX, mazeLocY].ItemId;
                     if (areaId == 0)
                     {
                         gameWorld[x, y, 2] = stone;
@@ -435,6 +459,8 @@ namespace ProdigalSoftware.ProjectM.Plugins
                         gameWorld[x, y, 6] = stone;
                         gameWorld[x, y, 7] = stone;
                         //gameWorld[x, y, 8] = stone;
+                        //gameWorld[x, y, 9] = stone;
+                        //gameWorld[x, y, 10] = stone;
 
                         //if (mazeLocX == 0 || (dungeonMap[mazeLocX - 1, mazeLocY].AreaId > 0 && dungeonMap[mazeLocX - 1, mazeLocY].AreaId < mazeStartAreaId) ||
                         //    mazeLocX == dungeonMap.GetLength(0) - 1 || (dungeonMap[mazeLocX + 1, mazeLocY].AreaId > 0 && dungeonMap[mazeLocX + 1, mazeLocY].AreaId < mazeStartAreaId) ||
@@ -459,6 +485,36 @@ namespace ProdigalSoftware.ProjectM.Plugins
                     {
                         // Room
                         gameWorld[x, y, 2] = stoneBack;
+                    }
+
+                    if (itemId == RoomTreasureChestId)
+                        gameWorld[x, y, 3] = wood;
+                    else if (itemId == RoomFountainId)
+                    {
+                        gameWorld[x, y, 3] = wood;
+                        if (x % 3 == 1 && y % 3 == 1)
+                            gameWorld[x, y, 4] = fountain;
+                        if ((x % 3 == 0 || x % 3 == 2) && (y % 3 == 0 || y % 3 == 2))
+                            gameWorld[x, y, 4] = smallLight;
+                    }
+                    else if (itemId == RoomFireId)
+                    {
+                        gameWorld[x, y, 3] = wood;
+                        if (x % 3 == 1 && y % 3 == 1)
+                            gameWorld[x, y, 4] = fire;
+                    }
+                    else if (itemId == RoomColumnId && x % 3 == 1 && y % 3 == 1)
+                    {
+                        gameWorld[x, y, 3] = wood;
+                        gameWorld[x, y, 4] = wood;
+                        gameWorld[x, y, 5] = wood;
+                        gameWorld[x, y, 6] = wood;
+                        gameWorld[x, y, 7] = wood;
+                        //gameWorld[x, y, 8] = wood;
+                        gameWorld[x - 1, y, 7] = wood;
+                        gameWorld[x + 1, y, 7] = wood;
+                        gameWorld[x, y - 1, 7] = wood;
+                        gameWorld[x, y + 1, 7] = wood;
                     }
 
                     int lightId = dungeonMap[mazeLocX, mazeLocY].LightId;
@@ -498,17 +554,17 @@ namespace ProdigalSoftware.ProjectM.Plugins
         {
             HashSet<ushort> blocksToConsiderEmpty = new HashSet<ushort>();
             blocksToConsiderEmpty.Add(0);
+            blocksToConsiderEmpty.Add(blockList["smallLightHover"]);
             for (int i = 0; i < 50; i++)
                 blocksToConsiderEmpty.Add(blockList["grass" + i]);
             for (int i = 0; i < 6; i++)
                 blocksToConsiderEmpty.Add(blockList["light" + i]);
 
             HashSet<ushort> blocksToSmooth = new HashSet<ushort>();
-            List<ushort> stoneBlocks = new List<ushort>(64);
             for (int i = 0; i < 64; i++)
             {
                 blocksToSmooth.Add(blockList["ston" + i]);
-                stoneBlocks.Add(blockList["ston" + i]);
+                blocksToSmooth.Add(blockList["wood" + i]);
             }
 
             for (int z = 0; z < gameWorld.BlockSize.Z; z++)
@@ -541,7 +597,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
                         if (y == 0 || blocksToConsiderEmpty.Contains(gameWorld[x, y - 1, z]))
                             sides |= Bottom;
 
-                        gameWorld[x, y, z] = stoneBlocks[sides];
+                        gameWorld[x, y, z] = (ushort)(blockIndex + sides);
                     }
                 }
             }
@@ -610,6 +666,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
         {
             public int AreaId;
             public int LightId;
+            public int ItemId;
             public bool PossibleDoorPoint;
         }
         #endregion

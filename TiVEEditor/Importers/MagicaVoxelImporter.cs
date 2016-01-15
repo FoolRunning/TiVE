@@ -3,7 +3,7 @@ using System.IO;
 using ProdigalSoftware.TiVE.RenderSystem.World;
 using ProdigalSoftware.TiVEPluginFramework;
 
-namespace ProdigalSoftware.TiVEEditor.BlockLists
+namespace ProdigalSoftware.TiVEEditor.Importers
 {
     /// <summary>
     /// Taken from http://www.giawa.com/magicavoxel-c-importer/
@@ -32,6 +32,114 @@ namespace ProdigalSoftware.TiVEEditor.BlockLists
 };
         #endregion
 
+        /// <summary>
+        /// Load a MagicaVoxel .vox format file.
+        /// </summary>
+        public static Block CreateBlock(string filePath, string blockName)
+        {
+            VoxelSprite spriteData = CreateSprite(filePath);
+
+            int sizex = Math.Min(spriteData.Size.X, Block.VoxelSize);
+            int sizey = Math.Min(spriteData.Size.Y, Block.VoxelSize);
+            int sizez = Math.Min(spriteData.Size.Z, Block.VoxelSize);
+
+            Block block = new BlockImpl(blockName);
+            for (int z = 0; z < sizez; z++)
+            {
+                for (int x = 0; x < sizex; x++)
+                {
+                    for (int y = 0; y < sizey; y++)
+                        block[x, y, z] = spriteData[x, y, z];
+                }
+            }
+
+            return block;
+        }
+
+        /// <summary>
+        /// Load a MagicaVoxel .vox format file.
+        /// </summary>
+        public static VoxelSprite CreateSprite(string filePath)
+        {
+            using (BinaryReader stream = new BinaryReader(new FileStream(filePath, FileMode.Open)))
+            {
+                // check out http://voxel.codeplex.com/wikipage?title=VOX%20Format&referringTitle=Home for the file format used below
+                // we're going to return a voxel chunk worth of data
+                uint[] colors = voxColors;
+                MagicaVoxelData[] voxelData = null;
+
+                string mainId = new string(stream.ReadChars(4));
+                if (mainId != "VOX ")
+                    return null;
+
+                int version = stream.ReadInt32();
+                if (version != 150)
+                    return null;
+
+                int sizex = 0, sizey = 0, sizez = 0;
+
+                while (stream.BaseStream.Position < stream.BaseStream.Length)
+                {
+                    // each chunk has an ID, size and child chunks
+                    string chunkName = new string(stream.ReadChars(4));
+                    int chunkSize = stream.ReadInt32();
+                    int childChunks = stream.ReadInt32();
+
+                    // there are only 2 chunks we only care about, and they are SIZE and XYZI
+                    if (chunkName == "SIZE")
+                    {
+                        sizex = stream.ReadInt32();
+                        sizey = stream.ReadInt32();
+                        sizez = stream.ReadInt32();
+
+                        stream.ReadBytes(chunkSize - 4 * 3);
+                    }
+                    else if (chunkName == "XYZI")
+                    {
+                        // XYZI contains n voxels
+                        int numVoxels = stream.ReadInt32();
+
+                        // each voxel has x, y, z and color index values
+                        voxelData = new MagicaVoxelData[numVoxels];
+                        for (int i = 0; i < voxelData.Length; i++)
+                            voxelData[i] = new MagicaVoxelData(stream);
+                    }
+                    else if (chunkName == "RGBA")
+                    {
+                        colors = new uint[256];
+
+                        for (int i = 1; i < 256; i++)
+                        {
+                            byte r = stream.ReadByte();
+                            byte g = stream.ReadByte();
+                            byte b = stream.ReadByte();
+                            byte a = stream.ReadByte();
+                            colors[i] = (uint)((r << 24) | (g << 16) | (b << 8) | a);
+                        }
+
+                        stream.ReadInt32(); // Skip reserved last color
+                    }
+                    else
+                        stream.ReadBytes(chunkSize);   // skip any other chunks
+                }
+
+                if (voxelData == null || voxelData.Length == 0)
+                    return null; // failed to read any valid voxel data
+
+                // now push the voxel data into our voxel chunk structure
+                VoxelSprite sprite = new VoxelSprite(sizex, sizey, sizez);
+                for (int i = 0; i < voxelData.Length; i++)
+                {
+                    if (voxelData[i].X >= sizex || voxelData[i].Y >= sizey || voxelData[i].Z >= sizez)
+                        continue; // do not store this voxel if it lies out of range of the voxels
+
+                    sprite[voxelData[i].X, voxelData[i].Y, voxelData[i].Z] = (Voxel)colors[voxelData[i].Color];
+                }
+
+                return sprite;
+            }
+        }
+
         #region MagicaVoxelData structure
         private struct MagicaVoxelData
         {
@@ -49,110 +157,5 @@ namespace ProdigalSoftware.TiVEEditor.BlockLists
             }
         }
         #endregion
-
-        /// <summary>
-        /// Load a MagicaVoxel .vox format file.
-        /// </summary>
-        public static Block CreateBlock(BinaryReader stream, string blockName)
-        {
-            Block block = new BlockImpl(blockName);
-            VoxelSprite spriteData = CreateSprite(stream);
-
-            int sizex = Math.Min(spriteData.Size.X, Block.VoxelSize);
-            int sizey = Math.Min(spriteData.Size.Y, Block.VoxelSize);
-            int sizez = Math.Min(spriteData.Size.Z, Block.VoxelSize);
-
-            for (int z = 0; z < sizez; z++)
-            {
-                for (int x = 0; x < sizex; x++)
-                {
-                    for (int y = 0; y < sizey; y++)
-                        block[x, y, z] = spriteData[x, y, z];
-                }
-            }
-
-            return block;
-        }
-
-        /// <summary>
-        /// Load a MagicaVoxel .vox format file.
-        /// </summary>
-        public static VoxelSprite CreateSprite(BinaryReader stream)
-        {
-            // check out http://voxel.codeplex.com/wikipage?title=VOX%20Format&referringTitle=Home for the file format used below
-            // we're going to return a voxel chunk worth of data
-            uint[] colors = voxColors;
-            MagicaVoxelData[] voxelData = null;
-
-            string mainId = new string(stream.ReadChars(4));
-            if (mainId != "VOX ")
-                return null;
-
-            int version = stream.ReadInt32();
-            if (version != 150)
-                return null;
-
-            int sizex = 0, sizey = 0, sizez = 0;
-
-            while (stream.BaseStream.Position < stream.BaseStream.Length)
-            {
-                // each chunk has an ID, size and child chunks
-                string chunkName = new string(stream.ReadChars(4));
-                int chunkSize = stream.ReadInt32();
-                int childChunks = stream.ReadInt32();
-
-                // there are only 2 chunks we only care about, and they are SIZE and XYZI
-                if (chunkName == "SIZE")
-                {
-                    sizex = stream.ReadInt32();
-                    sizey = stream.ReadInt32();
-                    sizez = stream.ReadInt32();
-
-                    stream.ReadBytes(chunkSize - 4 * 3);
-                }
-                else if (chunkName == "XYZI")
-                {
-                    // XYZI contains n voxels
-                    int numVoxels = stream.ReadInt32();
-
-                    // each voxel has x, y, z and color index values
-                    voxelData = new MagicaVoxelData[numVoxels];
-                    for (int i = 0; i < voxelData.Length; i++)
-                        voxelData[i] = new MagicaVoxelData(stream);
-                }
-                else if (chunkName == "RGBA")
-                {
-                    colors = new uint[256];
-
-                    for (int i = 1; i < 256; i++)
-                    {
-                        byte r = stream.ReadByte();
-                        byte g = stream.ReadByte();
-                        byte b = stream.ReadByte();
-                        byte a = stream.ReadByte();
-                        colors[i] = (uint)((r << 24) | (g << 16) | (b << 8) | a);
-                    }
-
-                    stream.ReadInt32(); // Skip reserved last color
-                }
-                else
-                    stream.ReadBytes(chunkSize);   // skip any other chunks
-            }
-
-            if (voxelData == null || voxelData.Length == 0)
-                return null; // failed to read any valid voxel data
-
-            // now push the voxel data into our voxel chunk structure
-            VoxelSprite sprite = new VoxelSprite(sizex, sizey, sizez);
-            for (int i = 0; i < voxelData.Length; i++)
-            {
-                if (voxelData[i].X >= sizex || voxelData[i].Y >= sizey || voxelData[i].Z >= sizez)
-                    continue; // do not store this voxel if it lies out of range of the voxels
-
-                sprite[voxelData[i].X, voxelData[i].Y, voxelData[i].Z] = (Voxel)colors[voxelData[i].Color];
-            }
-
-            return sprite;
-        }
     }
 }

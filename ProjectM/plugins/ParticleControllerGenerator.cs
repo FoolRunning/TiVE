@@ -222,9 +222,9 @@ namespace ProdigalSoftware.ProjectM.Plugins
                 particle.VelZ = (float)random.NextDouble() * 30.0f + 110.0f;
                 particle.VelY = (float)Math.Sin(angle) * totalVel;
 
-                particle.X = systemLocation.X;
-                particle.Y = systemLocation.Y;
-                particle.Z = systemLocation.Z;
+                particle.X = systemLocation.X - 1;
+                particle.Y = systemLocation.Y - 1;
+                particle.Z = systemLocation.Z - 1;
 
                 particle.Color = colorList[0];
                 particle.Time = AliveTime;

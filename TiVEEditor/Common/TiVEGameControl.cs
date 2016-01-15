@@ -34,6 +34,11 @@ namespace ProdigalSoftware.TiVEEditor.Common
             }
         }
 
+        public Scene Scene
+        {
+            get { return scene; }
+        }
+
         public GameWorld GameWorld
         {
             get { return scene.GameWorld; }

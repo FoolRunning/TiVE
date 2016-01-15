@@ -90,7 +90,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem
                 entityLoadQueue.Clear();
 
             foreach (IEntity entity in loadedEntities)
-                DeleteEntity(entity);
+                DeleteEntityMesh(entity);
             loadedEntities.Clear();
         }
         #endregion
@@ -136,7 +136,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem
                 if (!entitiesToRender.Contains(entity))
                 {
                     entitiesToDelete.Add(entity);
-                    DeleteEntity(entity);
+                    DeleteEntityMesh(entity);
                 }
             }
 
@@ -294,7 +294,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem
             GameWorld gameWorld = scene.GameWorld;
             BlockList blockList = scene.BlockList;
 
-            scene.LightProvider.CacheLightsInBlocksForChunk(chunkData);
+            scene.LightData.CacheLightsInBlocksForChunk(chunkData.ChunkLoc.X, chunkData.ChunkLoc.Y, chunkData.ChunkLoc.Z);
 
             int blockStartX = chunkData.ChunkBlockLoc.X;
             int blockEndX = Math.Min((chunkData.ChunkLoc.X + 1) * ChunkComponent.BlockSize, gameWorld.BlockSize.X);
@@ -303,9 +303,9 @@ namespace ProdigalSoftware.TiVE.RenderSystem
             int blockStartZ = chunkData.ChunkBlockLoc.Z;
             int blockEndZ = Math.Min((chunkData.ChunkLoc.Z + 1) * ChunkComponent.BlockSize, gameWorld.BlockSize.Z);
 
-            int voxelStartX = blockStartX * Block.VoxelSize;
-            int voxelStartY = blockStartY * Block.VoxelSize;
-            int voxelStartZ = blockStartZ * Block.VoxelSize;
+            int voxelStartX = blockStartX << Block.VoxelSizeBitShift;
+            int voxelStartY = blockStartY << Block.VoxelSizeBitShift;
+            int voxelStartZ = blockStartZ << Block.VoxelSizeBitShift;
 
             int voxelCount = 0;
             int renderedVoxelCount = 0;
@@ -385,11 +385,11 @@ namespace ProdigalSoftware.TiVE.RenderSystem
             //for (int bvz = Block.VoxelSize - 1; bvz >= 0; bvz -= voxelSize)
             for (int bvz = 0; bvz < Block.VoxelSize; bvz += voxelSize)
             {
-                int voxelZ = blockZ * Block.VoxelSize + bvz;
+                int voxelZ = (blockZ << Block.VoxelSizeBitShift) + bvz;
                 byte chunkVoxelZ = (byte)(voxelZ - voxelStartZ);
                 for (int bvx = 0; bvx < Block.VoxelSize; bvx += voxelSize)
                 {
-                    int voxelX = blockX * Block.VoxelSize + bvx;
+                    int voxelX = (blockX << Block.VoxelSizeBitShift) + bvx;
                     byte chunkVoxelX = (byte)(voxelX - voxelStartX);
                     for (int bvy = 0; bvy < Block.VoxelSize; bvy += voxelSize)
                     {
@@ -397,7 +397,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem
                         if (vox == 0)
                             continue;
 
-                        int voxelY = blockY * Block.VoxelSize + bvy;
+                        int voxelY = (blockY << Block.VoxelSizeBitShift) + bvy;
 
                         VoxelSides sides = VoxelSides.None;
 
@@ -460,20 +460,8 @@ namespace ProdigalSoftware.TiVE.RenderSystem
                             if (voxelAdjusterComponent != null)
                                 vox = voxelAdjusterComponent.Adjuster(vox);
 
-                            Color4b voxelColor;
-                            if (!blockIsLit)
-                                voxelColor = (Color4b)vox;
-                            else
-                            {
-                                Color3f lightColor = lightProvider.GetLightAt(voxelX, voxelY, voxelZ, voxelSize, blockX, blockY, blockZ, sides);
-                                byte a = vox.A;
-                                byte r = (byte)Math.Min(255, (int)(vox.R * lightColor.R));
-                                byte g = (byte)Math.Min(255, (int)(vox.G * lightColor.G));
-                                byte b = (byte)Math.Min(255, (int)(vox.B * lightColor.B));
-                                voxelColor = new Color4b(r, g, b, a);
-                            }
-
-                            polygonCount += meshHelper.AddVoxel(meshBuilder, sides, chunkVoxelX, (byte)(voxelY - voxelStartY), chunkVoxelZ, voxelColor, voxelSize);
+                            polygonCount += meshHelper.AddVoxel(meshBuilder, sides, chunkVoxelX, (byte)(voxelY - voxelStartY), chunkVoxelZ, 
+                                blockIsLit ? lightProvider.GetFinalColor(vox, voxelX, voxelY, voxelZ, voxelSize, blockX, blockY, blockZ, sides) : (Color4b)vox, voxelSize);
                             renderedVoxelCount++;
                         }
                     }
@@ -532,7 +520,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem
         /// Deletes the mesh data and cached render information for the specified entity. This method does nothing if the specified entitiy has
         /// not had a mesh created yet.
         /// </summary>
-        private void DeleteEntity(IEntity entity)
+        private void DeleteEntityMesh(IEntity entity)
         {
             VoxelMeshComponent renderData = entity.GetComponent<VoxelMeshComponent>();
             using (new PerformanceLock(renderData.SyncLock))
@@ -557,9 +545,9 @@ namespace ProdigalSoftware.TiVE.RenderSystem
                 renderData.RenderedVoxelCount = 0;
             }
 
-            ChunkComponent chunkData = entity.GetComponent<ChunkComponent>();
-            if (chunkData != null)
-                loadedScene.LightProvider.RemoveLightsForChunk(chunkData);
+            //ChunkComponent chunkData = entity.GetComponent<ChunkComponent>();
+            //if (chunkData != null)
+            //    loadedScene.LightProvider.RemoveLightsForChunk(chunkData);
         }
 
         /// <summary>

@@ -94,11 +94,11 @@ namespace ProdigalSoftware.TiVE.ParticleSystem
             if (currentScene.LoadingInitialChunks)
                 return true;
 
-            //if (particleUpdateThread == null)
-            //{
-            //    // Running in single-threaded mode
-            //    UpdateEntities(timeSinceLastUpdate);
-            //}
+            if (particleUpdateThread == null)
+            {
+                // Running in single-threaded mode
+                UpdateEntities(ticksSinceLastFrame / (float)Stopwatch.Frequency);
+            }
 
             IShaderProgram shader = shaderManager.GetShaderProgram(VoxelMeshHelper.Get(true).ShaderName);
             shader.Bind();

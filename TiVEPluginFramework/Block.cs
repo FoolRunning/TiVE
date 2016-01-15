@@ -4,9 +4,13 @@ namespace ProdigalSoftware.TiVEPluginFramework
 {
     public abstract class Block
     {
-        /// <summary>Number of voxels that make up a block on each axis</summary>
+        /// <summary>Number of voxels that make up a block on each axis (must be a power-of-two)</summary>
         [PublicAPI]
         public const int VoxelSize = 16;
+        /// <summary>Number of bit shifts neccessary on a number to produce the number of voxels on each axis.
+        /// This allows us to quickly multiply or divide a value by the voxel size by bitshifting</summary>
+        [PublicAPI]
+        public const int VoxelSizeBitShift = 4;
 
         [PublicAPI]
         public abstract string Name { get; }

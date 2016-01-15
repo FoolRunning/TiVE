@@ -14,11 +14,9 @@ namespace ProdigalSoftware.TiVEPluginFramework
         /// <summary>Represents a voxel location that is not filled in.</summary>
         [PublicAPI] public static readonly Voxel Empty = new Voxel(0x00000000);
         /// <summary>Represents a voxel location that is filled in with a solid black color.</summary>
-        [PublicAPI]
-        public static readonly Voxel Black = new Voxel(0x000000FF);
+        [PublicAPI] public static readonly Voxel Black = new Voxel(0x000000FF);
         /// <summary>Represents a voxel location that is filled in with a solid white color.</summary>
-        [PublicAPI]
-        public static readonly Voxel White = new Voxel(0xFFFFFFFF);
+        [PublicAPI] public static readonly Voxel White = new Voxel(0xFFFFFFFF);
 
         private readonly uint value;
 

@@ -26,6 +26,8 @@ namespace ProdigalSoftware.TiVE.Core
 
         public LightProvider LightProvider { get; private set; }
 
+        public GameWorldLightData LightData { get; private set; }
+
         public GameWorld GameWorld { get; private set; }
 
         public RootRenderNode RenderNode { get; private set; }
@@ -96,10 +98,11 @@ namespace ProdigalSoftware.TiVE.Core
             BlockList = newBlockList;
             GameWorld.Initialize(BlockList);
             RenderNode = new RootRenderNode(GameWorld, this);
+            LightProvider = LightProvider.Get(this);
 
             // Calculate static lighting
-            LightProvider = LightProvider.Get(this);
-            LightProvider.Calculate();
+            LightData = new GameWorldLightData(this);
+            LightData.Calculate();
         }
         #endregion
 

@@ -50,10 +50,10 @@ function update(entity, timeSinceLastFrame)
     if (keyPressed(Keys.KeypadPlus) and voxelAt(camLoc.X, camLoc.Y, camLoc.Z - 2) == 0) then --Zoom in
         camLoc.Z = max(camLoc.Z - 2, 2 * BlockSize)
     elseif (keyPressed(Keys.KeypadMinus) and voxelAt(camLoc.X, camLoc.Y, camLoc.Z + 2) == 0) then --Zoom out
-        camLoc.Z = min(camLoc.Z + 2, 55 * BlockSize)
+        camLoc.Z = min(camLoc.Z + 2, 50 * BlockSize)
     end
 
     camera.Location = camLoc
-    camera.LookAtLocation = vector(camLoc.X, camLoc.Y + 35, camLoc.Z - 150)
+    camera.LookAtLocation = vector(camLoc.X, camLoc.Y + 35, camLoc.Z - 100)
 end
 
