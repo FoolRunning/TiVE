@@ -35,13 +35,13 @@ namespace ProdigalSoftware.ProjectM.Plugins
 
             for (int i = 0; i < 64; i++)
             {
-                yield return CreateRoundedBlockInfo("lava" + i, new Voxel(200, 15, 8), 1.0f, i,
-                    new LightComponent(new Vector3b(bc, bc, bc), new Color3f(0.2f, 0.01f, 0.005f), 4));
+                yield return CreateRoundedBlockInfo("lava" + i, new Voxel(200, 15, 8, 255, VoxelSettings.AllowLightPassthrough | VoxelSettings.IgnoreLighting), 1.0f, i,
+                    new LightComponent(new Vector3b(bc, bc, bc), new Color3f(0.2f, 0.01f, 0.005f), 4), 0.1f);
             }
 
             for (int i = 0; i < 64; i++)
             {
-                Block stone = CreateRoundedBlockInfo("ston" + i, new Voxel(220, 220, 220), 1.0f, i);
+                Block stone = CreateRoundedBlockInfo("ston" + i, new Voxel(240, 240, 240), 1.0f, i, null, 0.3f);
                 for (int x = 0; x <= mv; x++)
                 {
                     for (int y = 0; y <= mv; y++)
@@ -157,8 +157,8 @@ namespace ProdigalSoftware.ProjectM.Plugins
             for (int i = 0; i < 50; i++)
             {
                 Block grass = Factory.CreateBlock("grass" + i);
-                grass.AddComponent(TransparentComponent.Instance);
-                grass.AddComponent(new VoxelAdjusterComponent(0.1f));
+                grass.AddComponent(new VoxelAdjusterComponent(0.2f));
+                grass.AddComponent(LightPassthroughComponent.Instance);
 
                 for (int z = 0; z < Block.VoxelSize; z++)
                 {
@@ -168,21 +168,12 @@ namespace ProdigalSoftware.ProjectM.Plugins
                         {
                             if (random.NextDouble() < 0.5 - z / 50.0 && (z == 0 || GrassVoxelUnder(grass, x, y, z)))
                             {
-                                grass[x, y, z] = new Voxel(70, 240, 50);
+                                grass[x, y, z] = new Voxel(70, 240, 50, 255, VoxelSettings.SkipVoxelNormalCalc);
                                 if (z == Block.VoxelSize - 1 && random.NextDouble() < 0.2 &&
                                     x > 0 && x < Block.VoxelSize - 1 && y > 0 && y < Block.VoxelSize - 1)
                                 {
                                     // Make a flower
                                     Voxel flowerVoxel = CreateRandomFlowerVoxel();
-                                    // Clear out space for the flower to keep the voxel normals from being strange
-                                    for (int fx = x - 1; fx <= x + 1; fx++)
-                                    {
-                                        for (int fy = y - 1; fy <= y + 1; fy++)
-                                        {
-                                            grass[fx, fy, z] = Voxel.Empty;
-                                            grass[fx, fy, z - 1] = Voxel.Empty;
-                                        }
-                                    }
                                     grass[x, y, z] = flowerVoxel;
                                     grass[x - 1, y, z - 1] = flowerVoxel;
                                     grass[x + 1, y, z - 1] = flowerVoxel;
@@ -198,7 +189,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
             }
 
             yield return CreateBlockInfo("backStone", 0, new Color4f(240, 240, 240, 255), 1.0f, colorVariation: 0.3f);
-            yield return CreateBlockInfo("dirt", 0, new Color4f(0.6f, 0.45f, 0.25f, 1.0f), 1.0f, colorVariation: 0.3f);
+            yield return CreateBlockInfo("dirt", 0, new Color4f(0.6f, 0.45f, 0.25f, 1.0f), 1.0f, colorVariation: 0.4f);
 
             Block fireBlock = Factory.CreateBlock("fire");
             fireBlock.AddComponent(new ParticleComponent("Fire", new Vector3i(bc, bc, 1)));
@@ -214,26 +205,26 @@ namespace ProdigalSoftware.ProjectM.Plugins
 
             const int lightDist = forFantasy ? 25 : 45;
             const float bright = forFantasy ? 0.6f : 1.0f;
-            const float mid = forFantasy ? 0.45f : 0.7f;
+            const float mid = forFantasy ? 0.45f : 0.5f;
             const float dim = forFantasy ? 0.3f : 0.3f;
             ParticleComponent bugInformation = new ParticleComponent("LightBugs", new Vector3i(bc, bc, bc));
 
-            yield return CreateBlockInfo("light0", 2, new Color4f(0.5f, 0.8f, 1.0f, 1.0f), 1.0f, bugInformation,
+            yield return CreateBlockInfo("light0", 2, new Color4f(dim, mid, bright, 1.0f), 1.0f, bugInformation,
                 new LightComponent(blockCenterVector, new Color3f(dim, mid, bright), lightDist));
 
-            yield return CreateBlockInfo("light1", 2, new Color4f(0.8f, 0.5f, 1.0f, 1.0f), 1.0f, bugInformation,
+            yield return CreateBlockInfo("light1", 2, new Color4f(mid, dim, bright, 1.0f), 1.0f, bugInformation,
                 new LightComponent(blockCenterVector, new Color3f(mid, dim, bright), lightDist));
 
-            yield return CreateBlockInfo("light2", 2, new Color4f(1.0f, 0.5f, 0.8f, 1.0f), 1.0f, bugInformation,
+            yield return CreateBlockInfo("light2", 2, new Color4f(bright, dim, mid, 1.0f), 1.0f, bugInformation,
                 new LightComponent(blockCenterVector, new Color3f(bright, dim, mid), lightDist));
 
-            yield return CreateBlockInfo("light3", 2, new Color4f(1.0f, 0.8f, 0.5f, 1.0f), 1.0f, bugInformation,
+            yield return CreateBlockInfo("light3", 2, new Color4f(bright, mid, dim, 1.0f), 1.0f, bugInformation,
                 new LightComponent(blockCenterVector, new Color3f(bright, mid, dim), lightDist));
 
-            yield return CreateBlockInfo("light4", 2, new Color4f(0.5f, 1.0f, 0.8f, 1.0f), 1.0f, bugInformation,
+            yield return CreateBlockInfo("light4", 2, new Color4f(dim, bright, mid, 1.0f), 1.0f, bugInformation,
                 new LightComponent(blockCenterVector, new Color3f(dim, bright, mid), lightDist));
 
-            yield return CreateBlockInfo("light5", 2, new Color4f(0.8f, 1.0f, 0.5f, 1.0f), 1.0f, bugInformation,
+            yield return CreateBlockInfo("light5", 2, new Color4f(mid, bright, dim, 1.0f), 1.0f, bugInformation,
                 new LightComponent(blockCenterVector, new Color3f(mid, bright, dim), lightDist));
 
             yield return CreateBlockInfo("smallLight", 1, new Color4f(1.0f, 1.0f, 1.0f, 1.0f), 1.0f, null,
@@ -257,12 +248,12 @@ namespace ProdigalSoftware.ProjectM.Plugins
         {
             switch (random.Next(6))
             {
-                case 1: return new Voxel(255, 0, 0);
-                case 2: return new Voxel(0, 0, 255);
-                case 3: return new Voxel(255, 0, 255);
-                case 4: return new Voxel(255, 255, 0);
-                case 5: return new Voxel(0, 255, 255);
-                default: return new Voxel(255, 255, 255);
+                case 1: return new Voxel(255, 0, 0, 255, VoxelSettings.SkipVoxelNormalCalc);
+                case 2: return new Voxel(0, 0, 255, 255, VoxelSettings.SkipVoxelNormalCalc);
+                case 3: return new Voxel(255, 0, 255, 255, VoxelSettings.SkipVoxelNormalCalc);
+                case 4: return new Voxel(255, 255, 0, 255, VoxelSettings.SkipVoxelNormalCalc);
+                case 5: return new Voxel(0, 255, 255, 255, VoxelSettings.SkipVoxelNormalCalc);
+                default: return new Voxel(255, 255, 255, 255, VoxelSettings.SkipVoxelNormalCalc);
             }
         }
 
@@ -282,20 +273,23 @@ namespace ProdigalSoftware.ProjectM.Plugins
             return countUnder == 1;
         }
 
-        private static Block CreateRoundedBlockInfo(string name, Voxel voxel, float voxelDensity, int sides, LightComponent light = null)
+        private static Block CreateRoundedBlockInfo(string name, Voxel voxel, float voxelDensity, int sides, LightComponent light = null, float colorVariation = 0.2f)
         {
             const float mid = Block.VoxelSize / 2.0f - 0.5f;
             const float sphereSize = Block.VoxelSize / 2.0f;
 
             Block block = Factory.CreateBlock(name);
-            Random blockRandom = new Random(); // The random class is not thread-safe, so create a new one for each block to prevent graphics glitches
-            block.AddComponent(new VoxelAdjusterComponent(
-                v => v == mortarColor ? v : VoxelAdjusterComponent.LightBrightnessAdjustment(v, 0.3f, blockRandom)));
+            if (colorVariation > 0.0f)
+            {
+                Random blockRandom = new Random(); // The random class is not thread-safe, so create a new one for each block to prevent graphics glitches
+                block.AddComponent(new VoxelAdjusterComponent(
+                    v => v == mortarColor ? v : VoxelAdjusterComponent.LightBrightnessAdjustment(v, colorVariation, blockRandom)));
+            }
 
             if (light != null)
             {
                 block.AddComponent(light);
-                block.AddComponent(UnlitComponent.Instance);
+                block.AddComponent(LightPassthroughComponent.Instance);
             }
 
             for (int x = 0; x < Block.VoxelSize; x++)
@@ -365,6 +359,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
             const int mid = Block.VoxelSize / 2;
 
             Block block = Factory.CreateBlock(name);
+            VoxelSettings settings = VoxelSettings.None;
             if (particleSystem != null)
                 block.AddComponent(particleSystem);
             if (light == null)
@@ -372,11 +367,9 @@ namespace ProdigalSoftware.ProjectM.Plugins
             else
             {
                 block.AddComponent(light);
-                block.AddComponent(UnlitComponent.Instance);
+                block.AddComponent(LightPassthroughComponent.Instance);
+                settings = VoxelSettings.AllowLightPassthrough | VoxelSettings.IgnoreLighting;
             }
-
-            if (light != null)
-                block.AddComponent(TransparentComponent.Instance);
 
             for (int x = 0; x < Block.VoxelSize; x++)
             {
@@ -392,7 +385,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
                         }
 
                         if (random.NextDouble() < voxelDensity)
-                            block[x, y, z] = (Voxel)(Color4b)color;
+                            block[x, y, z] = new Voxel(color.R, color.G, color.B, color.A, settings);
                     }
                 }
             }

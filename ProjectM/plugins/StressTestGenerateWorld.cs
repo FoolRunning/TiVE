@@ -27,7 +27,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
                 return null;
 
             IGameWorld gameWorld = Factory.CreateGameWorld(500, 500, 20);
-            gameWorld.LightingModelType = LightingModelType.Fantasy2;
+            gameWorld.LightingModelType = LightingModelType.Fantasy1;
             long seed = LongRandom();
             FillWorld(gameWorld, seed, blockList);
             CreateCaves(gameWorld, seed);
