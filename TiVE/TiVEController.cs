@@ -77,6 +77,7 @@ namespace ProdigalSoftware.TiVE
 
                 //TestIntStructAccess();
                 DoVoxelRayCastTest();
+                DoFastVoxelRayCastTest();
                 DoBlockLineTest();
 
             });
@@ -123,12 +124,43 @@ namespace ProdigalSoftware.TiVE
             Messages.Println(string.Format("10,000 ray casts took average of {0}ms", totalMs / 20.0f), Color.Chocolate);
         }
 
+        private static void DoFastVoxelRayCastTest()
+        {
+            GameWorld gameWorld = new GameWorld(100, 100, 100);
+            BlockList blockList = new BlockList();
+            blockList.AddBlock(new BlockImpl("dummy"));
+            ushort block = blockList["dummy"];
+            for (int x = 0; x < 100; x++)
+            {
+                for (int z = 0; z < 100; z++)
+                {
+                    for (int y = 0; y < 100; y++)
+                        gameWorld[x, y, z] = block;
+                }
+            }
+
+            gameWorld.Initialize(blockList);
+            int center = gameWorld.VoxelSize.X / 2;
+
+            long totalMs = 0;
+            Stopwatch sw = new Stopwatch();
+            for (int t = 0; t < 20; t++)
+            {
+                sw.Restart();
+                for (int i = 0; i < 10000; i++)
+                    gameWorld.NoVoxelInLineFast(center, center, center, i % center + 200, i % center + 200, i % center + 200);
+                sw.Stop();
+                totalMs += sw.ElapsedMilliseconds;
+            }
+            Messages.Println(string.Format("10,000 fast ray casts took average of {0}ms", totalMs / 20.0f), Color.Chocolate);
+        }
+
         private static void DoBlockLineTest()
         {
             GameWorld gameWorld = new GameWorld(200, 200, 200);
             BlockList blockList = new BlockList();
             BlockImpl block = new BlockImpl("dummy");
-            block.AddComponent(TransparentComponent.Instance);
+            block.AddComponent(LightPassthroughComponent.Instance);
             blockList.AddBlock(block);
             ushort blockId = blockList["dummy"];
             for (int x = 0; x < 100; x++)

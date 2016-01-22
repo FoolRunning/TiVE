@@ -17,6 +17,7 @@ namespace ProdigalSoftware.TiVE.Settings
 
         public const string FullScreenModeKey = "fullScreenMode";
         public const string LightingComplexityKey = "lightingComplexity";
+        public const string ShadowTypeKey = "shadowType";
         //public const string PreLoadLightingKey = "preLoadLighting";
         public const string LightCullingTypeKey = "lightCullType";
         public const string CubifyVoxelsKey = "cubifyVoxels";
@@ -82,8 +83,13 @@ namespace ProdigalSoftware.TiVE.Settings
                 new EnumSetting<LightComplexity>(totalCores > 3 ? LightComplexity.Realistic : LightComplexity.Simple),
                 new UserSettingOption("Simple", new EnumSetting<LightComplexity>(LightComplexity.Simple)),
                 new UserSettingOption("Realistic", new EnumSetting<LightComplexity>(LightComplexity.Realistic)),
-                new UserSettingOption("Realistic with shadows", new EnumSetting<LightComplexity>(LightComplexity.RealisticWithShadows)),
                 new UserSettingOption("Light debug view", new EnumSetting<LightComplexity>(LightComplexity.Debug))));
+
+            settingOptions.Add(new UserSettingOptions(ShadowTypeKey, "Shadow type", UserOptionTab.Display,
+                new EnumSetting<ShadowType>(ShadowType.None),
+                new UserSettingOption("None", new EnumSetting<ShadowType>(ShadowType.None)),
+                new UserSettingOption("Fast", new EnumSetting<ShadowType>(ShadowType.Fast)),
+                new UserSettingOption("Nice", new EnumSetting<ShadowType>(ShadowType.Nice))));
 
             //settingOptions.Add(new UserSettingOptions(PreLoadLightingKey, "Pre-load lighting", UserOptionTab.Advanced, new BoolSetting(true),
             //    new UserSettingOption("True", new BoolSetting(true)),
@@ -94,7 +100,7 @@ namespace ProdigalSoftware.TiVE.Settings
             for (int i = 0; i < numThreadOptions; i++)
                 threadOptions[i] = new UserSettingOption(new IntSetting(i + 1));
             settingOptions.Add(new UserSettingOptions(ChunkCreationThreadsKey, "Chunk creation threads", UserOptionTab.Advanced,
-                new IntSetting(totalCores > 3 ? totalCores - 1 : 1), threadOptions));
+                new IntSetting(totalCores > 3 ? totalCores - 2 : 1), threadOptions));
 
             settingOptions.Add(new UserSettingOptions(UseThreadedParticlesKey, "Threaded particles", UserOptionTab.Advanced, new BoolSetting(totalCores > 3),
                 new UserSettingOption("True", new BoolSetting(true)),

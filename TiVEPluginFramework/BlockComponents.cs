@@ -56,20 +56,11 @@ namespace ProdigalSoftware.TiVEPluginFramework
         }
     }
 
-    public sealed class UnlitComponent : IBlockComponent
+    public sealed class LightPassthroughComponent : IBlockComponent
     {
-        public static readonly IBlockComponent Instance = new UnlitComponent();
+        public static readonly IBlockComponent Instance = new LightPassthroughComponent();
 
-        private UnlitComponent()
-        {
-        }
-    }
-
-    public sealed class TransparentComponent : IBlockComponent
-    {
-        public static readonly IBlockComponent Instance = new TransparentComponent();
-
-        private TransparentComponent()
+        private LightPassthroughComponent()
         {
         }
     }

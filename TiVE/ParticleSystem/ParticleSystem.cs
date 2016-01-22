@@ -65,7 +65,7 @@ namespace ProdigalSoftware.TiVE.ParticleSystem
             if (TiVEController.UserSettings.Get(UserSettings.UseThreadedParticlesKey))
             {
                 particleUpdateThread = new Thread(ParticleUpdateLoop);
-                particleUpdateThread.Priority = ThreadPriority.BelowNormal;
+                particleUpdateThread.Priority = ThreadPriority.Normal;
                 particleUpdateThread.IsBackground = true;
                 particleUpdateThread.Name = "ParticleUpdate";
                 particleUpdateThread.Start();

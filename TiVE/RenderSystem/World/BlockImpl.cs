@@ -31,6 +31,9 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
                 throw new ArgumentNullException("name");
 
             this.name = name;
+            
+            for (int i = 0; i < voxels.Length; i++)
+                voxels[i] = Voxel.Empty;
         }
         #endregion
 
