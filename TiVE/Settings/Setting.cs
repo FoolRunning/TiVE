@@ -7,6 +7,8 @@ namespace ProdigalSoftware.TiVE.Settings
     {
         public static readonly Setting Null = new NullSetting();
 
+        public abstract object RawValue { get; }
+
         public abstract string SaveAsString();
 
         protected abstract bool AreEqual(Setting setting);
@@ -154,6 +156,11 @@ namespace ProdigalSoftware.TiVE.Settings
     #region NullSetting class
     internal sealed class NullSetting : Setting
     {
+        public override object RawValue
+        {
+            get { return null; }
+        }
+
         public override string SaveAsString()
         {
             return "";
@@ -179,6 +186,11 @@ namespace ProdigalSoftware.TiVE.Settings
         public BoolSetting(bool value)
         {
             this.value = value;
+        }
+
+        public override object RawValue
+        {
+            get { return value; }
         }
 
         public override string SaveAsString()
@@ -212,6 +224,11 @@ namespace ProdigalSoftware.TiVE.Settings
         public IntSetting(int value)
         {
             this.value = value;
+        }
+
+        public override object RawValue
+        {
+            get { return value; }
         }
 
         public override string SaveAsString()
@@ -252,6 +269,11 @@ namespace ProdigalSoftware.TiVE.Settings
             this.value = value;
         }
 
+        public override object RawValue
+        {
+            get { return value; }
+        }
+
         public override string SaveAsString()
         {
             return value;
@@ -281,6 +303,11 @@ namespace ProdigalSoftware.TiVE.Settings
                 throw new ArgumentException("T must be an enum");
 
             this.value = value;
+        }
+
+        public override object RawValue
+        {
+            get { return value; }
         }
 
         public override string SaveAsString()
@@ -314,6 +341,11 @@ namespace ProdigalSoftware.TiVE.Settings
         public ResolutionSetting(DisplaySetting value)
         {
             this.value = value;
+        }
+
+        public override object RawValue
+        {
+            get { return value; }
         }
 
         public override string SaveAsString()

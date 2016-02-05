@@ -1,14 +1,24 @@
 ﻿using System;
+using System.IO;
 using System.Runtime.InteropServices;
 
-namespace ProdigalSoftware.Utils
+namespace ProdigalSoftware.TiVEPluginFramework
 {
     [StructLayout(LayoutKind.Sequential)]
-    public struct Vector3us
+    public struct Vector3us : ITiVESerializable
     {
-        public readonly ushort X;
-        public readonly ushort Y;
-        public readonly ushort Z;
+        public static readonly Guid ID = new Guid("619F1ABA-43AC-4453-A1A3-FEB648F2D9E2");
+
+        public ushort X;
+        public ushort Y;
+        public ushort Z;
+
+        public Vector3us(BinaryReader reader)
+        {
+            X = reader.ReadUInt16();
+            Y = reader.ReadUInt16();
+            Z = reader.ReadUInt16();
+        }
 
         public Vector3us(int x, int y, int z)
         {
@@ -30,6 +40,15 @@ namespace ProdigalSoftware.Utils
             Y = y;
             Z = z;
         }
+
+        #region Implementation of ITiVESerializable
+        public void SaveTo(BinaryWriter writer)
+        {
+            writer.Write(X);
+            writer.Write(Y);
+            writer.Write(Z);
+        }
+        #endregion
 
         public override string ToString()
         {

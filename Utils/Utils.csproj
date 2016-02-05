@@ -81,24 +81,11 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ArrayUtils.cs" />
-    <Compile Include="Color4b.cs" />
-    <Compile Include="Color3f.cs" />
-    <Compile Include="Color4f.cs" />
-    <Compile Include="Vector2s.cs" />
     <Compile Include="MathHelper.cs" />
-    <Compile Include="Matrix4f.cs" />
-    <Compile Include="Plane.cs" />
-    <Compile Include="Vector3f.cs" />
-    <Compile Include="Vector3us.cs" />
     <Compile Include="MathUtils.cs" />
-    <Compile Include="MiscUtils.cs" />
     <Compile Include="PerformanceLock.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ResharperAnnotations.cs" />
-    <Compile Include="Vector3i.cs" />
-    <Compile Include="Vector3b.cs" />
-    <Compile Include="Vector3s.cs" />
-    <Compile Include="Vector4f.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

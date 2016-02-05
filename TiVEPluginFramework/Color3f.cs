@@ -1,18 +1,28 @@
 ﻿using System;
 using System.Drawing;
+using System.IO;
 using System.Runtime.InteropServices;
 
-namespace ProdigalSoftware.Utils
+namespace ProdigalSoftware.TiVEPluginFramework
 {
     [StructLayout(LayoutKind.Sequential)]
-    public struct Color3f
+    public struct Color3f : ITiVESerializable
     {
+        public static readonly Guid ID = new Guid("F66A8E9C-A909-4E95-AA05-89A1562B4443");
+
         public static readonly Color3f White = new Color3f(1.0f, 1.0f, 1.0f);
         public static readonly Color3f Empty;
 
-        public readonly float R;
-        public readonly float G;
-        public readonly float B;
+        public float R;
+        public float G;
+        public float B;
+
+        public Color3f(BinaryReader reader)
+        {
+            R = reader.ReadSingle();
+            G = reader.ReadSingle();
+            B = reader.ReadSingle();
+        }
 
         public Color3f(float r, float g, float b)
         {
@@ -36,6 +46,13 @@ namespace ProdigalSoftware.Utils
         public override string ToString()
         {
             return string.Format("Color3f({0},{1},{2})", R, G, B);
+        }
+
+        public void SaveTo(BinaryWriter writer)
+        {
+            writer.Write(R);
+            writer.Write(G);
+            writer.Write(B);
         }
 
         public static explicit operator Color3f(Color color)

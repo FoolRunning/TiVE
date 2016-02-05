@@ -1,15 +1,26 @@
 ﻿using System;
+using System.IO;
 using System.Runtime.InteropServices;
 
-namespace ProdigalSoftware.Utils
+namespace ProdigalSoftware.TiVEPluginFramework
 {
     [StructLayout(LayoutKind.Sequential)]
-    public struct Color4b
+    public struct Color4b : ITiVESerializable
     {
-        public readonly byte R;
-        public readonly byte G;
-        public readonly byte B;
-        public readonly byte A;
+        public static readonly Guid ID = new Guid("D8E85C0A-C567-4BB6-ABB4-67409DB3C7A0");
+
+        public byte R;
+        public byte G;
+        public byte B;
+        public byte A;
+
+        public Color4b(BinaryReader reader)
+        {
+            R = reader.ReadByte();
+            G = reader.ReadByte();
+            B = reader.ReadByte();
+            A = reader.ReadByte();
+        }
 
         public Color4b(byte r, byte g, byte b, byte a)
         {
@@ -75,6 +86,14 @@ namespace ProdigalSoftware.Utils
         public override string ToString()
         {
             return string.Format("Color4b({0},{1},{2},{3})", R, G, B, A);
+        }
+
+        public void SaveTo(BinaryWriter writer)
+        {
+            writer.Write(R);
+            writer.Write(G);
+            writer.Write(B);
+            writer.Write(A);
         }
     }
 }

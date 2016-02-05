@@ -11,7 +11,7 @@ namespace ProdigalSoftware.TiVE.Plugins
 {
     internal sealed class PluginManager
     {
-        private readonly CSharpCodeProvider codeCompiler = new CSharpCodeProvider(); 
+        private static readonly CSharpCodeProvider codeCompiler = new CSharpCodeProvider(); 
         private const string PluginDir = "Plugins";
 
         private readonly Dictionary<Type, List<Type>> pluginInterfaceMap = new Dictionary<Type, List<Type>>();
@@ -39,7 +39,7 @@ namespace ProdigalSoftware.TiVE.Plugins
             {
                 try
                 {
-                    foreach (Type pluginType in asm.GetExportedTypes().Where(t => !t.IsAbstract && t.IsClass))
+                    foreach (Type pluginType in asm.ExportedTypes.Where(t => !t.IsAbstract && t.IsClass))
                     {
                         foreach (Type pluginInterface in pluginType.GetInterfaces().Where(pi => pi.FullName.StartsWith("ProdigalSoftware.TiVEPluginFramework", StringComparison.Ordinal)))
                         {
@@ -103,7 +103,7 @@ namespace ProdigalSoftware.TiVE.Plugins
             parameters.CompilerOptions = "/optimize";
             parameters.GenerateInMemory = true;
             parameters.GenerateExecutable = false;
-            parameters.IncludeDebugInformation = true;
+            parameters.IncludeDebugInformation = false;
             CompilerResults results = codeCompiler.CompileAssemblyFromFile(parameters, codeFiles);
 
             if (results.Errors.HasErrors)

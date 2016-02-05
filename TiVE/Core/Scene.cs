@@ -7,7 +7,6 @@ using ProdigalSoftware.TiVE.RenderSystem.Lighting;
 using ProdigalSoftware.TiVE.RenderSystem.World;
 using ProdigalSoftware.TiVEPluginFramework;
 using ProdigalSoftware.TiVEPluginFramework.Components;
-using ProdigalSoftware.Utils;
 //#define DEBUG_NODES
 
 namespace ProdigalSoftware.TiVE.Core

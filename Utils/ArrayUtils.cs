@@ -16,5 +16,18 @@ namespace ProdigalSoftware.Utils
             int addedCount = array.Length > 1 ? (array.Length * 2 / 3) : 1;
             Array.Resize(ref array, array.Length + addedCount);
         }
+
+        public static bool AreEqual<T>(T[] a1, T[] a2)
+        {
+            if (a1.Length != a2.Length)
+                return false;
+
+            for (int i = 0; i < a1.Length; i++)
+            {
+                if (!a1[i].Equals(a2[i]))
+                    return false;
+            }
+            return true;
+        }
     }
 }

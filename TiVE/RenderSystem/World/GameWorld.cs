@@ -1,8 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Runtime.CompilerServices;
 using ProdigalSoftware.TiVEPluginFramework;
-using ProdigalSoftware.Utils;
 
 namespace ProdigalSoftware.TiVE.RenderSystem.World
 {
@@ -17,6 +18,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
         private readonly Vector3i blockSize;
         private readonly ushort[] blocks;
         private readonly BlockState[] blockStates;
+        private readonly Dictionary<ushort, string> blockIdToName = new Dictionary<ushort, string>();
 
         private Voxel[] blockVoxels;
         private bool[] blockVoxelsEmptyForLighting;
@@ -57,8 +59,15 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
         /// </summary>
         public ushort this[int blockX, int blockY, int blockZ]
         {
-            get { return blocks[GetBlockOffset(blockX, blockY, blockZ)]; }
-            set { blocks[GetBlockOffset(blockX, blockY, blockZ)] = value; }
+            get { return blocks[blockSize.GetArrayOffset(blockX, blockY, blockZ)]; }
+            set { blocks[blockSize.GetArrayOffset(blockX, blockY, blockZ)] = value; }
+        }
+        #endregion
+
+        #region Implementation of ITiVESerializable
+        public void SaveTo(BinaryWriter writer)
+        {
+            
         }
         #endregion
 
@@ -71,7 +80,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
             {
                 BlockImpl block = blockList.AllBlocks[blockIndex];
 
-                blockLightPassThrough[blockIndex] = (blockIndex == 0 || block.HasComponent(LightPassthroughComponent.Instance));
+                blockLightPassThrough[blockIndex] = (blockIndex == 0 || block.HasComponent<LightPassthroughComponent>());
                 Array.Copy(block.VoxelsArray, 0, blockVoxels, blockIndex * BlockTotalVoxelCount, BlockTotalVoxelCount);
 
                 int offset = blockIndex * BlockTotalVoxelCount;
@@ -82,12 +91,12 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
 
         public BlockState GetBlockState(int blockX, int blockY, int blockZ)
         {
-            return blockStates[GetBlockOffset(blockX, blockY, blockZ)];
+            return blockStates[blockSize.GetArrayOffset(blockX, blockY, blockZ)];
         }
 
         public void SetBlockState(int blockX, int blockY, int blockZ, BlockState state)
         {
-            blockStates[GetBlockOffset(blockX, blockY, blockZ)] = state;
+            blockStates[blockSize.GetArrayOffset(blockX, blockY, blockZ)] = state;
         }
 
         /// <summary>
@@ -102,7 +111,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
             int blockX = voxelX >> Block.VoxelSizeBitShift;
             int blockY = voxelY >> Block.VoxelSizeBitShift;
             int blockZ = voxelZ >> Block.VoxelSizeBitShift;
-            ushort block = blocks[GetBlockOffset(blockX, blockY, blockZ)];
+            ushort block = blocks[blockSize.GetArrayOffset(blockX, blockY, blockZ)];
             if (block == 0)
                 return Voxel.Empty;
 
@@ -141,6 +150,10 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
             int blockVoxelX = x % Block.VoxelSize;
             int blockVoxelY = y % Block.VoxelSize;
             int blockVoxelZ = z % Block.VoxelSize;
+            
+            ushort[] blocksLocal = blocks;
+            Vector3i blockSizeLocal = blockSize;
+            bool[] blockVoxelsEmptyForLightingLocal = blockVoxelsEmptyForLighting;
 
             for (; ;)
             {
@@ -179,8 +192,8 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
                 if (x == endX && y == endY && z == endZ)
                     return true;
 
-                ushort block = blocks[GetBlockOffset(blockX, blockY, blockZ)];
-                if (block != 0 && !blockVoxelsEmptyForLighting[GetBlockVoxelsOffset(block, blockVoxelX, blockVoxelY, blockVoxelZ)])
+                ushort block = blocksLocal[blockSizeLocal.GetArrayOffset(blockX, blockY, blockZ)];
+                if (block != 0 && !blockVoxelsEmptyForLightingLocal[GetBlockVoxelsOffset(block, blockVoxelX, blockVoxelY, blockVoxelZ)])
                     return false;
             }
         }
@@ -217,6 +230,9 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
             int blockVoxelX = x % Block.VoxelSize;
             int blockVoxelY = y % Block.VoxelSize;
             int blockVoxelZ = z % Block.VoxelSize;
+            ushort[] blocksLocal = blocks;
+            Vector3i blockSizeLocal = blockSize;
+            bool[] blockVoxelsEmptyForLightingLocal = blockVoxelsEmptyForLighting;
 
             ushort block;
             int xd, yd, zd;
@@ -252,8 +268,8 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
                     if (x == x2)
                         return true;
 
-                    block = blocks[GetBlockOffset(blockX, blockY, blockZ)];
-                    if (block != 0 && !blockVoxelsEmptyForLighting[GetBlockVoxelsOffset(block, blockVoxelX, blockVoxelY, blockVoxelZ)])
+                    block = blocksLocal[blockSizeLocal.GetArrayOffset(blockX, blockY, blockZ)];
+                    if (block != 0 && !blockVoxelsEmptyForLightingLocal[GetBlockVoxelsOffset(block, blockVoxelX, blockVoxelY, blockVoxelZ)])
                         return false;
                 }
             }
@@ -290,8 +306,8 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
                     if (y == y2)
                         return true;
 
-                    block = blocks[GetBlockOffset(blockX, blockY, blockZ)];
-                    if (block != 0 && !blockVoxelsEmptyForLighting[GetBlockVoxelsOffset(block, blockVoxelX, blockVoxelY, blockVoxelZ)])
+                    block = blocksLocal[blockSizeLocal.GetArrayOffset(blockX, blockY, blockZ)];
+                    if (block != 0 && !blockVoxelsEmptyForLightingLocal[GetBlockVoxelsOffset(block, blockVoxelX, blockVoxelY, blockVoxelZ)])
                         return false;
                 }
             }
@@ -327,8 +343,8 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
                 if (z == z2)
                     return true;
 
-                block = blocks[GetBlockOffset(blockX, blockY, blockZ)];
-                if (block != 0 && !blockVoxelsEmptyForLighting[GetBlockVoxelsOffset(block, blockVoxelX, blockVoxelY, blockVoxelZ)])
+                block = blocksLocal[blockSizeLocal.GetArrayOffset(blockX, blockY, blockZ)];
+                if (block != 0 && !blockVoxelsEmptyForLightingLocal[GetBlockVoxelsOffset(block, blockVoxelX, blockVoxelY, blockVoxelZ)])
                     return false;
             }
         }
@@ -358,6 +374,9 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
             int x = x1;
             int y = y1;
             int z = z1;
+            ushort[] blocksLocal = blocks;
+            Vector3i blockSizeLocal = blockSize;
+            bool[] blockLightPassThroughLocal = blockLightPassThrough;
 
             int xd, yd, zd;
             if (ax >= Math.Max(ay, az))            /* x dominant */
@@ -385,8 +404,8 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
                     if (x == x2)
                         return true;
 
-                    ushort block = blocks[GetBlockOffset(x, y, z)];
-                    if (block != 0 && !blockLightPassThrough[block])
+                    ushort block = blocksLocal[blockSizeLocal.GetArrayOffset(x, y, z)];
+                    if (block != 0 && !blockLightPassThroughLocal[block])
                         return false;
                 }
             }
@@ -416,8 +435,8 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
                     if (y == y2)
                         return true;
 
-                    ushort block = blocks[GetBlockOffset(x, y, z)];
-                    if (block != 0 && !blockLightPassThrough[block])
+                    ushort block = blocksLocal[blockSizeLocal.GetArrayOffset(x, y, z)];
+                    if (block != 0 && !blockLightPassThroughLocal[block])
                         return false;
                 }
             }
@@ -446,23 +465,13 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
                 if (z == z2)
                     return true;
 
-                ushort block = blocks[GetBlockOffset(x, y, z)];
-                if (block != 0 && !blockLightPassThrough[block])
+                ushort block = blocksLocal[blockSizeLocal.GetArrayOffset(x, y, z)];
+                if (block != 0 && !blockLightPassThroughLocal[block])
                     return false;
             }
         }
 
         #region Private helper methods
-        /// <summary>
-        /// Gets the offset into the game world blocks array for the block at the specified location
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private int GetBlockOffset(int x, int y, int z)
-        {
-            MiscUtils.CheckConstraints(x, y, z, blockSize);
-            return (x * blockSize.Z + z) * blockSize.Y + y; // y-axis major for speed
-        }
-
         /// <summary>
         /// Gets the offset into the blocks voxels array
         /// </summary>

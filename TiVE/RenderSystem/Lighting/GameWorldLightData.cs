@@ -8,7 +8,6 @@ using ProdigalSoftware.TiVE.RenderSystem.World;
 using ProdigalSoftware.TiVE.Settings;
 using ProdigalSoftware.TiVE.Starter;
 using ProdigalSoftware.TiVEPluginFramework;
-using ProdigalSoftware.Utils;
 
 namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
 {
@@ -28,9 +27,9 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
 
         #region Member variables
         private readonly Scene scene;
-        private readonly Vector3i chunkSize;
         private readonly LightingModel lightingModel;
         private readonly ChunkLights[] chunkLightInfo;
+        private Vector3i chunkSize;
         private volatile int totalComplete;
         private volatile int lastPercentComplete;
         #endregion
@@ -108,7 +107,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
 
         public void CacheLightsInBlocksForChunk(int chunkX, int chunkY, int chunkZ)
         {
-            int arrayOffset = GetLightsAffectingChunksOffset(chunkX, chunkY, chunkZ);
+            int arrayOffset = chunkSize.GetArrayOffset(chunkX, chunkY, chunkZ);
             if (chunkLightInfo[arrayOffset].BlockLights != null)
                 return; // Chunk data is already loaded
 
@@ -192,13 +191,13 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
             int chunkBlockY = worldBlockY % ChunkComponent.BlockSize;
             int chunkBlockZ = worldBlockZ % ChunkComponent.BlockSize;
 
-            ushort[][] chunkLights = chunkLightInfo[GetLightsAffectingChunksOffset(chunkX, chunkY, chunkZ)].BlockLights;
+            ushort[][] chunkLights = chunkLightInfo[chunkSize.GetArrayOffset(chunkX, chunkY, chunkZ)].BlockLights;
             return chunkLights != null ? chunkLights[GetBlockLightOffset(chunkBlockX, chunkBlockY, chunkBlockZ)] : null;
         }
 
         public void RemoveLightsForChunk(ChunkComponent chunkData)
         {
-            chunkLightInfo[GetLightsAffectingChunksOffset(chunkData.ChunkLoc.X, chunkData.ChunkLoc.Y, chunkData.ChunkLoc.Z)].BlockLights = null;
+            chunkLightInfo[chunkSize.GetArrayOffset(chunkData.ChunkLoc.X, chunkData.ChunkLoc.Y, chunkData.ChunkLoc.Z)].BlockLights = null;
         }
         #endregion
 
@@ -286,7 +285,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
                 {
                     for (int cy = startY; cy < endY; cy++)
                     {
-                        List<ushort> lightsInChunk = chunkLightInfo[GetLightsAffectingChunksOffset(cx, cy, cz)].LightsAffectingChunks;
+                        List<ushort> lightsInChunk = chunkLightInfo[chunkSize.GetArrayOffset(cx, cy, cz)].LightsAffectingChunks;
                         lock (lightsInChunk)
                             lightsInChunk.Add(lightIndex);
                     }
@@ -356,16 +355,6 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
         private static int GetBlockLightOffset(int blockX, int blockY, int blockZ)
         {
             return (blockX * ChunkComponent.BlockSize + blockZ) * ChunkComponent.BlockSize + blockY;
-        }
-
-        /// <summary>
-        /// Gets the offset into the lights affecting chunks array for the chunk at the specified location
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private int GetLightsAffectingChunksOffset(int chunkX, int chunkY, int chunkZ)
-        {
-            MiscUtils.CheckConstraints(chunkX, chunkY, chunkZ, chunkSize);
-            return (chunkZ * chunkSize.X + chunkX) * chunkSize.Y + chunkY;
         }
         #endregion
 

@@ -2,10 +2,9 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using OpenTK;
 using OpenTK.Graphics.OpenGL4;
 using ProdigalSoftware.TiVE.Starter;
-using ProdigalSoftware.Utils;
+using ProdigalSoftware.TiVEPluginFramework;
 
 namespace ProdigalSoftware.TiVE.Core.Backend.OpenTKImpl
 {

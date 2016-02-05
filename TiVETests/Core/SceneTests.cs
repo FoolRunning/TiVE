@@ -1,4 +1,5 @@
-﻿using NUnit.Framework;
+﻿using System.IO;
+using NUnit.Framework;
 using ProdigalSoftware.TiVE.Core;
 using ProdigalSoftware.TiVEPluginFramework;
 
@@ -123,10 +124,18 @@ namespace TiVETests.Core
 
         private class DummyComponent1 : IComponent
         {
+            public void SaveTo(BinaryWriter writer)
+            {
+                throw new System.NotImplementedException();
+            }
         }
 
         private class DummyComponent2 : IComponent
         {
+            public void SaveTo(BinaryWriter writer)
+            {
+                throw new System.NotImplementedException();
+            }
         }
     }
 }

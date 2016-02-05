@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using ProdigalSoftware.TiVE.Core.Backend;
-using ProdigalSoftware.Utils;
+using ProdigalSoftware.TiVEPluginFramework;
 using Squid;
 
 namespace ProdigalSoftware.TiVE.GUISystem

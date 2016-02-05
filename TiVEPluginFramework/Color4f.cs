@@ -1,14 +1,26 @@
-﻿using System.Runtime.InteropServices;
+﻿using System;
+using System.IO;
+using System.Runtime.InteropServices;
 
-namespace ProdigalSoftware.Utils
+namespace ProdigalSoftware.TiVEPluginFramework
 {
     [StructLayout(LayoutKind.Sequential)]
-    public struct Color4f
+    public struct Color4f : ITiVESerializable
     {
+        public static readonly Guid ID = new Guid("C0C826F8-B35B-4684-B3E4-ADCB9D9760EE");
+
         public float R;
         public float G;
         public float B;
         public float A;
+
+        public Color4f(BinaryReader reader)
+        {
+            R = reader.ReadSingle();
+            G = reader.ReadSingle();
+            B = reader.ReadSingle();
+            A = reader.ReadSingle();
+        }
         
         public Color4f(byte r, byte g, byte b, byte a)
         {
@@ -46,9 +58,19 @@ namespace ProdigalSoftware.Utils
         /// </summary>
         /// <param name="c">The instance.</param>
         /// <returns>A pointer to the first element of v.</returns>
-        unsafe public static explicit operator float*(Color4f c)
+        public static unsafe explicit operator float*(Color4f c)
         {
             return &c.R;
         }
+
+        #region Implementation of ITiVESerializable
+        public void SaveTo(BinaryWriter writer)
+        {
+            writer.Write(R);
+            writer.Write(G);
+            writer.Write(B);
+            writer.Write(A);
+        }
+        #endregion
     }
 }

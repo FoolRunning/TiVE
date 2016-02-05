@@ -2,7 +2,7 @@
 using System.Linq;
 using NUnit.Framework;
 using ProdigalSoftware.TiVE.Resources;
-using ProdigalSoftware.Utils;
+using ProdigalSoftware.TiVEPluginFramework;
 
 namespace TiVETests.Resources
 {

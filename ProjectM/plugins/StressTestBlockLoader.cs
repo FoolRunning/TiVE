@@ -44,7 +44,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
             Block fireBlock = Factory.CreateBlock("fire");
             fireBlock.AddComponent(new ParticleComponent("Fire", new Vector3i(blockCenter, blockCenter, 1)));
             fireBlock.AddComponent(new LightComponent(new Vector3b(blockCenter, blockCenter, 4), new Color3f(1.0f, 0.8f, 0.6f), forFantasyLighting ? 7 : 14));
-            fireBlock.AddComponent(LightPassthroughComponent.Instance);
+            fireBlock.AddComponent(new LightPassthroughComponent());
             yield return fireBlock;
 
             yield return CreateBlockInfo("light0", false, 2, new Color4f(255, 255, 255, 255), 1.0f, null,
@@ -81,7 +81,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
             Block block = Factory.CreateBlock(name);
             VoxelSettings settings = VoxelSettings.None;
             if (light == null)
-                block.AddComponent(new VoxelAdjusterComponent(0.2f));
+                block.AddComponent(new VoxelNoiseComponent(0.2f));
             else
             {
                 block.AddComponent(light);
@@ -89,7 +89,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
             }
 
             if (allowLightPassthrough)
-                block.AddComponent(LightPassthroughComponent.Instance);
+                block.AddComponent(new LightPassthroughComponent());
 
             for (int x = 0; x < Block.VoxelSize; x++)
             {
@@ -162,7 +162,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
 
             VoxelSettings settings = VoxelSettings.None;
             if (light == null)
-                block.AddComponent(new VoxelAdjusterComponent(0.2f));
+                block.AddComponent(new VoxelNoiseComponent(0.2f));
             else
             {
                 block.AddComponent(light);
@@ -170,7 +170,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
             }
 
             if (allowLightPassthrough)
-                block.AddComponent(LightPassthroughComponent.Instance);
+                block.AddComponent(new LightPassthroughComponent());
 
             for (int x = 0; x < Block.VoxelSize; x++)
             {

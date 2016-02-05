@@ -16,7 +16,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
 
             Stopwatch sw = Stopwatch.StartNew();
             string blockFilePath = Path.Combine(Path.GetDirectoryName(Assembly.GetEntryAssembly().Location), 
-                "Data", BlockDirName, blockListName + "." + BlockList.FileExtension);
+                "Data", BlockDirName, blockListName + BlockList.FileExtension);
 
             BlockList blockList = BlockList.FromFile(blockFilePath) ?? new BlockList();
 

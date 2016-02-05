@@ -1,7 +1,7 @@
 ﻿using System;
+using System.IO;
 using System.Runtime.InteropServices;
 using JetBrains.Annotations;
-using ProdigalSoftware.Utils;
 
 namespace ProdigalSoftware.TiVEPluginFramework
 {
@@ -20,10 +20,12 @@ namespace ProdigalSoftware.TiVEPluginFramework
     /// </summary>
     [PublicAPI]
     [StructLayout(LayoutKind.Sequential)]
-    public struct Voxel
+    public struct Voxel : ITiVESerializable
     {
         #region Constants/Member variables
         private const byte SettingsBitMask = 0x0F;
+
+        public static readonly Guid ID = new Guid("77F7239C-B06B-4EB6-8101-662012C25F65");
 
         /// <summary>Represents a voxel location that is not filled in.</summary>
         public static readonly Voxel Empty = new Voxel(0x00, 0x00, 0x00, 0x00, VoxelSettings.AllowLightPassthrough | VoxelSettings.IgnoreLighting);
@@ -36,6 +38,11 @@ namespace ProdigalSoftware.TiVEPluginFramework
         #endregion
 
         #region Constructors
+        public Voxel(BinaryReader reader)
+        {
+            value = reader.ReadUInt32();
+        }
+
         public Voxel(float r, float g, float b, float a = 1.0f, VoxelSettings settings = VoxelSettings.None) : 
             this((byte)Math.Max(0, Math.Min(255, (int)(r * 255))),
             (byte)Math.Max(0, Math.Min(255, (int)(g * 255))),
@@ -110,6 +117,11 @@ namespace ProdigalSoftware.TiVEPluginFramework
         {
             get { return (value & (byte)VoxelSettings.SkipVoxelNormalCalc) != 0; }
         }
+
+        internal uint RawValue
+        {
+            get { return value; }
+        }
         #endregion
 
         #region Operator overloads
@@ -158,6 +170,13 @@ namespace ProdigalSoftware.TiVEPluginFramework
         public bool Equals(Voxel other)
         {
             return value == other.value;
+        }
+        #endregion
+
+        #region Implementation of ITiVESerializable
+        public void SaveTo(BinaryWriter writer)
+        {
+            writer.Write(value);
         }
         #endregion
 

@@ -1,6 +1,6 @@
 ﻿using System.Runtime.CompilerServices;
 using ProdigalSoftware.TiVE.Core.Backend;
-using ProdigalSoftware.Utils;
+using ProdigalSoftware.TiVEPluginFramework;
 
 namespace ProdigalSoftware.TiVE.RenderSystem.Meshes
 {

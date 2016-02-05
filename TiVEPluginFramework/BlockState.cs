@@ -21,7 +21,7 @@
         public BlockRotation Rotation 
         {
             get { return (BlockRotation)(stateInfo & RotationMask); }
-            set { stateInfo &= (int)value; }
+            set { stateInfo = (stateInfo & ~RotationMask) | (int)value;  }
         }
     }
 }

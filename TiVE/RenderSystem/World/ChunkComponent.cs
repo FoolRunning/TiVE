@@ -1,6 +1,6 @@
-﻿using ProdigalSoftware.TiVEPluginFramework;
+﻿using System.IO;
+using ProdigalSoftware.TiVEPluginFramework;
 using ProdigalSoftware.TiVEPluginFramework.Components;
-using ProdigalSoftware.Utils;
 
 namespace ProdigalSoftware.TiVE.RenderSystem.World
 {
@@ -21,6 +21,11 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
         public Vector3i ChunkBlockLoc
         {
             get { return new Vector3i(ChunkLoc.X * BlockSize, ChunkLoc.Y * BlockSize, ChunkLoc.Z * BlockSize); }
+        }
+
+        public override void SaveTo(BinaryWriter writer)
+        {
+            throw new System.NotImplementedException();
         }
     }
 }

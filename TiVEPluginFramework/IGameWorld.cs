@@ -1,4 +1,4 @@
-﻿using ProdigalSoftware.Utils;
+﻿using JetBrains.Annotations;
 
 namespace ProdigalSoftware.TiVEPluginFramework
 {
@@ -10,7 +10,8 @@ namespace ProdigalSoftware.TiVEPluginFramework
         Fantasy2
     }
 
-    public interface IGameWorld
+    [PublicAPI]
+    public interface IGameWorld : ITiVESerializable
     {
         LightingModelType LightingModelType { get; set; }
 

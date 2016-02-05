@@ -1,7 +1,6 @@
 ﻿using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using ProdigalSoftware.TiVEPluginFramework;
-using ProdigalSoftware.Utils;
 
 namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
 {
@@ -18,7 +17,8 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
         /// <summary>The voxel location of the light on the z-axis</summary>
         public readonly ushort VoxelLocZ;      // 2 bytes
         /// <summary>Color of the light when at full brightness</summary>
-        public readonly Color3f LightColor;    // 12 bytes
+        public Color3f LightColor;    // 12 bytes
+
         /// <summary>Cached lighting calculation needed by the current light model</summary>
         private readonly float cachedLightCalc; // 4 bytes
         /// <summary>Cached lighting calculation needed by the current light model for use in shadows</summary>

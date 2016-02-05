@@ -3,12 +3,13 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using MoonSharp.Interpreter;
+using MoonSharp.Interpreter.Loaders;
 using ProdigalSoftware.TiVE.Core;
 using ProdigalSoftware.TiVE.Core.Backend;
+using ProdigalSoftware.TiVE.RenderSystem.World;
 using ProdigalSoftware.TiVE.Starter;
 using ProdigalSoftware.TiVEPluginFramework;
 using ProdigalSoftware.TiVEPluginFramework.Components;
-using ProdigalSoftware.Utils;
 
 namespace ProdigalSoftware.TiVE.ScriptSystem
 {
@@ -17,10 +18,15 @@ namespace ProdigalSoftware.TiVE.ScriptSystem
     /// </summary>
     internal sealed class ScriptSystem : TimeSlicedEngineSystem
     {
+        private const string ScriptsDirName = "Scripts";
+        private const string ScriptFileExtension = ".lua";
+        private const CoreModules AllowedModules = CoreModules.Preset_SoftSandbox | CoreModules.LoadMethods;
+
         private readonly Dictionary<string, ScriptDataInternal> scripts = new Dictionary<string, ScriptDataInternal>();
         private readonly IKeyboard keyboard;
         private readonly IMouse mouse;
         private bool keepRunning;
+        private Scene currentScene;
 
         public ScriptSystem(IKeyboard keyboard, IMouse mouse) : base("Scripts")
         {
@@ -34,6 +40,8 @@ namespace ProdigalSoftware.TiVE.ScriptSystem
             Messages.Print("Loading scripts...");
             keepRunning = true;
 
+            Script.DefaultOptions.ScriptLoader = new ScriptLoader();
+
             // Register anything explicitly registered as script-accessible
             foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies())
                 UserData.RegisterAssembly(assembly);
@@ -46,32 +54,27 @@ namespace ProdigalSoftware.TiVE.ScriptSystem
                     RegisterTypesIn(assembly);
             }
 
-            string dataDir = Path.Combine(Path.GetDirectoryName(Assembly.GetEntryAssembly().Location), "Data");
-            List<string> errors = new List<string>();
-            
-            if (!Directory.Exists(dataDir))
-                errors.Add("Could not find Data directory");
-            else
-            {
-                foreach (string file in Directory.EnumerateFiles(dataDir, "*.lua", SearchOption.AllDirectories))
-                {
-                    Script script = new Script();
-                    AddLuaGlobals(script);
-                    script.DoFile(file);
-                    scripts.Add(Path.GetFileNameWithoutExtension(file), new ScriptDataInternal(script));
-                }
-            }
-
-            if (errors.Count == 0)
-                Messages.AddDoneText();
-            else
-            {
-                Messages.AddFailText();
-                foreach (string error in errors)
-                    Messages.AddError(error);
-                return false;
-            }
+            Messages.AddDoneText();
             return true;
+        }
+
+        private ScriptDataInternal GetScript(string scriptName)
+        {
+            ScriptDataInternal scriptData;
+            if (!scripts.TryGetValue(scriptName, out scriptData))
+            {
+                Script script = new Script(AllowedModules);
+                AddLuaGlobals(script);
+
+                using (Stream stream = TiVEController.ResourceLoader.OpenFile(Path.Combine(ScriptsDirName, scriptName + ScriptFileExtension)))
+                using (StreamReader reader = new StreamReader(stream))
+                    script.DoString(reader.ReadToEnd()); // Can't use the DoStream() method because it calls Seek() on the stream which isn't supported by zip file entry streams
+
+                scriptData = new ScriptDataInternal(script);
+                scripts.Add(scriptName, scriptData);
+                Messages.AddDebug("Loaded script " + scriptName);
+            }
+            return scriptData;
         }
 
         public override void Dispose()
@@ -83,8 +86,9 @@ namespace ProdigalSoftware.TiVE.ScriptSystem
         {
         }
 
-        protected override bool UpdateInternal(float timeSinceLastUpdate, Scene currentScene)
+        protected override bool UpdateInternal(float timeSinceLastUpdate, Scene newCurrentScene)
         {
+            currentScene = newCurrentScene;
             keyboard.Update();
 
             DynValue tsluValue = DynValue.NewNumber(timeSinceLastUpdate);
@@ -92,8 +96,7 @@ namespace ProdigalSoftware.TiVE.ScriptSystem
             foreach (IEntity entity in currentScene.GetEntitiesWithComponent<ScriptComponent>())
             {
                 ScriptComponent scriptData = entity.GetComponent<ScriptComponent>();
-                ScriptDataInternal scriptDataInternal;
-                scripts.TryGetValue(scriptData.ScriptName, out scriptDataInternal);
+                ScriptDataInternal scriptDataInternal = GetScript(scriptData.ScriptName);
                 if (!scriptData.Loaded)
                 {
                     if (scriptDataInternal == null)
@@ -132,26 +135,18 @@ namespace ProdigalSoftware.TiVE.ScriptSystem
             {
                 if (!type.IsInterface)
                     UserData.RegisterType(type);
-
             }
         }
 
         private static void CallLuaFunction(Script script, DynValue function, IEntity entity, params DynValue[] args)
         {
-            CameraComponent cameraData = entity.GetComponent<CameraComponent>();
-            if (cameraData != null)
-            {
-                cameraData.PrevLocation = cameraData.Location;
-                cameraData.PrevLookAtLocation = cameraData.LookAtLocation;
-            }
-
             try
             {
                 script.Call(function, args);
             }
             catch (Exception)
             {
-                Messages.AddError("Got exception when processing script for " + entity.Name + " (function " + function + ")");
+                Messages.AddError("Got unknown exception when processing script for " + entity.Name);
                 throw;
             }
         }
@@ -160,21 +155,19 @@ namespace ProdigalSoftware.TiVE.ScriptSystem
         {
             AddLuaTableForEnum<Keys>(lua);
             lua.Globals["BlockSize"] = Block.VoxelSize;
-            lua.Globals["PI"] = (float)Math.PI;
+            lua.Globals["EmptyVoxel"] = Voxel.Empty;
+            lua.Globals["EmptyBlock"] = BlockImpl.Empty;
+            //lua.Globals["Scene"] = currentScene;
 
-            lua.Globals["print"] = (Action<object>)LuaGlobalHelper.Print;
-            lua.Globals["max"] = (Func<float, float, float>)LuaGlobalHelper.Max;
-            lua.Globals["min"] = (Func<float, float, float>)LuaGlobalHelper.Min;
-            lua.Globals["toRadians"] = (Func<float, float>)LuaGlobalHelper.ToRadians;
-            lua.Globals["log"] = (Func<float, float>)LuaGlobalHelper.Log;
-            lua.Globals["sin"] = (Func<float, float>)LuaGlobalHelper.Sin;
-            lua.Globals["cos"] = (Func<float, float>)LuaGlobalHelper.Cos;
-            lua.Globals["tan"] = (Func<float, float>)LuaGlobalHelper.Tan;
-            lua.Globals["vector"] = (Func<float, float, float, Vector3f>)LuaGlobalHelper.Vector;
-            lua.Globals["color"] = (Func<float, float, float, Color3f>)LuaGlobalHelper.Color;
-            lua.Globals["keyPressed"] = new Func<int, bool>(key => keyboard.IsKeyPressed((Keys)key));
-            lua.Globals["voxelAt"] = new Func<float, float, float, uint>((x, y, z) => 0);
-            lua.Globals["stopRunning"] = new Action(() => keepRunning = false);
+            lua.Globals["blockAt"] = (Func<int, int, int, ushort>)BlockAt;
+            lua.Globals["blockAtVoxel"] = (Func<int, int, int, ushort>)BlockAtVoxel;
+            lua.Globals["color"] = (Func<float, float, float, Color3f>)Color;
+            lua.Globals["message"] = (Action<object>)Message;
+            lua.Globals["stopRunning"] = (Action)StopRunning;
+            lua.Globals["keyPressed"] = (Func<int, bool>)IsKeyPressed;
+            lua.Globals["setting"] = (Func<string, object>)GetSetting;
+            lua.Globals["vector"] = (Func<float, float, float, Vector3f>)Vector;
+            lua.Globals["voxelAt"] = (Func<int, int, int, Voxel>)VoxelAt;
 
             //gameScript.Renderer = new Func<IGameWorldRenderer>(() => renderer);
             //gameScript.Camera = new Func<Camera>(() => renderer.Camera);
@@ -212,7 +205,7 @@ namespace ProdigalSoftware.TiVE.ScriptSystem
             //});
         }
 
-        public static void AddLuaTableForEnum<T>(Script lua)
+        internal static void AddLuaTableForEnum<T>(Script lua)
         {
             Type enumType = typeof(T);
             if (!enumType.IsEnum)
@@ -224,6 +217,76 @@ namespace ProdigalSoftware.TiVE.ScriptSystem
             foreach (string enumProperty in Enum.GetNames(enumType))
                 keyTable[enumProperty] = (int)Enum.Parse(enumType, enumProperty);
             lua.Globals[tableName] = keyTable;
+        }
+        #endregion
+
+        #region Private helper methods
+        private ushort BlockAt(int blockX, int blockY, int blockZ)
+        {
+            Scene scene = currentScene; // For thread-safety
+            if (scene == null || scene.GameWorld == null)
+                return 0;
+
+            return scene.GameWorld[blockX, blockY, blockZ];
+        }
+
+        private ushort BlockAtVoxel(int voxelX, int voxelY, int voxelZ)
+        {
+            Scene scene = currentScene; // For thread-safety
+            if (scene == null || scene.GameWorld == null)
+                return 0;
+
+            int blockX = voxelX >> Block.VoxelSizeBitShift;
+            int blockY = voxelY >> Block.VoxelSizeBitShift;
+            int blockZ = voxelZ >> Block.VoxelSizeBitShift;
+            return scene.GameWorld[blockX, blockY, blockZ];
+        }
+
+        private static Color3f Color(float r, float g, float b)
+        {
+            return new Color3f(r, g, b);
+        }
+
+        private static object GetSetting(string name)
+        {
+            return TiVEController.UserSettings.Get(name).RawValue;
+        }
+
+        private bool IsKeyPressed(int key)
+        {
+            return keyboard.IsKeyPressed((Keys)key);
+        }
+
+        private static void Message(object obj)
+        {
+            Messages.Println(obj.ToString(), System.Drawing.Color.CadetBlue);
+        }
+
+        private void StopRunning()
+        {
+            keepRunning = false;
+        }
+
+        private static Vector3f Vector(float x, float y, float z)
+        {
+            return new Vector3f(x, y, z);
+        }
+
+        private Voxel VoxelAt(int voxelX, int voxelY, int voxelZ)
+        {
+            Scene scene = currentScene; // For thread-safety
+            if (scene == null || scene.GameWorld == null)
+                return Voxel.Empty;
+
+            Vector3i voxelSize = scene.GameWorld.VoxelSize;
+            if (voxelX < 0 || voxelX >= voxelSize.X ||
+                voxelY < 0 || voxelY >= voxelSize.Y ||
+                voxelZ < 0 || voxelZ >= voxelSize.Z)
+            {
+                return Voxel.Empty;
+            }
+                
+            return scene.GameWorld.GetVoxel(voxelX, voxelY, voxelZ);
         }
         #endregion
 
@@ -240,62 +303,26 @@ namespace ProdigalSoftware.TiVE.ScriptSystem
         }
         #endregion
 
-        #region LuaGlobalHelper class
-        /// <summary>
-        /// Helper class to keep from having to create new functions via anonomous delegates for the script functions
-        /// </summary>
-        private static class LuaGlobalHelper
+        private sealed class ScriptLoader : ScriptLoaderBase
         {
-            public static void Print(object obj)
+            #region Implementation of ScriptLoaderBase
+            public override bool ScriptFileExists(string name)
             {
-                Messages.Println(obj.ToString(), System.Drawing.Color.CadetBlue);
+                return false;
             }
 
-            public static float Max(float v1, float v2)
+            public override string ResolveModuleName(string modname, Table globalContext)
             {
-                return Math.Max(v1, v2);
+                return modname;
             }
 
-            public static float Min(float v1, float v2)
+            public override object LoadFile(string file, Table globalContext)
             {
-                return Math.Min(v1, v2);
+                using (Stream stream = TiVEController.ResourceLoader.OpenFile(Path.Combine(ScriptsDirName, file)))
+                using (StreamReader reader = new StreamReader(stream))
+                    return reader.ReadToEnd();
             }
-
-            public static float ToRadians(float angle)
-            {
-                return angle * (float)Math.PI / 180.0f;
-            }
-
-            public static float Log(float v)
-            {
-                return (float)Math.Log(v);
-            }
-
-            public static float Sin(float v)
-            {
-                return (float)Math.Sin(v);
-            }
-
-            public static float Cos(float v)
-            {
-                return (float)Math.Cos(v);
-            }
-
-            public static float Tan(float v)
-            {
-                return (float)Math.Tan(v);
-            }
-
-            public static Vector3f Vector(float x, float y, float z)
-            {
-                return new Vector3f(x, y, z);
-            }
-
-            public static Color3f Color(float r, float g, float b)
-            {
-                return new Color3f(r, g, b);
-            }
+            #endregion
         }
-        #endregion
     }
 }

@@ -6,7 +6,6 @@ using ProdigalSoftware.TiVE.RenderSystem;
 using ProdigalSoftware.TiVE.Starter;
 using ProdigalSoftware.TiVEPluginFramework;
 using ProdigalSoftware.TiVEPluginFramework.Components;
-using ProdigalSoftware.Utils;
 
 namespace ProdigalSoftware.TiVE.CameraSystem
 {
@@ -68,6 +67,9 @@ namespace ProdigalSoftware.TiVE.CameraSystem
             Vector3f blendedLocation = cameraData.Location * timeBlendFactor + cameraData.PrevLocation * (1.0f - timeBlendFactor);
             Vector3f blendedLookAtLocation = cameraData.LookAtLocation * timeBlendFactor + cameraData.PrevLookAtLocation * (1.0f - timeBlendFactor);
             Matrix4f.LookAt(blendedLocation, blendedLookAtLocation, cameraData.UpVector, out viewMatrix);
+
+            cameraData.PrevLocation = cameraData.Location;
+            cameraData.PrevLookAtLocation = cameraData.LookAtLocation;
 
             // Create and cache the view projection matrix
             Matrix4f.Mult(ref viewMatrix, ref projectionMatrix, out cameraData.ViewProjectionMatrix);

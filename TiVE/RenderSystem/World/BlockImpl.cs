@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using ProdigalSoftware.TiVEPluginFramework;
@@ -10,6 +11,9 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
     internal sealed class BlockImpl : Block
     {
         #region Member variables/constants
+        private const byte SerializedFileVersion = 1;
+
+        public static readonly Guid ID = new Guid("105FC0BF-E194-46BC-8ED8-61942721CC7F");
         public static readonly BlockImpl Empty = new BlockImpl("Empty");
 
         private readonly List<IBlockComponent> components = new List<IBlockComponent>();
@@ -23,6 +27,22 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
         {
             Array.Copy(toCopy.voxels, voxels, voxels.Length);
             components.AddRange(toCopy.components);
+        }
+
+        public BlockImpl(BinaryReader reader)
+        {
+            byte fileVersion = reader.ReadByte();
+            if (fileVersion > SerializedFileVersion)
+                throw new FileTooNew("Block");
+
+            name = reader.ReadString();
+
+            for (int i = 0; i < voxels.Length; i++)
+                voxels[i] = new Voxel(reader);
+
+            int componentCount = reader.ReadInt32();
+            for (int i = 0; i < componentCount; i++)
+                components.Add(TiVESerializer.Deserialize<IBlockComponent>(reader));
         }
 
         public BlockImpl(string name)
@@ -48,7 +68,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
             get
             {
                 if (totalVoxels == -1)
-                    totalVoxels = voxels.Count(v => v != 0);
+                    totalVoxels = voxels.Count(v => v != Voxel.Empty);
                 return totalVoxels;
             }
         }
@@ -66,8 +86,8 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
         public override Voxel this[int x, int y, int z]
         {
             get { return voxels[GetOffset(x, y, z)]; }
-            set 
-            { 
+            set
+            {
                 voxels[GetOffset(x, y, z)] = value;
                 totalVoxels = -1; // Need to recalculate
             }
@@ -88,16 +108,6 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
         {
             Type tType = typeof(T);
             components.RemoveAll(c => c.GetType() == tType);
-        }
-
-        public override bool HasComponent(IBlockComponent component)
-        {
-            for (int i = 0; i < components.Count; i++)
-            {
-                if (components[i] == component)
-                    return true;
-            }
-            return false;
         }
 
         public override bool HasComponent<T>()
@@ -163,15 +173,21 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
             }
             return rotatedBlock;
         }
+
+        public override void SaveTo(BinaryWriter writer)
+        {
+            writer.Write(SerializedFileVersion);
+            writer.Write(name);
+            for (int i = 0; i < voxels.Length; i++)
+                voxels[i].SaveTo(writer);
+
+            writer.Write(components.Count);
+            foreach (IBlockComponent component in components)
+                TiVESerializer.Serialize(component, writer);
+        }
         #endregion
 
-        #region Public methods
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal Voxel GetVoxelFast(int x, int y, int z)
-        {
-            return voxels[GetOffset(x, y, z)];
-        }
-
+        #region Other public methods
         public void SetName(string newName)
         {
             name = newName;
