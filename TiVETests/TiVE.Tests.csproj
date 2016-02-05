@@ -72,8 +72,9 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.CSharp" />
-    <Reference Include="MoonSharp.Interpreter">
-      <HintPath>..\packages\MoonSharp.0.9.2.0\lib\net40-client\MoonSharp.Interpreter.dll</HintPath>
+    <Reference Include="MoonSharp.Interpreter, Version=1.1.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\MoonSharp.1.1.0.1\lib\net40-client\MoonSharp.Interpreter.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="nunit.framework, Version=3.0.5813.39031, Culture=neutral, PublicKeyToken=2638cd05610744eb, processorArchitecture=MSIL">
       <HintPath>..\packages\NUnit.3.0.1\lib\net45\nunit.framework.dll</HintPath>
@@ -90,6 +91,7 @@
     <Otherwise />
   </Choose>
   <ItemGroup>
+    <Compile Include="Core\TiVESerializerImplementationTests.cs" />
     <Compile Include="RenderSystem\EntityLoadQueueTests.cs" />
     <Compile Include="World\BlockTests.cs" />
     <Compile Include="Core\SceneTests.cs" />

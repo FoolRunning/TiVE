@@ -24,91 +24,159 @@ SOFTWARE.
 
 using System;
 using System.Globalization;
+using System.IO;
 using System.Runtime.InteropServices;
+using System.Xml.Serialization;
+using ProdigalSoftware.Utils;
 
-namespace ProdigalSoftware.Utils
+namespace ProdigalSoftware.TiVEPluginFramework
 {
-    /// <summary>
-    /// Represents a 3D vector using three single-precision floating-point numbers.
-    /// </summary>
+    /// <summary>Represents a 4D vector using four single-precision floating-point numbers.</summary>
     /// <remarks>
-    /// The Vector3f structure is suitable for interoperation with unmanaged code requiring three consecutive floats.
+    /// The Vector4f structure is suitable for interoperation with unmanaged code requiring four consecutive floats.
     /// </remarks>
     [Serializable]
     [StructLayout(LayoutKind.Sequential)]
-    public struct Vector3f : IEquatable<Vector3f>
+    public struct Vector4f : IEquatable<Vector4f>, ITiVESerializable
     {
         #region Fields
+        public static readonly Guid ID = new Guid("22211203-492D-48F3-9BD1-953F15902A4C");
 
         /// <summary>
-        /// The X component of the Vector3f.
+        /// The X component of the Vector4f.
         /// </summary>
         public float X;
 
         /// <summary>
-        /// The Y component of the Vector3f.
+        /// The Y component of the Vector4f.
         /// </summary>
         public float Y;
 
         /// <summary>
-        /// The Z component of the Vector3f.
+        /// The Z component of the Vector4f.
         /// </summary>
         public float Z;
+
+        /// <summary>
+        /// The W component of the Vector4f.
+        /// </summary>
+        public float W;
+
+        /// <summary>
+        /// Defines a unit-length Vector4f that points towards the X-axis.
+        /// </summary>
+        public static readonly Vector4f UnitX = new Vector4f(1, 0, 0, 0);
+
+        /// <summary>
+        /// Defines a unit-length Vector4f that points towards the Y-axis.
+        /// </summary>
+        public static readonly Vector4f UnitY = new Vector4f(0, 1, 0, 0);
+
+        /// <summary>
+        /// Defines a unit-length Vector4f that points towards the Z-axis.
+        /// </summary>
+        public static readonly Vector4f UnitZ = new Vector4f(0, 0, 1, 0);
+
+        /// <summary>
+        /// Defines a unit-length Vector4f that points towards the W-axis.
+        /// </summary>
+        public static readonly Vector4f UnitW = new Vector4f(0, 0, 0, 1);
+
+        /// <summary>
+        /// Defines a zero-length Vector4f.
+        /// </summary>
+        public static readonly Vector4f Zero = new Vector4f(0, 0, 0, 0);
+
+        /// <summary>
+        /// Defines an instance with all components set to 1.
+        /// </summary>
+        public static readonly Vector4f One = new Vector4f(1, 1, 1, 1);
+
+        /// <summary>
+        /// Defines the size of the Vector4f struct in bytes.
+        /// </summary>
+        public static readonly int SizeInBytes = Marshal.SizeOf(new Vector4f());
 
         #endregion
 
         #region Constructors
+        public Vector4f(BinaryReader reader)
+        {
+            X = reader.ReadSingle();
+            Y = reader.ReadSingle();
+            Z = reader.ReadSingle();
+            W = reader.ReadSingle();
+        }
 
         /// <summary>
         /// Constructs a new instance.
         /// </summary>
         /// <param name="value">The value that will initialize this instance.</param>
-        public Vector3f(float value)
+        public Vector4f(float value)
         {
             X = value;
             Y = value;
             Z = value;
+            W = value;
         }
 
         /// <summary>
-        /// Constructs a new Vector3f.
+        /// Constructs a new Vector4f.
         /// </summary>
-        /// <param name="x">The x component of the Vector3f.</param>
-        /// <param name="y">The y component of the Vector3f.</param>
-        /// <param name="z">The z component of the Vector3f.</param>
-        public Vector3f(float x, float y, float z)
+        /// <param name="x">The x component of the Vector4f.</param>
+        /// <param name="y">The y component of the Vector4f.</param>
+        /// <param name="z">The z component of the Vector4f.</param>
+        /// <param name="w">The w component of the Vector4f.</param>
+        public Vector4f(float x, float y, float z, float w)
         {
             X = x;
             Y = y;
             Z = z;
-        }
-        
-        /// <summary>
-        /// Constructs a new Vector3f from the given Vector3f.
-        /// </summary>
-        /// <param name="v">The Vector3f to copy components from.</param>
-        public Vector3f(Vector3f v)
-        {
-            X = v.X;
-            Y = v.Y;
-            Z = v.Z;
+            W = w;
         }
 
         /// <summary>
-        /// Constructs a new Vector3f from the given Vector4f.
+        /// Constructs a new Vector4f from the given Vector3f.
+        /// The w component is initialized to 0.
         /// </summary>
-        /// <param name="v">The Vector4f to copy components from.</param>
-        public Vector3f(Vector4f v)
+        /// <param name="v">The Vector3f to copy components from.</param>
+        /// <remarks><seealso cref="Vector4f(Vector3f,float)"/></remarks>
+        public Vector4f(Vector3f v)
         {
             X = v.X;
             Y = v.Y;
             Z = v.Z;
+            W = 0.0f;
+        }
+
+        /// <summary>
+        /// Constructs a new Vector4f from the specified Vector3f and w component.
+        /// </summary>
+        /// <param name="v">The Vector3f to copy components from.</param>
+        /// <param name="w">The w component of the new Vector4f.</param>
+        public Vector4f(Vector3f v, float w)
+        {
+            X = v.X;
+            Y = v.Y;
+            Z = v.Z;
+            W = w;
+        }
+
+        /// <summary>
+        /// Constructs a new Vector4f from the given Vector4f.
+        /// </summary>
+        /// <param name="v">The Vector4f to copy components from.</param>
+        public Vector4f(Vector4f v)
+        {
+            X = v.X;
+            Y = v.Y;
+            Z = v.Z;
+            W = v.W;
         }
 
         #endregion
 
         #region Public Members
-
 
         /// <summary>
         /// Gets or sets the value at the index of the Vector.
@@ -120,6 +188,7 @@ namespace ProdigalSoftware.Utils
                 if (index == 0) return X;
                 else if (index == 1) return Y;
                 else if (index == 2) return Z;
+                else if (index == 3) return W;
                 throw new IndexOutOfRangeException("You tried to access this vector at index: " + index);
             }
             set
@@ -127,6 +196,7 @@ namespace ProdigalSoftware.Utils
                 if (index == 0) X = value;
                 else if (index == 1) Y = value;
                 else if (index == 2) Z = value;
+                else if (index == 3) W = value;
                 else throw new IndexOutOfRangeException("You tried to set this vector at index: " + index);
             }
         }
@@ -144,7 +214,7 @@ namespace ProdigalSoftware.Utils
         {
             get
             {
-                return (float)Math.Sqrt(X * X + Y * Y + Z * Z);
+                return (float)Math.Sqrt(X * X + Y * Y + Z * Z + W * W);
             }
         }
 
@@ -165,7 +235,7 @@ namespace ProdigalSoftware.Utils
         {
             get
             {
-                return 1.0f / MathHelper.InverseSqrtFast(X * X + Y * Y + Z * Z);
+                return 1.0f / MathHelper.InverseSqrtFast(X * X + Y * Y + Z * Z + W * W);
             }
         }
 
@@ -186,18 +256,18 @@ namespace ProdigalSoftware.Utils
         {
             get
             {
-                return X * X + Y * Y + Z * Z;
+                return X * X + Y * Y + Z * Z + W * W;
             }
         }
 
         #endregion
 
         /// <summary>
-        /// Returns a copy of the Vector3f scaled to unit length.
+        /// Returns a copy of the Vector4f scaled to unit length.
         /// </summary>
-        public Vector3f Normalized()
+        public Vector4f Normalized()
         {
-            Vector3f v = this;
+            Vector4f v = this;
             v.Normalize();
             return v;
         }
@@ -205,14 +275,15 @@ namespace ProdigalSoftware.Utils
         #region public void Normalize()
 
         /// <summary>
-        /// Scales the Vector3f to unit length.
+        /// Scales the Vector4f to unit length.
         /// </summary>
         public void Normalize()
         {
-            float scale = 1.0f / Length;
+            float scale = 1.0f / this.Length;
             X *= scale;
             Y *= scale;
             Z *= scale;
+            W *= scale;
         }
 
         #endregion
@@ -220,14 +291,15 @@ namespace ProdigalSoftware.Utils
         #region public void NormalizeFast()
 
         /// <summary>
-        /// Scales the Vector3f to approximately unit length.
+        /// Scales the Vector4f to approximately unit length.
         /// </summary>
         public void NormalizeFast()
         {
-            float scale = MathHelper.InverseSqrtFast(X * X + Y * Y + Z * Z);
+            float scale = MathHelper.InverseSqrtFast(X * X + Y * Y + Z * Z + W * W);
             X *= scale;
             Y *= scale;
             Z *= scale;
+            W *= scale;
         }
 
         #endregion
@@ -236,37 +308,108 @@ namespace ProdigalSoftware.Utils
 
         #region Static
 
-        #region Fields
+        #region Obsolete
+
+        #region Sub
 
         /// <summary>
-        /// Defines a unit-length Vector3f that points towards the X-axis.
+        /// Subtract one Vector from another
         /// </summary>
-        public static readonly Vector3f UnitX = new Vector3f(1, 0, 0);
+        /// <param name="a">First operand</param>
+        /// <param name="b">Second operand</param>
+        /// <returns>Result of subtraction</returns>
+        public static Vector4f Sub(Vector4f a, Vector4f b)
+        {
+            a.X -= b.X;
+            a.Y -= b.Y;
+            a.Z -= b.Z;
+            a.W -= b.W;
+            return a;
+        }
 
         /// <summary>
-        /// Defines a unit-length Vector3f that points towards the Y-axis.
+        /// Subtract one Vector from another
         /// </summary>
-        public static readonly Vector3f UnitY = new Vector3f(0, 1, 0);
+        /// <param name="a">First operand</param>
+        /// <param name="b">Second operand</param>
+        /// <param name="result">Result of subtraction</param>
+        public static void Sub(ref Vector4f a, ref Vector4f b, out Vector4f result)
+        {
+            result.X = a.X - b.X;
+            result.Y = a.Y - b.Y;
+            result.Z = a.Z - b.Z;
+            result.W = a.W - b.W;
+        }
+
+        #endregion
+
+        #region Mult
 
         /// <summary>
-        /// /// Defines a unit-length Vector3f that points towards the Z-axis.
+        /// Multiply a vector and a scalar
         /// </summary>
-        public static readonly Vector3f UnitZ = new Vector3f(0, 0, 1);
+        /// <param name="a">Vector operand</param>
+        /// <param name="f">Scalar operand</param>
+        /// <returns>Result of the multiplication</returns>
+        public static Vector4f Mult(Vector4f a, float f)
+        {
+            a.X *= f;
+            a.Y *= f;
+            a.Z *= f;
+            a.W *= f;
+            return a;
+        }
 
         /// <summary>
-        /// Defines a zero-length Vector3f.
+        /// Multiply a vector and a scalar
         /// </summary>
-        public static readonly Vector3f Zero = new Vector3f(0, 0, 0);
+        /// <param name="a">Vector operand</param>
+        /// <param name="f">Scalar operand</param>
+        /// <param name="result">Result of the multiplication</param>
+        public static void Mult(ref Vector4f a, float f, out Vector4f result)
+        {
+            result.X = a.X * f;
+            result.Y = a.Y * f;
+            result.Z = a.Z * f;
+            result.W = a.W * f;
+        }
+
+        #endregion
+
+        #region Div
 
         /// <summary>
-        /// Defines an instance with all components set to 1.
+        /// Divide a vector by a scalar
         /// </summary>
-        public static readonly Vector3f One = new Vector3f(1, 1, 1);
+        /// <param name="a">Vector operand</param>
+        /// <param name="f">Scalar operand</param>
+        /// <returns>Result of the division</returns>
+        public static Vector4f Div(Vector4f a, float f)
+        {
+            float mult = 1.0f / f;
+            a.X *= mult;
+            a.Y *= mult;
+            a.Z *= mult;
+            a.W *= mult;
+            return a;
+        }
 
         /// <summary>
-        /// Defines the size of the Vector3f struct in bytes.
+        /// Divide a vector by a scalar
         /// </summary>
-        public static readonly int SizeInBytes = Marshal.SizeOf(new Vector3f());
+        /// <param name="a">Vector operand</param>
+        /// <param name="f">Scalar operand</param>
+        /// <param name="result">Result of the division</param>
+        public static void Div(ref Vector4f a, float f, out Vector4f result)
+        {
+            float mult = 1.0f / f;
+            result.X = a.X * mult;
+            result.Y = a.Y * mult;
+            result.Z = a.Z * mult;
+            result.W = a.W * mult;
+        }
+
+        #endregion
 
         #endregion
 
@@ -278,7 +421,7 @@ namespace ProdigalSoftware.Utils
         /// <param name="a">Left operand.</param>
         /// <param name="b">Right operand.</param>
         /// <returns>Result of operation.</returns>
-        public static Vector3f Add(Vector3f a, Vector3f b)
+        public static Vector4f Add(Vector4f a, Vector4f b)
         {
             Add(ref a, ref b, out a);
             return a;
@@ -290,9 +433,9 @@ namespace ProdigalSoftware.Utils
         /// <param name="a">Left operand.</param>
         /// <param name="b">Right operand.</param>
         /// <param name="result">Result of operation.</param>
-        public static void Add(ref Vector3f a, ref Vector3f b, out Vector3f result)
+        public static void Add(ref Vector4f a, ref Vector4f b, out Vector4f result)
         {
-            result = new Vector3f(a.X + b.X, a.Y + b.Y, a.Z + b.Z);
+            result = new Vector4f(a.X + b.X, a.Y + b.Y, a.Z + b.Z, a.W + b.W);
         }
 
         #endregion
@@ -305,7 +448,7 @@ namespace ProdigalSoftware.Utils
         /// <param name="a">First operand</param>
         /// <param name="b">Second operand</param>
         /// <returns>Result of subtraction</returns>
-        public static Vector3f Subtract(Vector3f a, Vector3f b)
+        public static Vector4f Subtract(Vector4f a, Vector4f b)
         {
             Subtract(ref a, ref b, out a);
             return a;
@@ -317,9 +460,9 @@ namespace ProdigalSoftware.Utils
         /// <param name="a">First operand</param>
         /// <param name="b">Second operand</param>
         /// <param name="result">Result of subtraction</param>
-        public static void Subtract(ref Vector3f a, ref Vector3f b, out Vector3f result)
+        public static void Subtract(ref Vector4f a, ref Vector4f b, out Vector4f result)
         {
-            result = new Vector3f(a.X - b.X, a.Y - b.Y, a.Z - b.Z);
+            result = new Vector4f(a.X - b.X, a.Y - b.Y, a.Z - b.Z, a.W - b.W);
         }
 
         #endregion
@@ -332,7 +475,7 @@ namespace ProdigalSoftware.Utils
         /// <param name="vector">Left operand.</param>
         /// <param name="scale">Right operand.</param>
         /// <returns>Result of the operation.</returns>
-        public static Vector3f Multiply(Vector3f vector, float scale)
+        public static Vector4f Multiply(Vector4f vector, float scale)
         {
             Multiply(ref vector, scale, out vector);
             return vector;
@@ -344,9 +487,9 @@ namespace ProdigalSoftware.Utils
         /// <param name="vector">Left operand.</param>
         /// <param name="scale">Right operand.</param>
         /// <param name="result">Result of the operation.</param>
-        public static void Multiply(ref Vector3f vector, float scale, out Vector3f result)
+        public static void Multiply(ref Vector4f vector, float scale, out Vector4f result)
         {
-            result = new Vector3f(vector.X * scale, vector.Y * scale, vector.Z * scale);
+            result = new Vector4f(vector.X * scale, vector.Y * scale, vector.Z * scale, vector.W * scale);
         }
 
         /// <summary>
@@ -355,7 +498,7 @@ namespace ProdigalSoftware.Utils
         /// <param name="vector">Left operand.</param>
         /// <param name="scale">Right operand.</param>
         /// <returns>Result of the operation.</returns>
-        public static Vector3f Multiply(Vector3f vector, Vector3f scale)
+        public static Vector4f Multiply(Vector4f vector, Vector4f scale)
         {
             Multiply(ref vector, ref scale, out vector);
             return vector;
@@ -367,9 +510,9 @@ namespace ProdigalSoftware.Utils
         /// <param name="vector">Left operand.</param>
         /// <param name="scale">Right operand.</param>
         /// <param name="result">Result of the operation.</param>
-        public static void Multiply(ref Vector3f vector, ref Vector3f scale, out Vector3f result)
+        public static void Multiply(ref Vector4f vector, ref Vector4f scale, out Vector4f result)
         {
-            result = new Vector3f(vector.X * scale.X, vector.Y * scale.Y, vector.Z * scale.Z);
+            result = new Vector4f(vector.X * scale.X, vector.Y * scale.Y, vector.Z * scale.Z, vector.W * scale.W);
         }
 
         #endregion
@@ -382,7 +525,7 @@ namespace ProdigalSoftware.Utils
         /// <param name="vector">Left operand.</param>
         /// <param name="scale">Right operand.</param>
         /// <returns>Result of the operation.</returns>
-        public static Vector3f Divide(Vector3f vector, float scale)
+        public static Vector4f Divide(Vector4f vector, float scale)
         {
             Divide(ref vector, scale, out vector);
             return vector;
@@ -394,7 +537,7 @@ namespace ProdigalSoftware.Utils
         /// <param name="vector">Left operand.</param>
         /// <param name="scale">Right operand.</param>
         /// <param name="result">Result of the operation.</param>
-        public static void Divide(ref Vector3f vector, float scale, out Vector3f result)
+        public static void Divide(ref Vector4f vector, float scale, out Vector4f result)
         {
             Multiply(ref vector, 1 / scale, out result);
         }
@@ -405,7 +548,7 @@ namespace ProdigalSoftware.Utils
         /// <param name="vector">Left operand.</param>
         /// <param name="scale">Right operand.</param>
         /// <returns>Result of the operation.</returns>
-        public static Vector3f Divide(Vector3f vector, Vector3f scale)
+        public static Vector4f Divide(Vector4f vector, Vector4f scale)
         {
             Divide(ref vector, ref scale, out vector);
             return vector;
@@ -417,14 +560,14 @@ namespace ProdigalSoftware.Utils
         /// <param name="vector">Left operand.</param>
         /// <param name="scale">Right operand.</param>
         /// <param name="result">Result of the operation.</param>
-        public static void Divide(ref Vector3f vector, ref Vector3f scale, out Vector3f result)
+        public static void Divide(ref Vector4f vector, ref Vector4f scale, out Vector4f result)
         {
-            result = new Vector3f(vector.X / scale.X, vector.Y / scale.Y, vector.Z / scale.Z);
+            result = new Vector4f(vector.X / scale.X, vector.Y / scale.Y, vector.Z / scale.Z, vector.W / scale.W);
         }
 
         #endregion
 
-        #region ComponentMin
+        #region Min
 
         /// <summary>
         /// Calculate the component-wise minimum of two vectors
@@ -432,11 +575,12 @@ namespace ProdigalSoftware.Utils
         /// <param name="a">First operand</param>
         /// <param name="b">Second operand</param>
         /// <returns>The component-wise minimum</returns>
-        public static Vector3f ComponentMin(Vector3f a, Vector3f b)
+        public static Vector4f Min(Vector4f a, Vector4f b)
         {
             a.X = a.X < b.X ? a.X : b.X;
             a.Y = a.Y < b.Y ? a.Y : b.Y;
             a.Z = a.Z < b.Z ? a.Z : b.Z;
+            a.W = a.W < b.W ? a.W : b.W;
             return a;
         }
 
@@ -446,16 +590,17 @@ namespace ProdigalSoftware.Utils
         /// <param name="a">First operand</param>
         /// <param name="b">Second operand</param>
         /// <param name="result">The component-wise minimum</param>
-        public static void ComponentMin(ref Vector3f a, ref Vector3f b, out Vector3f result)
+        public static void Min(ref Vector4f a, ref Vector4f b, out Vector4f result)
         {
             result.X = a.X < b.X ? a.X : b.X;
             result.Y = a.Y < b.Y ? a.Y : b.Y;
             result.Z = a.Z < b.Z ? a.Z : b.Z;
+            result.W = a.W < b.W ? a.W : b.W;
         }
 
         #endregion
 
-        #region ComponentMax
+        #region Max
 
         /// <summary>
         /// Calculate the component-wise maximum of two vectors
@@ -463,11 +608,12 @@ namespace ProdigalSoftware.Utils
         /// <param name="a">First operand</param>
         /// <param name="b">Second operand</param>
         /// <returns>The component-wise maximum</returns>
-        public static Vector3f ComponentMax(Vector3f a, Vector3f b)
+        public static Vector4f Max(Vector4f a, Vector4f b)
         {
             a.X = a.X > b.X ? a.X : b.X;
             a.Y = a.Y > b.Y ? a.Y : b.Y;
             a.Z = a.Z > b.Z ? a.Z : b.Z;
+            a.W = a.W > b.W ? a.W : b.W;
             return a;
         }
 
@@ -477,41 +623,12 @@ namespace ProdigalSoftware.Utils
         /// <param name="a">First operand</param>
         /// <param name="b">Second operand</param>
         /// <param name="result">The component-wise maximum</param>
-        public static void ComponentMax(ref Vector3f a, ref Vector3f b, out Vector3f result)
+        public static void Max(ref Vector4f a, ref Vector4f b, out Vector4f result)
         {
             result.X = a.X > b.X ? a.X : b.X;
             result.Y = a.Y > b.Y ? a.Y : b.Y;
             result.Z = a.Z > b.Z ? a.Z : b.Z;
-        }
-
-        #endregion
-
-        #region Min
-
-        /// <summary>
-        /// Returns the Vector3f with the minimum magnitude
-        /// </summary>
-        /// <param name="left">Left operand</param>
-        /// <param name="right">Right operand</param>
-        /// <returns>The minimum Vector3f</returns>
-        public static Vector3f Min(Vector3f left, Vector3f right)
-        {
-            return left.LengthSquared < right.LengthSquared ? left : right;
-        }
-
-        #endregion
-
-        #region Max
-
-        /// <summary>
-        /// Returns the Vector3f with the minimum magnitude
-        /// </summary>
-        /// <param name="left">Left operand</param>
-        /// <param name="right">Right operand</param>
-        /// <returns>The minimum Vector3f</returns>
-        public static Vector3f Max(Vector3f left, Vector3f right)
-        {
-            return left.LengthSquared >= right.LengthSquared ? left : right;
+            result.W = a.W > b.W ? a.W : b.W;
         }
 
         #endregion
@@ -525,11 +642,12 @@ namespace ProdigalSoftware.Utils
         /// <param name="min">Minimum vector</param>
         /// <param name="max">Maximum vector</param>
         /// <returns>The clamped vector</returns>
-        public static Vector3f Clamp(Vector3f vec, Vector3f min, Vector3f max)
+        public static Vector4f Clamp(Vector4f vec, Vector4f min, Vector4f max)
         {
             vec.X = vec.X < min.X ? min.X : vec.X > max.X ? max.X : vec.X;
             vec.Y = vec.Y < min.Y ? min.Y : vec.Y > max.Y ? max.Y : vec.Y;
-            vec.Z = vec.Z < min.Z ? min.Z : vec.Z > max.Z ? max.Z : vec.Z;
+            vec.Z = vec.X < min.Z ? min.Z : vec.Z > max.Z ? max.Z : vec.Z;
+            vec.W = vec.Y < min.W ? min.W : vec.W > max.W ? max.W : vec.W;
             return vec;
         }
 
@@ -540,11 +658,12 @@ namespace ProdigalSoftware.Utils
         /// <param name="min">Minimum vector</param>
         /// <param name="max">Maximum vector</param>
         /// <param name="result">The clamped vector</param>
-        public static void Clamp(ref Vector3f vec, ref Vector3f min, ref Vector3f max, out Vector3f result)
+        public static void Clamp(ref Vector4f vec, ref Vector4f min, ref Vector4f max, out Vector4f result)
         {
             result.X = vec.X < min.X ? min.X : vec.X > max.X ? max.X : vec.X;
             result.Y = vec.Y < min.Y ? min.Y : vec.Y > max.Y ? max.Y : vec.Y;
-            result.Z = vec.Z < min.Z ? min.Z : vec.Z > max.Z ? max.Z : vec.Z;
+            result.Z = vec.X < min.Z ? min.Z : vec.Z > max.Z ? max.Z : vec.Z;
+            result.W = vec.Y < min.W ? min.W : vec.W > max.W ? max.W : vec.W;
         }
 
         #endregion
@@ -556,12 +675,13 @@ namespace ProdigalSoftware.Utils
         /// </summary>
         /// <param name="vec">The input vector</param>
         /// <returns>The normalized vector</returns>
-        public static Vector3f Normalize(Vector3f vec)
+        public static Vector4f Normalize(Vector4f vec)
         {
             float scale = 1.0f / vec.Length;
             vec.X *= scale;
             vec.Y *= scale;
             vec.Z *= scale;
+            vec.W *= scale;
             return vec;
         }
 
@@ -570,12 +690,13 @@ namespace ProdigalSoftware.Utils
         /// </summary>
         /// <param name="vec">The input vector</param>
         /// <param name="result">The normalized vector</param>
-        public static void Normalize(ref Vector3f vec, out Vector3f result)
+        public static void Normalize(ref Vector4f vec, out Vector4f result)
         {
             float scale = 1.0f / vec.Length;
             result.X = vec.X * scale;
             result.Y = vec.Y * scale;
             result.Z = vec.Z * scale;
+            result.W = vec.W * scale;
         }
 
         #endregion
@@ -587,12 +708,13 @@ namespace ProdigalSoftware.Utils
         /// </summary>
         /// <param name="vec">The input vector</param>
         /// <returns>The normalized vector</returns>
-        public static Vector3f NormalizeFast(Vector3f vec)
+        public static Vector4f NormalizeFast(Vector4f vec)
         {
-            float scale = MathHelper.InverseSqrtFast(vec.X * vec.X + vec.Y * vec.Y + vec.Z * vec.Z);
+            float scale = MathHelper.InverseSqrtFast(vec.X * vec.X + vec.Y * vec.Y + vec.Z * vec.Z + vec.W * vec.W);
             vec.X *= scale;
             vec.Y *= scale;
             vec.Z *= scale;
+            vec.W *= scale;
             return vec;
         }
 
@@ -601,12 +723,13 @@ namespace ProdigalSoftware.Utils
         /// </summary>
         /// <param name="vec">The input vector</param>
         /// <param name="result">The normalized vector</param>
-        public static void NormalizeFast(ref Vector3f vec, out Vector3f result)
+        public static void NormalizeFast(ref Vector4f vec, out Vector4f result)
         {
-            float scale = MathHelper.InverseSqrtFast(vec.X * vec.X + vec.Y * vec.Y + vec.Z * vec.Z);
+            float scale = MathHelper.InverseSqrtFast(vec.X * vec.X + vec.Y * vec.Y + vec.Z * vec.Z + vec.W * vec.W);
             result.X = vec.X * scale;
             result.Y = vec.Y * scale;
             result.Z = vec.Z * scale;
+            result.W = vec.W * scale;
         }
 
         #endregion
@@ -614,55 +737,25 @@ namespace ProdigalSoftware.Utils
         #region Dot
 
         /// <summary>
-        /// Calculate the dot (scalar) product of two vectors
+        /// Calculate the dot product of two vectors
         /// </summary>
         /// <param name="left">First operand</param>
         /// <param name="right">Second operand</param>
         /// <returns>The dot product of the two inputs</returns>
-        public static float Dot(Vector3f left, Vector3f right)
+        public static float Dot(Vector4f left, Vector4f right)
         {
-            return left.X * right.X + left.Y * right.Y + left.Z * right.Z;
+            return left.X * right.X + left.Y * right.Y + left.Z * right.Z + left.W * right.W;
         }
 
         /// <summary>
-        /// Calculate the dot (scalar) product of two vectors
+        /// Calculate the dot product of two vectors
         /// </summary>
         /// <param name="left">First operand</param>
         /// <param name="right">Second operand</param>
-        public static float Dot(ref Vector3f left, ref Vector3f right)
+        /// <param name="result">The dot product of the two inputs</param>
+        public static void Dot(ref Vector4f left, ref Vector4f right, out float result)
         {
-            return left.X * right.X + left.Y * right.Y + left.Z * right.Z;
-        }
-
-        #endregion
-
-        #region Cross
-
-        /// <summary>
-        /// Caclulate the cross (vector) product of two vectors
-        /// </summary>
-        /// <param name="left">First operand</param>
-        /// <param name="right">Second operand</param>
-        /// <returns>The cross product of the two inputs</returns>
-        public static Vector3f Cross(Vector3f left, Vector3f right)
-        {
-            Vector3f result;
-            Cross(ref left, ref right, out result);
-            return result;
-        }
-
-        /// <summary>
-        /// Caclulate the cross (vector) product of two vectors
-        /// </summary>
-        /// <param name="left">First operand</param>
-        /// <param name="right">Second operand</param>
-        /// <returns>The cross product of the two inputs</returns>
-        /// <param name="result">The cross product of the two inputs</param>
-        public static void Cross(ref Vector3f left, ref Vector3f right, out Vector3f result)
-        {
-            result = new Vector3f(left.Y * right.Z - left.Z * right.Y,
-                left.Z * right.X - left.X * right.Z,
-                left.X * right.Y - left.Y * right.X);
+            result = left.X * right.X + left.Y * right.Y + left.Z * right.Z + left.W * right.W;
         }
 
         #endregion
@@ -676,11 +769,12 @@ namespace ProdigalSoftware.Utils
         /// <param name="b">Second input vector</param>
         /// <param name="blend">The blend factor. a when blend=0, b when blend=1.</param>
         /// <returns>a when blend=0, b when blend=1, and a linear combination otherwise</returns>
-        public static Vector3f Lerp(Vector3f a, Vector3f b, float blend)
+        public static Vector4f Lerp(Vector4f a, Vector4f b, float blend)
         {
             a.X = blend * (b.X - a.X) + a.X;
             a.Y = blend * (b.Y - a.Y) + a.Y;
             a.Z = blend * (b.Z - a.Z) + a.Z;
+            a.W = blend * (b.W - a.W) + a.W;
             return a;
         }
 
@@ -691,11 +785,12 @@ namespace ProdigalSoftware.Utils
         /// <param name="b">Second input vector</param>
         /// <param name="blend">The blend factor. a when blend=0, b when blend=1.</param>
         /// <param name="result">a when blend=0, b when blend=1, and a linear combination otherwise</param>
-        public static void Lerp(ref Vector3f a, ref Vector3f b, float blend, out Vector3f result)
+        public static void Lerp(ref Vector4f a, ref Vector4f b, float blend, out Vector4f result)
         {
             result.X = blend * (b.X - a.X) + a.X;
             result.Y = blend * (b.Y - a.Y) + a.Y;
             result.Z = blend * (b.Z - a.Z) + a.Z;
+            result.W = blend * (b.W - a.W) + a.W;
         }
 
         #endregion
@@ -711,7 +806,7 @@ namespace ProdigalSoftware.Utils
         /// <param name="u">First Barycentric Coordinate</param>
         /// <param name="v">Second Barycentric Coordinate</param>
         /// <returns>a when u=v=0, b when u=1,v=0, c when u=0,v=1, and a linear combination of a,b,c otherwise</returns>
-        public static Vector3f BaryCentric(Vector3f a, Vector3f b, Vector3f c, float u, float v)
+        public static Vector4f BaryCentric(Vector4f a, Vector4f b, Vector4f c, float u, float v)
         {
             return a + u * (b - a) + v * (c - a);
         }
@@ -723,11 +818,11 @@ namespace ProdigalSoftware.Utils
         /// <param name="u">First Barycentric Coordinate.</param>
         /// <param name="v">Second Barycentric Coordinate.</param>
         /// <param name="result">Output Vector. a when u=v=0, b when u=1,v=0, c when u=0,v=1, and a linear combination of a,b,c otherwise</param>
-        public static void BaryCentric(ref Vector3f a, ref Vector3f b, ref Vector3f c, float u, float v, out Vector3f result)
+        public static void BaryCentric(ref Vector4f a, ref Vector4f b, ref Vector4f c, float u, float v, out Vector4f result)
         {
             result = a; // copy
 
-            Vector3f temp = b; // copy
+            Vector4f temp = b; // copy
             Subtract(ref temp, ref a, out temp);
             Multiply(ref temp, u, out temp);
             Add(ref result, ref temp, out result);
@@ -742,125 +837,13 @@ namespace ProdigalSoftware.Utils
 
         #region Transform
 
-        /// <summary>Transform a direction vector by the given Matrix
-        /// Assumes the matrix has a bottom row of (0,0,0,1), that is the translation part is ignored.
-        /// </summary>
-        /// <param name="vec">The vector to transform</param>
-        /// <param name="mat">The desired transformation</param>
-        /// <returns>The transformed vector</returns>
-        public static Vector3f TransformVector(Vector3f vec, Matrix4f mat)
-        {
-            Vector3f v;
-            v.X = Dot(vec, new Vector3f(mat.Column0));
-            v.Y = Dot(vec, new Vector3f(mat.Column1));
-            v.Z = Dot(vec, new Vector3f(mat.Column2));
-            return v;
-        }
-
-        /// <summary>Transform a direction vector by the given Matrix
-        /// Assumes the matrix has a bottom row of (0,0,0,1), that is the translation part is ignored.
-        /// </summary>
-        /// <param name="vec">The vector to transform</param>
-        /// <param name="mat">The desired transformation</param>
-        /// <param name="result">The transformed vector</param>
-        public static void TransformVector(ref Vector3f vec, ref Matrix4f mat, out Vector3f result)
-        {
-            result.X = vec.X * mat.Row0X + vec.Y * mat.Row1X + vec.Z * mat.Row2X;
-            result.Y = vec.X * mat.Row0Y + vec.Y * mat.Row1Y + vec.Z * mat.Row2Y;
-            result.Z = vec.X * mat.Row0Z + vec.Y * mat.Row1Z + vec.Z * mat.Row2Z;
-        }
-
-        /// <summary>Transform a Normal by the given Matrix</summary>
-        /// <remarks>
-        /// This calculates the inverse of the given matrix, use TransformNormalInverse if you
-        /// already have the inverse to avoid this extra calculation
-        /// </remarks>
-        /// <param name="norm">The normal to transform</param>
-        /// <param name="mat">The desired transformation</param>
-        /// <returns>The transformed normal</returns>
-        public static Vector3f TransformNormal(Vector3f norm, Matrix4f mat)
-        {
-            mat.Invert();
-            return TransformNormalInverse(norm, mat);
-        }
-
-        /// <summary>Transform a Normal by the given Matrix</summary>
-        /// <remarks>
-        /// This calculates the inverse of the given matrix, use TransformNormalInverse if you
-        /// already have the inverse to avoid this extra calculation
-        /// </remarks>
-        /// <param name="norm">The normal to transform</param>
-        /// <param name="mat">The desired transformation</param>
-        /// <param name="result">The transformed normal</param>
-        public static void TransformNormal(ref Vector3f norm, ref Matrix4f mat, out Vector3f result)
-        {
-            Matrix4f Inverse = Matrix4f.Invert(mat);
-            TransformNormalInverse(ref norm, ref Inverse, out result);
-        }
-
-        /// <summary>Transform a Normal by the (transpose of the) given Matrix</summary>
-        /// <remarks>
-        /// This version doesn't calculate the inverse matrix.
-        /// Use this version if you already have the inverse of the desired transform to hand
-        /// </remarks>
-        /// <param name="norm">The normal to transform</param>
-        /// <param name="invMat">The inverse of the desired transformation</param>
-        /// <returns>The transformed normal</returns>
-        public static Vector3f TransformNormalInverse(Vector3f norm, Matrix4f invMat)
-        {
-            Vector3f n;
-            n.X = Dot(norm, new Vector3f(invMat.Row0X, invMat.Row0Y, invMat.Row0Z));
-            n.Y = Dot(norm, new Vector3f(invMat.Row1X, invMat.Row1Y, invMat.Row1Z));
-            n.Z = Dot(norm, new Vector3f(invMat.Row2X, invMat.Row2Y, invMat.Row2Z));
-            return n;
-        }
-
-        /// <summary>Transform a Normal by the (transpose of the) given Matrix</summary>
-        /// <remarks>
-        /// This version doesn't calculate the inverse matrix.
-        /// Use this version if you already have the inverse of the desired transform to hand
-        /// </remarks>
-        /// <param name="norm">The normal to transform</param>
-        /// <param name="invMat">The inverse of the desired transformation</param>
-        /// <param name="result">The transformed normal</param>
-        public static void TransformNormalInverse(ref Vector3f norm, ref Matrix4f invMat, out Vector3f result)
-        {
-            result.X = norm.X * invMat.Row0X + norm.Y * invMat.Row0Y + norm.Z * invMat.Row0Z;
-            result.Y = norm.X * invMat.Row1X + norm.Y * invMat.Row1Y + norm.Z * invMat.Row1Z;
-            result.Z = norm.X * invMat.Row2X + norm.Y * invMat.Row2Y + norm.Z * invMat.Row2Z;
-        }
-
-        /// <summary>Transform a Position by the given Matrix</summary>
-        /// <param name="pos">The position to transform</param>
-        /// <param name="mat">The desired transformation</param>
-        /// <returns>The transformed position</returns>
-        public static Vector3f TransformPosition(Vector3f pos, Matrix4f mat)
-        {
-            Vector3f p;
-            p.X = Dot(pos, new Vector3f(mat.Column0)) + mat.Row3X;
-            p.Y = Dot(pos, new Vector3f(mat.Column1)) + mat.Row3Y;
-            p.Z = Dot(pos, new Vector3f(mat.Column2)) + mat.Row3Z;
-            return p;
-        }
-
-        /// <summary>Transform a Position by the given Matrix</summary>
-        /// <param name="pos">The position to transform</param>
-        /// <param name="mat">The desired transformation</param>
-        /// <param name="result">The transformed position</param>
-        public static void TransformPosition(ref Vector3f pos, ref Matrix4f mat, out Vector3f result)
-        {
-            result.X = pos.X * mat.Row0X + pos.Y * mat.Row1X + pos.Z * mat.Row2X + mat.Row3X;
-            result.Y = pos.X * mat.Row0Y + pos.Y * mat.Row1Y + pos.Z * mat.Row2Y + mat.Row3Y;
-            result.Z = pos.X * mat.Row0Z + pos.Y * mat.Row1Z + pos.Z * mat.Row2Z + mat.Row3Z;
-        }
-
         /// <summary>Transform a Vector by the given Matrix</summary>
         /// <param name="vec">The vector to transform</param>
         /// <param name="mat">The desired transformation</param>
         /// <returns>The transformed vector</returns>
-        public static Vector3f Transform(Vector3f vec, Matrix4f mat)
+        public static Vector4f Transform(Vector4f vec, Matrix4f mat)
         {
-            Vector3f result;
+            Vector4f result;
             Transform(ref vec, ref mat, out result);
             return result;
         }
@@ -869,68 +852,33 @@ namespace ProdigalSoftware.Utils
         /// <param name="vec">The vector to transform</param>
         /// <param name="mat">The desired transformation</param>
         /// <param name="result">The transformed vector</param>
-        public static void Transform(ref Vector3f vec, ref Matrix4f mat, out Vector3f result)
+        public static void Transform(ref Vector4f vec, ref Matrix4f mat, out Vector4f result)
         {
-            Vector4f v4 = new Vector4f(vec.X, vec.Y, vec.Z, 1.0f);
-            Vector4f.Transform(ref v4, ref mat, out v4);
-            result = v4.Xyz;
-        }
-
-        /// <summary>Transform a Vector3f by the given Matrix, and project the resulting Vector4f back to a Vector3f</summary>
-        /// <param name="vec">The vector to transform</param>
-        /// <param name="mat">The desired transformation</param>
-        /// <returns>The transformed vector</returns>
-        public static Vector3f TransformPerspective(Vector3f vec, Matrix4f mat)
-        {
-            Vector3f result;
-            TransformPerspective(ref vec, ref mat, out result);
-            return result;
-        }
-
-        /// <summary>Transform a Vector3f by the given Matrix, and project the resulting Vector4f back to a Vector3f</summary>
-        /// <param name="vec">The vector to transform</param>
-        /// <param name="mat">The desired transformation</param>
-        /// <param name="result">The transformed vector</param>
-        public static void TransformPerspective(ref Vector3f vec, ref Matrix4f mat, out Vector3f result)
-        {
-            Vector4f v = new Vector4f(vec, 1);
-            Vector4f.Transform(ref v, ref mat, out v);
-            result.X = v.X / v.W;
-            result.Y = v.Y / v.W;
-            result.Z = v.Z / v.W;
+            result = new Vector4f(
+                vec.X * mat.Row0X + vec.Y * mat.Row1X + vec.Z * mat.Row2X + vec.W * mat.Row3X,
+                vec.X * mat.Row0Y + vec.Y * mat.Row1Y + vec.Z * mat.Row2Y + vec.W * mat.Row3Y,
+                vec.X * mat.Row0Z + vec.Y * mat.Row1Z + vec.Z * mat.Row2Z + vec.W * mat.Row3Z,
+                vec.X * mat.Row0W + vec.Y * mat.Row1W + vec.Z * mat.Row2W + vec.W * mat.Row3W);
         }
 
         #endregion
 
-        #region CalculateAngle
+        #endregion
+
+        #region Swizzle
+
+        #region 3-component
 
         /// <summary>
-        /// Calculates the angle (in radians) between two vectors.
+        /// Gets or sets an OpenTK.Vector3f with the X, Y, and Z components of this instance.
         /// </summary>
-        /// <param name="first">The first vector.</param>
-        /// <param name="second">The second vector.</param>
-        /// <returns>Angle (in radians) between the vectors.</returns>
-        /// <remarks>Note that the returned angle is never bigger than the constant Pi.</remarks>
-        public static float CalculateAngle(Vector3f first, Vector3f second)
-        {
-            return CalculateAngle(ref first, ref second);
-        }
-
-        /// <summary>Calculates the angle (in radians) between two vectors.</summary>
-        /// <param name="first">The first vector.</param>
-        /// <param name="second">The second vector.</param>
-        /// <returns>Angle (in radians) between the vectors.</returns>
-        /// <remarks>Note that the returned angle is never bigger than the constant Pi.</remarks>
-        public static float CalculateAngle(ref Vector3f first, ref Vector3f second)
-        {
-            float temp = Dot(ref first, ref second);
-            return (float)Math.Acos(MathHelper.Clamp(temp / (first.Length * second.Length), -1.0f, 1.0f));
-        }
+        [XmlIgnore]
+        public Vector3f Xyz { get { return new Vector3f(X, Y, Z); } set { X = value.X; Y = value.Y; Z = value.Z; } }
 
         #endregion
 
         #endregion
-        
+
         #region Operators
 
         /// <summary>
@@ -939,11 +887,12 @@ namespace ProdigalSoftware.Utils
         /// <param name="left">The first instance.</param>
         /// <param name="right">The second instance.</param>
         /// <returns>The result of the calculation.</returns>
-        public static Vector3f operator +(Vector3f left, Vector3f right)
+        public static Vector4f operator +(Vector4f left, Vector4f right)
         {
             left.X += right.X;
             left.Y += right.Y;
             left.Z += right.Z;
+            left.W += right.W;
             return left;
         }
 
@@ -953,11 +902,12 @@ namespace ProdigalSoftware.Utils
         /// <param name="left">The first instance.</param>
         /// <param name="right">The second instance.</param>
         /// <returns>The result of the calculation.</returns>
-        public static Vector3f operator -(Vector3f left, Vector3f right)
+        public static Vector4f operator -(Vector4f left, Vector4f right)
         {
             left.X -= right.X;
             left.Y -= right.Y;
             left.Z -= right.Z;
+            left.W -= right.W;
             return left;
         }
 
@@ -966,11 +916,12 @@ namespace ProdigalSoftware.Utils
         /// </summary>
         /// <param name="vec">The instance.</param>
         /// <returns>The result of the calculation.</returns>
-        public static Vector3f operator -(Vector3f vec)
+        public static Vector4f operator -(Vector4f vec)
         {
             vec.X = -vec.X;
             vec.Y = -vec.Y;
             vec.Z = -vec.Z;
+            vec.W = -vec.W;
             return vec;
         }
 
@@ -980,11 +931,12 @@ namespace ProdigalSoftware.Utils
         /// <param name="vec">The instance.</param>
         /// <param name="scale">The scalar.</param>
         /// <returns>The result of the calculation.</returns>
-        public static Vector3f operator *(Vector3f vec, float scale)
+        public static Vector4f operator *(Vector4f vec, float scale)
         {
             vec.X *= scale;
             vec.Y *= scale;
             vec.Z *= scale;
+            vec.W *= scale;
             return vec;
         }
 
@@ -994,11 +946,12 @@ namespace ProdigalSoftware.Utils
         /// <param name="scale">The scalar.</param>
         /// <param name="vec">The instance.</param>
         /// <returns>The result of the calculation.</returns>
-        public static Vector3f operator *(float scale, Vector3f vec)
+        public static Vector4f operator *(float scale, Vector4f vec)
         {
             vec.X *= scale;
             vec.Y *= scale;
             vec.Z *= scale;
+            vec.W *= scale;
             return vec;
         }
 
@@ -1008,11 +961,12 @@ namespace ProdigalSoftware.Utils
         /// <param name="scale">Left operand.</param>
         /// <param name="vec">Right operand.</param>
         /// <returns>Result of multiplication.</returns>
-        public static Vector3f operator *(Vector3f vec, Vector3f scale)
+        public static Vector4f operator *(Vector4f vec, Vector4f scale)
         {
             vec.X *= scale.X;
             vec.Y *= scale.Y;
             vec.Z *= scale.Z;
+            vec.W *= scale.W;
             return vec;
         }
 
@@ -1022,12 +976,13 @@ namespace ProdigalSoftware.Utils
         /// <param name="vec">The instance.</param>
         /// <param name="scale">The scalar.</param>
         /// <returns>The result of the calculation.</returns>
-        public static Vector3f operator /(Vector3f vec, float scale)
+        public static Vector4f operator /(Vector4f vec, float scale)
         {
             float mult = 1.0f / scale;
             vec.X *= mult;
             vec.Y *= mult;
             vec.Z *= mult;
+            vec.W *= mult;
             return vec;
         }
 
@@ -1037,7 +992,7 @@ namespace ProdigalSoftware.Utils
         /// <param name="left">The first instance.</param>
         /// <param name="right">The second instance.</param>
         /// <returns>True, if left equals right; false otherwise.</returns>
-        public static bool operator ==(Vector3f left, Vector3f right)
+        public static bool operator ==(Vector4f left, Vector4f right)
         {
             return left.Equals(right);
         }
@@ -1048,7 +1003,7 @@ namespace ProdigalSoftware.Utils
         /// <param name="left">The first instance.</param>
         /// <param name="right">The second instance.</param>
         /// <returns>True, if left does not equa lright; false otherwise.</returns>
-        public static bool operator !=(Vector3f left, Vector3f right)
+        public static bool operator !=(Vector4f left, Vector4f right)
         {
             return !left.Equals(right);
         }
@@ -1058,9 +1013,22 @@ namespace ProdigalSoftware.Utils
         /// </summary>
         /// <param name="v">The instance.</param>
         /// <returns>A pointer to the first element of v.</returns>
-        unsafe public static explicit operator float*(Vector3f v)
+        unsafe public static explicit operator float*(Vector4f v)
         {
             return &v.X;
+        }
+
+        /// <summary>
+        /// Returns a pointer to the first element of the specified instance.
+        /// </summary>
+        /// <param name="v">The instance.</param>
+        /// <returns>A pointer to the first element of v.</returns>
+        public static explicit operator IntPtr(Vector4f v)
+        {
+            unsafe
+            {
+                return (IntPtr)(&v.X);
+            }
         }
 
         #endregion
@@ -1071,12 +1039,12 @@ namespace ProdigalSoftware.Utils
 
         private static string listSeparator = CultureInfo.CurrentCulture.TextInfo.ListSeparator;
         /// <summary>
-        /// Returns a System.String that represents the current Vector3f.
+        /// Returns a System.String that represents the current Vector4f.
         /// </summary>
         /// <returns></returns>
         public override string ToString()
         {
-            return String.Format("({0}{3} {1}{3} {2})", X, Y, Z, listSeparator);
+            return String.Format("({0}{4} {1}{4} {2}{4} {3})", X, Y, Z, W, listSeparator);
         }
 
         #endregion
@@ -1089,9 +1057,8 @@ namespace ProdigalSoftware.Utils
         /// <returns>A System.Int32 containing the unique hashcode for this instance.</returns>
         public override int GetHashCode()
         {
-            return X.GetHashCode() ^ Y.GetHashCode() ^ Z.GetHashCode();
+            return X.GetHashCode() ^ Y.GetHashCode() ^ Z.GetHashCode() ^ W.GetHashCode();
         }
-
         #endregion
 
         #region public override bool Equals(object obj)
@@ -1103,10 +1070,10 @@ namespace ProdigalSoftware.Utils
         /// <returns>True if the instances are equal; false otherwise.</returns>
         public override bool Equals(object obj)
         {
-            if (!(obj is Vector3f))
+            if (!(obj is Vector4f))
                 return false;
 
-            return Equals((Vector3f)obj);
+            return this.Equals((Vector4f)obj);
         }
 
         #endregion
@@ -1115,19 +1082,30 @@ namespace ProdigalSoftware.Utils
 
         #endregion
 
-        #region IEquatable<Vector3f> Members
+        #region IEquatable<Vector4f> Members
 
         /// <summary>Indicates whether the current vector is equal to another vector.</summary>
         /// <param name="other">A vector to compare with this vector.</param>
         /// <returns>true if the current vector is equal to the vector parameter; otherwise, false.</returns>
-        public bool Equals(Vector3f other)
+        public bool Equals(Vector4f other)
         {
             return
                 X == other.X &&
                 Y == other.Y &&
-                Z == other.Z;
+                Z == other.Z &&
+                W == other.W;
         }
 
+        #endregion
+
+        #region Implementation of ITiVESerializable
+        public void SaveTo(BinaryWriter writer)
+        {
+            writer.Write(X);
+            writer.Write(Y);
+            writer.Write(Z);
+            writer.Write(W);
+        }
         #endregion
     }
 }

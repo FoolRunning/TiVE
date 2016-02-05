@@ -1,11 +1,20 @@
-﻿using ProdigalSoftware.Utils;
+﻿using System;
+using System.IO;
 
 namespace ProdigalSoftware.TiVEPluginFramework
 {
-    public class BoundingBox
+    public class BoundingBox : ITiVESerializable
     {
-        private readonly Vector3f minPoint;
-        private readonly Vector3f maxPoint;
+        public static readonly Guid ID = new Guid("4AC88D87-3EE1-44DA-898F-4D06FF5B01FB");
+
+        private Vector3f minPoint;
+        private Vector3f maxPoint;
+
+        public BoundingBox(BinaryReader reader)
+        {
+            minPoint = new Vector3f(reader);
+            maxPoint = new Vector3f(reader);
+        }
 
         public BoundingBox(Vector3f minPoint, Vector3f maxPoint)
         {
@@ -22,6 +31,14 @@ namespace ProdigalSoftware.TiVEPluginFramework
         {
             get { return maxPoint; }
         }
+
+        #region Implementation of ITiVESerializable
+        public void SaveTo(BinaryWriter writer)
+        {
+            minPoint.SaveTo(writer);
+            maxPoint.SaveTo(writer);
+        }
+        #endregion
 
         public bool IntersectsWith(BoundingBox other)
         {

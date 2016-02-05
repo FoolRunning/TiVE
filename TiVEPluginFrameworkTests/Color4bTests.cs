@@ -1,7 +1,6 @@
 ﻿using NUnit.Framework;
-using ProdigalSoftware.Utils;
 
-namespace UtilsTests
+namespace ProdigalSoftware.TiVEPluginFramework
 {
     /// <summary>
     /// Tests for the Color4b class

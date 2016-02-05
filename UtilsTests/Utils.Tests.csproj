@@ -80,7 +80,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ArrayUtilsTests.cs" />
-    <Compile Include="Color4bTests.cs" />
     <Compile Include="MathUtilsTests.cs" />
     <Compile Include="PerformanceLockTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

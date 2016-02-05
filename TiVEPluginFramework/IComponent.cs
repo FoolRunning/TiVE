@@ -1,6 +1,6 @@
 ﻿namespace ProdigalSoftware.TiVEPluginFramework
 {
-    public interface IComponent
+    public interface IComponent : ITiVESerializable
     {
     }
 }

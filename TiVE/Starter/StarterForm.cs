@@ -10,7 +10,7 @@ namespace ProdigalSoftware.TiVE.Starter
     internal partial class StarterForm : Form
     {
         /// <summary>string containing the copyright information</summary>
-        private const string CopyrightString = "© 2013-2015 Prodigal Software";
+        private const string CopyrightString = "© 2013-2016 Prodigal Software";
 
         private Point startOfDrag;
         private Point startingLocation;
@@ -35,28 +35,31 @@ namespace ProdigalSoftware.TiVE.Starter
         /// <summary>
         /// Called by the loading thread when initial loading is finished
         /// </summary>
-        public void AfterInitialLoad()
+        public void AfterInitialLoad(bool success)
         {
             Invoke(new Action(() =>
             {
-                foreach (string filePath in Directory.EnumerateFiles(Path.Combine(Path.GetDirectoryName(Assembly.GetEntryAssembly().Location), "Data"), "*.xml"))
+                if (success)
                 {
-                    try
+                    foreach (string filePath in Directory.EnumerateFiles(Path.Combine(Path.GetDirectoryName(Assembly.GetEntryAssembly().Location), "Data"), "*.xml"))
                     {
-                        cmbProject.Items.Add(TiVEProject.FromFile(filePath));
+                        try
+                        {
+                            cmbProject.Items.Add(TiVEProject.FromFile(filePath));
+                        }
+                        catch (Exception e)
+                        {
+                            Messages.AddWarning("Unable to load project file " + Path.GetFileName(filePath));
+                            string message = e.Message;
+                            if (e.InnerException != null)
+                                message += " - " + e.InnerException.Message;
+                            Messages.AddWarning(message);
+                        }
                     }
-                    catch (Exception e)
-                    {
-                        Messages.AddWarning("Unable to load project file " + Path.GetFileName(filePath));
-                        string message = e.Message;
-                        if (e.InnerException != null)
-                            message += " - " + e.InnerException.Message;
-                        Messages.AddWarning(message);
-                    }
-                }
 
-                if (cmbProject.Items.Count > 0)
-                    cmbProject.SelectedIndex = 0;
+                    if (cmbProject.Items.Count > 0)
+                        cmbProject.SelectedIndex = 0;
+                }
 
                 tbMessages.Enabled = true;
                 InitializeOptions();

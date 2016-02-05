@@ -18,6 +18,7 @@ namespace ProdigalSoftware.TiVE
     public static class TiVEController
     {
         internal static readonly long MaxTicksForSleep;
+        internal static readonly ResourceLoader ResourceLoader = new ResourceLoader();
         internal static readonly PluginManager PluginManager = new PluginManager();
         internal static readonly IControllerBackend Backend = new OpenTKBackend();
         internal static readonly UserSettings UserSettings = new UserSettings();
@@ -38,6 +39,7 @@ namespace ProdigalSoftware.TiVE
             Console.WriteLine("Sleeping for 1ms can be " + MaxTicksForSleep * 1000.0f / Stopwatch.Frequency + "ms long");
 
             Factory.Implementation = new FactoryImpl();
+            TiVESerializer.Implementation = new TiVESerializerImplementation();
         }
 
         public static void RunStarter()
@@ -65,7 +67,7 @@ namespace ProdigalSoftware.TiVE
             Engine.MainLoop(sceneToLoad);
         }
 
-        static void starterForm_VisibleChanged(object sender, EventArgs e)
+        private static void starterForm_VisibleChanged(object sender, EventArgs e)
         {
             Thread initialLoadThread = new Thread(() =>
             {
@@ -73,13 +75,16 @@ namespace ProdigalSoftware.TiVE
                 if (success)
                     UserSettings.Load();
                 if (success)
-                    starterForm.AfterInitialLoad();
+                    success = ResourceLoader.Initialize();
+                if (success)
+                    success = ((TiVESerializerImplementation)TiVESerializer.Implementation).Initialize();
+
+                starterForm.AfterInitialLoad(success);
 
                 //TestIntStructAccess();
-                DoVoxelRayCastTest();
-                DoFastVoxelRayCastTest();
                 DoBlockLineTest();
-
+                DoFastVoxelRayCastTest();
+                DoVoxelRayCastTest();
             });
             initialLoadThread.IsBackground = true;
             initialLoadThread.Name = "InitialLoad";
@@ -160,7 +165,7 @@ namespace ProdigalSoftware.TiVE
             GameWorld gameWorld = new GameWorld(200, 200, 200);
             BlockList blockList = new BlockList();
             BlockImpl block = new BlockImpl("dummy");
-            block.AddComponent(LightPassthroughComponent.Instance);
+            block.AddComponent(new LightPassthroughComponent());
             blockList.AddBlock(block);
             ushort blockId = blockList["dummy"];
             for (int x = 0; x < 100; x++)

@@ -6,13 +6,12 @@ using Ionic.Zip;
 using JetBrains.Annotations;
 using ProdigalSoftware.TiVE.RenderSystem.Voxels;
 using ProdigalSoftware.TiVEPluginFramework;
-using ProdigalSoftware.Utils;
 
 namespace ProdigalSoftware.TiVE.RenderSystem.World
 {
     internal sealed class BlockList : IBlockList
     {
-        public const string FileExtension = "TiVEb";
+        public const string FileExtension = ".TiVEb";
 
         private const string InfoFileHeader = "TiVEb";
         private const string BlockFileInternalInfoFile = "blocks.info";
@@ -166,7 +165,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
                             writer.Write((short)light.LightBlockDist);
                         }
                     }
-                    blockFile.AddEntry(block.Name + "." + FileExtension, memStream.ToArray());
+                    blockFile.AddEntry(block.Name + FileExtension, memStream.ToArray());
                 }
             }
 

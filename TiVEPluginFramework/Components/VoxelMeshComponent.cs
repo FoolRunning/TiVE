@@ -1,6 +1,6 @@
-﻿using JetBrains.Annotations;
+﻿using System.IO;
+using JetBrains.Annotations;
 using ProdigalSoftware.TiVEPluginFramework.Internal;
-using ProdigalSoftware.Utils;
 
 namespace ProdigalSoftware.TiVEPluginFramework.Components
 {
@@ -28,9 +28,15 @@ namespace ProdigalSoftware.TiVEPluginFramework.Components
         [UsedImplicitly]
         public Vector3f Location;
 
+        protected VoxelMeshComponent()
+        {
+        }
+
         protected VoxelMeshComponent(Vector3f location)
         {
             Location = location;
         }
+
+        public abstract void SaveTo(BinaryWriter writer);
     }
 }

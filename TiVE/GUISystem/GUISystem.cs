@@ -1,5 +1,5 @@
 ﻿using ProdigalSoftware.TiVE.Core;
-using ProdigalSoftware.Utils;
+using ProdigalSoftware.TiVEPluginFramework;
 using Squid;
 
 namespace ProdigalSoftware.TiVE.GUISystem

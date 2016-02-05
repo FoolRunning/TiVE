@@ -77,14 +77,16 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Ionic.Zip">
-      <HintPath>..\packages\DotNetZip.1.9.3\lib\net20\Ionic.Zip.dll</HintPath>
+    <Reference Include="Ionic.Zip, Version=1.9.7.0, Culture=neutral, PublicKeyToken=6583c7c814667745, processorArchitecture=MSIL">
+      <HintPath>..\packages\DotNetZip.1.9.7\lib\net20\Ionic.Zip.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="irrKlang.NET4">
       <HintPath>..\..\..\..\Libraries\irrKlang-32bit-1.5.0\irrKlang-1.5.0\bin\dotnet-4\irrKlang.NET4.dll</HintPath>
     </Reference>
-    <Reference Include="MoonSharp.Interpreter">
-      <HintPath>..\packages\MoonSharp.0.9.2.0\lib\net40-client\MoonSharp.Interpreter.dll</HintPath>
+    <Reference Include="MoonSharp.Interpreter, Version=1.1.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\MoonSharp.1.1.0.1\lib\net40-client\MoonSharp.Interpreter.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="OpenTK, Version=1.1.0.0, Culture=neutral, PublicKeyToken=bad199fe84eb3df4, processorArchitecture=MSIL">
       <HintPath>..\packages\OpenTK.1.1.1589.5942\lib\NET40\OpenTK.dll</HintPath>
@@ -118,6 +120,8 @@
     <Compile Include="Core\Backend\OpenTKImpl\KeyboardImpl.cs" />
     <Compile Include="Core\Backend\OpenTKImpl\OpenTKBackend.cs" />
     <Compile Include="Core\Backend\OpenTKImpl\OpenTKDisplay.cs" />
+    <Compile Include="Core\ResourceLoader.cs" />
+    <Compile Include="Core\TiVESerializerImplementation.cs" />
     <Compile Include="GUISystem\Font.cs" />
     <Compile Include="GUISystem\SquidRenderer.cs" />
     <Compile Include="Core\Backend\OpenTKImpl\OpenTKTexture.cs" />
@@ -189,7 +193,6 @@
     <Compile Include="Starter\TextMessages.cs" />
     <Compile Include="Starter\TextState.cs" />
     <Compile Include="TiVEController.cs" />
-    <Compile Include="TiVEException.cs" />
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>

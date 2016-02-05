@@ -157,8 +157,8 @@ namespace ProdigalSoftware.ProjectM.Plugins
             for (int i = 0; i < 50; i++)
             {
                 Block grass = Factory.CreateBlock("grass" + i);
-                grass.AddComponent(new VoxelAdjusterComponent(0.2f));
-                grass.AddComponent(LightPassthroughComponent.Instance);
+                grass.AddComponent(new VoxelNoiseComponent(0.2f));
+                grass.AddComponent(new LightPassthroughComponent());
 
                 for (int z = 0; z < Block.VoxelSize; z++)
                 {
@@ -240,7 +240,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
 
         private static void ReplaceVoxel(Block block, int x, int y, int z, Voxel newVoxel)
         {
-            if (block[x, y, z] != 0)
+            if (block[x, y, z] != Voxel.Empty)
                 block[x, y, z] = newVoxel;
         }
 
@@ -260,15 +260,15 @@ namespace ProdigalSoftware.ProjectM.Plugins
         private static bool GrassVoxelUnder(Block block, int x, int y, int z)
         {
             int countUnder = 0;
-            if (block[x, y, z - 1] != 0)
+            if (block[x, y, z - 1] != Voxel.Empty)
                 countUnder++;
-            if (x > 0 && block[x - 1, y, z - 1] != 0)
+            if (x > 0 && block[x - 1, y, z - 1] != Voxel.Empty)
                 countUnder++;
-            if (x < Block.VoxelSize - 1 && block[x + 1, y, z - 1] != 0)
+            if (x < Block.VoxelSize - 1 && block[x + 1, y, z - 1] != Voxel.Empty)
                 countUnder++;
-            if (y > 0 && block[x, y - 1, z - 1] != 0)
+            if (y > 0 && block[x, y - 1, z - 1] != Voxel.Empty)
                 countUnder++;
-            if (y < Block.VoxelSize - 1 && block[x, y + 1, z - 1] != 0)
+            if (y < Block.VoxelSize - 1 && block[x, y + 1, z - 1] != Voxel.Empty)
                 countUnder++;
             return countUnder == 1;
         }
@@ -280,16 +280,12 @@ namespace ProdigalSoftware.ProjectM.Plugins
 
             Block block = Factory.CreateBlock(name);
             if (colorVariation > 0.0f)
-            {
-                Random blockRandom = new Random(); // The random class is not thread-safe, so create a new one for each block to prevent graphics glitches
-                block.AddComponent(new VoxelAdjusterComponent(
-                    v => v == mortarColor ? v : VoxelAdjusterComponent.LightBrightnessAdjustment(v, colorVariation, blockRandom)));
-            }
+                block.AddComponent(new VoxelNoiseComponent(colorVariation, mortarColor));
 
             if (light != null)
             {
                 block.AddComponent(light);
-                block.AddComponent(LightPassthroughComponent.Instance);
+                block.AddComponent(new LightPassthroughComponent());
             }
 
             for (int x = 0; x < Block.VoxelSize; x++)
@@ -363,11 +359,11 @@ namespace ProdigalSoftware.ProjectM.Plugins
             if (particleSystem != null)
                 block.AddComponent(particleSystem);
             if (light == null)
-                block.AddComponent(new VoxelAdjusterComponent(colorVariation));
+                block.AddComponent(new VoxelNoiseComponent(colorVariation));
             else
             {
                 block.AddComponent(light);
-                block.AddComponent(LightPassthroughComponent.Instance);
+                block.AddComponent(new LightPassthroughComponent());
                 settings = VoxelSettings.AllowLightPassthrough | VoxelSettings.IgnoreLighting;
             }
 

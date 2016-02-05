@@ -134,7 +134,7 @@ namespace ProdigalSoftware.TiVEEditor.BlockLists
                 }
                 dialog.InitialDirectory = !string.IsNullOrEmpty(settings.BlockEditorBlockListLastDir) ? 
                     settings.BlockEditorBlockListLastDir : Environment.CurrentDirectory;
-                dialog.Filter = string.Format("Block List Files ({0})|{0}", "*." + BlockList.FileExtension);
+                dialog.Filter = string.Format("Block List Files ({0})|{0}", "*" + BlockList.FileExtension);
                 if (dialog.ShowDialog(dialogOwner) == DialogResult.OK)
                 {
                     settings.BlockEditorBlockListLastDir = Path.GetDirectoryName(dialog.FileName);
