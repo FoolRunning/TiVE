@@ -20,9 +20,7 @@ namespace ProdigalSoftware.TiVE.Core
         private readonly List<IEntity> entities = new List<IEntity>(3000);
 
         public bool LoadingInitialChunks { get; set; }
-
-        public BlockList BlockList { get; private set; }
-
+        
         public LightProvider LightProvider { get; private set; }
 
         public GameWorldLightData LightData { get; private set; }
@@ -38,9 +36,6 @@ namespace ProdigalSoftware.TiVE.Core
             if (RenderNode != null)
                 RenderNode.Dispose();
 #endif
-
-            if (BlockList != null)
-                BlockList.Dispose();
         }
 
         public IEnumerable<IEntity> AllEntities
@@ -73,10 +68,9 @@ namespace ProdigalSoftware.TiVE.Core
 
         public void SetGameWorld(string worldName)
         {
-            BlockList newBlockList;
-            GameWorld newGameWorld = GameWorldManager.LoadGameWorld(worldName, out newBlockList);
-            SetGameWorld(newGameWorld, newBlockList);
-            CreateEntitiesForBlockComponents(newGameWorld, newBlockList);
+            GameWorld newGameWorld = GameWorldManager.LoadGameWorld(worldName);
+            SetGameWorld(newGameWorld);
+            CreateEntitiesForBlockComponents(newGameWorld);
 
             // This seems to be needed for the GC to realize that the light information and the game world are long-lived
             // to keep it from causing pauses shortly after starting the render loop.
@@ -86,17 +80,15 @@ namespace ProdigalSoftware.TiVE.Core
         #endregion
 
         #region Public methods
-        public void SetGameWorld(GameWorld newGameWorld, BlockList newBlockList)
+        public void SetGameWorld(GameWorld newGameWorld)
         {
             if (newGameWorld == null)
                 throw new ArgumentNullException("newGameWorld");
-            if (newBlockList == null)
-                throw new ArgumentNullException("newBlockList");
+
+            newGameWorld.Initialize();
 
             GameWorld = newGameWorld;
-            BlockList = newBlockList;
-            GameWorld.Initialize(BlockList);
-            RenderNode = new RootRenderNode(GameWorld, this);
+            RenderNode = new RootRenderNode(newGameWorld, this);
             LightProvider = LightProvider.Get(this);
 
             // Calculate static lighting
@@ -106,7 +98,7 @@ namespace ProdigalSoftware.TiVE.Core
         #endregion
 
         #region Private helper methods
-        private void CreateEntitiesForBlockComponents(GameWorld gameWorld, BlockList blockList)
+        private void CreateEntitiesForBlockComponents(GameWorld gameWorld)
         {
             for (int z = 0; z < gameWorld.BlockSize.Z; z++)
             {
@@ -114,7 +106,7 @@ namespace ProdigalSoftware.TiVE.Core
                 {
                     for (int y = 0; y < gameWorld.BlockSize.Y; y++)
                     {
-                        BlockImpl block = (BlockImpl)blockList[gameWorld[x, y, z]];
+                        Block block = gameWorld[x, y, z];
                         ParticleComponent particleData = block.GetComponent<ParticleComponent>();
                         if (particleData != null)
                         {

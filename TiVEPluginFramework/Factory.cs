@@ -10,34 +10,31 @@
         /// <summary>
         /// Creates a new instance of the specified interface
         /// </summary>
-        public static T Create<T>()
+        public static T New<T>()
         {
-            return Implementation.Create<T>();
+            return Implementation.New<T>();
         }
 
-        /// <summary>
-        /// Creates a new instance of a block
-        /// </summary>
-        public static Block CreateBlock(string name)
+        public static T Get<T>(string name) where T : ITiVESerializable
         {
-            return Implementation.CreateBlock(name);
+            return Implementation.Get<T>(name);
         }
 
         /// <summary>
         /// Creates a new instance of a game world
         /// </summary>
-        public static IGameWorld CreateGameWorld(int sizeX, int sizeY, int sizeZ)
+        public static IGameWorld NewGameWorld(int sizeX, int sizeY, int sizeZ)
         {
-            return Implementation.CreateGameWorld(sizeX, sizeY, sizeZ);
+            return Implementation.NewGameWorld(sizeX, sizeY, sizeZ);
         }
 
         internal interface IFactoryImpl
         {
-            T Create<T>();
+            T New<T>();
 
-            Block CreateBlock(string name);
+            T Get<T>(string name) where T : ITiVESerializable;
 
-            IGameWorld CreateGameWorld(int blockSizeX, int blockSizeY, int blockSizeZ);
+            IGameWorld NewGameWorld(int blockSizeX, int blockSizeY, int blockSizeZ);
         }
     }
 }

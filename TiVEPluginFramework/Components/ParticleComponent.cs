@@ -21,7 +21,7 @@ namespace ProdigalSoftware.TiVEPluginFramework.Components
         {
             byte fileVersion = reader.ReadByte();
             if (fileVersion > SerializedFileVersion)
-                throw new FileTooNew("ParticleComponent");
+                throw new FileTooNewException("ParticleComponent");
 
             ControllerName = reader.ReadString();
             Location = new Vector3i(reader);

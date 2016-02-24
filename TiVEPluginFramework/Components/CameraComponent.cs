@@ -42,7 +42,7 @@ namespace ProdigalSoftware.TiVEPluginFramework.Components
         {
             byte fileVersion = reader.ReadByte();
             if (fileVersion > SerializedFileVersion)
-                throw new FileTooNew("CameraComponent");
+                throw new FileTooNewException("CameraComponent");
             
             Enabled = reader.ReadBoolean();
             FarDistance = reader.ReadSingle();

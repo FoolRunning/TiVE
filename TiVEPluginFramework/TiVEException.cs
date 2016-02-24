@@ -20,9 +20,9 @@ namespace ProdigalSoftware.TiVEPluginFramework
     }
 
     [MoonSharpUserData(AccessMode = InteropAccessMode.HideMembers)]
-    internal class FileTooNew : TiVEException
+    internal class FileTooNewException : TiVEException
     {
-        public FileTooNew(string objectName) : base(objectName + " was saved with a newer version of TiVE")
+        public FileTooNewException(string objectName) : base(objectName + " was saved with a newer version of TiVE")
         {
         }
     }

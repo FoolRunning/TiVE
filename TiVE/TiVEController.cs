@@ -20,6 +20,7 @@ namespace ProdigalSoftware.TiVE
         internal static readonly long MaxTicksForSleep;
         internal static readonly ResourceLoader ResourceLoader = new ResourceLoader();
         internal static readonly PluginManager PluginManager = new PluginManager();
+        internal static readonly BlockManager BlockManager = new BlockManager();
         internal static readonly IControllerBackend Backend = new OpenTKBackend();
         internal static readonly UserSettings UserSettings = new UserSettings();
         internal static Engine Engine;
@@ -63,6 +64,7 @@ namespace ProdigalSoftware.TiVE
 
             Engine.AddSystem(new ScriptSystem.ScriptSystem(Backend.Keyboard, Backend.Mouse));
             Engine.AddSystem(new CameraSystem.CameraSystem());
+            Engine.AddSystem(new SpeechSystem.SpeechSystem());
 
             Engine.MainLoop(sceneToLoad);
         }
@@ -75,14 +77,16 @@ namespace ProdigalSoftware.TiVE
                 if (success)
                     UserSettings.Load();
                 if (success)
+                    success = ((TiVESerializerImplementation)TiVESerializer.Implementation).Initialize();
+                if (success)
                     success = ResourceLoader.Initialize();
                 if (success)
-                    success = ((TiVESerializerImplementation)TiVESerializer.Implementation).Initialize();
+                    success = BlockManager.Initialize();
 
                 starterForm.AfterInitialLoad(success);
 
                 //TestIntStructAccess();
-                DoBlockLineTest();
+                DoFastBlockLineTest();
                 DoFastVoxelRayCastTest();
                 DoVoxelRayCastTest();
             });
@@ -101,9 +105,7 @@ namespace ProdigalSoftware.TiVE
         private static void DoVoxelRayCastTest()
         {
             GameWorld gameWorld = new GameWorld(100, 100, 100);
-            BlockList blockList = new BlockList();
-            blockList.AddBlock(new BlockImpl("dummy"));
-            ushort block = blockList["dummy"];
+            Block block = new Block("dummy");
             for (int x = 0; x < 100; x++)
             {
                 for (int z = 0; z < 100; z++)
@@ -113,7 +115,7 @@ namespace ProdigalSoftware.TiVE
                 }
             }
 
-            gameWorld.Initialize(blockList);
+            gameWorld.Initialize();
             int center = gameWorld.VoxelSize.X / 2;
 
             long totalMs = 0;
@@ -132,9 +134,7 @@ namespace ProdigalSoftware.TiVE
         private static void DoFastVoxelRayCastTest()
         {
             GameWorld gameWorld = new GameWorld(100, 100, 100);
-            BlockList blockList = new BlockList();
-            blockList.AddBlock(new BlockImpl("dummy"));
-            ushort block = blockList["dummy"];
+            Block block = new Block("dummy");
             for (int x = 0; x < 100; x++)
             {
                 for (int z = 0; z < 100; z++)
@@ -144,7 +144,7 @@ namespace ProdigalSoftware.TiVE
                 }
             }
 
-            gameWorld.Initialize(blockList);
+            gameWorld.Initialize();
             int center = gameWorld.VoxelSize.X / 2;
 
             long totalMs = 0;
@@ -160,24 +160,21 @@ namespace ProdigalSoftware.TiVE
             Messages.Println(string.Format("10,000 fast ray casts took average of {0}ms", totalMs / 20.0f), Color.Chocolate);
         }
 
-        private static void DoBlockLineTest()
+        private static void DoFastBlockLineTest()
         {
             GameWorld gameWorld = new GameWorld(200, 200, 200);
-            BlockList blockList = new BlockList();
-            BlockImpl block = new BlockImpl("dummy");
+            Block block = new Block("dummy");
             block.AddComponent(new LightPassthroughComponent());
-            blockList.AddBlock(block);
-            ushort blockId = blockList["dummy"];
             for (int x = 0; x < 100; x++)
             {
                 for (int z = 0; z < 100; z++)
                 {
                     for (int y = 0; y < 100; y++)
-                        gameWorld[x, y, z] = blockId;
+                        gameWorld[x, y, z] = block;
                 }
             }
 
-            gameWorld.Initialize(blockList);
+            gameWorld.Initialize();
             int center = gameWorld.BlockSize.X / 2;
 
             long totalMs = 0;
@@ -186,11 +183,11 @@ namespace ProdigalSoftware.TiVE
             {
                 sw.Restart();
                 for (int i = 0; i < 10000; i++)
-                    gameWorld.NoBlocksInLine(center, center, center, i % center + 98, i % center + 98, i % center + 98);
+                    gameWorld.NoBlocksInLineFast(center, center, center, i % center + 98, i % center + 98, i % center + 98);
                 sw.Stop();
                 totalMs += sw.ElapsedMilliseconds;
             }
-            Messages.Println(string.Format("10,000 block lines took average of {0}ms", totalMs / 20.0f), Color.Chocolate);
+            Messages.Println(string.Format("10,000 fast block lines took average of {0}ms", totalMs / 20.0f), Color.Chocolate);
         }
         #endregion
 

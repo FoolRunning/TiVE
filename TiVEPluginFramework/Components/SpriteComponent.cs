@@ -21,7 +21,7 @@ namespace ProdigalSoftware.TiVEPluginFramework.Components
         {
             byte fileVersion = reader.ReadByte();
             if (fileVersion > SerializedFileVersion)
-                throw new FileTooNew("SpriteComponent");
+                throw new FileTooNewException("SpriteComponent");
 
             Location = new Vector3f(reader);
             BoundingBox = new BoundingBox(reader);

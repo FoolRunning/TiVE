@@ -26,8 +26,8 @@ namespace ProdigalSoftware.TiVEPluginFramework
         Vector3i BlockSize { get; }
 
         /// <summary>
-        /// Gets/sets the ID of the block in the game world at the specified block location
+        /// Gets/sets the block in the game world at the specified block location
         /// </summary>
-        ushort this[int blockX, int blockY, int blockZ] { get; set; }
+        Block this[int blockX, int blockY, int blockZ] { get; set; }
     }
 }

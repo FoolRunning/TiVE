@@ -91,7 +91,7 @@ namespace ProdigalSoftware.TiVE.Plugins
                 yield return (T)type.GetConstructor(Type.EmptyTypes).Invoke(null);
         }
 
-        private Assembly LoadPlugin(string[] codeFiles, out List<string> errorMessages)
+        private static Assembly LoadPlugin(string[] codeFiles, out List<string> errorMessages)
         {
             errorMessages = null;
 
@@ -103,7 +103,7 @@ namespace ProdigalSoftware.TiVE.Plugins
             parameters.CompilerOptions = "/optimize";
             parameters.GenerateInMemory = true;
             parameters.GenerateExecutable = false;
-            parameters.IncludeDebugInformation = false;
+            parameters.IncludeDebugInformation = true;
             CompilerResults results = codeCompiler.CompileAssemblyFromFile(parameters, codeFiles);
 
             if (results.Errors.HasErrors)

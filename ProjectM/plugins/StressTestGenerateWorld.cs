@@ -16,28 +16,23 @@ namespace ProdigalSoftware.ProjectM.Plugins
         private const int Top = 16;
         private const int Bottom = 32;
 
-        public string BlockListForWorld(string gameWorldName)
-        {
-            return gameWorldName == "StressTest" ? "stress" : null;
-        }
-
-        public IGameWorld CreateGameWorld(string gameWorldName, IBlockList blockList)
+        public IGameWorld CreateGameWorld(string gameWorldName)
         {
             if (gameWorldName != "StressTest")
                 return null;
 
-            IGameWorld gameWorld = Factory.CreateGameWorld(500, 500, 20);
+            IGameWorld gameWorld = Factory.NewGameWorld(500, 500, 20);
             gameWorld.LightingModelType = LightingModelType.Fantasy1;
             long seed = LongRandom();
-            FillWorld(gameWorld, seed, blockList);
+            FillWorld(gameWorld, seed);
             CreateCaves(gameWorld, seed);
-            SmoothWorld(gameWorld, blockList);
+            SmoothWorld(gameWorld);
 
             return gameWorld;
         }
 
         #region Private helper methods
-        private static void SmoothWorld(IGameWorld gameWorld, IBlockList blockList)
+        private static void SmoothWorld(IGameWorld gameWorld)
         {
             for (int z = 0; z < gameWorld.BlockSize.Z; z++)
             {
@@ -45,52 +40,50 @@ namespace ProdigalSoftware.ProjectM.Plugins
                 {
                     for (int y = 0; y < gameWorld.BlockSize.Y; y++)
                     {
-                        ushort blockIndex = gameWorld[x, y, z];
-                        if (blockIndex == 0)
+                        Block block = gameWorld[x, y, z];
+                        if (block == Block.Empty)
                             continue;
 
-                        Block block = blockList[blockIndex];
                         string blockNameKey = GetBlockSet(block);
-
-                        if (blockNameKey != "ston" && blockNameKey != "sand" && blockNameKey != "lava")
+                        if (blockNameKey != "STston" && blockNameKey != "STsand" && blockNameKey != "STlava")
                             continue;
 
                         int sides = 0;
 
-                        if (z == 0 || GetBlockSet(blockList[gameWorld[x, y, z - 1]]) != blockNameKey)
+                        if (z == 0 || GetBlockSet(gameWorld[x, y, z - 1]) != blockNameKey)
                             sides |= Back;
 
-                        if (z == gameWorld.BlockSize.Z - 1 || GetBlockSet(blockList[gameWorld[x, y, z + 1]]) != blockNameKey)
+                        if (z == gameWorld.BlockSize.Z - 1 || GetBlockSet(gameWorld[x, y, z + 1]) != blockNameKey)
                             sides |= Front;
 
-                        if (x == 0 || GetBlockSet(blockList[gameWorld[x - 1, y, z]]) != blockNameKey)
+                        if (x == 0 || GetBlockSet(gameWorld[x - 1, y, z]) != blockNameKey)
                             sides |= Left;
 
-                        if (x == gameWorld.BlockSize.X - 1 || GetBlockSet(blockList[gameWorld[x + 1, y, z]]) != blockNameKey)
+                        if (x == gameWorld.BlockSize.X - 1 || GetBlockSet(gameWorld[x + 1, y, z]) != blockNameKey)
                             sides |= Right;
 
-                        if (y == 0 || GetBlockSet(blockList[gameWorld[x, y - 1, z]]) != blockNameKey)
+                        if (y == 0 || GetBlockSet(gameWorld[x, y - 1, z]) != blockNameKey)
                             sides |= Bottom;
 
-                        if (y == gameWorld.BlockSize.Y - 1 || GetBlockSet(blockList[gameWorld[x, y + 1, z]]) != blockNameKey)
+                        if (y == gameWorld.BlockSize.Y - 1 || GetBlockSet(gameWorld[x, y + 1, z]) != blockNameKey)
                             sides |= Top;
 
-                        gameWorld[x, y, z] = blockList[blockNameKey + sides];
+                        gameWorld[x, y, z] = Factory.Get<Block>(blockNameKey + sides);
                     }
                 }
             }
         }
 
-        private static void FillWorld(IGameWorld gameWorld, long seed, IBlockList blockList)
+        private static void FillWorld(IGameWorld gameWorld, long seed)
         {
-            BlockRandomizer backWalls = new BlockRandomizer(blockList, "back", 5);
-            BlockRandomizer lights = new BlockRandomizer(blockList, "light", 7);
+            BlockRandomizer lights = new BlockRandomizer("STlight", 7);
 
-            ushort sand = blockList["sand0"];
-            ushort lava = blockList["lava0"];
-            ushort stone = blockList["ston0"];
-            ushort fire = blockList["fire"];
-            ushort fountain = blockList["fountain"];
+            Block back = Factory.Get<Block>("STback");
+            Block sand = Factory.Get<Block>("STsand0");
+            Block lava = Factory.Get<Block>("STlava0");
+            Block stone = Factory.Get<Block>("STston0");
+            Block fire = Factory.Get<Block>("STfire");
+            Block fountain = Factory.Get<Block>("STfountain");
 
             Random random1 = new Random((int)((seed >> 11) & 0xFFFFFFFF));
             Random random2 = new Random((int)((seed >> 15) & 0xFFFFFFFF));
@@ -116,7 +109,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
                     double noiseVal = Noise.GetNoise((xOff1 + x) * scaleX1, (yOff1 + y) * scaleY1) *
                             Noise.GetNoise((xOff2 + x) * scaleX2, (yOff2 + y) * scaleY2) +
                             Noise.GetNoise((xOff3 + x) * scaleX3, (yOff3 + y) * scaleY3) * 0.5f;
-                    gameWorld[x, y, 0] = backWalls.NextBlock();
+                    gameWorld[x, y, 0] = back;
                     int depth = 1;
                     if (noiseVal > 0.2)
                     {
@@ -184,7 +177,6 @@ namespace ProdigalSoftware.ProjectM.Plugins
             double scaleX3 = random2.NextDouble() * 0.20 + 0.07;
             double scaleY3 = random2.NextDouble() * 0.20 + 0.07;
 
-            // Use parallel for for speed since there is no syncing needed
             for (int x = 0; x < gameWorld.BlockSize.X; x++)
             {
                 for (int y = 0; y < gameWorld.BlockSize.Y; y++)
@@ -194,34 +186,34 @@ namespace ProdigalSoftware.ProjectM.Plugins
                             Noise.GetNoise((xOff3 + x) * scaleX3, (yOff3 + y) * scaleY3) * 0.2f;
                     if (noiseVal > 0.1)
                     {
-                        gameWorld[x, y, 1] = 0;
-                        gameWorld[x, y, 2] = 0;
-                        gameWorld[x, y, 3] = 0;
+                        gameWorld[x, y, 1] = Block.Empty;
+                        gameWorld[x, y, 2] = Block.Empty;
+                        gameWorld[x, y, 3] = Block.Empty;
                     }
                     if (noiseVal > 0.2)
                     {
-                        gameWorld[x, y, 4] = 0;
-                        gameWorld[x, y, 5] = 0;
-                        gameWorld[x, y, 6] = 0;
+                        gameWorld[x, y, 4] = Block.Empty;
+                        gameWorld[x, y, 5] = Block.Empty;
+                        gameWorld[x, y, 6] = Block.Empty;
                     }
                     if (noiseVal > 0.3)
                     {
-                        gameWorld[x, y, 7] = 0;
-                        gameWorld[x, y, 8] = 0;
-                        gameWorld[x, y, 9] = 0;
+                        gameWorld[x, y, 7] = Block.Empty;
+                        gameWorld[x, y, 8] = Block.Empty;
+                        gameWorld[x, y, 9] = Block.Empty;
                     }
                     if (noiseVal > 0.4)
                     {
-                        gameWorld[x, y, 10] = 0;
-                        gameWorld[x, y, 11] = 0;
-                        gameWorld[x, y, 12] = 0;
+                        gameWorld[x, y, 10] = Block.Empty;
+                        gameWorld[x, y, 11] = Block.Empty;
+                        gameWorld[x, y, 12] = Block.Empty;
                     }
                     if (noiseVal > 0.5)
                     {
-                        gameWorld[x, y, 13] = 0;
-                        gameWorld[x, y, 14] = 0;
-                        gameWorld[x, y, 15] = 0;
-                        gameWorld[x, y, 16] = 0;
+                        gameWorld[x, y, 13] = Block.Empty;
+                        gameWorld[x, y, 14] = Block.Empty;
+                        gameWorld[x, y, 15] = Block.Empty;
+                        gameWorld[x, y, 16] = Block.Empty;
                     }
                 }
             }
@@ -229,7 +221,10 @@ namespace ProdigalSoftware.ProjectM.Plugins
 
         private static string GetBlockSet(Block block)
         {
-            return block.Name.Substring(0, 4);
+            if (block.Name.Length <= 6)
+                return "";
+
+            return block.Name.Substring(0, 6);
         }
 
         private static void Fill(IGameWorld gameWorld, int x, int y, ref int depth, BlockRandomizer block)
@@ -238,7 +233,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
                 gameWorld[x, y, depth++] = block.NextBlock();
         }
 
-        private static void Fill(IGameWorld gameWorld, int x, int y, ref int depth, ushort block)
+        private static void Fill(IGameWorld gameWorld, int x, int y, ref int depth, Block block)
         {
             for (int i = 0; i < 3; i++)
                 gameWorld[x, y, depth++] = block;
@@ -250,27 +245,6 @@ namespace ProdigalSoftware.ProjectM.Plugins
             Random random = new Random();
             random.NextBytes(buf);
             return BitConverter.ToInt64(buf, 0);
-        }
-        #endregion
-
-        #region BlockRandomizer class
-        private sealed class BlockRandomizer
-        {
-            public readonly ushort[] Blocks;
-            private readonly Random random = new Random();
-
-            public BlockRandomizer(IBlockList blockList, string blockname, int blockCount)
-            {
-                Blocks = new ushort[blockCount];
-                for (int i = 0; i < Blocks.Length; i++)
-                    Blocks[i] = blockList[blockname + i];
-            }
-
-            public ushort NextBlock()
-            {
-                int blockNum = random.Next(Blocks.Length);
-                return Blocks[blockNum];
-            }
         }
         #endregion
     }

@@ -72,7 +72,6 @@ namespace ProdigalSoftware.TiVE.ScriptSystem
 
                 scriptData = new ScriptDataInternal(script);
                 scripts.Add(scriptName, scriptData);
-                Messages.AddDebug("Loaded script " + scriptName);
             }
             return scriptData;
         }
@@ -156,11 +155,11 @@ namespace ProdigalSoftware.TiVE.ScriptSystem
             AddLuaTableForEnum<Keys>(lua);
             lua.Globals["BlockSize"] = Block.VoxelSize;
             lua.Globals["EmptyVoxel"] = Voxel.Empty;
-            lua.Globals["EmptyBlock"] = BlockImpl.Empty;
+            lua.Globals["EmptyBlock"] = Block.Empty;
             //lua.Globals["Scene"] = currentScene;
 
-            lua.Globals["blockAt"] = (Func<int, int, int, ushort>)BlockAt;
-            lua.Globals["blockAtVoxel"] = (Func<int, int, int, ushort>)BlockAtVoxel;
+            lua.Globals["blockAt"] = (Func<int, int, int, Block>)BlockAt;
+            lua.Globals["blockAtVoxel"] = (Func<int, int, int, Block>)BlockAtVoxel;
             lua.Globals["color"] = (Func<float, float, float, Color3f>)Color;
             lua.Globals["message"] = (Action<object>)Message;
             lua.Globals["stopRunning"] = (Action)StopRunning;
@@ -174,7 +173,7 @@ namespace ProdigalSoftware.TiVE.ScriptSystem
             //gameScript.UserSettings = new Func<UserSettings>(() => TiVEController.UserSettings);
             //gameScript.GameWorld = new Func<GameWorld>(() => renderer.GameWorld);
             //gameScript.ReloadLevel = new Action(() => renderer.RefreshLevel());
-            //gameScript.EmptyBlock = BlockImpl.Empty;
+            //gameScript.EmptyBlock = Block.Empty;
             //gameScript.BlockAt = new Func<int, int, int, ushort>((blockX, blockY, blockZ) =>
             //{
             //    GameWorld gameWorld = renderer.GameWorld;
@@ -221,20 +220,20 @@ namespace ProdigalSoftware.TiVE.ScriptSystem
         #endregion
 
         #region Private helper methods
-        private ushort BlockAt(int blockX, int blockY, int blockZ)
+        private Block BlockAt(int blockX, int blockY, int blockZ)
         {
             Scene scene = currentScene; // For thread-safety
             if (scene == null || scene.GameWorld == null)
-                return 0;
+                return Block.Empty;
 
             return scene.GameWorld[blockX, blockY, blockZ];
         }
 
-        private ushort BlockAtVoxel(int voxelX, int voxelY, int voxelZ)
+        private Block BlockAtVoxel(int voxelX, int voxelY, int voxelZ)
         {
             Scene scene = currentScene; // For thread-safety
             if (scene == null || scene.GameWorld == null)
-                return 0;
+                return Block.Empty;
 
             int blockX = voxelX >> Block.VoxelSizeBitShift;
             int blockY = voxelY >> Block.VoxelSizeBitShift;
@@ -285,7 +284,7 @@ namespace ProdigalSoftware.TiVE.ScriptSystem
             {
                 return Voxel.Empty;
             }
-                
+
             return scene.GameWorld.GetVoxel(voxelX, voxelY, voxelZ);
         }
         #endregion

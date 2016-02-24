@@ -4,7 +4,6 @@ using JetBrains.Annotations;
 using ProdigalSoftware.TiVEPluginFramework;
 using ProdigalSoftware.TiVEPluginFramework.Components;
 using ProdigalSoftware.TiVEPluginFramework.Generators;
-using ProdigalSoftware.Utils;
 
 namespace ProdigalSoftware.ProjectM.Plugins
 {
@@ -21,11 +20,8 @@ namespace ProdigalSoftware.ProjectM.Plugins
         private const int Top = 16;
         private const int Bottom = 32;
 
-        public IEnumerable<Block> CreateBlocks(string blockListName)
+        public IEnumerable<Block> CreateBlocks()
         {
-            if (blockListName != "maze" && blockListName != "loading")
-                yield break;
-
             const byte bc = Block.VoxelSize / 2;
             const int mv = Block.VoxelSize - 1;
 
@@ -156,7 +152,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
 
             for (int i = 0; i < 50; i++)
             {
-                Block grass = Factory.CreateBlock("grass" + i);
+                Block grass = new Block("grass" + i);
                 grass.AddComponent(new VoxelNoiseComponent(0.2f));
                 grass.AddComponent(new LightPassthroughComponent());
 
@@ -191,7 +187,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
             yield return CreateBlockInfo("backStone", 0, new Color4f(240, 240, 240, 255), 1.0f, colorVariation: 0.3f);
             yield return CreateBlockInfo("dirt", 0, new Color4f(0.6f, 0.45f, 0.25f, 1.0f), 1.0f, colorVariation: 0.4f);
 
-            Block fireBlock = Factory.CreateBlock("fire");
+            Block fireBlock = new Block("fire");
             fireBlock.AddComponent(new ParticleComponent("Fire", new Vector3i(bc, bc, 1)));
             fireBlock.AddComponent(new LightComponent(new Vector3b(bc, bc, 4), new Color3f(1.0f, 0.8f, 0.6f), 15));
             yield return fireBlock;
@@ -233,7 +229,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
             yield return CreateBlockInfo("smallLightHover", 1, new Color4f(1.0f, 1.0f, 1.0f, 1.0f), 1.0f, null,
                 new LightComponent(new Vector3b(bc, bc, bc), new Color3f(1.0f, 1.0f, 1.0f), 3));
 
-            Block fountainBlock = Factory.CreateBlock("fountain");
+            Block fountainBlock = new Block("fountain");
             fountainBlock.AddComponent(new ParticleComponent("Fountain", new Vector3i(bc, bc, 0)));
             yield return fountainBlock;
         }
@@ -278,7 +274,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
             const float mid = Block.VoxelSize / 2.0f - 0.5f;
             const float sphereSize = Block.VoxelSize / 2.0f;
 
-            Block block = Factory.CreateBlock(name);
+            Block block = new Block(name);
             if (colorVariation > 0.0f)
                 block.AddComponent(new VoxelNoiseComponent(colorVariation, mortarColor));
 
@@ -354,7 +350,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
         {
             const int mid = Block.VoxelSize / 2;
 
-            Block block = Factory.CreateBlock(name);
+            Block block = new Block(name);
             VoxelSettings settings = VoxelSettings.None;
             if (particleSystem != null)
                 block.AddComponent(particleSystem);

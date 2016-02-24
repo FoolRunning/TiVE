@@ -11,7 +11,6 @@ using ProdigalSoftware.TiVE.RenderSystem.World;
 using ProdigalSoftware.TiVEEditor.Importers;
 using ProdigalSoftware.TiVEEditor.Properties;
 using ProdigalSoftware.TiVEPluginFramework;
-using ProdigalSoftware.Utils;
 
 namespace ProdigalSoftware.TiVEEditor.BlockLists
 {
@@ -70,7 +69,7 @@ namespace ProdigalSoftware.TiVEEditor.BlockLists
             Block[] floorBlocks = new Block[10];
             for (int i = 0; i < floorBlocks.Length; i++)
             {
-                floorBlocks[i] = new BlockImpl("Floor" + i);
+                floorBlocks[i] = new Block("Floor" + i);
                 for (int x = 0; x < Block.VoxelSize; x++)
                 {
                     for (int y = 0; y < Block.VoxelSize; y++)
@@ -103,7 +102,7 @@ namespace ProdigalSoftware.TiVEEditor.BlockLists
         [NotNull]
         private Block SelectedBlock
         {
-            get { return (Block)lstBxBlocks.SelectedItem ?? BlockImpl.Empty; }
+            get { return (Block)lstBxBlocks.SelectedItem ?? Block.Empty; }
         }
         #endregion
 
@@ -276,10 +275,9 @@ namespace ProdigalSoftware.TiVEEditor.BlockLists
 
         private void lstBxBlocks_SelectedIndexChanged(object sender, EventArgs e)
         {
-            ushort index = (ushort)lstBxBlocks.SelectedIndex;
             Block newBlock = SelectedBlock;
             if (gameWorld != null)
-                gameWorld[WorldCenter, WorldCenter, 1] = index; // Put the block in the middle of the game world
+                gameWorld[WorldCenter, WorldCenter, 1] = newBlock; // Put the block in the middle of the game world
 
             cntrlCurrentBlock.LightProvider.AmbientLight = newBlock.HasComponent<LightComponent>() ? new Color3f(20, 20, 20) : new Color3f(230, 230, 230);
             cntrlCurrentBlock.RefreshLevel(true);
@@ -310,13 +308,13 @@ namespace ProdigalSoftware.TiVEEditor.BlockLists
 
             int prevBlockIndex = lstBxBlocks.SelectedIndex;
             Block block = SelectedBlock;
-            ((BlockImpl)block).SetName(txtBlockName.Text);
+            block.SetName(txtBlockName.Text);
             blockList.UpdateNameIndex();
             hasUnsavedChanges = true;
 
             // If the order of the blocks has changes with the new name, then reload the whole block list.
             blocksInList.Clear();
-            blocksInList.AddRange(blockList.AllBlocks.OrderBy(b => b.Name));
+            blocksInList.AddRange(blockList.AllBlocks);
             int newBlockIndex = blocksInList.IndexOf(block);
             if (newBlockIndex != prevBlockIndex)
                 UpdateBlocksInList();
@@ -379,7 +377,7 @@ namespace ProdigalSoftware.TiVEEditor.BlockLists
         private void UpdateState()
         {
             Block block = SelectedBlock;
-            bool hasSelectedItem = (block != BlockImpl.Empty);
+            bool hasSelectedItem = (block != Block.Empty);
             LightComponent light = block.GetComponent<LightComponent>();
             bool hasLight = light != null;
 
@@ -439,7 +437,7 @@ namespace ProdigalSoftware.TiVEEditor.BlockLists
             lstBxBlocks.Items.Clear();
 
             blocksInList.Clear();
-            foreach (BlockImpl block in blockList.AllBlocks.OrderBy(b => b.Name))
+            foreach (Block block in blockList.AllBlocks)
             {
                 blocksInList.Add(block);
                 lstBxBlocks.Items.Add(block);
@@ -449,7 +447,7 @@ namespace ProdigalSoftware.TiVEEditor.BlockLists
             if (blocksInList.Count > 0)
             {
                 // Look for the same block to re-select
-                if (prevSelectedBlock != BlockImpl.Empty)
+                if (prevSelectedBlock != Block.Empty)
                     lstBxBlocks.SelectedItem = prevSelectedBlock;
 
                 if (lstBxBlocks.SelectedIndex == -1)

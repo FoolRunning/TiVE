@@ -40,7 +40,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Voxels
             voxels = new Voxel[sizeX * sizeY * sizeZ];
         }
 
-        public VoxelGroup(BlockImpl block) : this(Block.VoxelSize, Block.VoxelSize, Block.VoxelSize)
+        public VoxelGroup(Block block) : this(Block.VoxelSize, Block.VoxelSize, Block.VoxelSize)
         {
             Array.Copy(block.VoxelsArray, voxels, voxels.Length);
         }

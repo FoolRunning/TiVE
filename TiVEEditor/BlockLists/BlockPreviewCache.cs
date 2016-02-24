@@ -9,7 +9,7 @@ namespace ProdigalSoftware.TiVEEditor.BlockLists
     /// <summary>
     /// Maintains a cache of 2D preview images for blocks.
     /// </summary>
-    internal class BlockPreviewCache : IDisposable
+    internal sealed class BlockPreviewCache : IDisposable
     {
         //private const int PreviewImageSize = 44;
         public const int PreviewImageSize = 60;
@@ -54,7 +54,7 @@ namespace ProdigalSoftware.TiVEEditor.BlockLists
                         for (int z = 0; z < Block.VoxelSize; z++)
                         {
                             Voxel color = block[x, y, z];
-                            if (color == 0)
+                            if (color == Voxel.Empty)
                                 continue;
 
                             brush.Color = Color.FromArgb(color.A, color.R, color.G, color.B);

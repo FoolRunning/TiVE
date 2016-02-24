@@ -15,7 +15,7 @@ namespace ProdigalSoftware.TiVE.Core
     internal sealed class ResourceLoader : IDisposable
     {
         #region Constants/member variables
-        private const string DataDirName = "Data";
+        public const string DataDirName = "Data";
         private const string ResourcePackExtension = ".TiVEPack";
 
         private static readonly string dataDirPath;
@@ -80,6 +80,7 @@ namespace ProdigalSoftware.TiVE.Core
 
         /// <summary>
         /// Opens the specified file for reading. Path is relative to the Data directory.
+        /// <para>WARNING: Stream must be disposed of by caller.</para>
         /// </summary>
         public Stream OpenFile(string relFilePath)
         {

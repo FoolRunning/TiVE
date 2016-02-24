@@ -6,6 +6,12 @@ namespace TiVETests.Starter
     [TestFixture]
     public class MessagesTests
     {
+        [SetUp]
+        public void Setup()
+        {
+            Messages.ClearText();
+        }
+
         [Test]
         public void AddMessage()
         {

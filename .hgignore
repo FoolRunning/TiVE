@@ -7,3 +7,10 @@ obj/*
 *.psess
 *.DotSettings
 packages/*
+FestivalInterop/Release/*
+Libraries/festivalLib/*
+Release/*
+Libraries/*.lib
+ProjectTiVE.sdf
+ProjectTiVE.opensdf
+ipch/*

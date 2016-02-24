@@ -23,7 +23,7 @@ namespace ProdigalSoftware.TiVEPluginFramework.Components
         {
             byte fileVersion = reader.ReadByte();
             if (fileVersion > SerializedFileVersion)
-                throw new FileTooNew("ScriptComponent");
+                throw new FileTooNewException("ScriptComponent");
 
             ScriptName = reader.ReadString();
         }

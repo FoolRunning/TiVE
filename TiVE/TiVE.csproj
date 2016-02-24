@@ -158,9 +158,7 @@
     <Compile Include="RenderSystem\Voxels\VoxelMeshUtils.cs" />
     <Compile Include="RenderSystem\VoxelMeshManager.cs" />
     <Compile Include="RenderSystem\World\AnimationInfo.cs" />
-    <Compile Include="RenderSystem\World\BlockImpl.cs" />
-    <Compile Include="RenderSystem\World\BlockList.cs" />
-    <Compile Include="RenderSystem\World\BlockListManager.cs" />
+    <Compile Include="RenderSystem\World\BlockManager.cs" />
     <Compile Include="RenderSystem\World\ChunkComponent.cs" />
     <Compile Include="RenderSystem\RenderNode.cs" />
     <Compile Include="RenderSystem\World\GameWorld.cs" />
@@ -169,6 +167,10 @@
     <Compile Include="Settings\DisplaySetting.cs" />
     <Compile Include="Settings\Setting.cs" />
     <Compile Include="Settings\UserSettings.cs" />
+    <Compile Include="SpeechSystem\FestivalSpeechProvider.cs" />
+    <Compile Include="SpeechSystem\ISpeechProvider.cs" />
+    <Compile Include="SpeechSystem\SpeechSystem.cs" />
+    <Compile Include="SpeechSystem\SpeechParameters.cs" />
     <Compile Include="TiVEProject.cs" />
     <Compile Include="Plugins\PluginManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -227,6 +229,10 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\FestivalInterop\FestivalInterop.vcxproj">
+      <Project>{a44b58cc-c949-4d91-9630-4b04acacc747}</Project>
+      <Name>FestivalInterop</Name>
+    </ProjectReference>
     <ProjectReference Include="..\TiVEPluginFramework\TiVEPluginFramework.csproj">
       <Project>{42f81808-5a13-4501-b184-18b4197512c3}</Project>
       <Name>TiVEPluginFramework</Name>
