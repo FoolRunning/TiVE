@@ -9,28 +9,23 @@ namespace ProdigalSoftware.ProjectM.Plugins
     public class LevelCreator : IWorldGenerator
     {
         #region Implementation of IWorldGenerator
-        public string BlockListForWorld(string gameWorldName)
-        {
-            return gameWorldName == "Snake" ? "Snake16x16" : null;
-        }
-
-        public IGameWorld CreateGameWorld(string gameWorldName, IBlockList blockList)
+        public IGameWorld CreateGameWorld(string gameWorldName)
         {
             if (gameWorldName != "Snake")
                 return null;
 
-            IGameWorld gameWorld = Factory.CreateGameWorld(41, 31, 4);
+            IGameWorld gameWorld = Factory.NewGameWorld(41, 31, 4);
 
-            ushort lightRed = blockList["Light_Red"];
-            ushort lightGreen = blockList["Light_Green"];
-            ushort lightBlue = blockList["Light_Blue"];
-            ushort lightWhite = blockList["Light_White"];
-            ushort wall = blockList["Wall_Bottom"];
-            ushort wallCorner = blockList["Wall_Bottom_Corner"];
-            ushort wallLight = blockList["Wall_Bottom_Light"];
-            ushort floorBright = blockList["Floor_White"];
-            ushort floorDark = blockList["Floor_Dark"];
-            //ushort wallEnd = blockList["Wall_Bottom_End"];
+            Block lightRed = Factory.Get<Block>("Light_Red");
+            Block lightGreen = Factory.Get<Block>("Light_Green");
+            Block lightBlue = Factory.Get<Block>("Light_Blue");
+            Block lightWhite = Factory.Get<Block>("Light_White");
+            Block wall = Factory.Get<Block>("Wall_Bottom");
+            Block wallCorner = Factory.Get<Block>("Wall_Bottom_Corner");
+            Block wallLight = Factory.Get<Block>("Wall_Bottom_Light");
+            Block floorBright = Factory.Get<Block>("Floor_White");
+            Block floorDark = Factory.Get<Block>("Floor_Dark");
+            //Block wallEnd = Factory.Get<Block>("Wall_Bottom_End");
 
             for (int x = 0; x < gameWorld.BlockSize.X; x++)
             {
@@ -97,19 +92,19 @@ namespace ProdigalSoftware.ProjectM.Plugins
 
         private sealed class BlockIncrementer
         {
-            private readonly ushort[] blocks;
+            private readonly Block[] blocks;
             private readonly int blockCount;
             private int currentBlock;
 
-            public BlockIncrementer(IBlockList blockList, string blockname, int blockCount)
+            public BlockIncrementer(string blockname, int blockCount)
             {
                 this.blockCount = blockCount;
-                blocks = new ushort[blockCount];
+                blocks = new Block[blockCount];
                 for (int i = 0; i < blockCount; i++)
-                    blocks[i] = blockList[blockname + i];
+                    blocks[i] = Factory.Get<Block>(blockname + i);
             }
 
-            public ushort NextBlock()
+            public Block NextBlock()
             {
                 currentBlock = (currentBlock + 1) % blockCount;
                 return blocks[currentBlock];

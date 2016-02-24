@@ -4,7 +4,6 @@ using System.Linq;
 using JetBrains.Annotations;
 using ProdigalSoftware.TiVEPluginFramework;
 using ProdigalSoftware.TiVEPluginFramework.Generators;
-using ProdigalSoftware.Utils;
 
 namespace ProdigalSoftware.ProjectM.Plugins
 {
@@ -30,17 +29,12 @@ namespace ProdigalSoftware.ProjectM.Plugins
         private const int Top = 16;
         private const int Bottom = 32;
 
-        public string BlockListForWorld(string gameWorldName)
-        {
-            return gameWorldName == "Maze" ? "maze" : null;
-        }
-        
-        public IGameWorld CreateGameWorld(string gameWorldName, IBlockList blockList)
+        public IGameWorld CreateGameWorld(string gameWorldName)
         {
             if (gameWorldName != "Maze")
                 return null;
 
-            IGameWorld gameWorld = Factory.CreateGameWorld(513, 513, 12); // x-axis and y-axis must be divisible by 3
+            IGameWorld gameWorld = Factory.NewGameWorld(513, 513, 12); // x-axis and y-axis must be divisible by 3
             gameWorld.LightingModelType = LightingModelType.Realistic;
 
             MazeCell[,] dungeonMap = new MazeCell[gameWorld.BlockSize.X / 3, gameWorld.BlockSize.Y / 3];
@@ -53,8 +47,8 @@ namespace ProdigalSoftware.ProjectM.Plugins
             //Console.WriteLine("\n\nFinished Maze:");
             //PrintDungeon(dungeonMap);
 
-            FillWorld(gameWorld, blockList, dungeonMap, mazeStartAreaId);
-            SmoothWorld(gameWorld, blockList);
+            FillWorld(gameWorld, dungeonMap, mazeStartAreaId);
+            SmoothWorld(gameWorld);
 
             return gameWorld;
         }
@@ -147,7 +141,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
 
             Direction lastDir = Direction.None;
             bool searchingForNewCell = false;
-            int lightId = 0;
+            //int lightId = 0;
             while (cellsInMaze.Count > 0)
             {
                 Direction dir = cell != MazeCellLocation.None ? ChooseRandomDirection(cell, dungeonMap) : Direction.None;
@@ -155,9 +149,9 @@ namespace ProdigalSoftware.ProjectM.Plugins
                 {
                     // Couldn't continue with current road so find a good place for another one
                     if (!searchingForNewCell && cell != MazeCellLocation.None)
-                        dungeonMap[cell.X, cell.Y].LightId = lightId + 1;
+                        dungeonMap[cell.X, cell.Y].LightId = random.Next(6);
 
-                    lightId = (lightId + 1) % 6;
+                    //lightId = (lightId + 1) % 6;
                     searchingForNewCell = true;
                     cellsInMaze.RemoveAt(cellsInMaze.Count - 1);
                     if (cellsInMaze.Count > 0)
@@ -187,7 +181,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
                     // Found a place for a new cell so continue adding cells to the current maze path
                     searchingForNewCell = false;
                     if (dir != lastDir && lastDir != Direction.None)
-                        dungeonMap[cell.X, cell.Y].LightId = lightId + 1;
+                        dungeonMap[cell.X, cell.Y].LightId = random.Next(6);
 
                     switch (dir)
                     {
@@ -429,18 +423,18 @@ namespace ProdigalSoftware.ProjectM.Plugins
         }
 
         #region 3D world creation methods
-        private static void FillWorld(IGameWorld gameWorld, IBlockList blockList, MazeCell[,] dungeonMap, int mazeStartAreaId)
+        private static void FillWorld(IGameWorld gameWorld, MazeCell[,] dungeonMap, int mazeStartAreaId)
         {
-            BlockRandomizer grasses = new BlockRandomizer(blockList, "grass", 50);
-            ushort dirt = blockList["dirt"];
-            ushort stoneBack = blockList["backStone"];
-            ushort stone = blockList["ston0"];
-            ushort wood = blockList["wood0"];
-            ushort fountain = blockList["fountain"];
-            ushort smallLight = blockList["smallLight"];
-            //ushort smallLightHover = blockList["smallLightHover"];
-            ushort fire = blockList["fire"];
-            //ushort lava = blockList["lava0"];
+            BlockRandomizer grasses = new BlockRandomizer("grass", 50);
+            Block dirt = Factory.Get<Block>("dirt");
+            Block stoneBack = Factory.Get<Block>("backStone");
+            Block stone = Factory.Get<Block>("ston0");
+            Block wood = Factory.Get<Block>("wood0");
+            Block fountain = Factory.Get<Block>("fountain");
+            Block smallLight = Factory.Get<Block>("smallLight");
+            //Block smallLightHover = blockList["smallLightHover"];
+            Block fire = Factory.Get<Block>("fire");
+            //Block lava = blockList["lava0"];
 
             for (int x = 0; x < gameWorld.BlockSize.X; x++)
             {
@@ -522,7 +516,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
                     {
                         // Light
                         if (lightId == RoomLightId)
-                            gameWorld[x, y, 7] = blockList["roomLight"];
+                            gameWorld[x, y, 7] = Factory.Get<Block>("roomLight");
                         else
                         {
                             // For maze lights, move the light near to the maze walls so it's not in the middle of the path
@@ -543,28 +537,28 @@ namespace ProdigalSoftware.ProjectM.Plugins
                             int height = 4;
                             if (lightLocX == x && lightLocY == y)
                                 height = 7;
-                            gameWorld[lightLocX, lightLocY, height] = blockList["light" + (lightId - 1)];
+                            gameWorld[lightLocX, lightLocY, height] = Factory.Get<Block>("light" + (lightId - 1));
                         }
                     }
                 }
             }
         }
 
-        private static void SmoothWorld(IGameWorld gameWorld, IBlockList blockList)
+        private static void SmoothWorld(IGameWorld gameWorld)
         {
-            HashSet<ushort> blocksToConsiderEmpty = new HashSet<ushort>();
-            blocksToConsiderEmpty.Add(0);
-            blocksToConsiderEmpty.Add(blockList["smallLightHover"]);
+            HashSet<Block> blocksToConsiderEmpty = new HashSet<Block>();
+            blocksToConsiderEmpty.Add(Block.Empty);
+            blocksToConsiderEmpty.Add(Factory.Get<Block>("smallLightHover"));
             for (int i = 0; i < 50; i++)
-                blocksToConsiderEmpty.Add(blockList["grass" + i]);
+                blocksToConsiderEmpty.Add(Factory.Get<Block>("grass" + i));
             for (int i = 0; i < 6; i++)
-                blocksToConsiderEmpty.Add(blockList["light" + i]);
+                blocksToConsiderEmpty.Add(Factory.Get<Block>("light" + i));
 
-            HashSet<ushort> blocksToSmooth = new HashSet<ushort>();
+            HashSet<Block> blocksToSmooth = new HashSet<Block>();
             for (int i = 0; i < 64; i++)
             {
-                blocksToSmooth.Add(blockList["ston" + i]);
-                blocksToSmooth.Add(blockList["wood" + i]);
+                blocksToSmooth.Add(Factory.Get<Block>("ston" + i));
+                blocksToSmooth.Add(Factory.Get<Block>("wood" + i));
             }
 
             for (int z = 0; z < gameWorld.BlockSize.Z; z++)
@@ -573,8 +567,8 @@ namespace ProdigalSoftware.ProjectM.Plugins
                 {
                     for (int y = 0; y < gameWorld.BlockSize.Y; y++)
                     {
-                        ushort blockIndex = gameWorld[x, y, z];
-                        if (blockIndex == 0 || !blocksToSmooth.Contains(blockIndex))
+                        Block block = gameWorld[x, y, z];
+                        if (block == Block.Empty || !blocksToSmooth.Contains(block))
                             continue;
 
                         int sides = 0;
@@ -597,7 +591,8 @@ namespace ProdigalSoftware.ProjectM.Plugins
                         if (y == 0 || blocksToConsiderEmpty.Contains(gameWorld[x, y - 1, z]))
                             sides |= Bottom;
 
-                        gameWorld[x, y, z] = (ushort)(blockIndex + sides);
+                        string blockNamePart = block.Name.Substring(0, 4);
+                        gameWorld[x, y, z] = Factory.Get<Block>(blockNamePart + sides);
                     }
                 }
             }

@@ -14,7 +14,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
             IScene scene = null;
             if (sceneName == "Loading")
             {
-                scene = Factory.Create<IScene>();
+                scene = Factory.New<IScene>();
                 scene.SetGameWorld("Loading");
                 IEntity entity = scene.CreateNewEntity("Camera");
                 entity.AddComponent(new CameraComponent());
@@ -22,7 +22,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
             }
             else if (sceneName == "Maze")
             {
-                scene = Factory.Create<IScene>();
+                scene = Factory.New<IScene>();
                 scene.SetGameWorld("Maze");
                 IEntity entity = scene.CreateNewEntity("Camera");
                 entity.AddComponent(new CameraComponent());
@@ -30,7 +30,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
             }
             else if (sceneName == "StressTest")
             {
-                scene = Factory.Create<IScene>();
+                scene = Factory.New<IScene>();
                 scene.SetGameWorld("StressTest");
                 IEntity entity = scene.CreateNewEntity("Camera");
                 entity.AddComponent(new CameraComponent());

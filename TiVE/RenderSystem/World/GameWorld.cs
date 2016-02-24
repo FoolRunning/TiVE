@@ -12,17 +12,50 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
     /// </summary>
     internal sealed class GameWorld : IGameWorld
     {
+        #region Constants/Member variables
+        public static readonly Guid ID = new Guid("1DDA35E9-DE25-4033-B20E-57B8626A56BA");
+
         private const int BlockTotalVoxelCount = Block.VoxelSize * Block.VoxelSize * Block.VoxelSize;
+        private const byte SerializedFileVersion = 1;
 
         private readonly Vector3i voxelSize;
         private readonly Vector3i blockSize;
-        private readonly ushort[] blocks;
+        private readonly ushort[] gameWorldBlocks;
         private readonly BlockState[] blockStates;
-        private readonly Dictionary<ushort, string> blockIdToName = new Dictionary<ushort, string>();
+        private readonly List<Block> blockIdToBlock = new List<Block>(1000);
+        private readonly Dictionary<string, ushort> blockNameToId = new Dictionary<string, ushort>(1000);
 
-        private Voxel[] blockVoxels;
         private bool[] blockVoxelsEmptyForLighting;
         private bool[] blockLightPassThrough;
+        #endregion
+
+        #region Constructors
+        public GameWorld(BinaryReader reader)
+        {
+            byte fileVersion = reader.ReadByte();
+            if (fileVersion > SerializedFileVersion)
+                throw new FileTooNewException("GameWorld");
+
+            // Read block index
+            int indexCount = reader.ReadUInt16();
+            for (int i = 0; i < indexCount; i++)
+            {
+                string blockName = reader.ReadString();
+                blockNameToId.Add(blockName, (ushort)blockIdToBlock.Count);
+                blockIdToBlock.Add(TiVEController.BlockManager.GetBlock(blockName));
+            }
+
+            // Read block data
+            blockSize = new Vector3i(reader);
+            voxelSize = new Vector3i(blockSize.X * Block.VoxelSize, blockSize.Y * Block.VoxelSize, blockSize.Z * Block.VoxelSize);
+            blockStates = new BlockState[blockSize.X * blockSize.Y * blockSize.Z];
+            gameWorldBlocks = new ushort[blockSize.X * blockSize.Y * blockSize.Z];
+            for (int i = 0; i < gameWorldBlocks.Length; i++)
+            {
+                gameWorldBlocks[i] = reader.ReadUInt16();
+                blockStates[i] = new BlockState(reader);
+            }
+        }
 
         public GameWorld(int blockSizeX, int blockSizeY, int blockSizeZ)
         {
@@ -32,8 +65,11 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
             voxelSize = new Vector3i(blockSizeX * Block.VoxelSize, blockSizeY * Block.VoxelSize, blockSizeZ * Block.VoxelSize);
 
             blockStates = new BlockState[blockSizeX * blockSizeY * blockSizeZ];
-            blocks = new ushort[blockSizeX * blockSizeY * blockSizeZ];
+            gameWorldBlocks = new ushort[blockSizeX * blockSizeY * blockSizeZ];
+            blockIdToBlock.Add(Block.Empty);
+            blockNameToId.Add(Block.Empty.Name, 0);
         }
+        #endregion
 
         #region Implementation of IGameWorld
         public LightingModelType LightingModelType { get; set; }
@@ -57,35 +93,60 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
         /// <summary>
         /// Gets/sets the block in the game world at the specified block location
         /// </summary>
-        public ushort this[int blockX, int blockY, int blockZ]
+        public Block this[int blockX, int blockY, int blockZ]
         {
-            get { return blocks[blockSize.GetArrayOffset(blockX, blockY, blockZ)]; }
-            set { blocks[blockSize.GetArrayOffset(blockX, blockY, blockZ)] = value; }
+            get 
+            {
+                ushort blockId = gameWorldBlocks[blockSize.GetArrayOffset(blockX, blockY, blockZ)];
+                return blockIdToBlock[blockId];
+            }
+            set 
+            {
+                ushort blockId;
+                if (!blockNameToId.TryGetValue(value.Name, out blockId))
+                {
+                    blockNameToId[value.Name] = blockId = (ushort)blockIdToBlock.Count;
+                    blockIdToBlock.Add(value);
+                }
+                gameWorldBlocks[blockSize.GetArrayOffset(blockX, blockY, blockZ)] = blockId;
+            }
         }
         #endregion
 
         #region Implementation of ITiVESerializable
         public void SaveTo(BinaryWriter writer)
         {
-            
+            writer.Write(SerializedFileVersion);
+
+            // Save block index
+            writer.Write((ushort)blockNameToId.Count);
+            for (int i = 0; i < blockIdToBlock.Count; i++)
+                writer.Write(blockIdToBlock[i].Name);
+
+            // Save block data
+            blockSize.SaveTo(writer);
+            for (int i = 0; i < gameWorldBlocks.Length; i++)
+            {
+                writer.Write(gameWorldBlocks[i]);
+                blockStates[i].SaveTo(writer);
+            }
         }
         #endregion
 
-        public void Initialize(BlockList blockList)
+        #region Other public methods
+        public void Initialize()
         {
-            blockVoxelsEmptyForLighting = new bool[blockList.BlockCount * BlockTotalVoxelCount];
-            blockVoxels = new Voxel[blockList.BlockCount * BlockTotalVoxelCount];
-            blockLightPassThrough = new bool[blockList.BlockCount];
-            for (int blockIndex = 0; blockIndex < blockList.BlockCount; blockIndex++)
+            blockVoxelsEmptyForLighting = new bool[blockIdToBlock.Count * BlockTotalVoxelCount];
+            blockLightPassThrough = new bool[blockIdToBlock.Count];
+            for (int blockId = 0; blockId < blockIdToBlock.Count; blockId++)
             {
-                BlockImpl block = blockList.AllBlocks[blockIndex];
+                Block block = blockIdToBlock[blockId];
 
-                blockLightPassThrough[blockIndex] = (blockIndex == 0 || block.HasComponent<LightPassthroughComponent>());
-                Array.Copy(block.VoxelsArray, 0, blockVoxels, blockIndex * BlockTotalVoxelCount, BlockTotalVoxelCount);
+                blockLightPassThrough[blockId] = (blockId == 0 || block.HasComponent<LightPassthroughComponent>());
 
-                int offset = blockIndex * BlockTotalVoxelCount;
+                int offset = blockId * BlockTotalVoxelCount;
                 for (int i = 0; i < BlockTotalVoxelCount; i++)
-                    blockVoxelsEmptyForLighting[offset + i] = (blockIndex == 0 || block.VoxelsArray[i].AllowLightPassthrough);
+                    blockVoxelsEmptyForLighting[offset + i] = (blockId == 0 || block.VoxelsArray[i].AllowLightPassthrough);
             }
         }
 
@@ -111,14 +172,11 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
             int blockX = voxelX >> Block.VoxelSizeBitShift;
             int blockY = voxelY >> Block.VoxelSizeBitShift;
             int blockZ = voxelZ >> Block.VoxelSizeBitShift;
-            ushort block = blocks[blockSize.GetArrayOffset(blockX, blockY, blockZ)];
-            if (block == 0)
-                return Voxel.Empty;
-
+            ushort block = gameWorldBlocks[blockSize.GetArrayOffset(blockX, blockY, blockZ)];
             int blockVoxelX = voxelX % Block.VoxelSize;
             int blockVoxelY = voxelY % Block.VoxelSize;
             int blockVoxelZ = voxelZ % Block.VoxelSize;
-            return blockVoxels[GetBlockVoxelsOffset(block, blockVoxelX, blockVoxelY, blockVoxelZ)];
+            return blockIdToBlock[block][blockVoxelX, blockVoxelY, blockVoxelZ];
         }
 
         /// <summary>
@@ -151,7 +209,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
             int blockVoxelY = y % Block.VoxelSize;
             int blockVoxelZ = z % Block.VoxelSize;
             
-            ushort[] blocksLocal = blocks;
+            ushort[] blocksLocal = gameWorldBlocks;
             Vector3i blockSizeLocal = blockSize;
             bool[] blockVoxelsEmptyForLightingLocal = blockVoxelsEmptyForLighting;
 
@@ -203,14 +261,14 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
         /// Modified with optimizations for TiVE.
         /// </summary>
         /// <remarks>Very performance-critical method</remarks>
-        public bool NoVoxelInLineFast(int x1, int y1, int z1, int x2, int y2, int z2)
+        public bool NoVoxelInLineFast(int x, int y, int z, int x2, int y2, int z2)
         {
-            if (x1 == x2 && y1 == y2 && z1 == z2)
+            if (x == x2 && y == y2 && z == z2)
                 return true;
 
-            int dx = x2 - x1;
-            int dy = y2 - y1;
-            int dz = z2 - z1;
+            int dx = x2 - x;
+            int dy = y2 - y;
+            int dz = z2 - z;
 
             int ax = FastAbs(dx) << 1;
             int ay = FastAbs(dy) << 1;
@@ -220,17 +278,13 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
             int sy = FastSign(dy);
             int sz = FastSign(dz);
 
-            int x = x1;
-            int y = y1;
-            int z = z1;
-
             int blockX = x >> Block.VoxelSizeBitShift;
             int blockY = y >> Block.VoxelSizeBitShift;
             int blockZ = z >> Block.VoxelSizeBitShift;
             int blockVoxelX = x % Block.VoxelSize;
             int blockVoxelY = y % Block.VoxelSize;
             int blockVoxelZ = z % Block.VoxelSize;
-            ushort[] blocksLocal = blocks;
+            ushort[] blocksLocal = gameWorldBlocks;
             Vector3i blockSizeLocal = blockSize;
             bool[] blockVoxelsEmptyForLightingLocal = blockVoxelsEmptyForLighting;
 
@@ -354,14 +408,14 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
         /// Modified with optimizations for TiVE.
         /// </summary>
         /// <remarks>Very performance-critical method</remarks>
-        public bool NoBlocksInLine(int x1, int y1, int z1, int x2, int y2, int z2)
+        public bool NoBlocksInLineFast(int x, int y, int z, int x2, int y2, int z2)
         {
-            if (x1 == x2 && y1 == y2 && z1 == z2)
+            if (x == x2 && y == y2 && z == z2)
                 return true;
 
-            int dx = x2 - x1;
-            int dy = y2 - y1;
-            int dz = z2 - z1;
+            int dx = x2 - x;
+            int dy = y2 - y;
+            int dz = z2 - z;
 
             int ax = FastAbs(dx) << 1;
             int ay = FastAbs(dy) << 1;
@@ -371,10 +425,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
             int sy = FastSign(dy);
             int sz = FastSign(dz);
 
-            int x = x1;
-            int y = y1;
-            int z = z1;
-            ushort[] blocksLocal = blocks;
+            ushort[] blocksLocal = gameWorldBlocks;
             Vector3i blockSizeLocal = blockSize;
             bool[] blockLightPassThroughLocal = blockLightPassThrough;
 
@@ -470,6 +521,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
                     return false;
             }
         }
+        #endregion
 
         #region Private helper methods
         /// <summary>

@@ -93,7 +93,6 @@
   <ItemGroup>
     <Compile Include="Core\TiVESerializerImplementationTests.cs" />
     <Compile Include="RenderSystem\EntityLoadQueueTests.cs" />
-    <Compile Include="World\BlockTests.cs" />
     <Compile Include="Core\SceneTests.cs" />
     <Compile Include="Core\EngineTests.cs" />
     <Compile Include="World\GameWorldTests.cs" />
@@ -101,7 +100,6 @@
     <Compile Include="ScriptSystem\ScriptSystemTests.cs" />
     <Compile Include="Starter\MessagesTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="World\BlockListTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\TiVEPluginFramework\TiVEPluginFramework.csproj">

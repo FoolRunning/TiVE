@@ -3,23 +3,21 @@ using ProdigalSoftware.TiVEPluginFramework;
 
 namespace ProdigalSoftware.ProjectM.Plugins
 {
-    #region BlockRandomizer class
     public sealed class BlockRandomizer
     {
-        private readonly ushort[] blocks;
+        private readonly Block[] blocks;
         private readonly Random random = new Random();
 
-        public BlockRandomizer(IBlockList blockList, string blockname, int blockCount)
+        public BlockRandomizer(string blockname, int blockCount)
         {
-            blocks = new ushort[blockCount];
+            blocks = new Block[blockCount];
             for (int i = 0; i < blocks.Length; i++)
-                blocks[i] = blockList[blockname + i];
+                blocks[i] = Factory.Get<Block>(blockname + i);
         }
 
-        public ushort NextBlock()
+        public Block NextBlock()
         {
             return blocks[random.Next(blocks.Length)];
         }
     }
-    #endregion
 }

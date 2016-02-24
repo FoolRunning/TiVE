@@ -43,7 +43,7 @@ namespace ProdigalSoftware.TiVEEditor.Importers
             int sizey = Math.Min(spriteData.Size.Y, Block.VoxelSize);
             int sizez = Math.Min(spriteData.Size.Z, Block.VoxelSize);
 
-            Block block = new BlockImpl(blockName);
+            Block block = new Block(blockName);
             for (int z = 0; z < sizez; z++)
             {
                 for (int x = 0; x < sizex; x++)

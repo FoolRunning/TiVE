@@ -69,11 +69,11 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
             Stopwatch sw = Stopwatch.StartNew();
             for (int i = 0; i < chunkLightInfo.Length; i++)
                 chunkLightInfo[i] = new ChunkLights(100);
-            
-            int numThreads = Environment.ProcessorCount > 3 ? Environment.ProcessorCount - 1 : 1;
+
+            int numThreads = 1; // Environment.ProcessorCount > 3 ? Environment.ProcessorCount - 1 : 1;
             Thread[] threads = new Thread[numThreads];
             List<LightInfo> lightInfos = new List<LightInfo>(20000);
-            lightInfos.Add(new LightInfo());
+            lightInfos.Add(null);
             for (int i = 0; i < numThreads; i++)
                 threads[i] = StartLightCalculationThread("Light " + (i + 1), lightInfos, i * scene.GameWorld.BlockSize.X / numThreads, (i + 1) * scene.GameWorld.BlockSize.X / numThreads);
 
@@ -147,7 +147,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
                             if ((lightCullType == LightCullType.Fast && CullLightFast(lbx, lby, lbz, bx, by, bz)) ||
                                 (lightCullType == LightCullType.Accurate && CullLightAccurate(lbx, lby, lbz, bx, by, bz)))
                             {
-                                continue; // The light won't actually hit the block from any direction
+                                continue; // The light won't actually hit the block
                             }
 
                             int vy = (by << Block.VoxelSizeBitShift) + HalfBlockVoxelSize;
@@ -206,7 +206,6 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
         {
             Thread thread = new Thread(() =>
             {
-                BlockList blockList = scene.BlockList;
                 GameWorld gameWorld = scene.GameWorld;
                 int sizeX = gameWorld.BlockSize.X;
                 int sizeY = gameWorld.BlockSize.Y;
@@ -225,7 +224,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
                     {
                         for (int y = 0; y < sizeY; y++)
                         {
-                            LightComponent light = blockList[gameWorld[x, y, z]].GetComponent<LightComponent>();
+                            LightComponent light = gameWorld[x, y, z].GetComponent<LightComponent>();
                             if (light != null)
                                 FillChunksWithLight(light, lightInfos, x, y, z);
                         }
@@ -313,7 +312,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
                 {
                     for (int testZ = startZ; testZ <= endZ; testZ++)
                     {
-                        if (gameWorld.NoBlocksInLine(lbx, lby, lbz, testX, testY, testZ))
+                        if (gameWorld.NoBlocksInLineFast(lbx, lby, lbz, testX, testY, testZ))
                             return false;
                     }
                 }
@@ -340,7 +339,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
                 {
                     for (int testZ = startZ; testZ <= endZ; testZ++)
                     {
-                        if (gameWorld.NoBlocksInLine(lbx, lby, lbz, testX, testY, testZ))
+                        if (gameWorld.NoBlocksInLineFast(lbx, lby, lbz, testX, testY, testZ))
                             return false;
                     }
                 }

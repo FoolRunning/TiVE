@@ -35,12 +35,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
         private const int Bottom = 32;
 
         #region Implementation of IWorldGenerator
-        public string BlockListForWorld(string gameWorldName)
-        {
-            return gameWorldName == "Loading" ? "loading" : null;
-        }
-
-        public IGameWorld CreateGameWorld(string gameWorldName, IBlockList blockList)
+        public IGameWorld CreateGameWorld(string gameWorldName)
         {
             if (gameWorldName != "Loading")
                 return null;
@@ -49,14 +44,14 @@ namespace ProdigalSoftware.ProjectM.Plugins
             int dataYSize = loadingLevel.GetLength(0);
             const int worldSizeX = 75;
             const int worldSizeY = 50;
-            IGameWorld gameWorld = Factory.CreateGameWorld(worldSizeX, worldSizeY, 8);
+            IGameWorld gameWorld = Factory.NewGameWorld(worldSizeX, worldSizeY, 8);
             gameWorld.LightingModelType = LightingModelType.Realistic;
 
-            BlockRandomizer grasses = new BlockRandomizer(blockList, "grass", 50);
-            ushort dirt = blockList["dirt"];
-            ushort stoneBack = blockList["backStone"];
-            ushort stone = blockList["ston0"];
-            ushort light = blockList["loadingLight"];
+            BlockRandomizer grasses = new BlockRandomizer("grass", 50);
+            Block dirt = Factory.Get<Block>("dirt");
+            Block stoneBack = Factory.Get<Block>("backStone");
+            Block stone = Factory.Get<Block>("ston0");
+            Block light = Factory.Get<Block>("loadingLight");
             for (int x = 0; x < worldSizeX; x++)
             {
                 for (int y = 0; y < worldSizeY; y++)
@@ -93,19 +88,19 @@ namespace ProdigalSoftware.ProjectM.Plugins
                 }
             }
 
-            SmoothWorld(gameWorld, blockList);
+            SmoothWorld(gameWorld);
             return gameWorld;
         }
         #endregion
 
-        private static void SmoothWorld(IGameWorld gameWorld, IBlockList blockList)
+        private static void SmoothWorld(IGameWorld gameWorld)
         {
-            HashSet<int> blocksToConsiderEmpty = new HashSet<int>();
-            blocksToConsiderEmpty.Add(0);
+            HashSet<Block> blocksToConsiderEmpty = new HashSet<Block>();
+            blocksToConsiderEmpty.Add(Block.Empty);
             for (int i = 0; i < 50; i++)
-                blocksToConsiderEmpty.Add(blockList["grass" + i]);
+                blocksToConsiderEmpty.Add(Factory.Get<Block>("grass" + i));
             for (int i = 0; i < 6; i++)
-                blocksToConsiderEmpty.Add(blockList["light" + i]);
+                blocksToConsiderEmpty.Add(Factory.Get<Block>("light" + i));
 
             for (int z = 0; z < gameWorld.BlockSize.Z; z++)
             {
@@ -113,11 +108,10 @@ namespace ProdigalSoftware.ProjectM.Plugins
                 {
                     for (int y = 0; y < gameWorld.BlockSize.Y; y++)
                     {
-                        ushort blockIndex = gameWorld[x, y, z];
-                        if (blockIndex == 0)
+                        Block block = gameWorld[x, y, z];
+                        if (block == Block.Empty)
                             continue;
 
-                        Block block = blockList[blockIndex];
                         string blockNameKey = GetBlockSet(block);
 
                         if (blockNameKey != "ston" && blockNameKey != "sand" && blockNameKey != "lava")
@@ -143,7 +137,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
                         if (y == gameWorld.BlockSize.Y - 1 || blocksToConsiderEmpty.Contains(gameWorld[x, y + 1, z]))
                             sides |= Top;
 
-                        gameWorld[x, y, z] = blockList[blockNameKey + sides];
+                        gameWorld[x, y, z] = Factory.Get<Block>(blockNameKey + sides);
                     }
                 }
             }

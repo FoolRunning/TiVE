@@ -1,5 +1,4 @@
 ﻿using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 using ProdigalSoftware.TiVEPluginFramework;
 
 namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
@@ -7,8 +6,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
     /// <summary>
     /// Contains information about a light in the game world
     /// </summary>
-    [StructLayout(LayoutKind.Sequential)]
-    internal struct LightInfo
+    internal sealed class LightInfo
     {
         /// <summary>The voxel location of the light on the x-axis</summary>
         public readonly ushort VoxelLocX;      // 2 bytes
@@ -23,7 +21,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
         private readonly float cachedLightCalc; // 4 bytes
         /// <summary>Cached lighting calculation needed by the current light model for use in shadows</summary>
         private readonly float cachedLightCalcShadow; // 4 bytes
-
+        
         /// <summary>
         /// Creates a new LightInfo from the specified information
         /// </summary>

@@ -49,11 +49,6 @@ namespace ProdigalSoftware.TiVEEditor.Common
             get { return scene.LightProvider; }
         }
 
-        public BlockList BlockList
-        {
-            get { return scene.BlockList; }
-        }
-
         public CameraComponent Camera
         {
             get 
@@ -63,9 +58,9 @@ namespace ProdigalSoftware.TiVEEditor.Common
             }
         }
 
-        public void SetGameWorld(BlockList blockList, GameWorld gameWorld)
+        public void SetGameWorld(GameWorld gameWorld)
         {
-            scene.SetGameWorld(gameWorld, blockList);
+            scene.SetGameWorld(gameWorld);
         }
 
         public void RefreshLevel(bool refreshStaticLighting)
