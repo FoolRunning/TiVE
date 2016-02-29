@@ -84,7 +84,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem
 
             if (currentScene.LoadingInitialChunks)
             {
-                if (meshManager.ChunkLoadCount < 10) // Let chunks load before showing scene
+                if (meshManager.ChunkLoadCount < 5) // Let chunks load before showing scene
                     currentScene.LoadingInitialChunks = false;
                 return true;
             }

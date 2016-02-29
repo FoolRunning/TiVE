@@ -20,7 +20,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
         /// <summary>Cached lighting calculation needed by the current light model</summary>
         private readonly float cachedLightCalc; // 4 bytes
         /// <summary>Cached lighting calculation needed by the current light model for use in shadows</summary>
-        private readonly float cachedLightCalcShadow; // 4 bytes
+        private readonly float cachedLightCalcAmbient; // 4 bytes
         
         /// <summary>
         /// Creates a new LightInfo from the specified information
@@ -30,15 +30,15 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
         /// <param name="blockZ">The block location of the light on the z-axis</param>
         /// <param name="light">The light</param>
         /// <param name="cachedLightCalc">Cached lighting calculation needed by the current light model</param>
-        /// <param name="cachedLightCalcShadow">Cached lighting calculation needed by the current light model</param>
-        public LightInfo(int blockX, int blockY, int blockZ, LightComponent light, float cachedLightCalc, float cachedLightCalcShadow)
+        /// <param name="cachedLightCalcAmbient">Cached lighting calculation needed by the current light model for ambient lighting</param>
+        public LightInfo(int blockX, int blockY, int blockZ, LightComponent light, float cachedLightCalc, float cachedLightCalcAmbient)
         {
             VoxelLocX = (ushort)(light.Location.X + (blockX << Block.VoxelSizeBitShift));
             VoxelLocY = (ushort)(light.Location.Y + (blockY << Block.VoxelSizeBitShift));
             VoxelLocZ = (ushort)(light.Location.Z + (blockZ << Block.VoxelSizeBitShift));
             LightColor = light.Color;
             this.cachedLightCalc = cachedLightCalc;
-            this.cachedLightCalcShadow = cachedLightCalcShadow;
+            this.cachedLightCalcAmbient = cachedLightCalcAmbient;
         }
 
         /// <summary>
@@ -47,25 +47,17 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
         public float GetLightPercentage(int voxelX, int voxelY, int voxelZ, LightingModel lightingModel)
         {
             float distSquared = DistanceSquared(voxelX, voxelY, voxelZ);
-            return lightingModel.GetLightPercentage(distSquared, cachedLightCalc);
-        }
-
-        /// <summary>
-        /// Gets the amount of light (0.0 - 1.0) that this light would produce for the voxel at the specified location
-        /// </summary>
-        public float GetLightPercentageForSimpleLighting(int voxelX, int voxelY, int voxelZ, LightingModel lightingModel)
-        {
-            float distSquared = DistanceSquared(voxelX, voxelY, voxelZ) * 2;
-            return lightingModel.GetLightPercentage(distSquared, cachedLightCalc);
+            return lightingModel.GetLightPercentage(distSquared, cachedLightCalc) +
+                lightingModel.GetLightPercentage(distSquared, cachedLightCalcAmbient);
         }
 
         /// <summary>
         /// Gets the amount of light (0.0 - 1.0) that this light would produce for the voxel at the specified location when in a shadow
         /// </summary>
-        public float GetLightPercentageShadow(int voxelX, int voxelY, int voxelZ, LightingModel lightingModel)
+        public float GetLightPercentageAmbientOnly(int voxelX, int voxelY, int voxelZ, LightingModel lightingModel)
         {
             float distSquared = DistanceSquared(voxelX, voxelY, voxelZ);
-            return lightingModel.GetLightPercentage(distSquared, cachedLightCalcShadow);
+            return lightingModel.GetLightPercentage(distSquared, cachedLightCalcAmbient);
         }
 
         public int BlockX

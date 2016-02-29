@@ -16,7 +16,7 @@ namespace ProdigalSoftware.TiVE.Settings
         public event Action<string> SettingChanged;
 
         public const string FullScreenModeKey = "fullScreenMode";
-        public const string LightingComplexityKey = "lightingComplexity";
+        public const string LightingTypeKey = "lightingType";
         public const string ShadowTypeKey = "shadowType";
         //public const string PreLoadLightingKey = "preLoadLighting";
         public const string LightCullingTypeKey = "lightCullType";
@@ -78,13 +78,6 @@ namespace ProdigalSoftware.TiVE.Settings
                 new UserSettingOption(new IntSetting(10)),
                 new UserSettingOption(new IntSetting(20))));
 
-            int totalCores = Environment.ProcessorCount;
-            settingOptions.Add(new UserSettingOptions(LightingComplexityKey, "Lighting complexity", UserOptionTab.Display,
-                new EnumSetting<LightComplexity>(totalCores > 3 ? LightComplexity.Realistic : LightComplexity.Simple),
-                new UserSettingOption("Simple", new EnumSetting<LightComplexity>(LightComplexity.Simple)),
-                new UserSettingOption("Realistic", new EnumSetting<LightComplexity>(LightComplexity.Realistic)),
-                new UserSettingOption("Light debug view", new EnumSetting<LightComplexity>(LightComplexity.Debug))));
-
             settingOptions.Add(new UserSettingOptions(ShadowTypeKey, "Shadow type", UserOptionTab.Display,
                 new EnumSetting<ShadowType>(ShadowType.None),
                 new UserSettingOption("None", new EnumSetting<ShadowType>(ShadowType.None)),
@@ -95,6 +88,7 @@ namespace ProdigalSoftware.TiVE.Settings
             //    new UserSettingOption("True", new BoolSetting(true)),
             //    new UserSettingOption("False", new BoolSetting(false))));
 
+            int totalCores = Environment.ProcessorCount;
             int numThreadOptions = totalCores > 3 ? totalCores - 1 : 1;
             UserSettingOption[] threadOptions = new UserSettingOption[numThreadOptions];
             for (int i = 0; i < numThreadOptions; i++)
@@ -109,16 +103,16 @@ namespace ProdigalSoftware.TiVE.Settings
             settingOptions.Add(new UserSettingOptions(LightCullingTypeKey, "Light culling type", UserOptionTab.Advanced,
                 new EnumSetting<LightCullType>(LightCullType.Fast),
                 new UserSettingOption("Fast", new EnumSetting<LightCullType>(LightCullType.Fast)),
-                new UserSettingOption("Accurate", new EnumSetting<LightCullType>(LightCullType.Accurate))));
+                new UserSettingOption("For perfect shadows", new EnumSetting<LightCullType>(LightCullType.Accurate))));
+
+            settingOptions.Add(new UserSettingOptions(LightingTypeKey, "Lighting type", UserOptionTab.Advanced, new EnumSetting<LightType>(LightType.Realistic),
+                new UserSettingOption("Normal", new EnumSetting<LightType>(LightType.Realistic)),
+                new UserSettingOption("Light debug view", new EnumSetting<LightType>(LightType.Debug))));
         }
 
         private static string SettingsFileFolder
         {
-            get
-            {
-                return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                    "Prodigal Software", "TiVE");
-            }
+            get { return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Prodigal Software", "TiVE"); }
         }
 
         public static IEnumerable<UserSettingOptions> AllUserSettingOptions

@@ -207,7 +207,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem
         #region Event handlers
         void UserSettings_SettingChanged(string settingName)
         {
-            if (settingName == UserSettings.LightingComplexityKey)
+            if (settingName == UserSettings.LightingTypeKey)
                 ReloadAllEntities();
         }
         #endregion
