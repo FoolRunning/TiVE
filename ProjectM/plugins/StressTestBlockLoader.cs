@@ -21,12 +21,12 @@ namespace ProdigalSoftware.ProjectM.Plugins
         {
             const bool forFantasyLighting = true;
 
-            byte blockCenter = Block.VoxelSize / 2;
+            const byte blockCenter = Block.VoxelSize / 2;
             Vector3b blockCenterVector = new Vector3b(blockCenter, blockCenter, blockCenter);
             for (int i = 0; i < 64; i++)
             {
                 yield return CreateBlockInfo("STlava" + i, new Color4f(200, 15, 8, 255), 1.0f, i,
-                    new LightComponent(new Vector3b(blockCenter, blockCenter, blockCenter), new Color3f(0.2f, 0.01f, 0.001f), forFantasyLighting ? 3 : 15), true);
+                    new LightComponent(new Vector3b(blockCenter, blockCenter, blockCenter), new Color3f(0.3f, 0.02f, 0.01f), forFantasyLighting ? 4 : 15), true);
                 yield return CreateBlockInfo("STston" + i, new Color4f(120, 120, 120, 255), 1.0f, i);
                 yield return CreateBlockInfo("STsand" + i, new Color4f(120, 100, 20, 255), 0.1f, i, null, true);
             }
@@ -40,26 +40,27 @@ namespace ProdigalSoftware.ProjectM.Plugins
             fireBlock.AddComponent(new LightPassthroughComponent());
             yield return fireBlock;
 
+            const int lightDist = forFantasyLighting ? 15 : 35;
             yield return CreateBlockInfo("STlight0", false, 2, new Color4f(255, 255, 255, 255), 1.0f, null,
-                new LightComponent(blockCenterVector, new Color3f(1.0f, 1.0f, 1.0f), forFantasyLighting ? 15 : 35), true);
+                new LightComponent(blockCenterVector, new Color3f(1.0f, 1.0f, 1.0f), lightDist), true);
 
             yield return CreateBlockInfo("STlight1", false, 2, new Color4f(255, 255, 0, 255), 1.0f, null,
-                new LightComponent(blockCenterVector, new Color3f(1.0f, 1.0f, 0.0f), forFantasyLighting ? 15 : 35), true);
+                new LightComponent(blockCenterVector, new Color3f(1.0f, 1.0f, 0.3f), lightDist), true);
 
             yield return CreateBlockInfo("STlight2", false, 2, new Color4f(0, 255, 0, 255), 1.0f, null,
-                new LightComponent(blockCenterVector, new Color3f(0.0f, 1.0f, 0.0f), forFantasyLighting ? 15 : 35), true);
+                new LightComponent(blockCenterVector, new Color3f(0.3f, 1.0f, 0.3f), lightDist), true);
 
             yield return CreateBlockInfo("STlight3", false, 2, new Color4f(0, 255, 255, 255), 1.0f, null,
-                new LightComponent(blockCenterVector, new Color3f(0.0f, 1.0f, 1.0f), forFantasyLighting ? 15 : 35), true);
+                new LightComponent(blockCenterVector, new Color3f(0.3f, 1.0f, 1.0f), lightDist), true);
 
             yield return CreateBlockInfo("STlight4", false, 2, new Color4f(0, 0, 255, 255), 1.0f, null,
-                new LightComponent(blockCenterVector, new Color3f(0.0f, 0.0f, 1.0f), forFantasyLighting ? 15 : 35), true);
+                new LightComponent(blockCenterVector, new Color3f(0.3f, 0.3f, 1.0f), lightDist), true);
 
             yield return CreateBlockInfo("STlight5", false, 2, new Color4f(255, 0, 255, 255), 1.0f, null,
-                new LightComponent(blockCenterVector, new Color3f(1.0f, 0.0f, 1.0f), forFantasyLighting ? 15 : 35), true);
+                new LightComponent(blockCenterVector, new Color3f(1.0f, 0.3f, 1.0f), lightDist), true);
 
             yield return CreateBlockInfo("STlight6", false, 2, new Color4f(255, 255, 255, 255), 1.0f, null,
-                new LightComponent(blockCenterVector, new Color3f(1.0f, 1.0f, 1.0f), forFantasyLighting ? 15 : 35), true);
+                new LightComponent(blockCenterVector, new Color3f(1.0f, 1.0f, 1.0f), lightDist), true);
 
             yield return CreateBlockInfo("STfountain", false, Block.VoxelSize / 2, new Color4f(20, 20, 150, 255), 1.0f,
                 new ParticleComponent("Fountain", new Vector3i(blockCenter, blockCenter, 13)));

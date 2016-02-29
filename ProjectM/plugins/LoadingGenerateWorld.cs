@@ -45,7 +45,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
             const int worldSizeX = 75;
             const int worldSizeY = 50;
             IGameWorld gameWorld = Factory.NewGameWorld(worldSizeX, worldSizeY, 8);
-            gameWorld.LightingModelType = LightingModelType.Realistic;
+            gameWorld.LightingModelType = LightingModelType.Fantasy1;
 
             BlockRandomizer grasses = new BlockRandomizer("grass", 50);
             Block dirt = Factory.Get<Block>("dirt");

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using ProdigalSoftware.TiVE.Core;
@@ -51,11 +52,6 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
         #endregion
 
         #region Properties
-        public Vector3i ChunkSize
-        {
-            get { return chunkSize; }
-        }
-
         public LightInfo[] LightList { get; private set; }
         #endregion
 
@@ -70,7 +66,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
             for (int i = 0; i < chunkLightInfo.Length; i++)
                 chunkLightInfo[i] = new ChunkLights(100);
 
-            int numThreads = 1; // Environment.ProcessorCount > 3 ? Environment.ProcessorCount - 1 : 1;
+            int numThreads = Environment.ProcessorCount > 3 ? 2 : 1;
             Thread[] threads = new Thread[numThreads];
             List<LightInfo> lightInfos = new List<LightInfo>(20000);
             lightInfos.Add(null);
@@ -80,8 +76,8 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
             foreach (Thread thread in threads)
                 thread.Join();
 
-            for (int i = 0; i < chunkLightInfo.Length; i++)
-                chunkLightInfo[i].LightsAffectingChunks.TrimExcess();
+            //for (int i = 0; i < chunkLightInfo.Length; i++)
+            //    chunkLightInfo[i].LightsAffectingChunks.TrimExcess();
 
             LightList = lightInfos.ToArray();
 
@@ -94,6 +90,8 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
 
             //Messages.Print("Pre-loading lighting...");
             //sw.Restart();
+            //numThreads = Environment.ProcessorCount > 3 ? Environment.ProcessorCount - 2 : 1;
+            //threads = new Thread[numThreads];
             //List<ChunkComponent> allChunks = scene.GetEntitiesWithComponent<ChunkComponent>().Select(e => e.GetComponent<ChunkComponent>()).ToList();
             //for (int i = 0; i < numThreads; i++)
             //    threads[i] = StartLightPreLoadThread("Light preload " + (i + 1), allChunks, i * allChunks.Count / numThreads, (i + 1) * allChunks.Count / numThreads);
@@ -275,7 +273,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
 
                 lightIndex = (ushort)lightInfos.Count;
                 lightInfos.Add(new LightInfo(blockX, blockY, blockZ, light, lightingModel.GetCacheLightCalculation(light),
-                    lightingModel.GetCacheLightCalculationForShadow(light)));
+                    lightingModel.GetCacheLightCalculationForAmbient(light)));
             }
 
             for (int cz = startZ; cz < endZ; cz++)
