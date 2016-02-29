@@ -44,7 +44,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
         /// <summary>
         /// Gets the amount of light (0.0 - 1.0) that this light would produce for the voxel at the specified location
         /// </summary>
-        public float GetLightPercentage(int voxelX, int voxelY, int voxelZ, LightingModel lightingModel)
+        public float GetLightPercentageDiffuseAndAmbient(int voxelX, int voxelY, int voxelZ, LightingModel lightingModel)
         {
             float distSquared = DistanceSquared(voxelX, voxelY, voxelZ);
             return lightingModel.GetLightPercentage(distSquared, cachedLightCalc) +
@@ -52,9 +52,18 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
         }
 
         /// <summary>
+        /// Gets the amount of light (0.0 - 1.0) that this light would produce for the voxel at the specified location
+        /// </summary>
+        public float GetLightPercentage(int voxelX, int voxelY, int voxelZ, LightingModel lightingModel)
+        {
+            float distSquared = DistanceSquared(voxelX, voxelY, voxelZ);
+            return lightingModel.GetLightPercentage(distSquared, cachedLightCalc);
+        }
+
+        /// <summary>
         /// Gets the amount of light (0.0 - 1.0) that this light would produce for the voxel at the specified location when in a shadow
         /// </summary>
-        public float GetLightPercentageAmbientOnly(int voxelX, int voxelY, int voxelZ, LightingModel lightingModel)
+        public float GetLightPercentageAmbient(int voxelX, int voxelY, int voxelZ, LightingModel lightingModel)
         {
             float distSquared = DistanceSquared(voxelX, voxelY, voxelZ);
             return lightingModel.GetLightPercentage(distSquared, cachedLightCalcAmbient);

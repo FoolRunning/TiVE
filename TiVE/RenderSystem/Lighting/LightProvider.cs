@@ -218,7 +218,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
                         break;
 
                     LightInfo lightInfo = lights[lightIndex];
-                    color += lightInfo.LightColor * lightInfo.GetLightPercentage(voxelX, voxelY, voxelZ, lightingModel);
+                    color += lightInfo.LightColor * lightInfo.GetLightPercentageDiffuseAndAmbient(voxelX, voxelY, voxelZ, lightingModel);
                 }
                 return color;
             }
@@ -266,7 +266,8 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
                         float dot = voxelNormal.X * surfaceToLight.X + voxelNormal.Y * surfaceToLight.Y + voxelNormal.Z * surfaceToLight.Z;
                         brightness = MathHelper.Clamp(dot / surfaceToLight.LengthFast, 0.0f, 1.0f);
                     }
-                    color += lightInfo.LightColor * (brightness * lightInfo.GetLightPercentage(voxelX, voxelY, voxelZ, lightingModel));
+                    color += lightInfo.LightColor * (brightness * lightInfo.GetLightPercentage(voxelX, voxelY, voxelZ, lightingModel) +
+                        lightInfo.GetLightPercentageAmbient(voxelX, voxelY, voxelZ, lightingModel));
                 }
                 return color;
             }
@@ -300,7 +301,9 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
 
                     LightInfo lightInfo = lights[lightIndex];
                     if (world.NoVoxelInLineFast(voxelX, voxelY, voxelZ, lightInfo.VoxelLocX, lightInfo.VoxelLocY, lightInfo.VoxelLocZ))
-                        color += lightInfo.LightColor * (lightInfo.GetLightPercentage(voxelX, voxelY, voxelZ, lightingModel));
+                        color += lightInfo.LightColor * lightInfo.GetLightPercentageDiffuseAndAmbient(voxelX, voxelY, voxelZ, lightingModel);
+                    else
+                        color += lightInfo.LightColor * lightInfo.GetLightPercentageAmbient(voxelX, voxelY, voxelZ, lightingModel);
                 }
                 return color;
             }
@@ -364,10 +367,11 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
                         (availablePlusY && NoVoxelInLine(world, voxelX, voxelY + voxelSize, voxelZ, lx, ly, lz)) ||
                         (availablePlusZ && NoVoxelInLine(world, voxelX, voxelY, voxelZ + voxelSize, lx, ly, lz)))
                     {
-                        color += lightInfo.LightColor * (brightness * lightInfo.GetLightPercentage(voxelX, voxelY, voxelZ, lightingModel));
+                        color += lightInfo.LightColor * (brightness * lightInfo.GetLightPercentage(voxelX, voxelY, voxelZ, lightingModel) +
+                            lightInfo.GetLightPercentageAmbient(voxelX, voxelY, voxelZ, lightingModel));
                     }
                     else
-                        color += lightInfo.LightColor * lightInfo.GetLightPercentageAmbientOnly(voxelX, voxelY, voxelZ, lightingModel);
+                        color += lightInfo.LightColor * lightInfo.GetLightPercentageAmbient(voxelX, voxelY, voxelZ, lightingModel);
                 }
                 return color;
             }
