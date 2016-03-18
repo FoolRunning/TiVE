@@ -1,11 +1,12 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using ProdigalSoftware.TiVE.Core;
 using ProdigalSoftware.TiVE.Core.Backend;
 using ProdigalSoftware.TiVE.Debugging;
-using ProdigalSoftware.TiVE.RenderSystem.Voxels;
-using ProdigalSoftware.TiVE.Settings;
+using ProdigalSoftware.TiVE.VoxelMeshSystem;
 using ProdigalSoftware.TiVEPluginFramework;
+using ProdigalSoftware.TiVEPluginFramework.Internal;
 using ProdigalSoftware.TiVEPluginFramework.Components;
 using ProdigalSoftware.Utils;
 //using ProdigalSoftware.TiVE.Utils;
@@ -28,8 +29,9 @@ namespace ProdigalSoftware.TiVE.RenderSystem
         private readonly ItemCountsHelper renderedVoxelCount = new ItemCountsHelper(8, false);
         private readonly ItemCountsHelper polygonCount = new ItemCountsHelper(8, false);
         private readonly ShaderManager shaderManager = new ShaderManager();
-        private VoxelMeshManager meshManager;
+        private readonly HashSet<IEntity> loadedEntities = new HashSet<IEntity>();
         private int ticksSinceLastStatUpdate;
+        private volatile bool initializeForNewScene;
         #endregion
 
         #region Constructor
@@ -41,25 +43,21 @@ namespace ProdigalSoftware.TiVE.RenderSystem
         #region Implementation of EngineSystem
         public override void Dispose()
         {
-            if (meshManager != null)
-                meshManager.Dispose();
-            shaderManager.Dispose();
+            foreach (IEntity entity in loadedEntities)
+                DeleteEntityMesh(entity);
+            loadedEntities.Clear();
 
-            meshManager = null;
+            shaderManager.Dispose();
         }
 
         public override bool Initialize()
         {
-            int maxThreads = TiVEController.UserSettings.Get(UserSettings.ChunkCreationThreadsKey);
-            meshManager = new VoxelMeshManager(maxThreads);
-            
             return shaderManager.Initialize();
         }
 
-        public override void ChangeScene(Scene newScene)
+        public override void ChangeScene(Scene oldScene, Scene newScene, bool onSeparateThread)
         {
-            newScene.LoadingInitialChunks = true;
-            meshManager.ChangeScene(newScene);
+            initializeForNewScene = true;
         }
 
         protected override bool UpdateInternal(int ticksSinceLastFrame, float timeBlendFactor, Scene currentScene)
@@ -75,25 +73,30 @@ namespace ProdigalSoftware.TiVE.RenderSystem
                 ticksSinceLastStatUpdate -= timeBetweenTimingUpdates;
             }
 
-            CameraComponent cameraData = FindCamera(currentScene);
+            if (initializeForNewScene)
+            {
+                foreach (IEntity entity in loadedEntities)
+                    DeleteEntityMesh(entity);
+                loadedEntities.Clear();
+                initializeForNewScene = false;
+            }
+
+
+            CameraComponent cameraData = currentScene.FindCamera();
             if (cameraData == null)
                 return true; // No camera to render with or it probably hasn't been initialized yet
 
-            HashSet<IEntity> entitiesToRender = cameraData.VisibleEntitites;
-            meshManager.LoadMeshesForEntities(entitiesToRender, cameraData);
+            HandleNewlyHiddenEntities(cameraData);
+            HandleEntitiesWithUninitializedMeshes(cameraData);
 
             if (currentScene.LoadingInitialChunks)
-            {
-                if (meshManager.ChunkLoadCount < 5) // Let chunks load before showing scene
-                    currentScene.LoadingInitialChunks = false;
-                return true;
-            }
+                return true; // Let chunks load before rendering scene
 
             RenderStatistics stats = new RenderStatistics();
 #if DEBUG_NODES
             stats += RenderSceneDebug(cameraData, currentScene.RenderNode, -1);
 #endif
-            foreach (IEntity entity in entitiesToRender)
+            foreach (IEntity entity in loadedEntities)
             {
                 VoxelMeshComponent renderData = entity.GetComponent<VoxelMeshComponent>();
                 if (renderData == null)
@@ -119,20 +122,67 @@ namespace ProdigalSoftware.TiVE.RenderSystem
         #endregion
 
         #region Private helper methods
-        /// <summary>
-        /// Finds the first enabled camera in the specified scene
-        /// </summary>
-        private static CameraComponent FindCamera(IScene scene)
+        private void HandleNewlyHiddenEntities(CameraComponent cameraData)
         {
-            foreach (IEntity cameraEntity in scene.GetEntitiesWithComponent<CameraComponent>())
+            foreach (IEntity entity in cameraData.NewlyHiddenEntitites.Where(e => e.HasComponent<VoxelMeshComponent>()))
             {
-                CameraComponent cameraData = cameraEntity.GetComponent<CameraComponent>();
-                Debug.Assert(cameraData != null);
-
-                if (cameraData.Enabled && cameraData.ViewProjectionMatrix != Matrix4f.Zero)
-                    return cameraData;
+                loadedEntities.Remove(entity);
+                DeleteEntityMesh(entity);
             }
-            return null;
+        }
+
+        private void HandleEntitiesWithUninitializedMeshes(CameraComponent cameraData)
+        {
+            foreach (IEntity entity in cameraData.VisibleEntitites.Where(e => e.HasComponent<VoxelMeshComponent>()))
+            {
+                VoxelMeshComponent renderData = entity.GetComponent<VoxelMeshComponent>();
+                using (new PerformanceLock(renderData.SyncLock))
+                {
+                    IMeshBuilder meshBuilder = renderData.MeshBuilder;
+                    if (meshBuilder != null)
+                    {
+                        if (renderData.MeshData != null)
+                            ((IVertexDataCollection)renderData.MeshData).Dispose();
+
+                        if (renderData.PolygonCount == 0)
+                            renderData.MeshData = null;
+                        else
+                        {
+                            renderData.MeshData = meshBuilder.GetMesh();
+                            ((IVertexDataCollection)renderData.MeshData).Initialize();
+                        }
+
+                        meshBuilder.DropMesh(); // Release builder - Must be called after initializing the mesh
+                        renderData.MeshBuilder = null;
+                        loadedEntities.Add(entity);
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Deletes the mesh data and cached render information for the specified entity. This method does nothing if the specified entitiy has
+        /// not had a mesh created yet.
+        /// </summary>
+        private static void DeleteEntityMesh(IEntity entity)
+        {
+            VoxelMeshComponent renderData = entity.GetComponent<VoxelMeshComponent>();
+            using (new PerformanceLock(renderData.SyncLock))
+            {
+                if (renderData.MeshData != null)
+                    ((IVertexDataCollection)renderData.MeshData).Dispose();
+
+                renderData.MeshData = null;
+                renderData.Visible = false;
+                renderData.LoadedVoxelDetailLevel = VoxelMeshComponent.BlankDetailLevel;
+                renderData.PolygonCount = 0;
+                renderData.VoxelCount = 0;
+                renderData.RenderedVoxelCount = 0;
+            }
+
+            //ChunkComponent chunkData = entity.GetComponent<ChunkComponent>();
+            //if (chunkData != null)
+            //    loadedScene.LightProvider.RemoveLightsForChunk(chunkData);
         }
 
         private RenderStatistics RenderVoxelMesh(VoxelMeshComponent renderData, IVertexDataCollection meshData, ref Matrix4f viewProjectionMatrix)

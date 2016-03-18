@@ -56,7 +56,8 @@ namespace ProdigalSoftware.TiVE.Core
                         Messages.AddWarning("Failed to find scene: " + sceneName);
                     else
                     {
-                        SetScene(scene);
+
+                        SetScene(scene, useSeparateThread);
                         break;
                     }
                 }
@@ -74,14 +75,14 @@ namespace ProdigalSoftware.TiVE.Core
             }
         }
 
-        private void SetScene(Scene newScene)
+        private void SetScene(Scene newScene, bool onSeparateThread)
         {
             lock (syncLock)
             {
                 Scene previousScene = currentScene;
 
                 foreach (EngineSystemBase system in systems)
-                    system.ChangeScene(newScene);
+                    system.ChangeScene(previousScene, newScene, onSeparateThread);
 
                 if (previousScene != null)
                     previousScene.Dispose();

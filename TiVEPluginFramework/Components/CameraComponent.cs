@@ -25,6 +25,8 @@ namespace ProdigalSoftware.TiVEPluginFramework.Components
 
         internal readonly Plane[] FrustrumPlanes = new Plane[6];
         internal readonly HashSet<IEntity> VisibleEntitites = new HashSet<IEntity>();
+        internal readonly List<IEntity> NewlyVisibleEntitites = new List<IEntity>();
+        internal readonly List<IEntity> NewlyHiddenEntitites = new List<IEntity>();
         internal Matrix4f ViewProjectionMatrix;
         internal Vector3f PrevLocation;
         internal Vector3f PrevLookAtLocation;

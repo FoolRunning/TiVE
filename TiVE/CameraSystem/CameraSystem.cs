@@ -14,6 +14,8 @@ namespace ProdigalSoftware.TiVE.CameraSystem
     /// </summary>
     internal sealed class CameraSystem : EngineSystem
     {
+        private readonly HashSet<IEntity> visibleEntities = new HashSet<IEntity>();
+
         #region Constructor
         public CameraSystem() : base("Camera")
         {
@@ -30,7 +32,7 @@ namespace ProdigalSoftware.TiVE.CameraSystem
             return true;
         }
 
-        public override void ChangeScene(Scene newScene)
+        public override void ChangeScene(Scene oldScene, Scene newScene, bool onSeparateThread)
         {
         }
 
@@ -40,8 +42,8 @@ namespace ProdigalSoftware.TiVE.CameraSystem
             try
             {
                 cameraData = currentScene.GetEntitiesWithComponent<CameraComponent>()
-                .Select(entity => entity.GetComponent<CameraComponent>())
-                .SingleOrDefault(c => c.Enabled && c.Location != c.LookAtLocation); // Make sure camera is enabled and has been initialized
+                    .Select(entity => entity.GetComponent<CameraComponent>())
+                    .SingleOrDefault(c => c.Enabled && c.Location != c.LookAtLocation); // Make sure camera is enabled and has been initialized
             }
             catch (InvalidOperationException)
             {
@@ -78,6 +80,22 @@ namespace ProdigalSoftware.TiVE.CameraSystem
             cameraData.VisibleEntitites.Clear();
             FindVisibleEntities(cameraData.VisibleEntitites, cameraData, currentScene.RenderNode);
 
+            cameraData.NewlyHiddenEntitites.Clear();
+            foreach (IEntity entity in visibleEntities)
+            {
+                if (!cameraData.VisibleEntitites.Contains(entity))
+                    cameraData.NewlyHiddenEntitites.Add(entity);
+            }
+
+            cameraData.NewlyVisibleEntitites.Clear();
+            foreach (IEntity entity in cameraData.VisibleEntitites)
+            {
+                if (!visibleEntities.Contains(entity))
+                    cameraData.NewlyVisibleEntitites.Add(entity);
+            }
+
+            visibleEntities.Clear();
+            visibleEntities.UnionWith(cameraData.VisibleEntitites);
             return true;
         }
         #endregion

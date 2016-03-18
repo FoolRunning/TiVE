@@ -12,6 +12,8 @@ namespace ProdigalSoftware.TiVEPluginFramework
 
         T GetComponent<T>() where T : class, IComponent;
 
+        bool HasComponent<T>() where T : class, IComponent;
+
         IComponent GetComponent(string componentName);
     }
 }

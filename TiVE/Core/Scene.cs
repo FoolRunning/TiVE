@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using MoonSharp.Interpreter;
 using ProdigalSoftware.TiVE.RenderSystem;
@@ -74,8 +75,21 @@ namespace ProdigalSoftware.TiVE.Core
 
             // This seems to be needed for the GC to realize that the light information and the game world are long-lived
             // to keep it from causing pauses shortly after starting the render loop.
-            for (int i = 0; i < 3; i++)
-                GC.Collect();
+            //for (int i = 0; i < 3; i++)
+            //    GC.Collect();
+        }
+
+        public CameraComponent FindCamera()
+        {
+            foreach (IEntity cameraEntity in GetEntitiesWithComponent<CameraComponent>())
+            {
+                CameraComponent cameraData = cameraEntity.GetComponent<CameraComponent>();
+                Debug.Assert(cameraData != null);
+
+                if (cameraData.Enabled && cameraData.ViewProjectionMatrix != Matrix4f.Zero)
+                    return cameraData;
+            }
+            return null;
         }
         #endregion
 
@@ -209,6 +223,16 @@ namespace ProdigalSoftware.TiVE.Core
                         return component;
                 }
                 return null;
+            }
+
+            public bool HasComponent<T>() where T : class, IComponent
+            {
+                for (int i = 0; i < components.Length; i++)
+                {
+                    if (components[i] is T)
+                        return true;
+                }
+                return false;
             }
 
             public IComponent GetComponent(string componentName)

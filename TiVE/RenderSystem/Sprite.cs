@@ -1,7 +1,5 @@
 ﻿using System.Drawing;
-using ProdigalSoftware.TiVE.RenderSystem.Voxels;
 using ProdigalSoftware.TiVEPluginFramework;
-using ProdigalSoftware.Utils;
 
 namespace ProdigalSoftware.TiVE.RenderSystem
 {

@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
 using ProdigalSoftware.TiVE.Core;
-using ProdigalSoftware.TiVE.RenderSystem.Voxels;
 using ProdigalSoftware.TiVE.RenderSystem.World;
 using ProdigalSoftware.TiVE.Settings;
+using ProdigalSoftware.TiVE.VoxelMeshSystem;
 using ProdigalSoftware.TiVEPluginFramework;
 using ProdigalSoftware.Utils;
 
@@ -322,18 +322,8 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
                 bool availablePlusY = (visibleSides & VoxelSides.Top) != 0;
                 bool availablePlusZ = (visibleSides & VoxelSides.Front) != 0;
 
-                Vector3f voxelNormal;
-                bool calculateSurfaceAngle;
-                if (skipVoxelNormalCalc)
-                {
-                    voxelNormal = Vector3f.Zero;
-                    calculateSurfaceAngle = false;
-                }
-                else
-                {
-                    voxelNormal = GetVoxelNormal(visibleSides);
-                    calculateSurfaceAngle = voxelNormal != Vector3f.Zero;
-                }
+                Vector3f voxelNormal = !skipVoxelNormalCalc ? GetVoxelNormal(visibleSides) : Vector3f.Zero;
+                bool calculateSurfaceAngle = voxelNormal != Vector3f.Zero;
 
                 // For thread-safety copy all member variables
                 GameWorld world = scene.GameWorld;

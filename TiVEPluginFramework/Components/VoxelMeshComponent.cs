@@ -21,6 +21,8 @@ namespace ProdigalSoftware.TiVEPluginFramework.Components
         internal IVertexDataInfo MeshData;
         /// <summary>Detail level of the mesh used to represent the voxels that make up this component</summary>
         internal byte LoadedVoxelDetailLevel = BlankDetailLevel;
+        /// <summary>The MeshBuilder containing the </summary>
+        internal IMeshBuilder MeshBuilder;
         /// <summary>Object to use for locking when accessing the mesh data</summary>
         internal readonly object SyncLock = new object();
         #endregion

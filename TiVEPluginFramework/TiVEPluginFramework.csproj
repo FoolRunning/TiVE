@@ -103,6 +103,7 @@
     <Compile Include="Generators\ISceneGenerator.cs" />
     <Compile Include="Generators\ITableDefinitionProvider.cs" />
     <Compile Include="Generators\IWorldGenerator.cs" />
+    <Compile Include="Internal\IMeshBuilder.cs" />
     <Compile Include="ITiVESerializable.cs" />
     <Compile Include="Matrix4f.cs" />
     <Compile Include="MiscUtils.cs" />

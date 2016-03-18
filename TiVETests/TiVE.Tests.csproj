@@ -92,7 +92,7 @@
   </Choose>
   <ItemGroup>
     <Compile Include="Core\TiVESerializerImplementationTests.cs" />
-    <Compile Include="RenderSystem\EntityLoadQueueTests.cs" />
+    <Compile Include="VoxelMeshSystem\EntityLoadQueueTests.cs" />
     <Compile Include="Core\SceneTests.cs" />
     <Compile Include="Core\EngineTests.cs" />
     <Compile Include="World\GameWorldTests.cs" />
@@ -116,7 +116,11 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <None Include="app.config" />
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="RenderSystem\" />
   </ItemGroup>
   <Choose>
     <When Condition="'$(VisualStudioVersion)' == '10.0' And '$(IsCodedUITest)' == 'True'">
