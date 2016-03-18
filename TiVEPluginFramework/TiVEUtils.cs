@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
 using ProdigalSoftware.TiVEPluginFramework.Components;
-using ProdigalSoftware.Utils;
 
 namespace ProdigalSoftware.TiVEPluginFramework
 {

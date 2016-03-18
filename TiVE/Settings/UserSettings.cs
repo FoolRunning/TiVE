@@ -5,9 +5,9 @@ using System.Linq;
 using System.Text;
 using System.Xml;
 using ProdigalSoftware.TiVE.Core.Backend;
-using ProdigalSoftware.TiVE.RenderSystem;
 using ProdigalSoftware.TiVE.RenderSystem.Lighting;
 using ProdigalSoftware.TiVE.Starter;
+using ProdigalSoftware.TiVE.VoxelMeshSystem;
 
 namespace ProdigalSoftware.TiVE.Settings
 {

@@ -77,12 +77,27 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="IKVM.OpenJDK.Core, Version=8.1.5717.0, Culture=neutral, PublicKeyToken=13235d27fcbfff58, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\IKVM.8.1.5717.0\lib\IKVM.OpenJDK.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="IKVM.OpenJDK.Media, Version=8.1.5717.0, Culture=neutral, PublicKeyToken=13235d27fcbfff58, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\IKVM.8.1.5717.0\lib\IKVM.OpenJDK.Media.dll</HintPath>
+    </Reference>
+    <Reference Include="IKVM.OpenJDK.XML.API, Version=8.1.5717.0, Culture=neutral, PublicKeyToken=13235d27fcbfff58, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\IKVM.8.1.5717.0\lib\IKVM.OpenJDK.XML.API.dll</HintPath>
+    </Reference>
     <Reference Include="Ionic.Zip, Version=1.9.7.0, Culture=neutral, PublicKeyToken=6583c7c814667745, processorArchitecture=MSIL">
       <HintPath>..\packages\DotNetZip.1.9.7\lib\net20\Ionic.Zip.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="irrKlang.NET4">
       <HintPath>..\..\..\..\Libraries\irrKlang-32bit-1.5.0\irrKlang-1.5.0\bin\dotnet-4\irrKlang.NET4.dll</HintPath>
+    </Reference>
+    <Reference Include="marytts5.2">
+      <HintPath>..\Libraries\marytts5.2.dll</HintPath>
     </Reference>
     <Reference Include="MoonSharp.Interpreter, Version=1.1.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\MoonSharp.1.1.0.1\lib\net40-client\MoonSharp.Interpreter.dll</HintPath>
@@ -107,6 +122,11 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CameraSystem\CameraSystem.cs" />
+    <Compile Include="SoundSystem\AudioDataFormat.cs" />
+    <Compile Include="SoundSystem\ISound.cs" />
+    <Compile Include="SoundSystem\MaryTTSSpeechEngineImpl\MaryTTSEngine.cs" />
+    <Compile Include="SoundSystem\AudioData.cs" />
+    <Compile Include="VoxelMeshSystem\VoxelMeshSystem.cs" />
     <Compile Include="Core\Backend\IKeyboard.cs" />
     <Compile Include="Core\Backend\IMouse.cs" />
     <Compile Include="Core\Backend\INativeWindow.cs" />
@@ -139,24 +159,23 @@
     <Compile Include="Debugging\SystemTimingHelper.cs" />
     <Compile Include="GUISystem\GUISystem.cs" />
     <Compile Include="ParticleSystem\ParticleSystem.cs" />
-    <Compile Include="RenderSystem\EntityLoadQueue.cs" />
+    <Compile Include="VoxelMeshSystem\EntityLoadQueue.cs" />
     <Compile Include="RenderSystem\Lighting\GameWorldLightData.cs" />
     <Compile Include="RenderSystem\Lighting\LightInfo.cs" />
     <Compile Include="RenderSystem\Lighting\LightingModel.cs" />
     <Compile Include="RenderSystem\Lighting\LightProvider.cs" />
-    <Compile Include="RenderSystem\Meshes\LargeMeshBuilder.cs" />
-    <Compile Include="RenderSystem\Meshes\MeshBuilder.cs" />
-    <Compile Include="RenderSystem\Meshes\MeshBuilderBase.cs" />
+    <Compile Include="VoxelMeshSystem\LargeMeshBuilder.cs" />
+    <Compile Include="VoxelMeshSystem\MeshBuilder.cs" />
+    <Compile Include="VoxelMeshSystem\MeshBuilderBase.cs" />
     <Compile Include="ParticleSystem\ParticleEmitter.cs" />
     <Compile Include="ParticleSystem\ParticleEmitterCollection.cs" />
     <Compile Include="RenderSystem\RenderStatistics.cs" />
     <Compile Include="RenderSystem\RenderSystem.cs" />
     <Compile Include="RenderSystem\ShaderManager.cs" />
     <Compile Include="RenderSystem\Sprite.cs" />
-    <Compile Include="RenderSystem\Voxels\VoxelGroup.cs" />
-    <Compile Include="RenderSystem\Voxels\VoxelMeshHelper.cs" />
-    <Compile Include="RenderSystem\Voxels\VoxelMeshUtils.cs" />
-    <Compile Include="RenderSystem\VoxelMeshManager.cs" />
+    <Compile Include="RenderSystem\VoxelGroup.cs" />
+    <Compile Include="VoxelMeshSystem\VoxelMeshHelper.cs" />
+    <Compile Include="VoxelMeshSystem\VoxelMeshUtils.cs" />
     <Compile Include="RenderSystem\World\AnimationInfo.cs" />
     <Compile Include="RenderSystem\World\BlockManager.cs" />
     <Compile Include="RenderSystem\World\ChunkComponent.cs" />
@@ -167,17 +186,15 @@
     <Compile Include="Settings\DisplaySetting.cs" />
     <Compile Include="Settings\Setting.cs" />
     <Compile Include="Settings\UserSettings.cs" />
-    <Compile Include="SpeechSystem\FestivalSpeechProvider.cs" />
-    <Compile Include="SpeechSystem\ISpeechProvider.cs" />
-    <Compile Include="SpeechSystem\SpeechSystem.cs" />
-    <Compile Include="SpeechSystem\SpeechParameters.cs" />
+    <Compile Include="SoundSystem\ISpeechEngine.cs" />
+    <Compile Include="SoundSystem\SpeechParameters.cs" />
     <Compile Include="TiVEProject.cs" />
     <Compile Include="Plugins\PluginManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Resources\ResourceTableDefinitionManager.cs" />
-    <Compile Include="Sound\irrKlang\IrrKlangSoundEngine.cs" />
-    <Compile Include="Sound\ISoundEngine.cs" />
-    <Compile Include="Sound\SoundManager.cs" />
+    <Compile Include="SoundSystem\IrrKlangImpl\IrrKlangSoundEngine.cs" />
+    <Compile Include="SoundSystem\ISoundEngine.cs" />
+    <Compile Include="SoundSystem\SoundSystem.cs" />
     <Compile Include="Starter\MessageLine.cs" />
     <Compile Include="Starter\Messages.cs" />
     <Compile Include="Starter\MessageViewControl.cs">
@@ -217,6 +234,7 @@
     <EmbeddedResource Include="Core\Backend\OpenTKImpl\Shaders\Simple.frag" />
     <EmbeddedResource Include="Core\Backend\OpenTKImpl\Shaders\Unshaded.vert" />
     <EmbeddedResource Include="Core\Backend\OpenTKImpl\Shaders\UnshadedInstances.vert" />
+    <None Include="app.config" />
     <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
@@ -229,10 +247,6 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\FestivalInterop\FestivalInterop.vcxproj">
-      <Project>{a44b58cc-c949-4d91-9630-4b04acacc747}</Project>
-      <Name>FestivalInterop</Name>
-    </ProjectReference>
     <ProjectReference Include="..\TiVEPluginFramework\TiVEPluginFramework.csproj">
       <Project>{42f81808-5a13-4501-b184-18b4197512c3}</Project>
       <Name>TiVEPluginFramework</Name>
@@ -250,6 +264,161 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\p button.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="IKVM.AWT.WinForms.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="IKVM.OpenJDK.Beans.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="IKVM.OpenJDK.Charsets.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="IKVM.OpenJDK.Cldrdata.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="IKVM.OpenJDK.Corba.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="IKVM.OpenJDK.Core.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="IKVM.OpenJDK.Jdbc.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="IKVM.OpenJDK.Localedata.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="IKVM.OpenJDK.Management.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="IKVM.OpenJDK.Media.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="IKVM.OpenJDK.Misc.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="IKVM.OpenJDK.Naming.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="IKVM.OpenJDK.Nashorn.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="IKVM.OpenJDK.Remoting.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="IKVM.OpenJDK.Security.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="IKVM.OpenJDK.SwingAWT.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="IKVM.OpenJDK.Text.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="IKVM.OpenJDK.Tools.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="IKVM.OpenJDK.Util.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="IKVM.OpenJDK.XML.API.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="IKVM.OpenJDK.XML.Bind.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="IKVM.OpenJDK.XML.Crypto.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="IKVM.OpenJDK.XML.Parse.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="IKVM.OpenJDK.XML.Transform.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="IKVM.OpenJDK.XML.WebServices.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="IKVM.OpenJDK.XML.XPath.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="IKVM.Runtime.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="IKVM.Runtime.JNI.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="marytts-lang-de.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="marytts-lang-en.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="marytts-lang-fr.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="marytts-lang-it.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="marytts-lang-ru.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="marytts-lang-sv.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="marytts-lang-te.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="marytts-lang-tr.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="SoundSystem\SpeechData\voice-bits1-hsmm.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="SoundSystem\SpeechData\voice-bits3-hsmm.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="SoundSystem\SpeechData\voice-cmu-bdl-hsmm.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="SoundSystem\SpeechData\voice-cmu-rms-hsmm.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="SoundSystem\SpeechData\voice-cmu-slt-hsmm.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="SoundSystem\SpeechData\voice-dfki-obadiah-hsmm.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="SoundSystem\SpeechData\voice-dfki-pavoque-neutral-hsmm.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="SoundSystem\SpeechData\voice-dfki-poppy-hsmm.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="SoundSystem\SpeechData\voice-dfki-prudence-hsmm.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="SoundSystem\SpeechData\voice-dfki-spike-hsmm.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="SoundSystem\SpeechData\voice-enst-camille-hsmm.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="SoundSystem\SpeechData\voice-enst-dennys-hsmm.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="SoundSystem\SpeechData\voice-istc-lucia-hsmm.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="SoundSystem\SpeechData\voice-upmc-jessica-hsmm.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="SoundSystem\SpeechData\voice-upmc-pierre-hsmm.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

@@ -191,19 +191,20 @@ namespace ProdigalSoftware.ProjectM.Plugins
 
             Block fireBlock = new Block("fire");
             fireBlock.AddComponent(new ParticleComponent("Fire", new Vector3i(bc, bc, 1)));
-            fireBlock.AddComponent(new LightComponent(new Vector3b(bc, bc, 4), new Color3f(forFantasy ? 0.7f : 1.0f, forFantasy ? 0.55f : 0.8f, forFantasy ? 0.4f : 0.6f), forFantasy ? 7 : 15));
+            fireBlock.AddComponent(new LightComponent(new Vector3b(bc, bc, 4), 
+                new Color3f(forFantasy ? 0.7f : 1.0f, forFantasy ? 0.55f : 0.8f, forFantasy ? 0.4f : 0.6f), forFantasy ? 7 : 15));
             yield return fireBlock;
 
             yield return CreateBlockInfo("loadingLight", 3, new Color4f(1.0f, 1.0f, 1.0f, 1.0f), 1.0f, null,
-                new LightComponent(blockCenterVector, new Color3f(0.6f, 0.6f, 0.6f), 35));
+                new LightComponent(blockCenterVector, new Color3f(0.7f, 0.7f, 0.7f), 45));
 
             yield return CreateBlockInfo("roomLight", 5, new Color4f(1.0f, 1.0f, 1.0f, 1.0f), 1.0f, null,
-                new LightComponent(blockCenterVector, new Color3f(forFantasy ? 0.5f : 0.8f, forFantasy ? 0.5f : 0.8f, forFantasy ? 0.5f : 0.8f), forFantasy ? 25 : 50));
+                new LightComponent(blockCenterVector, new Color3f(forFantasy ? 0.6f : 0.8f, forFantasy ? 0.6f : 0.8f, forFantasy ? 0.6f : 0.8f), forFantasy ? 35 : 50));
 
-            const int lightDist = forFantasy ? 15 : 45;
+            const int lightDist = forFantasy ? 25 : 45;
             const float bright = forFantasy ? 0.6f : 1.0f;
             const float mid = forFantasy ? 0.45f : 0.5f;
-            const float dim = forFantasy ? 0.3f : 0.3f;
+            const float dim = forFantasy ? 0.2f : 0.3f;
             ParticleComponent bugInformation = new ParticleComponent("LightBugs", new Vector3i(bc, bc, bc));
 
             yield return CreateBlockInfo("light0", 2, new Color4f(1.0f, 1.0f, 1.0f, 1.0f), 1.0f, bugInformation,
@@ -225,7 +226,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
                 new LightComponent(blockCenterVector, new Color3f(mid, bright, dim), lightDist));
 
             yield return CreateBlockInfo("smallLight", 1, new Color4f(1.0f, 1.0f, 1.0f, 1.0f), 1.0f, null,
-                new LightComponent(new Vector3b(bc, bc, bc), new Color3f(forFantasy ? 0.7f : 1.0f, forFantasy ? 0.7f : 1.0f, forFantasy ? 0.7f : 1.0f), forFantasy ? 1 : 3));
+                new LightComponent(new Vector3b(bc, bc, bc), new Color3f(forFantasy ? 0.7f : 1.0f, forFantasy ? 0.7f : 1.0f, forFantasy ? 0.7f : 1.0f), forFantasy ? 2 : 3));
 
             yield return CreateBlockInfo("smallLightHover", 1, new Color4f(1.0f, 1.0f, 1.0f, 1.0f), 1.0f, null,
                 new LightComponent(new Vector3b(bc, bc, bc), new Color3f(1.0f, 1.0f, 1.0f), 3));

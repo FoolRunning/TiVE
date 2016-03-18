@@ -64,7 +64,8 @@ namespace ProdigalSoftware.TiVE
 
             Engine.AddSystem(new ScriptSystem.ScriptSystem(Backend.Keyboard, Backend.Mouse));
             Engine.AddSystem(new CameraSystem.CameraSystem());
-            Engine.AddSystem(new SpeechSystem.SpeechSystem());
+            Engine.AddSystem(new SoundSystem.SoundSystem());
+            Engine.AddSystem(new VoxelMeshSystem.VoxelMeshSystem());
 
             Engine.MainLoop(sceneToLoad);
         }

@@ -5,9 +5,9 @@ using System.Threading;
 using ProdigalSoftware.TiVE.Core;
 using ProdigalSoftware.TiVE.Core.Backend;
 using ProdigalSoftware.TiVE.RenderSystem;
-using ProdigalSoftware.TiVE.RenderSystem.Voxels;
 using ProdigalSoftware.TiVE.Settings;
 using ProdigalSoftware.TiVE.Starter;
+using ProdigalSoftware.TiVE.VoxelMeshSystem;
 using ProdigalSoftware.TiVEPluginFramework;
 using ProdigalSoftware.TiVEPluginFramework.Components;
 using ProdigalSoftware.TiVEPluginFramework.Generators;
@@ -76,7 +76,7 @@ namespace ProdigalSoftware.TiVE.ParticleSystem
             return shaderManager.Initialize();
         }
 
-        public override void ChangeScene(Scene newScene)
+        public override void ChangeScene(Scene oldScene, Scene newScene, bool onSeparateThread)
         {
             loadedScene = newScene;
         }

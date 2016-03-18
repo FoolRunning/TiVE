@@ -7,7 +7,8 @@ namespace ProdigalSoftware.TiVEPluginFramework
         Realistic,
         BrightRealistic,
         Fantasy1,
-        Fantasy2
+        Fantasy2,
+        Fantasy3
     }
 
     [PublicAPI]

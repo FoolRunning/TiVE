@@ -32,7 +32,7 @@ namespace ProdigalSoftware.TiVEEditor.BlockLists
         private readonly BlockPreviewCache blockPreviewCache = new BlockPreviewCache();
         private readonly List<Block> blocksInList = new List<Block>();
         private readonly GameWorld gameWorld;
-        private readonly BlockList blockList;
+        //private readonly BlockList blockList;
         private readonly string titleFormatString;
 
         private Point prevMouseLocation;
@@ -62,7 +62,7 @@ namespace ProdigalSoftware.TiVEEditor.BlockLists
             spnLightLocY.Maximum = Block.VoxelSize - 1;
             spnLightLocZ.Maximum = Block.VoxelSize - 1;
 
-            blockList = BlockList.FromFile(filePath) ?? new BlockList();
+            //blockList = BlockList.FromFile(filePath) ?? new BlockList();
             gameWorld = new GameWorld(WorldSize, WorldSize, ChunkComponent.BlockSize);
 
             Random random = new Random();
@@ -133,7 +133,7 @@ namespace ProdigalSoftware.TiVEEditor.BlockLists
                 }
                 dialog.InitialDirectory = !string.IsNullOrEmpty(settings.BlockEditorBlockListLastDir) ? 
                     settings.BlockEditorBlockListLastDir : Environment.CurrentDirectory;
-                dialog.Filter = string.Format("Block List Files ({0})|{0}", "*" + BlockList.FileExtension);
+                //dialog.Filter = string.Format("Block List Files ({0})|{0}", "*" + BlockList.FileExtension);
                 if (dialog.ShowDialog(dialogOwner) == DialogResult.OK)
                 {
                     settings.BlockEditorBlockListLastDir = Path.GetDirectoryName(dialog.FileName);
@@ -150,7 +150,7 @@ namespace ProdigalSoftware.TiVEEditor.BlockLists
         {
             base.OnLoad(e);
             
-            cntrlCurrentBlock.SetGameWorld(blockList, gameWorld);
+            //cntrlCurrentBlock.SetGameWorld(blockList, gameWorld);
             cntrlCurrentBlock.LightProvider.AmbientLight = new Color3f(230, 230, 230);
             cntrlCurrentBlock.Camera.UpVector = Vector3f.UnitZ;
             float centerX = cntrlCurrentBlock.GameWorld.VoxelSize.X / 2.0f;
@@ -199,26 +199,26 @@ namespace ProdigalSoftware.TiVEEditor.BlockLists
                     foreach (string file in files)
                     {
                         string blockName = Path.GetFileNameWithoutExtension(file);
-                        if (blockList.AllBlocks.Any(b => b.Name == blockName))
-                        {
-                            DialogResult result = MessageBox.Show(this,
-                                string.Format("Block with the name {0} already exists.\n\nDo you want to replace it?\n(Clicking new will create a new name)", blockName),
-                                messageBoxCaption, MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
-                            if (result == DialogResult.No)
-                            {
-                                blockName += "2";
-                                int num = 3;
-                                while (blockList.AllBlocks.Any(b => b.Name == blockName))
-                                    blockName = blockName.Substring(0, blockName.Length - 1) + (num++);
-                            }
-                        }
+                        //if (blockList.AllBlocks.Any(b => b.Name == blockName))
+                        //{
+                        //    DialogResult result = MessageBox.Show(this,
+                        //        string.Format("Block with the name {0} already exists.\n\nDo you want to replace it?\n(Clicking new will create a new name)", blockName),
+                        //        messageBoxCaption, MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+                        //    if (result == DialogResult.No)
+                        //    {
+                        //        blockName += "2";
+                        //        int num = 3;
+                        //        while (blockList.AllBlocks.Any(b => b.Name == blockName))
+                        //            blockName = blockName.Substring(0, blockName.Length - 1) + (num++);
+                        //    }
+                        //}
 
                         blocks.Add(MagicaVoxelImporter.CreateBlock(file, blockName));
                     }
                     settings.BlockEditorImportLastDir = Path.GetDirectoryName(dialog.FileName);
                     settings.Save();
 
-                    blockList.AddBlocks(blocks);
+                    //blockList.AddBlocks(blocks);
                     hasUnsavedChanges = true;
                     UpdateBlocksInList();
                     UpdateState();
@@ -233,7 +233,7 @@ namespace ProdigalSoftware.TiVEEditor.BlockLists
                 messageBoxCaption, MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
             if (result == DialogResult.Yes)
             {
-                blockList.RemoveBlock(block.Name);
+                //blockList.RemoveBlock(block.Name);
                 hasUnsavedChanges = true;
                 UpdateBlocksInList();
                 UpdateState();
@@ -308,13 +308,13 @@ namespace ProdigalSoftware.TiVEEditor.BlockLists
 
             int prevBlockIndex = lstBxBlocks.SelectedIndex;
             Block block = SelectedBlock;
-            block.SetName(txtBlockName.Text);
-            blockList.UpdateNameIndex();
+            //block.SetName(txtBlockName.Text);
+            //blockList.UpdateNameIndex();
             hasUnsavedChanges = true;
 
             // If the order of the blocks has changes with the new name, then reload the whole block list.
             blocksInList.Clear();
-            blocksInList.AddRange(blockList.AllBlocks);
+            //blocksInList.AddRange(blockList.AllBlocks);
             int newBlockIndex = blocksInList.IndexOf(block);
             if (newBlockIndex != prevBlockIndex)
                 UpdateBlocksInList();
@@ -423,7 +423,7 @@ namespace ProdigalSoftware.TiVEEditor.BlockLists
             if (filePath == null)
                 return false;
 
-            blockList.SaveToBlockListFile(filePath);
+            //blockList.SaveToBlockListFile(filePath);
             hasUnsavedChanges = false;
             return true;
         }
@@ -437,11 +437,11 @@ namespace ProdigalSoftware.TiVEEditor.BlockLists
             lstBxBlocks.Items.Clear();
 
             blocksInList.Clear();
-            foreach (Block block in blockList.AllBlocks)
-            {
-                blocksInList.Add(block);
-                lstBxBlocks.Items.Add(block);
-            }
+            //foreach (Block block in blockList.AllBlocks)
+            //{
+            //    blocksInList.Add(block);
+            //    lstBxBlocks.Items.Add(block);
+            //}
             lstBxBlocks.EndUpdate();
 
             if (blocksInList.Count > 0)
