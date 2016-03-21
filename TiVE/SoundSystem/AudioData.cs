@@ -3,12 +3,16 @@
     internal sealed class AudioData
     {
         public readonly byte[] Data;
-        public readonly AudioDataFormat Format;
+        public readonly int FrameCount;
+        public readonly int SampleRate;
+        public readonly int NumChannels;
 
-        public AudioData(byte[] data, AudioDataFormat format)
+        public AudioData(byte[] data, int frameCount, int sampleRate, int numChannels)
         {
             Data = data;
-            Format = format;
+            FrameCount = frameCount;
+            SampleRate = sampleRate;
+            NumChannels = numChannels;
         }
     }
 }

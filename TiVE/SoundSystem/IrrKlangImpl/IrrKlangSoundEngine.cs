@@ -32,9 +32,9 @@ namespace ProdigalSoftware.TiVE.SoundSystem.IrrKlangImpl
         public ISound CreateSound(string name, AudioData data)
         {
             AudioFormat format = new AudioFormat();
-            format.ChannelCount = data.Format.NumChannels;
-            format.FrameCount = data.Format.FrameCount;
-            format.SampleRate = data.Format.SampleRate;
+            format.ChannelCount = data.NumChannels;
+            format.FrameCount = data.FrameCount;
+            format.SampleRate = data.SampleRate;
             format.Format = SampleFormat.Signed16Bit;
 
             return new IrrKlangSound(name, irrKlangSoundEngine.AddSoundSourceFromPCMData(data.Data, name, format));
