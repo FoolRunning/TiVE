@@ -39,14 +39,12 @@ namespace ProdigalSoftware.TiVE.SoundSystem.MaryTTSSpeechEngineImpl
 
         public MaryTTSEngine()
         {
-            Mary.startup();
             mary = new LocalMaryInterface();
         }
 
         #region Implementation of ISpeechProvider
         public void Dispose()
         {
-            Mary.shutdown();
         }
 
         public AudioData GetSpeechAudio(string text, SpeechParameters parameters)

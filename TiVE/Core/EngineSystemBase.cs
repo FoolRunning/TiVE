@@ -28,7 +28,11 @@ namespace ProdigalSoftware.TiVE.Core
 
         public abstract bool Initialize();
 
-        public abstract void ChangeScene(Scene oldScene, Scene newScene, bool onSeparateThread);
+        public abstract void ChangeScene(Scene oldScene, Scene newScene);
+
+        public virtual void PrepareForScene(string sceneName)
+        {
+        }
 
         public void UpdateTiming(int ticksSinceLastFrame)
         {

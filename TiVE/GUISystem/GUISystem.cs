@@ -26,7 +26,7 @@ namespace ProdigalSoftware.TiVE.GUISystem
             return true;
         }
 
-        public override void ChangeScene(Scene oldScene, Scene newScene, bool onSeparateThread)
+        public override void ChangeScene(Scene oldScene, Scene newScene)
         {
             desktop = new Desktop();
             desktop.Size = new Point(300, 300);

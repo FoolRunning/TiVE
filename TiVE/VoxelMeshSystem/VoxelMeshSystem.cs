@@ -92,7 +92,7 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
         /// <summary>
         /// Performs the necessary cleanup when the current scene has changed
         /// </summary>
-        public override void ChangeScene(Scene oldScene, Scene newScene, bool onSeparateThread)
+        public override void ChangeScene(Scene oldScene, Scene newScene)
         {
             // Clean up threads and data for previous scene
             endCreationThreads = true;

@@ -55,7 +55,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem
             return shaderManager.Initialize();
         }
 
-        public override void ChangeScene(Scene oldScene, Scene newScene, bool onSeparateThread)
+        public override void ChangeScene(Scene oldScene, Scene newScene)
         {
             initializeForNewScene = true;
         }

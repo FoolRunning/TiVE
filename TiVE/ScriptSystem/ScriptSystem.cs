@@ -81,7 +81,7 @@ namespace ProdigalSoftware.TiVE.ScriptSystem
             scripts.Clear();
         }
 
-        public override void ChangeScene(Scene oldScene, Scene newScene, bool onSeparateThread)
+        public override void ChangeScene(Scene oldScene, Scene newScene)
         {
         }
 

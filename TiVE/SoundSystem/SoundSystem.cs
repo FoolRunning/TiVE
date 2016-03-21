@@ -3,7 +3,6 @@ using System.Threading;
 using ProdigalSoftware.TiVE.Core;
 using ProdigalSoftware.TiVE.SoundSystem.IrrKlangImpl;
 using ProdigalSoftware.TiVE.SoundSystem.MaryTTSSpeechEngineImpl;
-using ProdigalSoftware.TiVE.Starter;
 using ProdigalSoftware.Utils;
 
 namespace ProdigalSoftware.TiVE.SoundSystem
@@ -38,7 +37,6 @@ namespace ProdigalSoftware.TiVE.SoundSystem
 
         public override bool Initialize()
         {
-            Messages.Print("Initializing sound system...");
             soundEngine = new IrrKlangSoundEngine();
 
             speechSynthesisThread = new Thread(RunSpeechSynthesis);
@@ -46,17 +44,25 @@ namespace ProdigalSoftware.TiVE.SoundSystem
             speechSynthesisThread.Name = "SpeechSynthesis";
             speechSynthesisThread.Priority = ThreadPriority.AboveNormal;
             speechSynthesisThread.Start();
-            Messages.AddDoneText();
             return true;
         }
 
-        public override void ChangeScene(Scene oldScene, Scene newScene, bool onSeparateThread)
+        public override void PrepareForScene(string sceneName)
         {
-            //if (onSeparateThread)
-            //{
-            //    while (!initialized)
-            //        Thread.Sleep(1);
-            //}
+            if (sceneName != "Loading")
+            {
+                using (new PerformanceLock(speechTaskQueue))
+                    speechTaskQueue.Clear();
+                using (new PerformanceLock(soundTaskQueue))
+                    soundTaskQueue.Clear();
+
+                while (!initialized)
+                    Thread.Sleep(1);
+            }
+        }
+
+        public override void ChangeScene(Scene oldScene, Scene newScene)
+        {
             using (new PerformanceLock(speechTaskQueue))
                 speechTaskQueue.Clear();
             using (new PerformanceLock(soundTaskQueue))
@@ -88,7 +94,7 @@ namespace ProdigalSoftware.TiVE.SoundSystem
             // Italian
             //istc-lucia-hsmm
 
-            SayText("Hi! My name is George. I need to go now.", new SpeechParameters("cmu-rms-hsmm"));
+            SayText("Hi! My name is George. I need to go now.", new SpeechParameters("cmu-rms-hsmm", 2.0f));
             SayText("Hey there! My name is Janice. I like to talk a lot and have a tendency to talk fast. I would like to talk to you for a while. " +
                     "Do you like to talk? I love to talk. I can't stop talking.", new SpeechParameters("cmu-slt-hsmm", 0.6f));
             //SayText("System is up and running. Can you understand me?", new SpeechParameters("dfki-obadiah-hsmm"));
