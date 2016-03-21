@@ -32,7 +32,7 @@ namespace ProdigalSoftware.TiVE.CameraSystem
             return true;
         }
 
-        public override void ChangeScene(Scene oldScene, Scene newScene, bool onSeparateThread)
+        public override void ChangeScene(Scene oldScene, Scene newScene)
         {
         }
 

@@ -76,7 +76,7 @@ namespace ProdigalSoftware.TiVE.ParticleSystem
             return shaderManager.Initialize();
         }
 
-        public override void ChangeScene(Scene oldScene, Scene newScene, bool onSeparateThread)
+        public override void ChangeScene(Scene oldScene, Scene newScene)
         {
             loadedScene = newScene;
         }
