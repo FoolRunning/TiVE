@@ -4,16 +4,12 @@
     {
         public readonly string VoiceName;
 
-        public readonly int IntonationStart;
-        public readonly int IntonationEnd;
         public readonly float SpeedPercentage;
 
-        public SpeechParameters(string voiceName)
+        public SpeechParameters(string voiceName, float speedPercentage = 1.0f)
         {
             VoiceName = voiceName;
-            IntonationStart = 170;
-            IntonationEnd = 170;
-            SpeedPercentage = 1.0f;
+            SpeedPercentage = speedPercentage;
         }
     }
 }

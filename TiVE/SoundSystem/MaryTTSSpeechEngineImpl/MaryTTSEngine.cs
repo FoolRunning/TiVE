@@ -1,20 +1,27 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Reflection;
+using System.Text;
 using ikvm.runtime;
 using javax.sound.sampled;
 using marytts;
-using marytts.signalproc.effects;
+using marytts.server;
+using ProdigalSoftware.TiVE.Starter;
 
 namespace ProdigalSoftware.TiVE.SoundSystem.MaryTTSSpeechEngineImpl
 {
     internal sealed class MaryTTSEngine : ISpeechEngine
     {
+        private readonly StringBuilder effectParamsBldr = new StringBuilder();
         private readonly MaryInterface mary;
 
         static MaryTTSEngine()
         {
-            string assemblyPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+            string assemblyPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) ?? "";
+            java.lang.System.setProperty("mary.base", assemblyPath);
+
             Startup.addBootClassPathAssembly(Assembly.LoadFile(Path.Combine(assemblyPath, "marytts5.2.dll")));
             Startup.addBootClassPathAssembly(Assembly.LoadFile(Path.Combine(assemblyPath, "marytts-lang-de.dll")));
             Startup.addBootClassPathAssembly(Assembly.LoadFile(Path.Combine(assemblyPath, "marytts-lang-en.dll")));
@@ -24,29 +31,35 @@ namespace ProdigalSoftware.TiVE.SoundSystem.MaryTTSSpeechEngineImpl
             Startup.addBootClassPathAssembly(Assembly.LoadFile(Path.Combine(assemblyPath, "marytts-lang-sv.dll")));
             Startup.addBootClassPathAssembly(Assembly.LoadFile(Path.Combine(assemblyPath, "marytts-lang-te.dll")));
             Startup.addBootClassPathAssembly(Assembly.LoadFile(Path.Combine(assemblyPath, "marytts-lang-tr.dll")));
-
-            string voicesPath = Path.Combine(assemblyPath, "SoundSystem", "SpeechData");
+            
+            string voicesPath = Path.Combine(assemblyPath, "lib");
             foreach (string voiceDll in Directory.EnumerateFiles(voicesPath, "*.dll"))
                 Startup.addBootClassPathAssembly(Assembly.LoadFile(voiceDll));
         }
 
         public MaryTTSEngine()
         {
+            Mary.startup();
             mary = new LocalMaryInterface();
-            //mary.setLocale(Locale.UK);
-            mary.setVoice("dfki-prudence-hsmm");
-            //mary.setVoice("dfki-obadiah-hsmm");
         }
 
         #region Implementation of ISpeechProvider
         public void Dispose()
         {
-            // Nothing to do
+            Mary.shutdown();
         }
 
-        public AudioData GetSpeechAudio(string text, SpeechParameters parameters = null)
+        public AudioData GetSpeechAudio(string text, SpeechParameters parameters)
         {
-            mary.setAudioEffects("Stadium(amount:1.00)+Rate(durScale:0.50)");
+            if (parameters == null)
+            {
+                Messages.AddWarning("No speech parameters when saying text '" + text + "'");
+                return null;
+            }
+
+            if (!SetSpeechSettings(parameters))
+                return null;
+
             AudioInputStream audio = mary.generateAudio(text);
             
             byte[] data = new byte[audio.getFrameLength() * audio.getFormat().getFrameSize() * audio.getFormat().getChannels()];
@@ -58,8 +71,36 @@ namespace ProdigalSoftware.TiVE.SoundSystem.MaryTTSSpeechEngineImpl
 
             Debug.Assert(data.Length == totalRead);
 
-            return new AudioData(data, new AudioDataFormat((int)audio.getFrameLength(), (int)audio.getFormat().getSampleRate(), audio.getFormat().getChannels()));
+            return new AudioData(data, (int)audio.getFrameLength(), (int)audio.getFormat().getSampleRate(), audio.getFormat().getChannels());
         }
         #endregion
+
+        private bool SetSpeechSettings(SpeechParameters parameters)
+        {
+            // Set settings that are missing from some HSMM voices that make them sound better
+            // ENHANCE: Do this only once per voice
+            java.lang.System.setProperty("voice." + parameters.VoiceName + ".useGV", "true");
+            java.lang.System.setProperty("voice." + parameters.VoiceName + ".maxMgcGvIter", "300");
+            java.lang.System.setProperty("voice." + parameters.VoiceName + ".maxLf0GvIter", "300");
+            java.lang.System.setProperty("voice." + parameters.VoiceName + ".maxStrGvIter", "300");
+
+            try
+            {
+                mary.setVoice(parameters.VoiceName);
+
+                effectParamsBldr.Length = 0;
+                if (parameters.SpeedPercentage != 1.0f)
+                    effectParamsBldr.AppendFormat("Rate(durScale:{0})+", parameters.SpeedPercentage.ToString("f2", CultureInfo.InvariantCulture));
+                //effectParamsBldr.Append("JetPilot");
+                mary.setAudioEffects(effectParamsBldr.ToString());
+            }
+            catch (Exception e)
+            {
+                Messages.AddWarning(e.Message);
+                return false;
+            }
+
+            return true;
+        }
     }
 }

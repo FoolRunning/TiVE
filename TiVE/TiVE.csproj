@@ -122,7 +122,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CameraSystem\CameraSystem.cs" />
-    <Compile Include="SoundSystem\AudioDataFormat.cs" />
     <Compile Include="SoundSystem\ISound.cs" />
     <Compile Include="SoundSystem\MaryTTSSpeechEngineImpl\MaryTTSEngine.cs" />
     <Compile Include="SoundSystem\AudioData.cs" />
@@ -234,7 +233,6 @@
     <EmbeddedResource Include="Core\Backend\OpenTKImpl\Shaders\Simple.frag" />
     <EmbeddedResource Include="Core\Backend\OpenTKImpl\Shaders\Unshaded.vert" />
     <EmbeddedResource Include="Core\Backend\OpenTKImpl\Shaders\UnshadedInstances.vert" />
-    <None Include="app.config" />
     <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
@@ -266,19 +264,10 @@
     <None Include="Resources\p button.ico" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="IKVM.AWT.WinForms.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
     <Content Include="IKVM.OpenJDK.Beans.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="IKVM.OpenJDK.Charsets.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="IKVM.OpenJDK.Cldrdata.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="IKVM.OpenJDK.Corba.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="IKVM.OpenJDK.Core.dll">
@@ -296,28 +285,10 @@
     <Content Include="IKVM.OpenJDK.Media.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="IKVM.OpenJDK.Misc.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="IKVM.OpenJDK.Naming.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="IKVM.OpenJDK.Nashorn.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="IKVM.OpenJDK.Remoting.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="IKVM.OpenJDK.Security.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
     <Content Include="IKVM.OpenJDK.SwingAWT.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="IKVM.OpenJDK.Text.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="IKVM.OpenJDK.Tools.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="IKVM.OpenJDK.Util.dll">
@@ -326,19 +297,10 @@
     <Content Include="IKVM.OpenJDK.XML.API.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="IKVM.OpenJDK.XML.Bind.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="IKVM.OpenJDK.XML.Crypto.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
     <Content Include="IKVM.OpenJDK.XML.Parse.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="IKVM.OpenJDK.XML.Transform.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="IKVM.OpenJDK.XML.WebServices.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="IKVM.OpenJDK.XML.XPath.dll">
@@ -374,49 +336,49 @@
     <Content Include="marytts-lang-tr.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="SoundSystem\SpeechData\voice-bits1-hsmm.dll">
+    <Content Include="lib\voice-bits1-hsmm.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="SoundSystem\SpeechData\voice-bits3-hsmm.dll">
+    <Content Include="lib\voice-bits3-hsmm.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="SoundSystem\SpeechData\voice-cmu-bdl-hsmm.dll">
+    <Content Include="lib\voice-cmu-bdl-hsmm.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="SoundSystem\SpeechData\voice-cmu-rms-hsmm.dll">
+    <Content Include="lib\voice-cmu-rms-hsmm.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="SoundSystem\SpeechData\voice-cmu-slt-hsmm.dll">
+    <Content Include="lib\voice-cmu-slt-hsmm.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="SoundSystem\SpeechData\voice-dfki-obadiah-hsmm.dll">
+    <Content Include="lib\voice-dfki-obadiah-hsmm.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="SoundSystem\SpeechData\voice-dfki-pavoque-neutral-hsmm.dll">
+    <Content Include="lib\voice-dfki-pavoque-neutral-hsmm.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="SoundSystem\SpeechData\voice-dfki-poppy-hsmm.dll">
+    <Content Include="lib\voice-dfki-poppy-hsmm.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="SoundSystem\SpeechData\voice-dfki-prudence-hsmm.dll">
+    <Content Include="lib\voice-dfki-prudence-hsmm.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="SoundSystem\SpeechData\voice-dfki-spike-hsmm.dll">
+    <Content Include="lib\voice-dfki-spike-hsmm.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="SoundSystem\SpeechData\voice-enst-camille-hsmm.dll">
+    <Content Include="lib\voice-enst-camille-hsmm.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="SoundSystem\SpeechData\voice-enst-dennys-hsmm.dll">
+    <Content Include="lib\voice-enst-dennys-hsmm.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="SoundSystem\SpeechData\voice-istc-lucia-hsmm.dll">
+    <Content Include="lib\voice-istc-lucia-hsmm.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="SoundSystem\SpeechData\voice-upmc-jessica-hsmm.dll">
+    <Content Include="lib\voice-upmc-jessica-hsmm.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="SoundSystem\SpeechData\voice-upmc-pierre-hsmm.dll">
+    <Content Include="lib\voice-upmc-pierre-hsmm.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>

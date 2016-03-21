@@ -10,11 +10,15 @@ namespace ProdigalSoftware.TiVE.SoundSystem
 {
     internal sealed class SoundSystem : EngineSystem
     {
+        private const int MaxConcurrentSpeech = 3;
+
         private ISoundEngine soundEngine;
         private ISpeechEngine speechEngine;
-        private readonly Queue<ISoundTask> speechTaskQueue = new Queue<ISoundTask>(10);
+        private readonly Queue<SpeechTask> speechTaskQueue = new Queue<SpeechTask>(10);
+        private readonly Queue<ISoundTask> soundTaskQueue = new Queue<ISoundTask>(50);
 
-        private Thread soundThread;
+        private Thread speechSynthesisThread;
+        private int speechNumber;
         private volatile bool stopRunning;
         private volatile bool initialized;
 
@@ -26,84 +30,127 @@ namespace ProdigalSoftware.TiVE.SoundSystem
         public override void Dispose()
         {
             stopRunning = true;
-            if (soundThread != null)
-                soundThread.Join();
+            if (speechSynthesisThread != null)
+                speechSynthesisThread.Join();
+
+            soundEngine.Dispose();
         }
 
         public override bool Initialize()
         {
             Messages.Print("Initializing sound system...");
-            soundThread = new Thread(RunSpeech);
-            soundThread.IsBackground = true;
-            soundThread.Name = "Sound";
-            soundThread.Priority = ThreadPriority.AboveNormal;
-            soundThread.Start();
+            soundEngine = new IrrKlangSoundEngine();
+
+            speechSynthesisThread = new Thread(RunSpeechSynthesis);
+            speechSynthesisThread.IsBackground = true;
+            speechSynthesisThread.Name = "SpeechSynthesis";
+            speechSynthesisThread.Priority = ThreadPriority.AboveNormal;
+            speechSynthesisThread.Start();
             Messages.AddDoneText();
             return true;
         }
 
         public override void ChangeScene(Scene oldScene, Scene newScene, bool onSeparateThread)
         {
-            if (onSeparateThread)
-            {
-                while (!initialized)
-                    Thread.Sleep(1);
-            }
-
+            //if (onSeparateThread)
+            //{
+            //    while (!initialized)
+            //        Thread.Sleep(1);
+            //}
             using (new PerformanceLock(speechTaskQueue))
                 speechTaskQueue.Clear();
+            using (new PerformanceLock(soundTaskQueue))
+                soundTaskQueue.Clear();
             soundEngine.StopSounds();
 
-            SayText("System is up and running! I don't know why I talk so fast. Can you understand me?");
+            // German
+            //bits1-hsmm
+            //bits3-hsmm
+            //dfki-pavoque-neutral-hsmm
+
+            // English UK
+            //dfki-obadiah-hsmm
+            //dfki-poppy-hsmm
+            //dfki-prudence-hsmm
+            //dfki-spike-hsmm
+
+            // English US
+            //cmu-bdl-hsmm
+            //cmu-rms-hsmm
+            //cmu-slt-hsmm
+
+            // French
+            //enst-camille-hsmm
+            //enst-dennys-hsmm
+            //upmc-jessica-hsmm
+            //upmc-pierre-hsmm
+
+            // Italian
+            //istc-lucia-hsmm
+
+            SayText("Hi! My name is George. I need to go now.", new SpeechParameters("cmu-rms-hsmm"));
+            SayText("Hey there! My name is Janice. I like to talk a lot and have a tendency to talk fast. I would like to talk to you for a while. " +
+                    "Do you like to talk? I love to talk. I can't stop talking.", new SpeechParameters("cmu-slt-hsmm", 0.6f));
+            //SayText("System is up and running. Can you understand me?", new SpeechParameters("dfki-obadiah-hsmm"));
         }
 
         protected override bool UpdateInternal(int ticksSinceLastUpdate, float timeBlendFactor, Scene currentScene)
         {
+            soundEngine.UpdateSystem();
+
+            ISoundTask task;
+            using (new PerformanceLock(soundTaskQueue))
+                task = soundTaskQueue.Count > 0 ? soundTaskQueue.Dequeue() : null;
+
+            SoundFromAudioData soundFromDataTask = task as SoundFromAudioData;
+            if (soundFromDataTask != null)
+            {
+                soundEngine.DeleteSound(soundFromDataTask.SoundName);
+                using (ISound sound = soundEngine.CreateSound(soundFromDataTask.SoundName, soundFromDataTask.Data))
+                    soundEngine.PlaySound2D(sound);
+            }
+
             return true;
         }
         #endregion
 
-        private void SayText(string text, SpeechParameters parameters = null)
+        private void SayText(string text, SpeechParameters parameters)
         {
             using (new PerformanceLock(speechTaskQueue))
                 speechTaskQueue.Enqueue(new SpeechTask(text, parameters));
         }
 
-        private void RunSpeech()
+        private void RunSpeechSynthesis()
         {
-            soundEngine = new IrrKlangSoundEngine();
             speechEngine = new MaryTTSEngine();
             initialized = true;
 
             while (!stopRunning)
             {
-                ISoundTask task;
+                SpeechTask speechTask;
                 using (new PerformanceLock(speechTaskQueue))
-                    task = speechTaskQueue.Count > 0 ? speechTaskQueue.Dequeue() : null;
+                    speechTask = speechTaskQueue.Count > 0 ? speechTaskQueue.Dequeue() : null;
 
-                soundEngine.UpdateSystem();
-
-                if (task == null)
+                if (speechTask == null)
                 {
                     Thread.Sleep(1);
                     continue;
                 }
 
-                SpeechTask speechTask = task as SpeechTask;
-                if (speechTask != null)
+                AudioData data = speechEngine.GetSpeechAudio(speechTask.Text, speechTask.Parameters);
+                if (data != null)
                 {
-                    soundEngine.DeleteSound("speech");
-
-                    AudioData data = speechEngine.GetSpeechAudio(speechTask.Text, speechTask.Parameters);
-                    using (ISound sound = soundEngine.CreateSound("speech", data))
-                        soundEngine.PlaySound2D(sound);
+                    speechNumber = ++speechNumber % MaxConcurrentSpeech;
+                    string speechName = "speech" + speechNumber;
+                    using (new PerformanceLock(soundTaskQueue))
+                        soundTaskQueue.Enqueue(new SoundFromAudioData(speechName, data));
                 }
             }
 
-            soundEngine.Dispose();
+            speechEngine.Dispose();
         }
 
-        private sealed class SpeechTask : ISoundTask
+        private sealed class SpeechTask
         {
             public readonly string Text;
             public readonly SpeechParameters Parameters;
@@ -112,6 +159,18 @@ namespace ProdigalSoftware.TiVE.SoundSystem
             {
                 Text = text;
                 Parameters = parameters;
+            }
+        }
+
+        private sealed class SoundFromAudioData : ISoundTask
+        {
+            public readonly string SoundName;
+            public readonly AudioData Data;
+
+            public SoundFromAudioData(string soundName, AudioData data)
+            {
+                SoundName = soundName;
+                Data = data;
             }
         }
 
