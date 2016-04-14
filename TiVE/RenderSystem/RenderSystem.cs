@@ -172,7 +172,11 @@ namespace ProdigalSoftware.TiVE.RenderSystem
                 if (renderData.MeshData != null)
                     ((IVertexDataCollection)renderData.MeshData).Dispose();
 
+                if (renderData.MeshBuilder != null)
+                    renderData.MeshBuilder.DropMesh();
+
                 renderData.MeshData = null;
+                renderData.MeshBuilder = null;
                 renderData.Visible = false;
                 renderData.LoadedVoxelDetailLevel = VoxelMeshComponent.BlankDetailLevel;
                 renderData.PolygonCount = 0;
