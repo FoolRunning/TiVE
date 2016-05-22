@@ -29,10 +29,10 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
     internal sealed class VoxelMeshSystem : EngineSystem
     {
         #region Constants
-        public const byte VoxelDetailLevelSections = 3; // 16x16x16 = 4096v, 8x8x8 = 512v, 4x4x4 = 64v, not worth going to 2x2x2 = 8v.
+        public const byte VoxelDetailLevelSections = 4; // 32x32x32 = 32768v, 16x16x16 = 4096v, 8x8x8 = 512v, 4x4x4 = 64v, not worth going to 2x2x2 = 8v.
         private const byte BestVoxelDetailLevel = 0;
         private const byte WorstVoxelDetailLevel = VoxelDetailLevelSections - 1;
-        private const int TotalChunkMeshBuilders = 30;
+        private const int TotalChunkMeshBuilders = 25;
         private const int TotalSpriteMeshBuilders = 3;
         private const int MaxQueueSize = 5000;
         #endregion
@@ -78,7 +78,7 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
         public override bool Initialize()
         {
             for (int i = 0; i < TotalChunkMeshBuilders; i++)
-                chunkMeshBuilders.Add(new MeshBuilder(2000000, 4000000));
+                chunkMeshBuilders.Add(new MeshBuilder(600000, 3000000));
 
             for (int i = 0; i < TotalSpriteMeshBuilders; i++)
                 spriteMeshBuilders.Add(new MeshBuilder(6000000, 12000000)); // Sprites can be max of 255x255x255 and contain a lot of voxels
@@ -98,10 +98,9 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
             endCreationThreads = true;
             foreach (Thread thread in meshCreationThreads)
                 thread.Join();
+            
             using (new PerformanceLock(entityLoadQueue))
                 entityLoadQueue.Clear();
-            foreach (IEntity entity in loadedEntities)
-                entityLoadQueue.Remove(entity);
 
             foreach (MeshBuilder meshBuilder in chunkMeshBuilders.Concat(spriteMeshBuilders)) // Make sure all mesh builders are available for the new scene
                 meshBuilder.DropMesh();
@@ -130,13 +129,6 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
                 }
             }
 
-            foreach (IEntity entity in cameraData.NewlyVisibleEntitites.Where(e => e.HasComponent<VoxelMeshComponent>()))
-            {
-                VoxelMeshComponent renderData = entity.GetComponent<VoxelMeshComponent>();
-                Debug.Assert(renderData != null);
-                LoadEntity(entity, renderData, WorstVoxelDetailLevel); // Initially load at the worst detail level to quickly get something on screen
-            }
-
             VoxelDetailLevelDistance currentVoxelDetalLevelSetting = (VoxelDetailLevelDistance)(int)TiVEController.UserSettings.Get(UserSettings.DetailDistanceKey);
 
             foreach (IEntity entity in loadedEntities)
@@ -150,6 +142,13 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
                     if (renderData.LoadedVoxelDetailLevel != perferedDetailLevel)
                         LoadEntity(entity, renderData, perferedDetailLevel);
                 }
+            }
+
+            foreach (IEntity entity in cameraData.NewlyVisibleEntitites.Where(e => e.HasComponent<VoxelMeshComponent>()))
+            {
+                VoxelMeshComponent renderData = entity.GetComponent<VoxelMeshComponent>();
+                Debug.Assert(renderData != null);
+                LoadEntity(entity, renderData, WorstVoxelDetailLevel); // Initially load at the worst detail level to quickly get something on screen
             }
 
             if (currentScene.LoadingInitialChunks && entityLoadQueue.Size < 5) // Let chunks load before showing scene
@@ -346,7 +345,7 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
                     byte chunkVoxelX = (byte)(voxelX - voxelStartX);
                     for (int bvy = 0; bvy < Block.VoxelSize; bvy += voxelSize)
                     {
-                        Voxel vox = voxelSize == 1 ? blockVoxels[GetBlockVoxelOffset(bvx, bvy, bvz)] : GetLODVoxel(blockVoxels, bvz, bvx, bvy, voxelSize);
+                        Voxel vox = (voxelSize == 1) ? blockVoxels[GetBlockVoxelOffset(bvx, bvy, bvz)] : GetLODVoxel(blockVoxels, bvz, bvx, bvy, voxelSize);
                         if (vox == Voxel.Empty)
                             continue;
 
@@ -411,6 +410,7 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
                         if (sides != VoxelSides.None)
                         {
                             bool ignoreLighting = vox.IgnoreLighting;
+
                             if (voxelNoiseComponent != null)
                                 vox = voxelNoiseComponent.Adjust(vox);
 
@@ -477,28 +477,33 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
         {
             Vector3f entityLoc = renderData.Location;
             Vector3f cameraLoc = cameraData.Location;
+            
             float distX = entityLoc.X - cameraLoc.X;
             float distY = entityLoc.Y - cameraLoc.Y;
             float distZ = entityLoc.Z - cameraLoc.Z;
 
             int dist = (int)Math.Sqrt(distX * distX + distY * distY + distZ * distZ);
-            int distancePerLevel;
-            switch (currentVoxelDetalLevelSetting)
-            {
-                case VoxelDetailLevelDistance.Closest: distancePerLevel = 250; break;
-                case VoxelDetailLevelDistance.Close: distancePerLevel = 400; break;
-                case VoxelDetailLevelDistance.Mid: distancePerLevel = 700; break;
-                case VoxelDetailLevelDistance.Far: distancePerLevel = 900; break;
-                default: distancePerLevel = 1400; break;
-            }
+            if (dist > cameraData.FarDistance / 2)
+                return BestVoxelDetailLevel + 1;
+            //return WorstVoxelDetailLevel - 1;
+            return BestVoxelDetailLevel;
+            //int distancePerLevel;
+            //switch (currentVoxelDetalLevelSetting)
+            //{
+            //    case VoxelDetailLevelDistance.Closest: distancePerLevel = 250; break;
+            //    case VoxelDetailLevelDistance.Close: distancePerLevel = 400; break;
+            //    case VoxelDetailLevelDistance.Mid: distancePerLevel = 700; break;
+            //    case VoxelDetailLevelDistance.Far: distancePerLevel = 900; break;
+            //    default: distancePerLevel = 1400; break;
+            //}
 
-            for (byte i = BestVoxelDetailLevel; i <= WorstVoxelDetailLevel; i++)
-            {
-                if (dist <= distancePerLevel)
-                    return i;
-                dist -= distancePerLevel * (i + 1);
-            }
-            return WorstVoxelDetailLevel;
+            //for (byte i = BestVoxelDetailLevel; i <= WorstVoxelDetailLevel; i++)
+            //{
+            //    if (dist <= distancePerLevel)
+            //        return i;
+            //    dist -= distancePerLevel * (i + 1);
+            //}
+            //return WorstVoxelDetailLevel;
         }
 
         /// <summary>

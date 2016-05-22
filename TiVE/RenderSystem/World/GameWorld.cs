@@ -408,7 +408,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
         /// Modified with optimizations for TiVE.
         /// </summary>
         /// <remarks>Very performance-critical method</remarks>
-        public bool NoBlocksInLineFast(int x, int y, int z, int x2, int y2, int z2)
+        public bool NoBlocksInLine(int x, int y, int z, int x2, int y2, int z2)
         {
             if (x == x2 && y == y2 && z == z2)
                 return true;

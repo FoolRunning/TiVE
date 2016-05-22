@@ -145,7 +145,7 @@
     <Content Include="Data\Scripts\Snake.lua">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Data\Scripts\Maze.lua">
+    <Content Include="Data\Scripts\MazeCamera.lua">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Compile Include="Plugins\MazeGenerateWorld.cs">
@@ -178,10 +178,10 @@
     <Content Include="Data\Particles\fountain.info">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Data\Scripts\StressTest.lua">
+    <Content Include="Data\Scripts\StressTestCamera.lua">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Data\Scripts\Loading.lua">
+    <Content Include="Data\Scripts\LoadingCamera.lua">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Data\Scripts\Common.lua">
@@ -203,7 +203,9 @@
       <Name>Utils</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="Data\Sprites\" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>call "$(VS110COMNTOOLS)..\tools\vsvars32.bat"

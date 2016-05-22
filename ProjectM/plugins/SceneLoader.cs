@@ -18,7 +18,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
                 scene.SetGameWorld("Loading");
                 IEntity entity = scene.CreateNewEntity("Camera");
                 entity.AddComponent(new CameraComponent());
-                entity.AddComponent(new ScriptComponent("Loading"));
+                entity.AddComponent(new ScriptComponent("LoadingCamera"));
             }
             else if (sceneName == "Maze")
             {
@@ -26,7 +26,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
                 scene.SetGameWorld("Maze");
                 IEntity entity = scene.CreateNewEntity("Camera");
                 entity.AddComponent(new CameraComponent());
-                entity.AddComponent(new ScriptComponent("Maze"));
+                entity.AddComponent(new ScriptComponent("MazeCamera"));
             }
             else if (sceneName == "StressTest")
             {
@@ -34,7 +34,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
                 scene.SetGameWorld("StressTest");
                 IEntity entity = scene.CreateNewEntity("Camera");
                 entity.AddComponent(new CameraComponent());
-                entity.AddComponent(new ScriptComponent("StressTest"));
+                entity.AddComponent(new ScriptComponent("StressTestCamera"));
             }
 
             return scene;

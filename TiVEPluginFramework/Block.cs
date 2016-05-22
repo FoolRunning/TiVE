@@ -14,10 +14,10 @@ namespace ProdigalSoftware.TiVEPluginFramework
         public static readonly Guid ID = new Guid("105FC0BF-E194-46BC-8ED8-61942721CC7F");
 
         /// <summary>Number of voxels that make up a block on each axis (must be a power-of-two)</summary>
-        public const int VoxelSize = 16;
+        public const int VoxelSize = 32;
         /// <summary>Number of bit shifts neccessary on a number to produce the number of voxels on each axis.
         /// This allows us to quickly multiply or divide a value by the voxel size by bitshifting</summary>
-        public const int VoxelSizeBitShift = 4;
+        public const int VoxelSizeBitShift = 5;
         private const byte SerializedFileVersion = 1;
 
         public static readonly Block Empty = new Block("3ptEe");

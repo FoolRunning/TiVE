@@ -165,7 +165,6 @@
     <Compile Include="RenderSystem\Lighting\LightProvider.cs" />
     <Compile Include="VoxelMeshSystem\LargeMeshBuilder.cs" />
     <Compile Include="VoxelMeshSystem\MeshBuilder.cs" />
-    <Compile Include="VoxelMeshSystem\MeshBuilderBase.cs" />
     <Compile Include="ParticleSystem\ParticleEmitter.cs" />
     <Compile Include="ParticleSystem\ParticleEmitterCollection.cs" />
     <Compile Include="RenderSystem\RenderStatistics.cs" />

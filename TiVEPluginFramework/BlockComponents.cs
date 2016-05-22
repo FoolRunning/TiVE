@@ -60,7 +60,7 @@ namespace ProdigalSoftware.TiVEPluginFramework
         }
     }
 
-    #region VoxelAdjusterComponent class
+    #region VoxelNoiseComponent class
     public sealed class VoxelNoiseComponent : IBlockComponent
     {
         public static readonly Guid ID = new Guid("7100C34D-7025-4341-9272-23CB407E201A");
@@ -106,11 +106,10 @@ namespace ProdigalSoftware.TiVEPluginFramework
                 rnd = (float)random.NextDouble();
 
             float scale = rnd * variationPercentage + (1.0f - variationPercentage / 2.0f);
-            return new Voxel(Math.Min(voxel.R / 255f * scale, 1.0f), Math.Min(voxel.G / 255f * scale, 1.0f),
-                Math.Min(voxel.B / 255f * scale, 1.0f), voxel.A / 255f);
+            return new Voxel((byte)Math.Min((int)(voxel.R * scale), 255), (byte)Math.Min((int)(voxel.G * scale), 255), 
+                (byte)Math.Min((int)(voxel.B * scale), 255), voxel.A, voxel.Settings);
         }
 
-        #region Implementation of IBlockComponentInternal
         public void SaveTo(BinaryWriter writer)
         {
             writer.Write(variationPercentage);
@@ -123,7 +122,6 @@ namespace ProdigalSoftware.TiVEPluginFramework
                     voxel.SaveTo(writer);
             }
         }
-        #endregion
     }
     #endregion
 

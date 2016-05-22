@@ -87,7 +87,7 @@ namespace ProdigalSoftware.TiVE
                 starterForm.AfterInitialLoad(success);
 
                 //TestIntStructAccess();
-                DoFastBlockLineTest();
+                DoBlockLineTest();
                 DoFastVoxelRayCastTest();
                 DoVoxelRayCastTest();
             });
@@ -112,7 +112,7 @@ namespace ProdigalSoftware.TiVE
                 for (int z = 0; z < 100; z++)
                 {
                     for (int y = 0; y < 100; y++)
-                        gameWorld[x, y, z] = block;
+                        gameWorld[x, y, z] = (x + y + z % 2 == 0) ? block : Block.Empty;
                 }
             }
 
@@ -129,7 +129,7 @@ namespace ProdigalSoftware.TiVE
                 sw.Stop();
                 totalMs += sw.ElapsedMilliseconds;
             }
-            Messages.Println(string.Format("10,000 ray casts took average of {0}ms", totalMs / 20.0f), Color.Chocolate);
+            Messages.Println(string.Format("10,000 accurate ray casts took average of {0}ms", totalMs / 20.0f), Color.Chocolate);
         }
 
         private static void DoFastVoxelRayCastTest()
@@ -141,7 +141,7 @@ namespace ProdigalSoftware.TiVE
                 for (int z = 0; z < 100; z++)
                 {
                     for (int y = 0; y < 100; y++)
-                        gameWorld[x, y, z] = block;
+                        gameWorld[x, y, z] = (x + y + z % 2 == 0) ? block : Block.Empty;
                 }
             }
 
@@ -161,7 +161,7 @@ namespace ProdigalSoftware.TiVE
             Messages.Println(string.Format("10,000 fast ray casts took average of {0}ms", totalMs / 20.0f), Color.Chocolate);
         }
 
-        private static void DoFastBlockLineTest()
+        private static void DoBlockLineTest()
         {
             GameWorld gameWorld = new GameWorld(200, 200, 200);
             Block block = new Block("dummy");
@@ -171,7 +171,7 @@ namespace ProdigalSoftware.TiVE
                 for (int z = 0; z < 100; z++)
                 {
                     for (int y = 0; y < 100; y++)
-                        gameWorld[x, y, z] = block;
+                        gameWorld[x, y, z] = (x + y + z % 2 == 0) ? block : Block.Empty;
                 }
             }
 
@@ -184,11 +184,11 @@ namespace ProdigalSoftware.TiVE
             {
                 sw.Restart();
                 for (int i = 0; i < 10000; i++)
-                    gameWorld.NoBlocksInLineFast(center, center, center, i % center + 98, i % center + 98, i % center + 98);
+                    gameWorld.NoBlocksInLine(center, center, center, i % center + 98, i % center + 98, i % center + 98);
                 sw.Stop();
                 totalMs += sw.ElapsedMilliseconds;
             }
-            Messages.Println(string.Format("10,000 fast block lines took average of {0}ms", totalMs / 20.0f), Color.Chocolate);
+            Messages.Println(string.Format("10,000 block lines took average of {0}ms", totalMs / 20.0f), Color.Chocolate);
         }
         #endregion
 

@@ -426,8 +426,8 @@ namespace ProdigalSoftware.ProjectM.Plugins
         private static void FillWorld(IGameWorld gameWorld, MazeCell[,] dungeonMap, int mazeStartAreaId)
         {
             BlockRandomizer grasses = new BlockRandomizer("grass", 50);
+            BlockRandomizer stoneBack = new BlockRandomizer("backStone", 50);
             Block dirt = Factory.Get<Block>("dirt");
-            Block stoneBack = Factory.Get<Block>("backStone");
             Block stone = Factory.Get<Block>("ston0");
             Block wood = Factory.Get<Block>("wood0");
             Block fountain = Factory.Get<Block>("fountain");
@@ -468,7 +468,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
                         //}
                     }
                     else if (areaId == DoorAreaId)
-                        gameWorld[x, y, 2] = stoneBack;
+                        gameWorld[x, y, 2] = stoneBack.NextBlock();
                     else if (areaId >= mazeStartAreaId)
                     {
                         // Maze
@@ -478,7 +478,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
                     else
                     {
                         // Room
-                        gameWorld[x, y, 2] = stoneBack;
+                        gameWorld[x, y, 2] = stoneBack.NextBlock();
                     }
 
                     if (itemId == RoomTreasureChestId)
