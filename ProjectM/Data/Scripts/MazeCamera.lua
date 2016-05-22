@@ -12,8 +12,8 @@ function initialize(entity)
     --WorldZSize = gameWorld.BlockSize.Z
     --Renderer().LightProvider.AmbientLight = Color(0.02, 0.02, 0.02)
 
-    camera.FieldOfView = math.rad(50)
-    camera.Location = vector(WorldXSize * BlockSize / 2, WorldYSize * BlockSize / 2, 550)
+    camera.FieldOfView = math.rad(75)
+    camera.Location = vector(WorldXSize * BlockSize / 2, WorldYSize * BlockSize / 2, 450)
     camera.FarDistance = 1000
     camera.UpVector = vector(0, 0, 1)
 end
@@ -26,11 +26,11 @@ function update(entity, timeSinceLastFrame)
         stopRunning()
     end
 
-    local speed = 2
+    local speed = BlockSize / 16
     if (keyPressed(Keys.LShift)) then --Speed up
-        speed = 6
+        speed = speed * 3
     elseif (keyPressed(Keys.LControl)) then --Slow down
-        speed = 0.2
+        speed = speed / 10
     end
 
     if (keyPressed(Keys.A) and voxelAt(camLoc.X - speed, camLoc.Y, camLoc.Z) == EmptyVoxel) then --Move left
@@ -56,6 +56,6 @@ function update(entity, timeSinceLastFrame)
     end
 
     camera.Location = camLoc
-    camera.LookAtLocation = vector(camLoc.X, camLoc.Y + 35, camLoc.Z - 100)
+    camera.LookAtLocation = vector(camLoc.X, camLoc.Y + 35, camLoc.Z + 1)
 end
 

@@ -49,7 +49,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
 
             BlockRandomizer grasses = new BlockRandomizer("grass", 50);
             Block dirt = Factory.Get<Block>("dirt");
-            Block stoneBack = Factory.Get<Block>("backStone");
+            Block stoneBack = Factory.Get<Block>("backStone0");
             Block stone = Factory.Get<Block>("ston0");
             Block light = Factory.Get<Block>("loadingLight");
             for (int x = 0; x < worldSizeX; x++)

@@ -40,7 +40,6 @@ namespace ProdigalSoftware.TiVEPluginFramework
             return (x * Z + z) * Y + y; // y-axis major for speed
         }
 
-
         public override string ToString()
         {
             return string.Format("Vector3i({0},{1},{2})", X, Y, Z);

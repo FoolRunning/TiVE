@@ -310,7 +310,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
                 {
                     for (int testZ = startZ; testZ <= endZ; testZ++)
                     {
-                        if (gameWorld.NoBlocksInLineFast(lbx, lby, lbz, testX, testY, testZ))
+                        if (gameWorld.NoBlocksInLine(lbx, lby, lbz, testX, testY, testZ))
                             return false;
                     }
                 }
@@ -337,7 +337,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
                 {
                     for (int testZ = startZ; testZ <= endZ; testZ++)
                     {
-                        if (gameWorld.NoBlocksInLineFast(lbx, lby, lbz, testX, testY, testZ))
+                        if (gameWorld.NoBlocksInLine(lbx, lby, lbz, testX, testY, testZ))
                             return false;
                     }
                 }
