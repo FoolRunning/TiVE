@@ -68,6 +68,9 @@ namespace ProdigalSoftware.TiVE
             Engine.AddSystem(new VoxelMeshSystem.VoxelMeshSystem());
 
             Engine.MainLoop(sceneToLoad);
+
+            Engine = null;
+            GC.Collect();
         }
 
         private static void starterForm_VisibleChanged(object sender, EventArgs e)

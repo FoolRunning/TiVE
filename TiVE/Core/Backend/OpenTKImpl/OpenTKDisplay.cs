@@ -46,6 +46,7 @@ namespace ProdigalSoftware.TiVE.Core.Backend.OpenTKImpl
 
             Closing += OpenGLDisplay_Closing;
             Resize += OpenGLDisplay_Resize;
+            CursorVisible = false;
         }
 
         public event Action<Rectangle> DisplayResized;
@@ -54,6 +55,11 @@ namespace ProdigalSoftware.TiVE.Core.Backend.OpenTKImpl
         public Rectangle ClientBounds
         {
             get { return ClientRectangle; }
+        }
+
+        public bool ShowMouseCursor
+        {
+            set { CursorVisible = value; }
         }
 
         public string WindowTitle

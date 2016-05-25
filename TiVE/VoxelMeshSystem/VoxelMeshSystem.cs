@@ -32,7 +32,7 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
         public const byte VoxelDetailLevelSections = 4; // 32x32x32 = 32768v, 16x16x16 = 4096v, 8x8x8 = 512v, 4x4x4 = 64v, not worth going to 2x2x2 = 8v.
         private const byte BestVoxelDetailLevel = 0;
         private const byte WorstVoxelDetailLevel = VoxelDetailLevelSections - 1;
-        private const int TotalChunkMeshBuilders = 25;
+        private const int TotalChunkMeshBuilders = 20;
         private const int TotalSpriteMeshBuilders = 3;
         private const int MaxQueueSize = 5000;
         #endregion
@@ -78,7 +78,7 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
         public override bool Initialize()
         {
             for (int i = 0; i < TotalChunkMeshBuilders; i++)
-                chunkMeshBuilders.Add(new MeshBuilder(600000, 3000000));
+                chunkMeshBuilders.Add(new MeshBuilder(1000000, 4000000));
 
             for (int i = 0; i < TotalSpriteMeshBuilders; i++)
                 spriteMeshBuilders.Add(new MeshBuilder(6000000, 12000000)); // Sprites can be max of 255x255x255 and contain a lot of voxels
@@ -475,35 +475,32 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
         private static byte GetPerferedVoxelDetailLevel(VoxelMeshComponent renderData, CameraComponent cameraData, 
             VoxelDetailLevelDistance currentVoxelDetalLevelSetting)
         {
-            Vector3f entityLoc = renderData.Location;
-            Vector3f cameraLoc = cameraData.Location;
-            
-            float distX = entityLoc.X - cameraLoc.X;
-            float distY = entityLoc.Y - cameraLoc.Y;
-            float distZ = entityLoc.Z - cameraLoc.Z;
+            // TODO: Make the renderdata location be the center of the renderdata instead of the corner
+            float distX = renderData.Location.X - cameraData.Location.X;
+            float distY = renderData.Location.Y - cameraData.Location.Y;
+            float distZ = renderData.Location.Z - cameraData.Location.Z;
 
             int dist = (int)Math.Sqrt(distX * distX + distY * distY + distZ * distZ);
-            if (dist > cameraData.FarDistance / 2)
-                return BestVoxelDetailLevel + 1;
-            //return WorstVoxelDetailLevel - 1;
-            return BestVoxelDetailLevel;
-            //int distancePerLevel;
-            //switch (currentVoxelDetalLevelSetting)
-            //{
-            //    case VoxelDetailLevelDistance.Closest: distancePerLevel = 250; break;
-            //    case VoxelDetailLevelDistance.Close: distancePerLevel = 400; break;
-            //    case VoxelDetailLevelDistance.Mid: distancePerLevel = 700; break;
-            //    case VoxelDetailLevelDistance.Far: distancePerLevel = 900; break;
-            //    default: distancePerLevel = 1400; break;
-            //}
+            //if (dist > cameraData.FarDistance / 2)
+            //    return BestVoxelDetailLevel + 1;
+            //return BestVoxelDetailLevel;
+            int distancePerLevel;
+            switch (currentVoxelDetalLevelSetting)
+            {
+                case VoxelDetailLevelDistance.Closest: distancePerLevel = 300; break;
+                case VoxelDetailLevelDistance.Close: distancePerLevel = 450; break;
+                case VoxelDetailLevelDistance.Mid: distancePerLevel = 600; break;
+                case VoxelDetailLevelDistance.Far: distancePerLevel = 750; break;
+                default: distancePerLevel = 900; break;
+            }
 
-            //for (byte i = BestVoxelDetailLevel; i <= WorstVoxelDetailLevel; i++)
-            //{
-            //    if (dist <= distancePerLevel)
-            //        return i;
-            //    dist -= distancePerLevel * (i + 1);
-            //}
-            //return WorstVoxelDetailLevel;
+            for (byte i = BestVoxelDetailLevel; i <= WorstVoxelDetailLevel; i++)
+            {
+                if (dist <= distancePerLevel)
+                    return i;
+                dist -= distancePerLevel * (i + 1);
+            }
+            return WorstVoxelDetailLevel;
         }
 
         /// <summary>

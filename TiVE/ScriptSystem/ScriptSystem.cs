@@ -6,7 +6,6 @@ using MoonSharp.Interpreter;
 using MoonSharp.Interpreter.Loaders;
 using ProdigalSoftware.TiVE.Core;
 using ProdigalSoftware.TiVE.Core.Backend;
-using ProdigalSoftware.TiVE.RenderSystem.World;
 using ProdigalSoftware.TiVE.Starter;
 using ProdigalSoftware.TiVEPluginFramework;
 using ProdigalSoftware.TiVEPluginFramework.Components;
@@ -164,8 +163,10 @@ namespace ProdigalSoftware.TiVE.ScriptSystem
             lua.Globals["message"] = (Action<object>)Message;
             lua.Globals["stopRunning"] = (Action)StopRunning;
             lua.Globals["keyPressed"] = (Func<int, bool>)IsKeyPressed;
+            lua.Globals["mouseLocation"] = (Func<Vector2i>)MouseLocation;
             lua.Globals["setting"] = (Func<string, object>)GetSetting;
             lua.Globals["vector"] = (Func<float, float, float, Vector3f>)Vector;
+            lua.Globals["rotateVectorZ"] = (Func<Vector3f, float, Vector3f>)RotateVectorZ;
             lua.Globals["voxelAt"] = (Func<int, int, int, Voxel>)VoxelAt;
 
             //gameScript.Renderer = new Func<IGameWorldRenderer>(() => renderer);
@@ -173,25 +174,7 @@ namespace ProdigalSoftware.TiVE.ScriptSystem
             //gameScript.UserSettings = new Func<UserSettings>(() => TiVEController.UserSettings);
             //gameScript.GameWorld = new Func<GameWorld>(() => renderer.GameWorld);
             //gameScript.ReloadLevel = new Action(() => renderer.RefreshLevel());
-            //gameScript.EmptyBlock = Block.Empty;
-            //gameScript.BlockAt = new Func<int, int, int, ushort>((blockX, blockY, blockZ) =>
-            //{
-            //    GameWorld gameWorld = renderer.GameWorld;
-            //    if (blockX < 0 || blockX >= gameWorld.BlockSize.X || blockY < 0 || blockY >= gameWorld.BlockSize.Y || blockZ < 0 || blockZ >= gameWorld.BlockSize.Z)
-            //        return 0;
-
-            //    return gameWorld[blockX, blockY, blockZ];
-            //});
-
-            //gameScript.VoxelAt = new Func<int, int, int, uint>((voxelX, voxelY, voxelZ) =>
-            //{
-            //    GameWorld gameWorld = renderer.GameWorld;
-            //    if (voxelX < 0 || voxelX >= gameWorld.VoxelSize.X || voxelY < 0 || voxelY >= gameWorld.VoxelSize.Y || voxelZ < 0 || voxelZ >= gameWorld.VoxelSize.Z)
-            //        return 0;
-
-            //    return gameWorld.GetVoxel(voxelX, voxelY, voxelZ);
-            //});
-
+            
             //gameScript.LoadWorld = new Func<string, GameWorld>(worldName =>
             //{
             //    BlockList blockList;
@@ -256,6 +239,11 @@ namespace ProdigalSoftware.TiVE.ScriptSystem
             return keyboard.IsKeyPressed((Keys)key);
         }
 
+        private Vector2i MouseLocation()
+        {
+            return mouse.Location;
+        }
+
         private static void Message(object obj)
         {
             Messages.Println(obj.ToString(), System.Drawing.Color.CadetBlue);
@@ -269,6 +257,12 @@ namespace ProdigalSoftware.TiVE.ScriptSystem
         private static Vector3f Vector(float x, float y, float z)
         {
             return new Vector3f(x, y, z);
+        }
+
+        private static Vector3f RotateVectorZ(Vector3f vector, float angle)
+        {
+            return new Vector3f(vector.X * (float)Math.Cos(angle) - vector.Y * (float)Math.Sin(angle), 
+                vector.X * (float)Math.Sin(angle) + vector.Y * (float)Math.Cos(angle), vector.Z);
         }
 
         private Voxel VoxelAt(int voxelX, int voxelY, int voxelZ)

@@ -119,6 +119,7 @@
     <Compile Include="TiVEException.cs" />
     <Compile Include="TiVESerializer.cs" />
     <Compile Include="TiVEUtils.cs" />
+    <Compile Include="Vector2i.cs" />
     <Compile Include="Vector2s.cs" />
     <Compile Include="Vector3b.cs" />
     <Compile Include="Vector3f.cs" />

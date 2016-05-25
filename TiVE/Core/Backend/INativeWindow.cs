@@ -25,6 +25,11 @@ namespace ProdigalSoftware.TiVE.Core.Backend
         Rectangle ClientBounds { get; }
 
         /// <summary>
+        /// Sets whether the mouse cursor should display
+        /// </summary>
+        bool ShowMouseCursor { set; }
+
+        /// <summary>
         /// Sets the display title if windowed
         /// </summary>
         string WindowTitle { set; }
