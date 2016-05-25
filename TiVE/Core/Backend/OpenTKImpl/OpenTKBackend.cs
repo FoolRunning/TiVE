@@ -18,7 +18,7 @@ namespace ProdigalSoftware.TiVE.Core.Backend.OpenTKImpl
 
         public IMouse Mouse
         {
-            get { return null; }
+            get { return new MouseImpl(); }
         }
 
         public IEnumerable<DisplaySetting> AvailableDisplaySettings

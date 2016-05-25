@@ -22,23 +22,18 @@ namespace ProdigalSoftware.ProjectM.Plugins
 
         private enum Direction { Up, Down, Left, Right, None }
 
-        private const int Front = 1;
-        private const int Back = 2;
-        private const int Left = 4;
-        private const int Right = 8;
-        private const int Top = 16;
-        private const int Bottom = 32;
-
         public IGameWorld CreateGameWorld(string gameWorldName)
         {
             if (gameWorldName != "Maze")
                 return null;
 
             IGameWorld gameWorld = Factory.NewGameWorld(513, 513, 12); // x-axis and y-axis must be divisible by 3
+            //IGameWorld gameWorld = Factory.NewGameWorld(111, 111, 12); // x-axis and y-axis must be divisible by 3
             gameWorld.LightingModelType = LightingModelType.Fantasy3;
 
             MazeCell[,] dungeonMap = new MazeCell[gameWorld.BlockSize.X / 3, gameWorld.BlockSize.Y / 3];
             List<Vector3i> rooms = CreateRandomRooms(110, 3, 11, 3, 11).ToList();
+            //List<Vector3i> rooms = CreateRandomRooms(10, 3, 11, 3, 11).ToList();
             int mazeStartAreaId = PlaceRooms(rooms, dungeonMap, 25);
             int lastUsedId = FillBlankWithMaze(dungeonMap, mazeStartAreaId);
             CreateDoors(dungeonMap, lastUsedId);
@@ -48,7 +43,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
             //PrintDungeon(dungeonMap);
 
             FillWorld(gameWorld, dungeonMap, mazeStartAreaId);
-            SmoothWorld(gameWorld);
+            CommonUtils.SmoothGameWorldForMazeBlocks(gameWorld);
 
             return gameWorld;
         }
@@ -425,10 +420,10 @@ namespace ProdigalSoftware.ProjectM.Plugins
         #region 3D world creation methods
         private static void FillWorld(IGameWorld gameWorld, MazeCell[,] dungeonMap, int mazeStartAreaId)
         {
-            BlockRandomizer grasses = new BlockRandomizer("grass", 50);
-            BlockRandomizer stoneBack = new BlockRandomizer("backStone", 50);
+            BlockRandomizer grasses = new BlockRandomizer("grass", CommonUtils.grassBlockDuplicates);
+            BlockRandomizer stoneBack = new BlockRandomizer("backStone", CommonUtils.stoneBackBlockDuplicates);
             Block dirt = Factory.Get<Block>("dirt");
-            Block stone = Factory.Get<Block>("ston0");
+            Block stone = Factory.Get<Block>("ston0_0");
             Block wood = Factory.Get<Block>("wood0");
             Block fountain = Factory.Get<Block>("fountain");
             Block smallLight = Factory.Get<Block>("smallLight");
@@ -539,60 +534,6 @@ namespace ProdigalSoftware.ProjectM.Plugins
                                 height = 7;
                             gameWorld[lightLocX, lightLocY, height] = Factory.Get<Block>("light" + (lightId - 1));
                         }
-                    }
-                }
-            }
-        }
-
-        private static void SmoothWorld(IGameWorld gameWorld)
-        {
-            HashSet<Block> blocksToConsiderEmpty = new HashSet<Block>();
-            blocksToConsiderEmpty.Add(Block.Empty);
-            blocksToConsiderEmpty.Add(Factory.Get<Block>("smallLightHover"));
-            for (int i = 0; i < 50; i++)
-                blocksToConsiderEmpty.Add(Factory.Get<Block>("grass" + i));
-            for (int i = 0; i < 6; i++)
-                blocksToConsiderEmpty.Add(Factory.Get<Block>("light" + i));
-
-            HashSet<Block> blocksToSmooth = new HashSet<Block>();
-            for (int i = 0; i < 64; i++)
-            {
-                blocksToSmooth.Add(Factory.Get<Block>("ston" + i));
-                blocksToSmooth.Add(Factory.Get<Block>("wood" + i));
-            }
-
-            for (int z = 0; z < gameWorld.BlockSize.Z; z++)
-            {
-                for (int x = 0; x < gameWorld.BlockSize.X; x++)
-                {
-                    for (int y = 0; y < gameWorld.BlockSize.Y; y++)
-                    {
-                        Block block = gameWorld[x, y, z];
-                        if (block == Block.Empty || !blocksToSmooth.Contains(block))
-                            continue;
-
-                        int sides = 0;
-
-                        if (z == gameWorld.BlockSize.Z - 1 || blocksToConsiderEmpty.Contains(gameWorld[x, y, z + 1]))
-                            sides |= Front;
-
-                        if (z == 0 || blocksToConsiderEmpty.Contains(gameWorld[x, y, z - 1]))
-                            sides |= Back;
-
-                        if (x == 0 || blocksToConsiderEmpty.Contains(gameWorld[x - 1, y, z]))
-                            sides |= Left;
-
-                        if (x == gameWorld.BlockSize.X - 1 || blocksToConsiderEmpty.Contains(gameWorld[x + 1, y, z]))
-                            sides |= Right;
-
-                        if (y == gameWorld.BlockSize.Y - 1 || blocksToConsiderEmpty.Contains(gameWorld[x, y + 1, z]))
-                            sides |= Top;
-
-                        if (y == 0 || blocksToConsiderEmpty.Contains(gameWorld[x, y - 1, z]))
-                            sides |= Bottom;
-
-                        string blockNamePart = block.Name.Substring(0, 4);
-                        gameWorld[x, y, z] = Factory.Get<Block>(blockNamePart + sides);
                     }
                 }
             }

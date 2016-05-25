@@ -122,6 +122,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CameraSystem\CameraSystem.cs" />
+    <Compile Include="Core\Backend\OpenTKImpl\MouseImpl.cs" />
     <Compile Include="SoundSystem\ISound.cs" />
     <Compile Include="SoundSystem\MaryTTSSpeechEngineImpl\MaryTTSEngine.cs" />
     <Compile Include="SoundSystem\AudioData.cs" />

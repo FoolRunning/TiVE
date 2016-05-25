@@ -85,6 +85,9 @@ namespace ProdigalSoftware.ProjectM.Plugins
             if (allowLightPassthrough)
                 block.AddComponent(new LightPassthroughComponent());
 
+            if (voxelDensity < 0.5f)
+                settings |= VoxelSettings.SkipVoxelNormalCalc;
+
             for (int x = 0; x < Block.VoxelSize; x++)
             {
                 for (int y = 0; y < Block.VoxelSize; y++)

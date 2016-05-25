@@ -44,55 +44,6 @@ namespace ProdigalSoftware.TiVE.Core
             systems.Add(system);
         }
 
-        private void LoadScene(string sceneName, bool useSeparateThread)
-        {
-            currentSceneName = sceneName;
-            ThreadStart loadSceneAction = () =>
-            {
-                foreach (ISceneGenerator generator in TiVEController.PluginManager.GetPluginsOfType<ISceneGenerator>())
-                {
-                    Scene scene = (Scene)generator.CreateScene(sceneName);
-                    if (scene == null)
-                        Messages.AddWarning("Failed to find scene: " + sceneName);
-                    else
-                    {
-                        SetScene(scene);
-                        break;
-                    }
-                }
-                sceneLoadThread = null;
-            };
-
-            if (!useSeparateThread)
-                loadSceneAction();
-            else
-            {
-                sceneLoadThread = new Thread(loadSceneAction);
-                sceneLoadThread.Name = "Scene Load";
-                sceneLoadThread.IsBackground = true;
-                sceneLoadThread.Start();
-            }
-        }
-
-        private void SetScene(Scene newScene)
-        {
-            foreach (EngineSystemBase system in systems)
-                system.PrepareForScene(currentSceneName);
-
-            lock (syncLock)
-            {
-                Scene previousScene = currentScene;
-
-                foreach (EngineSystemBase system in systems)
-                    system.ChangeScene(previousScene, newScene);
-
-                if (previousScene != null)
-                    previousScene.Dispose();
-                currentScene = newScene;
-            }
-            Messages.AddDebug("Running scene: " + currentSceneName);
-        }
-
         public void DeleteCurrentScene()
         {
             lock (syncLock)
@@ -237,6 +188,55 @@ namespace ProdigalSoftware.TiVE.Core
 
             GC.Collect();
             Messages.Println("Done cleaning up");
+        }
+
+        private void LoadScene(string sceneName, bool useSeparateThread)
+        {
+            currentSceneName = sceneName;
+            ThreadStart loadSceneAction = () =>
+            {
+                foreach (ISceneGenerator generator in TiVEController.PluginManager.GetPluginsOfType<ISceneGenerator>())
+                {
+                    Scene scene = (Scene)generator.CreateScene(sceneName);
+                    if (scene == null)
+                        Messages.AddWarning("Failed to find scene: " + sceneName);
+                    else
+                    {
+                        SetScene(scene);
+                        break;
+                    }
+                }
+                sceneLoadThread = null;
+            };
+
+            if (!useSeparateThread)
+                loadSceneAction();
+            else
+            {
+                sceneLoadThread = new Thread(loadSceneAction);
+                sceneLoadThread.Name = "Scene Load";
+                sceneLoadThread.IsBackground = true;
+                sceneLoadThread.Start();
+            }
+        }
+
+        private void SetScene(Scene newScene)
+        {
+            foreach (EngineSystemBase system in systems)
+                system.PrepareForScene(currentSceneName);
+
+            lock (syncLock)
+            {
+                Scene previousScene = currentScene;
+
+                foreach (EngineSystemBase system in systems)
+                    system.ChangeScene(previousScene, newScene);
+
+                if (previousScene != null)
+                    previousScene.Dispose();
+                currentScene = newScene;
+            }
+            Messages.AddDebug("Running scene: " + currentSceneName);
         }
 
         private INativeDisplay InitializeWindow()
