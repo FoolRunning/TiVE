@@ -2,9 +2,6 @@
 WorldYSize = 500;
 WorldZSize = 16;
 
-cameraAngleHoriz = 0;
-cameraAngleVert = 0;
-
 require("Common.lua")
 
 function initialize(entity)
@@ -17,7 +14,7 @@ function initialize(entity)
 
     camera.FieldOfView = math.rad(70)
     camera.Location = vector(WorldXSize * BlockSize / 2, WorldYSize * BlockSize / 2, 450)
-    camera.FarDistance = 1000
+    camera.FarDistance = 2000
     camera.UpVector = vector(0, 0, 1)
 end
 
@@ -72,6 +69,8 @@ function update(entity, timeSinceLastFrame)
         camera.Location = camLoc
     end
 
-    camera.LookAtLocation = vector(camera.Location.X + dirVectorXY.X, camera.Location.Y + dirVectorXY.Y, camera.Location.Z + dirVectorXY.Z)
+    -- With only a unit-length vector for direction, the look-at location creates some random rounding errors that cause the camera to shake back and forth
+    -- so we create a 15-length vector to remove those rounding errors.
+    camera.LookAtLocation = vector(camera.Location.X + dirVectorXY.X * 15, camera.Location.Y + dirVectorXY.Y * 15, camera.Location.Z + dirVectorXY.Z * 15)
 end
 

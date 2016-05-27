@@ -126,6 +126,7 @@
     <Compile Include="SoundSystem\ISound.cs" />
     <Compile Include="SoundSystem\MaryTTSSpeechEngineImpl\MaryTTSEngine.cs" />
     <Compile Include="SoundSystem\AudioData.cs" />
+    <Compile Include="VoxelMeshSystem\EntityMeshLoadQueue.cs" />
     <Compile Include="VoxelMeshSystem\VoxelMeshSystem.cs" />
     <Compile Include="Core\Backend\IKeyboard.cs" />
     <Compile Include="Core\Backend\IMouse.cs" />
@@ -159,7 +160,6 @@
     <Compile Include="Debugging\SystemTimingHelper.cs" />
     <Compile Include="GUISystem\GUISystem.cs" />
     <Compile Include="ParticleSystem\ParticleSystem.cs" />
-    <Compile Include="VoxelMeshSystem\EntityLoadQueue.cs" />
     <Compile Include="RenderSystem\Lighting\GameWorldLightData.cs" />
     <Compile Include="RenderSystem\Lighting\LightInfo.cs" />
     <Compile Include="RenderSystem\Lighting\LightingModel.cs" />

@@ -24,8 +24,8 @@ namespace ProdigalSoftware.ProjectM.Plugins
 
     public static class CommonUtils
     {
-        public const int stoneBlockDuplicates = 10;
-        public const int stoneBackBlockDuplicates = 10;
+        public const int stoneBlockDuplicates = 5;
+        public const int stoneBackBlockDuplicates = 5;
         public const int grassBlockDuplicates = 50;
 
         private const int Front = 1;
