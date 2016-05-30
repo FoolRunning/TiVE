@@ -211,7 +211,7 @@ namespace ProdigalSoftware.TiVE.ParticleSystem
             {
                 Vector3i worldSize = currentScene.GameWorld != null ? currentScene.GameWorld.VoxelSize : new Vector3i();
                 for (int i = 0; i < updateList.Count; i++)
-                    updateList[i].UpdateAll(worldSize, cameraLocation, currentScene.LightProvider, timeSinceLastUpdate);
+                    updateList[i].UpdateAll(worldSize, cameraLocation, currentScene, timeSinceLastUpdate);
             }
         }
 

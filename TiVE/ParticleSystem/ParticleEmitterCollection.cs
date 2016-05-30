@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using ProdigalSoftware.TiVE.Core;
 using ProdigalSoftware.TiVE.Core.Backend;
 using ProdigalSoftware.TiVE.RenderSystem;
-using ProdigalSoftware.TiVE.RenderSystem.Lighting;
 using ProdigalSoftware.TiVE.Settings;
 using ProdigalSoftware.TiVE.VoxelMeshSystem;
 using ProdigalSoftware.TiVEPluginFramework;
@@ -55,7 +55,7 @@ namespace ProdigalSoftware.TiVE.ParticleSystem
 
             // Create particle voxel model to be used for each particle
             MeshBuilder voxelInstanceBuilder = new MeshBuilder(1000, 0);
-            VoxelMeshUtils.GenerateMesh(controller.ParticleVoxels, voxelInstanceBuilder, true,
+            VoxelMeshUtils.GenerateMesh(controller.ParticleSprite, voxelInstanceBuilder, true,
                 out voxelsPerParticle, out renderedVoxelsPerParticle, out polysPerParticle);
 
             voxelInstanceLocationData = voxelInstanceBuilder.GetLocationData();
@@ -144,7 +144,7 @@ namespace ProdigalSoftware.TiVE.ParticleSystem
         /// <summary>
         /// Updates all particle systems in this collection
         /// </summary>
-        public void UpdateAll(Vector3i worldSize, Vector3i cameraLocation, LightProvider lightProvider, float timeSinceLastFrame)
+        public void UpdateAll(Vector3i worldSize, Vector3i cameraLocation, Scene scene, float timeSinceLastFrame)
         {
             updateList.Clear();
             using (new PerformanceLock(particleSystems))
@@ -164,7 +164,7 @@ namespace ProdigalSoftware.TiVE.ParticleSystem
                 {
                     system.UpdateInternal(cameraLocation, timeSinceLastFrame);
                     lock (syncObj)
-                        system.AddToArrays(worldSize, lightProvider, locations, colors, ref dataIndex);
+                        system.AddToArrays(worldSize, scene, locations, colors, ref dataIndex);
                 }
             }
 

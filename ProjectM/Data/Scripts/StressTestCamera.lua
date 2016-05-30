@@ -1,6 +1,6 @@
-﻿WorldXSize = 0;
-WorldYSize = 0;
-WorldZSize = 0;
+﻿WorldXSize = 0
+WorldYSize = 0
+WorldZSize = 0
 
 require("Common.lua")
 

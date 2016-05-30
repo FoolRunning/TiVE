@@ -17,7 +17,7 @@ namespace ProdigalSoftware.TiVE.Settings
 
         public const string FullScreenModeKey = "fullScreenMode";
         public const string LightingTypeKey = "lightingType";
-        public const string ShadowTypeKey = "shadowType";
+        public const string ShadowDistanceKey = "shadowDistance";
         //public const string PreLoadLightingKey = "preLoadLighting";
         public const string LightCullingTypeKey = "lightCullType";
         public const string CubifyVoxelsKey = "cubifyVoxels";
@@ -60,7 +60,7 @@ namespace ProdigalSoftware.TiVE.Settings
                 new UserSettingOption("8x", new IntSetting(8)),
                 new UserSettingOption("16x", new IntSetting(16))));
 
-            settingOptions.Add(new UserSettingOptions(DetailDistanceKey, "Block detail distance", UserOptionTab.Display, 
+            settingOptions.Add(new UserSettingOptions(DetailDistanceKey, "Detail distance", UserOptionTab.Display, 
                 new EnumSetting<VoxelDetailLevelDistance>(VoxelDetailLevelDistance.Mid),
                 new UserSettingOption("Closest", new EnumSetting<VoxelDetailLevelDistance>(VoxelDetailLevelDistance.Closest)),
                 new UserSettingOption("Close", new EnumSetting<VoxelDetailLevelDistance>(VoxelDetailLevelDistance.Close)),
@@ -68,21 +68,23 @@ namespace ProdigalSoftware.TiVE.Settings
                 new UserSettingOption("Far", new EnumSetting<VoxelDetailLevelDistance>(VoxelDetailLevelDistance.Far)),
                 new UserSettingOption("Furthest", new EnumSetting<VoxelDetailLevelDistance>(VoxelDetailLevelDistance.Furthest))));
 
-            settingOptions.Add(new UserSettingOptions(CubifyVoxelsKey, "Cubify voxels", UserOptionTab.Display, new BoolSetting(false),
-                new UserSettingOption("False", new BoolSetting(false)),
-                new UserSettingOption("True", new BoolSetting(true))));
+            settingOptions.Add(new UserSettingOptions(ShadowDistanceKey, "Shadow distance", UserOptionTab.Display,
+                new EnumSetting<ShadowDistance>(ShadowDistance.Close),
+                new UserSettingOption("None", new EnumSetting<ShadowDistance>(ShadowDistance.None)),
+                new UserSettingOption("Closest", new EnumSetting<ShadowDistance>(ShadowDistance.Closest)),
+                new UserSettingOption("Close", new EnumSetting<ShadowDistance>(ShadowDistance.Close)),
+                new UserSettingOption("Mid", new EnumSetting<ShadowDistance>(ShadowDistance.Mid)),
+                new UserSettingOption("Far", new EnumSetting<ShadowDistance>(ShadowDistance.Far)),
+                new UserSettingOption("Furthest", new EnumSetting<ShadowDistance>(ShadowDistance.Furthest))));
 
             settingOptions.Add(new UserSettingOptions(LightsPerBlockKey, "Max lights per block", UserOptionTab.Display, new IntSetting(10),
-                new UserSettingOption(new IntSetting(2)),
                 new UserSettingOption(new IntSetting(5)),
                 new UserSettingOption(new IntSetting(10)),
                 new UserSettingOption(new IntSetting(20))));
 
-            settingOptions.Add(new UserSettingOptions(ShadowTypeKey, "Shadow type", UserOptionTab.Display,
-                new EnumSetting<ShadowType>(ShadowType.None),
-                new UserSettingOption("None", new EnumSetting<ShadowType>(ShadowType.None)),
-                new UserSettingOption("Fast", new EnumSetting<ShadowType>(ShadowType.Fast)),
-                new UserSettingOption("Nice", new EnumSetting<ShadowType>(ShadowType.Nice))));
+            settingOptions.Add(new UserSettingOptions(CubifyVoxelsKey, "Cubify voxels", UserOptionTab.Display, new BoolSetting(false),
+                new UserSettingOption("False", new BoolSetting(false)),
+                new UserSettingOption("True", new BoolSetting(true))));
 
             //settingOptions.Add(new UserSettingOptions(PreLoadLightingKey, "Pre-load lighting", UserOptionTab.Advanced, new BoolSetting(true),
             //    new UserSettingOption("True", new BoolSetting(true)),

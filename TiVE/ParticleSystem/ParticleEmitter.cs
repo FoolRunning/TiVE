@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using ProdigalSoftware.TiVE.Core;
 using ProdigalSoftware.TiVE.RenderSystem.Lighting;
 using ProdigalSoftware.TiVEPluginFramework;
-using ProdigalSoftware.Utils;
 
 namespace ProdigalSoftware.TiVE.ParticleSystem
 {
@@ -86,7 +86,7 @@ namespace ProdigalSoftware.TiVE.ParticleSystem
             }
         }
 
-        public void AddToArrays(Vector3i worldSize, LightProvider lightProvider, Vector3us[] locationArray, Color4b[] colorArray, ref int dataIndex)
+        public void AddToArrays(Vector3i worldSize, Scene scene, Vector3us[] locationArray, Color4b[] colorArray, ref int dataIndex)
         {
             bool isLit = controller.IsLit;
             for (int i = 0; i < aliveParticles; i++)
@@ -105,9 +105,9 @@ namespace ProdigalSoftware.TiVE.ParticleSystem
                 {
                     Color3f lightColor;
                     if (partX >= worldSize.X || partY >= worldSize.Y || partZ >= worldSize.Z)
-                        lightColor = lightProvider.AmbientLight;
+                        lightColor = scene.AmbientLight;
                     else
-                        lightColor = lightProvider.GetLightAtFast(partX, partY, partZ);
+                        lightColor = scene.GetLightProvider(ShadowType.None).GetLightAtFast(partX, partY, partZ);
 
                     colorArray[dataIndex] = new Color4b(
                         (byte)Math.Min(255, (int)(part.Color.R * lightColor.R)),

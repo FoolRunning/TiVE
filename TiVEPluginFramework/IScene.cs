@@ -10,10 +10,9 @@ namespace ProdigalSoftware.TiVEPluginFramework
     [PublicAPI]
     public interface IScene
     {
-        /// <summary>
-        /// Gets a list of all entities in a scene
-        /// </summary>
-        IEnumerable<IEntity> AllEntities { get; }
+        IGameWorld GameWorld { get; }
+
+        Color3f AmbientLight { get; set; }
 
         /// <summary>
         /// Creates a new entity with the specified name

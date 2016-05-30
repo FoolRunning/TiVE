@@ -26,15 +26,27 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
         Furthest = 4
     }
 
+    /// <summary>
+    /// User setting for the voxel detail distance
+    /// </summary>
+    internal enum ShadowDistance
+    {
+        None = 0,
+        Closest = 1,
+        Close = 2,
+        Mid = 3,
+        Far = 4,
+        Furthest = 5
+    }
+
     internal sealed class VoxelMeshSystem : EngineSystem
     {
         #region Constants
-        public const byte VoxelDetailLevelSections = 4; // 32x32x32 = 32768v, 16x16x16 = 4096v, 8x8x8 = 512v, 4x4x4 = 64v, not worth going to 2x2x2 = 8v.
+        private const byte VoxelDetailLevelSections = 4; // 32x32x32 = 32768v, 16x16x16 = 4096v, 8x8x8 = 512v, 4x4x4 = 64v, not worth going to 2x2x2 = 8v.
         private const byte BestVoxelDetailLevel = 0;
         private const byte WorstVoxelDetailLevel = VoxelDetailLevelSections - 1;
         private const int TotalChunkMeshBuilders = 20;
         private const int TotalSpriteMeshBuilders = 3;
-        private const int MaxQueueSize = 5000;
         #endregion
 
         #region Member variables
@@ -131,6 +143,7 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
             }
 
             VoxelDetailLevelDistance currentVoxelDetalLevelSetting = (VoxelDetailLevelDistance)(int)TiVEController.UserSettings.Get(UserSettings.DetailDistanceKey);
+            ShadowDistance currentShadowDistanceSetting = (ShadowDistance)(int)TiVEController.UserSettings.Get(UserSettings.ShadowDistanceKey);
 
             foreach (IEntity entity in loadedEntities)
             {
@@ -140,8 +153,9 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
                 if (renderData.MeshData != null)
                 {
                     byte perferedDetailLevel = GetPerferedVoxelDetailLevel(renderData, cameraData, currentVoxelDetalLevelSetting);
-                    if (renderData.LoadedVoxelDetailLevel != perferedDetailLevel)
-                        LoadEntity(entity, renderData, perferedDetailLevel);
+                    ShadowType shadowType = GetPerferedShadowType(renderData, cameraData, currentShadowDistanceSetting);
+                    if (NeedToUpdateMesh(renderData, perferedDetailLevel, shadowType))
+                        ReloadEntityMesh(entity, renderData, perferedDetailLevel, shadowType);
                 }
             }
 
@@ -149,8 +163,12 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
             {
                 VoxelMeshComponent renderData = entity.GetComponent<VoxelMeshComponent>();
                 Debug.Assert(renderData != null);
+                EnsureVisible(entity, renderData);
+
                 byte perferedDetailLevel = GetPerferedVoxelDetailLevel(renderData, cameraData, currentVoxelDetalLevelSetting);
-                LoadEntity(entity, renderData, perferedDetailLevel);
+                ShadowType shadowType = GetPerferedShadowType(renderData, cameraData, currentShadowDistanceSetting);
+                if (NeedToUpdateMesh(renderData, perferedDetailLevel, shadowType))
+                    ReloadEntityMesh(entity, renderData, perferedDetailLevel, shadowType);
             }
 
             if (currentScene.LoadingInitialChunks && entityLoadQueue.Size < 5) // Let chunks load before showing scene
@@ -160,11 +178,17 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
         }
         #endregion
 
+        private static bool NeedToUpdateMesh(VoxelMeshComponent renderData, byte perferedDetailLevel, ShadowType shadowType)
+        {
+            return (renderData.VisibleVoxelDetailLevel != perferedDetailLevel || renderData.VisibleShadowType != (byte)shadowType) &&
+                (renderData.VoxelDetailLevelToLoad != perferedDetailLevel || renderData.ShadowTypeToLoad != (byte)shadowType);
+        }
+
         #region Public methods
         public void ReloadAllEntities()
         {
             foreach (IEntity chunk in loadedEntities)
-                ReloadEntity(chunk, WorstVoxelDetailLevel); // TODO: Reload with the correct detail level
+                ReloadEntityMesh(chunk, chunk.GetComponent<VoxelMeshComponent>(), WorstVoxelDetailLevel, ShadowType.None); // TODO: Reload with the correct detail level and shadow type
         }
         #endregion
 
@@ -215,7 +239,7 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
                     continue; // No free meshbuilders to use
                 }
 
-                EntityQueueItem queueItem;
+                EntityLoadQueueItem queueItem;
                 using (new PerformanceLock(entityLoadQueue))
                     queueItem = entityLoadQueue.Dequeue();
 
@@ -246,16 +270,15 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
         #endregion
 
         #region Methods for loading chunk meshes
-        private void LoadChunkMesh(ChunkComponent chunkData, MeshBuilder meshBuilder, EntityQueueItem queueItem)
+        private void LoadChunkMesh(ChunkComponent chunkData, MeshBuilder meshBuilder, EntityLoadQueueItem queueItem)
         {
             Scene scene = loadedScene; // For thread safety
-            chunkData.LoadedVoxelDetailLevel = queueItem.DetailLevel;
 
             Debug.Assert(meshBuilder.IsLocked);
             Debug.Assert(loadedScene != null);
             //Debug.WriteLine("Started chunk ({0},{1},{2})", chunkStartX, chunkStartY, chunkStartZ);
 
-            GameWorld gameWorld = scene.GameWorld;
+            GameWorld gameWorld = scene.GameWorldInternal;
 
             scene.LightData.CacheLightsInBlocksForChunk(chunkData.ChunkLoc.X, chunkData.ChunkLoc.Y, chunkData.ChunkLoc.Z);
 
@@ -288,7 +311,7 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
 
                         voxelCount += block.TotalVoxels;
 
-                        CreateMeshForBlockInChunk(block, blockX, blockY, blockZ, voxelStartX, voxelStartY, voxelStartZ, queueItem.DetailLevel, scene,
+                        CreateMeshForBlockInChunk(block, blockX, blockY, blockZ, voxelStartX, voxelStartY, voxelStartZ, queueItem, scene,
                             meshBuilder, ref polygonCount, ref renderedVoxelCount);
                     }
                 }
@@ -319,15 +342,15 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
         }
 
         private static void CreateMeshForBlockInChunk(Block block, int blockX, int blockY, int blockZ,
-            int voxelStartX, int voxelStartY, int voxelStartZ, byte voxelDetailLevel, Scene scene,
+            int voxelStartX, int voxelStartY, int voxelStartZ, EntityLoadQueueItem queueItem, Scene scene,
             MeshBuilder meshBuilder, ref int polygonCount, ref int renderedVoxelCount)
         {
-            GameWorld gameWorld = scene.GameWorld;
-            LightProvider lightProvider = scene.LightProvider;
+            GameWorld gameWorld = scene.GameWorldInternal;
+            LightProvider lightProvider = scene.GetLightProvider(queueItem.ShadowType);
             VoxelMeshHelper meshHelper = VoxelMeshHelper.Get(false);
             Voxel[] blockVoxels = block.VoxelsArray;
 
-            int voxelSize = 1 << voxelDetailLevel;
+            int voxelSize = 1 << queueItem.DetailLevel;
             int maxVoxelX = gameWorld.VoxelSize.X - 1 - voxelSize;
             int maxVoxelY = gameWorld.VoxelSize.Y - 1 - voxelSize;
             int maxVoxelZ = gameWorld.VoxelSize.Z - 1 - voxelSize;
@@ -464,7 +487,7 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
         #endregion
 
         #region Methods for loading entity meshes
-        private void LoadMesh(IEntity entity, VoxelMeshComponent renderData, MeshBuilder meshBuilder, EntityQueueItem queueItem)
+        private void LoadMesh(IEntity entity, VoxelMeshComponent renderData, MeshBuilder meshBuilder, EntityLoadQueueItem queueItem)
         {
         }
         #endregion
@@ -488,8 +511,8 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
                 case VoxelDetailLevelDistance.Closest: distancePerLevel = 90000; break; // 300v
                 case VoxelDetailLevelDistance.Close: distancePerLevel = 202500; break;  // 450v
                 case VoxelDetailLevelDistance.Mid: distancePerLevel = 360000; break;    // 600v
-                case VoxelDetailLevelDistance.Far: distancePerLevel = 600625; break;    // 775v
-                default: distancePerLevel = 1000000; break;                             // 1000v
+                case VoxelDetailLevelDistance.Far: distancePerLevel = 562500; break;    // 750v
+                default: distancePerLevel = 810000; break;                              // 900v
             }
 
             for (byte i = BestVoxelDetailLevel; i <= WorstVoxelDetailLevel; i++)
@@ -502,29 +525,63 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
         }
 
         /// <summary>
-        /// Queues the specified entity to be loaded at the specified detail level.
+        /// Given the specified render data and camera data determine the wanted voxel detail level given the specified user detail setting
         /// </summary>
-        private void LoadEntity(IEntity entity, VoxelMeshComponent renderData, byte voxelDetailLevel)
+        private static ShadowType GetPerferedShadowType(VoxelMeshComponent renderData, CameraComponent cameraData,
+            ShadowDistance currentShadowDistanceSetting)
         {
-            using (new PerformanceLock(renderData.SyncLock))
-                renderData.Visible = true;
-            loadedEntities.Add(entity);
-            ReloadEntity(entity, voxelDetailLevel);
+            if (currentShadowDistanceSetting == ShadowDistance.None)
+                return ShadowType.None;
+
+            // TODO: Make the renderdata location be the center of the renderdata instead of the corner
+            float distX = renderData.Location.X - cameraData.Location.X;
+            float distY = renderData.Location.Y - cameraData.Location.Y;
+            float distZ = renderData.Location.Z - cameraData.Location.Z;
+
+            float dist = distX * distX + distY * distY + distZ * distZ;
+            float distancePerLevel;
+            switch (currentShadowDistanceSetting)
+            {
+                case ShadowDistance.Closest: distancePerLevel = 90000; break; // 300v
+                case ShadowDistance.Close: distancePerLevel = 202500; break;  // 450v
+                case ShadowDistance.Mid: distancePerLevel = 360000; break;    // 600v
+                case ShadowDistance.Far: distancePerLevel = 562500; break;    // 750v
+                default: distancePerLevel = 810000; break;                    // 900v
+            }
+
+            const int start = (int)ShadowType.Nice;
+            const int end = (int)ShadowType.None;
+            for (byte i = start; i > end; i--)
+            {
+                if (dist <= distancePerLevel)
+                    return (currentShadowDistanceSetting == ShadowDistance.Closest) ? ShadowType.Nice : (ShadowType)i;
+                dist -= distancePerLevel * (start - i + 1);
+            }
+            return ShadowType.None;
         }
 
-        private void ReloadEntity(IEntity entity, byte voxelDetailLevel)
+        private void ReloadEntityMesh(IEntity entity, VoxelMeshComponent renderData, byte voxelDetailLevel, ShadowType shadowType)
         {
             if (entity == null)
                 throw new ArgumentNullException("entity");
 
             Debug.Assert(loadedEntities.Contains(entity));
 
-            using (new PerformanceLock(entityLoadQueue))
+            using (new PerformanceLock(renderData.SyncLock))
             {
-                EntityQueueItem queueItem = new EntityQueueItem(entity, voxelDetailLevel, false);
-                if (!entityLoadQueue.Contains(queueItem))
-                    entityLoadQueue.Enqueue(queueItem);
+                renderData.VoxelDetailLevelToLoad = voxelDetailLevel;
+                renderData.ShadowTypeToLoad = (byte)shadowType;
             }
+
+            using (new PerformanceLock(entityLoadQueue))
+                entityLoadQueue.Enqueue(new EntityLoadQueueItem(entity, voxelDetailLevel, shadowType));
+        }
+
+        private void EnsureVisible(IEntity entity, VoxelMeshComponent renderData)
+        {
+            using (new PerformanceLock(renderData.SyncLock))
+                renderData.Visible = true;
+            loadedEntities.Add(entity);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

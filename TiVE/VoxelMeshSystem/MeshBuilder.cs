@@ -87,7 +87,7 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
                 if (vertexCount > maxData)
                 {
                     maxData = vertexCount;
-                    Console.WriteLine("Max data: " + maxData);
+                    //Console.WriteLine("Max data: " + maxData);
                 }
             }
             return TiVEController.Backend.CreateData(locationData, vertexCount, 3, DataType.Vertex, DataValueType.Byte, false, false);
@@ -100,7 +100,7 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
                 if (indexCount > maxIndex)
                 {
                     maxIndex = indexCount;
-                    Console.WriteLine("Max index: " + maxIndex);
+                    //Console.WriteLine("Max index: " + maxIndex);
                 }
             }
             return TiVEController.Backend.CreateData(indexData, indexCount, 1, DataType.Index, DataValueType.UInt, false, false);

@@ -20,10 +20,12 @@ namespace ProdigalSoftware.TiVE.RenderSystem
     internal sealed class RenderSystem : EngineSystem
     {
         #region Constants
+        private const int DeletedItemCacheSize = 3000;
         private static readonly int timeBetweenTimingUpdates = (int)(Stopwatch.Frequency / 2); // 1/2 second
         #endregion
 
         #region Member variables
+        private readonly EntityMeshDeleteQueue deleteQueue = new EntityMeshDeleteQueue(DeletedItemCacheSize);
         private readonly ItemCountsHelper drawCount = new ItemCountsHelper(4, false);
         private readonly ItemCountsHelper voxelCount = new ItemCountsHelper(8, false);
         private readonly ItemCountsHelper renderedVoxelCount = new ItemCountsHelper(8, false);
@@ -43,10 +45,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem
         #region Implementation of EngineSystem
         public override void Dispose()
         {
-            foreach (IEntity entity in loadedEntities)
-                DeleteEntityMesh(entity);
-            loadedEntities.Clear();
-
+            DeleteAllLoadedMeshes();
             shaderManager.Dispose();
         }
 
@@ -75,19 +74,17 @@ namespace ProdigalSoftware.TiVE.RenderSystem
 
             if (initializeForNewScene)
             {
-                foreach (IEntity entity in loadedEntities)
-                    DeleteEntityMesh(entity);
-                loadedEntities.Clear();
+                DeleteAllLoadedMeshes();
                 initializeForNewScene = false;
             }
-
 
             CameraComponent cameraData = currentScene.FindCamera();
             if (cameraData == null)
                 return true; // No camera to render with or it probably hasn't been initialized yet
 
+            HandleNewlyVisibleEntities(cameraData);
             HandleNewlyHiddenEntities(cameraData);
-            HandleEntitiesWithUninitializedMeshes(cameraData);
+            HandleEntitiesWithUninitializedMeshes();
 
             if (currentScene.LoadingInitialChunks)
                 return true; // Let chunks load before rendering scene
@@ -122,18 +119,43 @@ namespace ProdigalSoftware.TiVE.RenderSystem
         #endregion
 
         #region Private helper methods
+        private void HandleNewlyVisibleEntities(CameraComponent cameraData)
+        {
+            deleteQueue.Sort(cameraData);
+
+            foreach (IEntity entity in cameraData.NewlyVisibleEntitites.Where(e => e.HasComponent<VoxelMeshComponent>()))
+            {
+                deleteQueue.Remove(entity);
+                loadedEntities.Add(entity);
+            }
+        }
+
         private void HandleNewlyHiddenEntities(CameraComponent cameraData)
         {
             foreach (IEntity entity in cameraData.NewlyHiddenEntitites.Where(e => e.HasComponent<VoxelMeshComponent>()))
             {
+                VoxelMeshComponent renderData = entity.GetComponent<VoxelMeshComponent>();
+                using (new PerformanceLock(renderData.SyncLock))
+                {
+                    if (renderData.MeshBuilder != null)
+                        renderData.MeshBuilder.DropMesh();
+                    renderData.MeshBuilder = null;
+                    renderData.Visible = false;
+                    renderData.VoxelDetailLevelToLoad = VoxelMeshComponent.BlankDetailLevel;
+                    renderData.ShadowTypeToLoad = VoxelMeshComponent.BlankShadowType;
+                }
+
                 loadedEntities.Remove(entity);
-                DeleteEntityMesh(entity);
+                deleteQueue.Enqueue(new EntityDeleteQueueItem(entity));
             }
+
+            while (deleteQueue.Size > DeletedItemCacheSize)
+                DeleteEntityMesh(deleteQueue.Dequeue().Entity);
         }
 
-        private void HandleEntitiesWithUninitializedMeshes(CameraComponent cameraData)
+        private void HandleEntitiesWithUninitializedMeshes()
         {
-            foreach (IEntity entity in cameraData.VisibleEntitites.Where(e => e.HasComponent<VoxelMeshComponent>()))
+            foreach (IEntity entity in loadedEntities)
             {
                 VoxelMeshComponent renderData = entity.GetComponent<VoxelMeshComponent>();
                 using (new PerformanceLock(renderData.SyncLock))
@@ -154,10 +176,23 @@ namespace ProdigalSoftware.TiVE.RenderSystem
 
                         meshBuilder.DropMesh(); // Release builder - Must be called after initializing the mesh
                         renderData.MeshBuilder = null;
-                        loadedEntities.Add(entity);
+                        renderData.VisibleVoxelDetailLevel = renderData.VoxelDetailLevelToLoad;
+                        renderData.VisibleShadowType = renderData.ShadowTypeToLoad;
+                        renderData.VoxelDetailLevelToLoad = VoxelMeshComponent.BlankDetailLevel;
+                        renderData.ShadowTypeToLoad = VoxelMeshComponent.BlankShadowType;
                     }
                 }
             }
+        }
+
+        private void DeleteAllLoadedMeshes()
+        {
+            foreach (IEntity entity in loadedEntities)
+                DeleteEntityMesh(entity);
+            loadedEntities.Clear();
+
+            while (deleteQueue.Size > 0)
+                DeleteEntityMesh(deleteQueue.Dequeue().Entity);
         }
 
         /// <summary>
@@ -178,7 +213,10 @@ namespace ProdigalSoftware.TiVE.RenderSystem
                 renderData.MeshData = null;
                 renderData.MeshBuilder = null;
                 renderData.Visible = false;
-                renderData.LoadedVoxelDetailLevel = VoxelMeshComponent.BlankDetailLevel;
+                renderData.VisibleVoxelDetailLevel = VoxelMeshComponent.BlankDetailLevel;
+                renderData.VisibleShadowType = VoxelMeshComponent.BlankShadowType;
+                renderData.VoxelDetailLevelToLoad = VoxelMeshComponent.BlankDetailLevel;
+                renderData.ShadowTypeToLoad = VoxelMeshComponent.BlankShadowType;
                 renderData.PolygonCount = 0;
                 renderData.VoxelCount = 0;
                 renderData.RenderedVoxelCount = 0;

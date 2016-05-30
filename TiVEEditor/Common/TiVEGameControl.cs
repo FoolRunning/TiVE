@@ -41,12 +41,12 @@ namespace ProdigalSoftware.TiVEEditor.Common
 
         public GameWorld GameWorld
         {
-            get { return scene.GameWorld; }
+            get { return scene.GameWorldInternal; }
         }
 
         public LightProvider LightProvider
         {
-            get { return scene.LightProvider; }
+            get { return scene.GetLightProvider(ShadowType.None); }
         }
 
         public CameraComponent Camera
