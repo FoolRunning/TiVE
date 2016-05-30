@@ -409,6 +409,8 @@ namespace ProdigalSoftware.ProjectM.Plugins
             Block fountainBlock = new Block("fountain");
             fountainBlock.AddComponent(new ParticleComponent("Fountain", new Vector3i(bc, bc, 0)));
             yield return fountainBlock;
+
+            yield return new Block("player"); // Placeholder for the player starting location
         }
 
         private static void ReplaceVoxel(Block block, int x, int y, int z, Voxel newVoxel)

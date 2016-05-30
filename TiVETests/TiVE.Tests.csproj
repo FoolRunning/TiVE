@@ -92,7 +92,6 @@
   </Choose>
   <ItemGroup>
     <Compile Include="Core\TiVESerializerImplementationTests.cs" />
-    <Compile Include="VoxelMeshSystem\EntityLoadQueueTests.cs" />
     <Compile Include="Core\SceneTests.cs" />
     <Compile Include="Core\EngineTests.cs" />
     <Compile Include="World\GameWorldTests.cs" />

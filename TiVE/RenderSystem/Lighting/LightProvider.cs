@@ -17,11 +17,11 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
     }
     #endregion
 
-    internal enum ShadowType
+    internal enum ShadowType : byte
     {
-        None,
-        Fast,
-        Nice
+        None = 0,
+        Fast = 1,
+        Nice = 2
     }
 
     internal abstract class LightProvider
@@ -35,26 +35,20 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
         private LightProvider(Scene scene)
         {
             this.scene = scene;
-            AmbientLight = Color3f.Empty;
             lightingModel = LightingModel.Get(scene.GameWorld.LightingModelType);
         }
 
         /// <summary>
         /// Gets a light provider for the specified game world using the current user settings to determine the complexity
         /// </summary>
-        public static LightProvider Get(Scene scene)
+        public static LightProvider Create(Scene scene, ShadowType shadowType)
         {
             LightType lightType = (LightType)(int)TiVEController.UserSettings.Get(UserSettings.LightingTypeKey);
             if (lightType == LightType.Debug)
                 return new DebugLightProvider(scene);
 
-            ShadowType shadowType = (ShadowType)(int)TiVEController.UserSettings.Get(UserSettings.ShadowTypeKey);
             return shadowType == ShadowType.None ? (LightProvider)new NoShadowsLightProvider(scene) : new WithShadowsLightProvider(scene, shadowType == ShadowType.Fast);
         }
-        #endregion
-
-        #region Properties
-        public Color3f AmbientLight { get; set; }
         #endregion
 
         #region Public methods
@@ -209,7 +203,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
                 if (lightsInBlock == null)
                     return Color3f.Empty; // Probably unloaded the chunk while loading
 
-                Color3f color = AmbientLight;
+                Color3f color = scene.AmbientLight;
                 LightInfo[] lights = scene.LightData.LightList;
                 for (int i = 0; i < lightsInBlock.Length; i++)
                 {
@@ -243,7 +237,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
                     calculateSurfaceAngle = voxelNormal != Vector3f.Zero;
                 }
 
-                Color3f color = AmbientLight;
+                Color3f color = scene.AmbientLight;
                 LightInfo[] lights = scene.LightData.LightList;
                 for (int i = 0; i < lightsInBlock.Length; i++)
                 {
@@ -290,8 +284,8 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
                 if (lightsInBlock == null)
                     return Color3f.Empty; // Probably unloaded the chunk while loading
 
-                GameWorld world = scene.GameWorld;
-                Color3f color = AmbientLight;
+                GameWorld world = scene.GameWorldInternal;
+                Color3f color = scene.AmbientLight;
                 LightInfo[] lights = scene.LightData.LightList;
                 for (int i = 0; i < lightsInBlock.Length; i++)
                 {
@@ -326,8 +320,8 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
                 bool calculateSurfaceAngle = voxelNormal != Vector3f.Zero;
 
                 // For thread-safety copy all member variables
-                GameWorld world = scene.GameWorld;
-                Color3f color = AmbientLight;
+                GameWorld world = scene.GameWorldInternal;
+                Color3f color = scene.AmbientLight;
                 LightInfo[] lights = scene.LightData.LightList;
                 for (int i = 0; i < lightsInBlock.Length; i++)
                 {

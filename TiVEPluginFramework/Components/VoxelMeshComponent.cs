@@ -8,6 +8,7 @@ namespace ProdigalSoftware.TiVEPluginFramework.Components
     {
         #region Internal data
         internal const byte BlankDetailLevel = byte.MaxValue;
+        internal const byte BlankShadowType = byte.MaxValue;
 
         /// <summary>True if the entity is in the visible area of the screen, false otherwise</summary>
         internal volatile bool Visible;
@@ -20,7 +21,13 @@ namespace ProdigalSoftware.TiVEPluginFramework.Components
         /// <summary>Mesh data for the entity for rendering</summary>
         internal IVertexDataInfo MeshData;
         /// <summary>Detail level of the mesh used to represent the voxels that make up this component</summary>
-        internal byte LoadedVoxelDetailLevel = BlankDetailLevel;
+        internal byte VoxelDetailLevelToLoad = BlankDetailLevel;
+        /// <summary></summary>
+        internal byte ShadowTypeToLoad = BlankShadowType;
+        /// <summary>Detail level of the mesh used to represent the voxels that make up this component</summary>
+        internal byte VisibleVoxelDetailLevel = BlankDetailLevel;
+        /// <summary></summary>
+        internal byte VisibleShadowType = BlankShadowType;
         /// <summary>The MeshBuilder containing the </summary>
         internal IMeshBuilder MeshBuilder;
         /// <summary>Object to use for locking when accessing the mesh data</summary>

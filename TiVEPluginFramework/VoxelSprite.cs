@@ -1,5 +1,4 @@
 ﻿using System.Runtime.CompilerServices;
-using ProdigalSoftware.Utils;
 
 namespace ProdigalSoftware.TiVEPluginFramework
 {
@@ -13,6 +12,8 @@ namespace ProdigalSoftware.TiVEPluginFramework
         {
             Size = new Vector3i(sizeX, sizeY, sizeZ);
             voxels = new Voxel[sizeX * sizeY * sizeZ];
+            for (int i = 0; i < voxels.Length; i++)
+                voxels[i] = Voxel.Empty;
         }
 
         public Voxel this[int x, int y, int z]

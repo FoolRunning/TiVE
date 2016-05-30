@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using MoonSharp.Interpreter;
+using MoonSharp.Interpreter.Interop;
 using ProdigalSoftware.TiVE.RenderSystem;
 using ProdigalSoftware.TiVE.RenderSystem.Lighting;
 using ProdigalSoftware.TiVE.RenderSystem.World;
@@ -12,25 +13,29 @@ using ProdigalSoftware.TiVEPluginFramework.Components;
 
 namespace ProdigalSoftware.TiVE.Core
 {
+    [MoonSharpUserData]
     internal sealed class Scene : IScene, IDisposable
     {
+        #region Constants/Member variables
         private const int InitialEntityListSize = 10;
         private const int InitialChunkListSize = 20000;
 
         private readonly Dictionary<Type, List<IEntity>> entityComponentTypeMap = new Dictionary<Type, List<IEntity>>(30);
-        private readonly List<IEntity> entities = new List<IEntity>(3000);
+        private readonly LightProvider[] lightProviders = new LightProvider[3];
+        #endregion
 
-        public bool LoadingInitialChunks { get; set; }
-        
-        public LightProvider LightProvider { get; private set; }
+        #region Properties
+        internal GameWorld GameWorldInternal { get; private set; }
 
-        public GameWorldLightData LightData { get; private set; }
+        internal bool LoadingInitialChunks { get; set; }
 
-        public GameWorld GameWorld { get; private set; }
+        internal GameWorldLightData LightData { get; private set; }
 
-        public RootRenderNode RenderNode { get; private set; }
+        internal RootRenderNode RenderNode { get; private set; }
+        #endregion
 
         #region Implementation of IScene
+        [MoonSharpVisible(false)]
         public void Dispose()
         {
 #if DEBUG_NODES
@@ -39,16 +44,16 @@ namespace ProdigalSoftware.TiVE.Core
 #endif
         }
 
-        public IEnumerable<IEntity> AllEntities
+        public IGameWorld GameWorld 
         {
-            get { return entities; }
+            get { return GameWorldInternal; }
         }
+
+        public Color3f AmbientLight { get; set; }
 
         public IEntity CreateNewEntity(string entityName)
         {
-            Entity newEntity = new Entity(this, entityName);
-            entities.Add(newEntity);
-            return newEntity;
+            return new Entity(this, entityName);
         }
 
         public IEnumerable<IEntity> GetEntitiesWithComponent<T>() where T : class, IComponent
@@ -61,7 +66,6 @@ namespace ProdigalSoftware.TiVE.Core
         
         public void DeleteEntity(IEntity entity)
         {
-            entities.Remove(entity);
             foreach (List<IEntity> entitiesWithType in entityComponentTypeMap.Values)
                 entitiesWithType.Remove(entity);
             ((Entity)entity).ClearComponents();
@@ -93,17 +97,26 @@ namespace ProdigalSoftware.TiVE.Core
         }
         #endregion
 
-        #region Public methods
-        public void SetGameWorld(GameWorld newGameWorld)
+        #region Internal methods
+        internal LightProvider GetLightProvider(ShadowType shadowType)
+        {
+            return lightProviders[(int)shadowType];
+        }
+
+        internal void SetGameWorld(GameWorld newGameWorld)
         {
             if (newGameWorld == null)
                 throw new ArgumentNullException("newGameWorld");
 
             newGameWorld.Initialize();
 
-            GameWorld = newGameWorld;
+            GameWorldInternal = newGameWorld;
             RenderNode = new RootRenderNode(newGameWorld, this);
-            LightProvider = LightProvider.Get(this);
+
+            // Must be done after setting the game world
+            lightProviders[(int)ShadowType.None] = LightProvider.Create(this, ShadowType.None);
+            lightProviders[(int)ShadowType.Fast] = LightProvider.Create(this, ShadowType.Fast);
+            lightProviders[(int)ShadowType.Nice] = LightProvider.Create(this, ShadowType.Nice);
 
             // Calculate static lighting
             LightData = new GameWorldLightData(this);
@@ -183,7 +196,7 @@ namespace ProdigalSoftware.TiVE.Core
             private readonly Scene owningScene;
             private IComponent[] components;
 
-            public Entity(Scene owningScene, string name)
+            internal Entity(Scene owningScene, string name)
             {
                 this.owningScene = owningScene;
                 this.name = name;
@@ -252,6 +265,7 @@ namespace ProdigalSoftware.TiVE.Core
                 components = null;
             }
 
+            [MoonSharpVisible(false)]
             public override string ToString()
             {
                 int componentCount = components != null ? components.Length : 0;

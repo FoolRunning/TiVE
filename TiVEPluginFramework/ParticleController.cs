@@ -1,6 +1,4 @@
-﻿using ProdigalSoftware.Utils;
-
-namespace ProdigalSoftware.TiVEPluginFramework
+﻿namespace ProdigalSoftware.TiVEPluginFramework
 {
     public enum TransparencyType
     {
@@ -47,7 +45,7 @@ namespace ProdigalSoftware.TiVEPluginFramework
             get { return particlesPerSecond; }
         }
 
-        public abstract Voxel[, ,] ParticleVoxels { get; }
+        public abstract VoxelSprite ParticleSprite { get; }
 
         public abstract void Update(Particle particle, float timeSinceLastUpdate, Vector3i location);
 

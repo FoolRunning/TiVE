@@ -12,7 +12,7 @@ namespace ProdigalSoftware.TiVEPluginFramework.Components
     public sealed class CameraComponent : IComponent
     {
         public static readonly Guid ID = new Guid("794DD0D1-3DB6-4F6D-A6DA-B87689CF6E9A");
-        public const float NearDist = 1.0f;
+        public const float NearDist = 0.2f;
         private const byte SerializedFileVersion = 1;
 
         #region Internal data

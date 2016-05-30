@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.CompilerServices;
+using MoonSharp.Interpreter;
+using MoonSharp.Interpreter.Interop;
 using ProdigalSoftware.TiVEPluginFramework;
 
 namespace ProdigalSoftware.TiVE.RenderSystem.World
@@ -10,9 +12,11 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
     /// <summary>
     /// Contains the information about the game world.
     /// </summary>
+    [MoonSharpUserData]
     internal sealed class GameWorld : IGameWorld
     {
         #region Constants/Member variables
+        [MoonSharpVisible(false)]
         public static readonly Guid ID = new Guid("1DDA35E9-DE25-4033-B20E-57B8626A56BA");
 
         private const int BlockTotalVoxelCount = Block.VoxelSize * Block.VoxelSize * Block.VoxelSize;
@@ -30,7 +34,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
         #endregion
 
         #region Constructors
-        public GameWorld(BinaryReader reader)
+        internal GameWorld(BinaryReader reader)
         {
             byte fileVersion = reader.ReadByte();
             if (fileVersion > SerializedFileVersion)
@@ -114,6 +118,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
         #endregion
 
         #region Implementation of ITiVESerializable
+        [MoonSharpVisible(false)]
         public void SaveTo(BinaryWriter writer)
         {
             writer.Write(SerializedFileVersion);
@@ -133,8 +138,8 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
         }
         #endregion
 
-        #region Other public methods
-        public void Initialize()
+        #region Other internal methods
+        internal void Initialize()
         {
             blockVoxelsEmptyForLighting = new bool[blockIdToBlock.Count * BlockTotalVoxelCount];
             blockLightPassThrough = new bool[blockIdToBlock.Count];
@@ -150,12 +155,12 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
             }
         }
 
-        public BlockState GetBlockState(int blockX, int blockY, int blockZ)
+        internal BlockState GetBlockState(int blockX, int blockY, int blockZ)
         {
             return blockStates[blockSize.GetArrayOffset(blockX, blockY, blockZ)];
         }
 
-        public void SetBlockState(int blockX, int blockY, int blockZ, BlockState state)
+        internal void SetBlockState(int blockX, int blockY, int blockZ, BlockState state)
         {
             blockStates[blockSize.GetArrayOffset(blockX, blockY, blockZ)] = state;
         }
@@ -165,7 +170,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
         /// </summary>
         /// <remarks>Very performance-critical method</remarks>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Voxel GetVoxel(int voxelX, int voxelY, int voxelZ)
+        internal Voxel GetVoxel(int voxelX, int voxelY, int voxelZ)
         {
             MiscUtils.CheckConstraints(voxelX, voxelY, voxelZ, voxelSize);
 
@@ -184,7 +189,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
         /// Modified with optimizations for TiVE.
         /// </summary>
         /// <remarks>Very performance-critical method</remarks>
-        public bool NoVoxelInLine(int x, int y, int z, int endX, int endY, int endZ)
+        internal bool NoVoxelInLine(int x, int y, int z, int endX, int endY, int endZ)
         {
             if (x == endX && y == endY && z == endZ)
                 return true;
@@ -261,7 +266,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
         /// Modified with optimizations for TiVE.
         /// </summary>
         /// <remarks>Very performance-critical method</remarks>
-        public bool NoVoxelInLineFast(int x, int y, int z, int x2, int y2, int z2)
+        internal bool NoVoxelInLineFast(int x, int y, int z, int x2, int y2, int z2)
         {
             if (x == x2 && y == y2 && z == z2)
                 return true;
@@ -408,7 +413,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
         /// Modified with optimizations for TiVE.
         /// </summary>
         /// <remarks>Very performance-critical method</remarks>
-        public bool NoBlocksInLine(int x, int y, int z, int x2, int y2, int z2)
+        internal bool NoBlocksInLine(int x, int y, int z, int x2, int y2, int z2)
         {
             if (x == x2 && y == y2 && z == z2)
                 return true;

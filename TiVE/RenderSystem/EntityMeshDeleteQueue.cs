@@ -1,20 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using ProdigalSoftware.TiVE.RenderSystem.Lighting;
 using ProdigalSoftware.TiVEPluginFramework;
 using ProdigalSoftware.TiVEPluginFramework.Components;
 
-namespace ProdigalSoftware.TiVE.VoxelMeshSystem
+namespace ProdigalSoftware.TiVE.RenderSystem
 {
-    internal sealed class EntityMeshLoadQueue
+    internal sealed class EntityMeshDeleteQueue
     {
         private readonly QueueItemDistanceComparer entityComparer = new QueueItemDistanceComparer();
-        private readonly List<EntityLoadQueueItem> entities = new List<EntityLoadQueueItem>(5000);
+        private readonly List<EntityDeleteQueueItem> entities;
 
-        public bool IsEmpty
+        public EntityMeshDeleteQueue(int queueSize)
         {
-            get { return entities.Count == 0; }
+            entities = new List<EntityDeleteQueueItem>((int)(queueSize * 1.5f));
         }
 
         public int Size
@@ -22,25 +21,21 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
             get { return entities.Count; }
         }
 
-        public void Enqueue(EntityLoadQueueItem item)
+        public void Enqueue(EntityDeleteQueueItem item)
         {
             int existingItemIndex = FindRealIndex(item);
             if (existingItemIndex >= 0 && entities[existingItemIndex].Entity != item.Entity)
                 Console.WriteLine("Probably replaced the wrong item :(");
 
             if (existingItemIndex >= 0)
-            {
-                if (entities[existingItemIndex].DetailLevel == item.DetailLevel && entities[existingItemIndex].ShadowType == item.ShadowType)
-                    Console.WriteLine("Probably enqueued item for no reason :(");
                 entities[existingItemIndex] = item;
-            }
             else
                 entities.Insert(~existingItemIndex, item);
         }
 
         public void Remove(IEntity item)
         {
-            EntityLoadQueueItem queueItem = new EntityLoadQueueItem(item, 0, ShadowType.None);
+            EntityDeleteQueueItem queueItem = new EntityDeleteQueueItem(item);
             int existingItemIndex = FindRealIndex(queueItem);
             if (existingItemIndex >= 0 && entities[existingItemIndex].Entity != item)
                 Console.WriteLine("Probably removed the wrong item :(");
@@ -49,12 +44,12 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
                 entities.RemoveAt(existingItemIndex);
         }
 
-        public EntityLoadQueueItem Dequeue()
+        public EntityDeleteQueueItem Dequeue()
         {
             if (entities.Count == 0)
                 return null;
 
-            EntityLoadQueueItem item = entities[entities.Count - 1];
+            EntityDeleteQueueItem item = entities[entities.Count - 1];
             entities.RemoveAt(entities.Count - 1);
             return item;
         }
@@ -66,7 +61,7 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
             entities.Sort(entityComparer);
         }
 
-        public bool Contains(EntityLoadQueueItem item)
+        public bool Contains(EntityDeleteQueueItem item)
         {
             int existingItemIndex = FindRealIndex(item);
             if (existingItemIndex >= 0 && entities[existingItemIndex].Entity != item.Entity)
@@ -79,7 +74,7 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
             entities.Clear();
         }
 
-        private int FindRealIndex(EntityLoadQueueItem item)
+        private int FindRealIndex(EntityDeleteQueueItem item)
         {
             int closeExistingItemIndex = entities.BinarySearch(item, entityComparer);
             if (closeExistingItemIndex < 0 || entities[closeExistingItemIndex].Entity == item.Entity)
@@ -89,7 +84,7 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
             int indexBefore = closeExistingItemIndex;
             while (indexBefore > 0)
             {
-                EntityLoadQueueItem closeItem = entities[--indexBefore];
+                EntityDeleteQueueItem closeItem = entities[--indexBefore];
                 int closeItemScore = entityComparer.GetQueueItemScore(closeItem);
                 if (closeItemScore != itemScore)
                     break; // went too far backwards
@@ -100,7 +95,7 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
             int indexAfter = closeExistingItemIndex;
             while (indexAfter < entities.Count - 1)
             {
-                EntityLoadQueueItem closeItem = entities[++indexAfter];
+                EntityDeleteQueueItem closeItem = entities[++indexAfter];
                 int closeItemScore = entityComparer.GetQueueItemScore(closeItem);
                 if (closeItemScore != itemScore)
                     break; // went too far forwards
@@ -112,7 +107,7 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
         }
 
         #region QueueItemDistanceComparer class
-        private sealed class QueueItemDistanceComparer : IComparer<EntityLoadQueueItem>
+        private sealed class QueueItemDistanceComparer : IComparer<EntityDeleteQueueItem>
         {
             private Vector3i comparePoint;
 
@@ -121,57 +116,34 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
                 comparePoint = new Vector3i((int)newComparePoint.X, (int)newComparePoint.Y, (int)newComparePoint.Z);
             }
 
-            public int Compare(EntityLoadQueueItem x, EntityLoadQueueItem y)
+            public int Compare(EntityDeleteQueueItem x, EntityDeleteQueueItem y)
             {
-                return GetQueueItemScore(y) - GetQueueItemScore(x);
+                return GetQueueItemScore(x) - GetQueueItemScore(y);
             }
 
-            public int GetQueueItemScore(EntityLoadQueueItem item)
+            public int GetQueueItemScore(EntityDeleteQueueItem item)
             {
                 int distX = item.EntityLocation.X - comparePoint.X;
                 int distY = item.EntityLocation.Y - comparePoint.Y;
                 int distZ = item.EntityLocation.Z - comparePoint.Z;
                 return distX * distX + distY * distY + distZ * distZ;
-
-                //if (distFromPointSquared == 0) // rare, but could happen
-                //    return int.MaxValue;
-
-                //// Score so that near items are most important, but as you get further out, detail level is more important (with higher-value levels being more important)
-                //return 100000 / distFromPointSquared + item.DetailLevel * 11713;
             }
         }
         #endregion
     }
 
-    internal sealed class EntityLoadQueueItem
+    internal sealed class EntityDeleteQueueItem
     {
         public readonly IEntity Entity;
         public readonly Vector3i EntityLocation;
-        /// <summary>
-        /// 3 bits = detail level
-        /// 2 bits = shadow type
-        /// </summary>
-        private readonly byte meshCreationInfo;
 
-        public EntityLoadQueueItem(IEntity entity, byte detailLevel, ShadowType shadowType)
+        public EntityDeleteQueueItem(IEntity entity)
         {
             Entity = entity;
             
-            VoxelMeshComponent meshData = entity.GetComponent<VoxelMeshComponent>();
-            Debug.Assert(meshData != null);
-            EntityLocation = new Vector3i((int)meshData.Location.X, (int)meshData.Location.Y, (int)meshData.Location.Z);
-
-            meshCreationInfo = (byte)((detailLevel & 0x7) | ((int)shadowType << 3) & 0x18);
-        }
-
-        public byte DetailLevel
-        {
-            get { return (byte)(meshCreationInfo & 0x7); }
-        }
-
-        public ShadowType ShadowType
-        {
-            get { return (ShadowType)((meshCreationInfo & 0x18) >> 3); }
+            VoxelMeshComponent renderData = entity.GetComponent<VoxelMeshComponent>();
+            Debug.Assert(renderData != null);
+            EntityLocation = new Vector3i((int)renderData.Location.X, (int)renderData.Location.Y, (int)renderData.Location.Z);
         }
     }
 }

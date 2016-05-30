@@ -1,20 +1,35 @@
-﻿WorldXSize = 500;
-WorldYSize = 500;
-WorldZSize = 16;
-
-require("Common.lua")
+﻿require("Common.lua")
 
 function initialize(entity)
     local camera = entity.GetComponent(ComponentCamera)
-    --gameWorld = LoadWorld("Maze")
-    --WorldXSize = gameWorld.BlockSize.X
-    --WorldYSize = gameWorld.BlockSize.Y
-    --WorldZSize = gameWorld.BlockSize.Z
-    --Renderer().LightProvider.AmbientLight = Color(0.02, 0.02, 0.02)
+    --scene().AmbientLight = color(0.05, 0.05, 0.05)
+    local playerBlock = block("player")
+    local gameWorld = scene().GameWorld
+    local sizeX = gameWorld.BlockSize.X - 1
+    local sizeY = gameWorld.BlockSize.Y - 1
+    local sizeZ = gameWorld.BlockSize.Z - 1
+
+    local foundPlayer = false;
+    for z = 0, sizeZ do
+        for x = 0, sizeX do
+            for y = 0, sizeY do -- y-major for speed
+                if (gameWorld[x, y, z] == playerBlock) then
+                    camera.Location = vector(x * BlockSize + HalfBlockSize, y * BlockSize + HalfBlockSize, z * BlockSize + HalfBlockSize)
+                    foundPlayer = true
+                    break
+                end
+            end
+            if (foundPlayer) then
+                break
+            end
+        end 
+        if (foundPlayer) then
+            break
+        end
+    end
 
     camera.FieldOfView = math.rad(70)
-    camera.Location = vector(WorldXSize * BlockSize / 2, WorldYSize * BlockSize / 2, 450)
-    camera.FarDistance = 2000
+    camera.FarDistance = 1500
     camera.UpVector = vector(0, 0, 1)
 end
 
@@ -33,30 +48,31 @@ function update(entity, timeSinceLastFrame)
         speed = speed / 10
     end
 
-    local mouseLoc = mouseLocation();
-    local angleZ = math.rad((mouseLoc.X * -0.1) % 360); -- angle around the z-axis
-    local dirVectorXY = rotateVectorZ(vector(0.0, 1.0, 0.0), angleZ); -- direction vector on the XY plane
+    local mouseLoc = mouseLocation()
+    local angleZ = math.rad((mouseLoc.X * -0.1) % 360) -- angle around the z-axis
+    local angleX = math.rad((mouseLoc.Y * -0.1) % 360) -- angle around the x-axis
+    local moveVectorXY = rotateVectorZ(vector(0.0, 1.0, 0.0), angleZ) -- direction vector on the XY plane
 
     if (keyPressed(Keys.A)) then --Move left
-        local moveDirVector = rotateVectorZ(dirVectorXY, math.rad(-90));
-        camLoc.X = camLoc.X - speed * moveDirVector.X;
-        camLoc.Y = camLoc.Y - speed * moveDirVector.Y;
+        local moveDirVector = rotateVectorZ(moveVectorXY, math.rad(-90))
+        camLoc.X = camLoc.X - speed * moveDirVector.X
+        camLoc.Y = camLoc.Y - speed * moveDirVector.Y
     end
 
     if (keyPressed(Keys.D)) then --Move right
-        local moveDirVector = rotateVectorZ(dirVectorXY, math.rad(90));
-        camLoc.X = camLoc.X - speed * moveDirVector.X;
-        camLoc.Y = camLoc.Y - speed * moveDirVector.Y;
+        local moveDirVector = rotateVectorZ(moveVectorXY, math.rad(90))
+        camLoc.X = camLoc.X - speed * moveDirVector.X
+        camLoc.Y = camLoc.Y - speed * moveDirVector.Y
     end
 
     if (keyPressed(Keys.W)) then --Move forwards
-        camLoc.X = camLoc.X + speed * dirVectorXY.X;
-        camLoc.Y = camLoc.Y + speed * dirVectorXY.Y;
+        camLoc.X = camLoc.X + speed * moveVectorXY.X
+        camLoc.Y = camLoc.Y + speed * moveVectorXY.Y
     end
 
     if (keyPressed(Keys.S)) then --Move backwards
-        camLoc.X = camLoc.X - speed * dirVectorXY.X;
-        camLoc.Y = camLoc.Y - speed * dirVectorXY.Y;
+        camLoc.X = camLoc.X - speed * moveVectorXY.X
+        camLoc.Y = camLoc.Y - speed * moveVectorXY.Y
     end
 
     if (keyPressed(Keys.KeypadPlus)) then --Zoom in
@@ -69,8 +85,12 @@ function update(entity, timeSinceLastFrame)
         camera.Location = camLoc
     end
 
+    -- Calculate the look vector
     -- With only a unit-length vector for direction, the look-at location creates some random rounding errors that cause the camera to shake back and forth
-    -- so we create a 15-length vector to remove those rounding errors.
-    camera.LookAtLocation = vector(camera.Location.X + dirVectorXY.X * 15, camera.Location.Y + dirVectorXY.Y * 15, camera.Location.Z + dirVectorXY.Z * 15)
+    -- so we create a 5-length vector to remove those rounding errors.
+    local lookVector = rotateVectorX(vector(0.0, 5.0, 0.0), angleX)
+    lookVector = rotateVectorZ(lookVector, angleZ)
+
+    camera.LookAtLocation = vector(camera.Location.X + lookVector.X, camera.Location.Y + lookVector.Y, camera.Location.Z + lookVector.Z)
 end
 

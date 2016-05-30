@@ -151,7 +151,7 @@ namespace ProdigalSoftware.TiVEEditor.BlockLists
             base.OnLoad(e);
             
             //cntrlCurrentBlock.SetGameWorld(blockList, gameWorld);
-            cntrlCurrentBlock.LightProvider.AmbientLight = new Color3f(230, 230, 230);
+            cntrlCurrentBlock.Scene.AmbientLight = new Color3f(230, 230, 230);
             cntrlCurrentBlock.Camera.UpVector = Vector3f.UnitZ;
             float centerX = cntrlCurrentBlock.GameWorld.VoxelSize.X / 2.0f;
             float centerY = cntrlCurrentBlock.GameWorld.VoxelSize.Y / 2.0f;
@@ -279,7 +279,7 @@ namespace ProdigalSoftware.TiVEEditor.BlockLists
             if (gameWorld != null)
                 gameWorld[WorldCenter, WorldCenter, 1] = newBlock; // Put the block in the middle of the game world
 
-            cntrlCurrentBlock.LightProvider.AmbientLight = newBlock.HasComponent<LightComponent>() ? new Color3f(20, 20, 20) : new Color3f(230, 230, 230);
+            cntrlCurrentBlock.Scene.AmbientLight = newBlock.HasComponent<LightComponent>() ? new Color3f(20, 20, 20) : new Color3f(230, 230, 230);
             cntrlCurrentBlock.RefreshLevel(true);
 
             UpdateState();

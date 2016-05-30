@@ -1,6 +1,6 @@
-﻿WorldXSize = 75;
-WorldYSize = 50;
-WorldZSize = 8;
+﻿WorldXSize = 75
+WorldYSize = 50
+WorldZSize = 8
 
 require("Common.lua")
 
@@ -11,7 +11,7 @@ function initialize(entity)
     --WorldZSize = gameWorld.BlockSize.Z
     --Renderer().LightProvider.AmbientLight = Color(0.2, 0.2, 0.2)
 
-    camera.FieldOfView = math.rad(45)
+    camera.FieldOfView = math.rad(70)
     camera.Location = vector(WorldXSize * BlockSize / 2, WorldYSize * BlockSize / 2 - 50, 0)
     camera.LookAtLocation = vector(WorldXSize * BlockSize / 2, WorldYSize * BlockSize / 2, 0)
     camera.FarDistance = 3000
@@ -24,6 +24,6 @@ function update(entity, timeSinceLastFrame)
     cameraAngle = cameraAngle + (20 * timeSinceLastFrame)
 
     local camera = entity.GetComponent(ComponentCamera)
-    camera.Location = vector(WorldXSize * BlockSize / 2 + math.cos(math.rad(cameraAngle / 3)) * 70, 150 + math.sin(math.rad(cameraAngle)) * 40, BlockSize * 34)
+    camera.Location = vector(WorldXSize * BlockSize / 2 + math.cos(math.rad(cameraAngle / 3)) * 100, 500 + math.sin(math.rad(cameraAngle)) * 60, BlockSize * 20)
 end
 

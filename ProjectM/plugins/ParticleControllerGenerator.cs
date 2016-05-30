@@ -1,7 +1,6 @@
 ﻿using System;
 using ProdigalSoftware.TiVEPluginFramework;
 using ProdigalSoftware.TiVEPluginFramework.Generators;
-using ProdigalSoftware.Utils;
 
 namespace ProdigalSoftware.ProjectM.Plugins
 {
@@ -35,9 +34,14 @@ namespace ProdigalSoftware.ProjectM.Plugins
             }
 
             #region Implementation of ParticleController
-            public override Voxel[, ,] ParticleVoxels
+            public override VoxelSprite ParticleSprite
             {
-                get { return new[, ,] { { { Voxel.White } } }; }
+                get 
+                {
+                    VoxelSprite sprite = new VoxelSprite(1, 1, 1);
+                    sprite[0, 0, 0] = Voxel.White;
+                    return sprite;
+                }
             }
 
             public override void Update(Particle particle, float timeSinceLastFrame, Vector3i systemLocation)
@@ -110,9 +114,14 @@ namespace ProdigalSoftware.ProjectM.Plugins
             }
 
             #region Implementation of ParticleController
-            public override Voxel[, ,] ParticleVoxels
+            public override VoxelSprite ParticleSprite
             {
-                get { return new[, ,] { { { Voxel.White } } }; }
+                get
+                {
+                    VoxelSprite sprite = new VoxelSprite(1, 1, 1);
+                    sprite[0, 0, 0] = Voxel.White;
+                    return sprite;
+                }
             }
 
             public override void Update(Particle particle, float timeSinceLastFrame, Vector3i systemLocation)
@@ -184,11 +193,11 @@ namespace ProdigalSoftware.ProjectM.Plugins
             }
 
             #region Implementation of ParticleController
-            public override Voxel[, ,] ParticleVoxels
+            public override VoxelSprite ParticleSprite
             {
                 get
                 {
-                    Voxel[, ,] particleVoxels = new Voxel[3, 3, 3];
+                    VoxelSprite particleVoxels = new VoxelSprite(3, 3, 3);
                     particleVoxels[1, 1, 1] = Voxel.White;
                     particleVoxels[0, 1, 1] = Voxel.White;
                     particleVoxels[2, 1, 1] = Voxel.White;
@@ -244,9 +253,14 @@ namespace ProdigalSoftware.ProjectM.Plugins
             }
 
             #region Implementation of ParticleController
-            public override Voxel[,,] ParticleVoxels
+            public override VoxelSprite ParticleSprite
             {
-                get { return new[, ,] { { { Voxel.White } } }; }
+                get
+                {
+                    VoxelSprite sprite = new VoxelSprite(1, 1, 1);
+                    sprite[0, 0, 0] = Voxel.White;
+                    return sprite;
+                }
             }
 
             public override void Update(Particle particle, float timeSinceLastFrame, Vector3i systemLocation)

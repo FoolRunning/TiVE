@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using ProdigalSoftware.TiVE.Core;
@@ -31,8 +30,8 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
         private readonly LightingModel lightingModel;
         private readonly ChunkLights[] chunkLightInfo;
         private Vector3i chunkSize;
-        private volatile int totalComplete;
-        private volatile int lastPercentComplete;
+        //private volatile int totalComplete;
+        //private volatile int lastPercentComplete;
         #endregion
 
         #region Constructor
@@ -40,7 +39,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
         {
             this.scene = scene;
 
-            GameWorld gameWorld = scene.GameWorld;
+            GameWorld gameWorld = scene.GameWorldInternal;
             chunkSize = new Vector3i((int)Math.Ceiling(gameWorld.BlockSize.X / (float)ChunkComponent.BlockSize),
                 (int)Math.Ceiling(gameWorld.BlockSize.Y / (float)ChunkComponent.BlockSize),
                 (int)Math.Ceiling(gameWorld.BlockSize.Z / (float)ChunkComponent.BlockSize));
@@ -119,7 +118,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
             int startX = chunkX * ChunkComponent.BlockSize;
             int startY = chunkY * ChunkComponent.BlockSize;
             int startZ = chunkZ * ChunkComponent.BlockSize;
-            GameWorld gameWorld = scene.GameWorld;
+            GameWorld gameWorld = scene.GameWorldInternal;
             int sizeX = gameWorld.BlockSize.X;
             int sizeY = gameWorld.BlockSize.Y;
             int sizeZ = gameWorld.BlockSize.Z;
@@ -204,19 +203,19 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
         {
             Thread thread = new Thread(() =>
             {
-                GameWorld gameWorld = scene.GameWorld;
-                int sizeX = gameWorld.BlockSize.X;
+                GameWorld gameWorld = scene.GameWorldInternal;
+                //int sizeX = gameWorld.BlockSize.X;
                 int sizeY = gameWorld.BlockSize.Y;
                 int sizeZ = gameWorld.BlockSize.Z;
 
                 for (int x = startX; x < endX; x++)
                 {
-                    int percentComplete = totalComplete * 100 / (sizeX - 1);
-                    if (percentComplete != lastPercentComplete)
-                    {
-                        Console.WriteLine("Calculating lighting: {0}%", percentComplete);
-                        lastPercentComplete = percentComplete;
-                    }
+                    //int percentComplete = totalComplete * 100 / (sizeX - 1);
+                    //if (percentComplete != lastPercentComplete)
+                    //{
+                    //    Console.WriteLine("Calculating lighting: {0}%", percentComplete);
+                    //    lastPercentComplete = percentComplete;
+                    //}
 
                     for (int z = 0; z < sizeZ; z++)
                     {
@@ -227,7 +226,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
                                 FillChunksWithLight(light, lightInfos, x, y, z);
                         }
                     }
-                    totalComplete++;
+                    //totalComplete++;
                 }
             });
 
@@ -295,7 +294,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
         /// </summary>
         private bool CullLightFast(int lbx, int lby, int lbz, int bx, int by, int bz)
         {
-            GameWorld gameWorld = scene.GameWorld;
+            GameWorld gameWorld = scene.GameWorldInternal;
             int startX = (lbx < bx) ? Math.Max(0, bx - 1) : bx;
             int startY = (lby < by) ? Math.Max(0, by - 1) : by;
             int startZ = (lbz < bz) ? Math.Max(0, bz - 1) : bz;
@@ -323,7 +322,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
         /// </summary>
         private bool CullLightAccurate(int lbx, int lby, int lbz, int bx, int by, int bz)
         {
-            GameWorld gameWorld = scene.GameWorld;
+            GameWorld gameWorld = scene.GameWorldInternal;
             int startX = Math.Max(0, bx - 1);
             int startY = Math.Max(0, by - 1);
             int startZ = Math.Max(0, bz - 1);
