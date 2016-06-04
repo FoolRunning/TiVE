@@ -10,7 +10,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
     [UsedImplicitly]
     public class MazeBlockLoader : IBlockGenerator
     {
-        private static readonly Random random = new Random();
+        private static readonly RandomGenerator random = new RandomGenerator();
         private static readonly Voxel mortarColor = new Voxel(170, 170, 170);
 
         private const int Front = 1;
@@ -278,7 +278,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
                 }
             }
 
-            const double divisor = Block.VoxelSize * 10.4;
+            const float divisor = Block.VoxelSize * 10.4f;
             for (int i = 0; i < CommonUtils.grassBlockDuplicates; i++)
             {
                 Block grass = new Block("grass" + i);
@@ -291,10 +291,10 @@ namespace ProdigalSoftware.ProjectM.Plugins
                     {
                         for (int y = 0; y < Block.VoxelSize; y++)
                         {
-                            if (random.NextDouble() < 0.3 - z / divisor && (z == 0 || GrassVoxelUnder(grass, x, y, z)))
+                            if (random.NextFloat() < 0.3f - z / divisor && (z == 0 || GrassVoxelUnder(grass, x, y, z)))
                             {
                                 grass[x, y, z] = new Voxel(55, 180, 40, 255, VoxelSettings.SkipVoxelNormalCalc);
-                                if (z == Block.VoxelSize - 1 && random.NextDouble() < 0.5 &&
+                                if (z == Block.VoxelSize - 1 && random.NextFloat() < 0.5f &&
                                     x > 1 && x < Block.VoxelSize - 2 && y > 1 && y < Block.VoxelSize - 2)
                                 {
                                     // Make a flower
@@ -514,7 +514,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
                                 continue;
                         }
 
-                        if (random.NextDouble() < voxelDensity)
+                        if (random.NextFloat() < voxelDensity)
                             block[x, y, z] = voxel;
                     }
                 }
@@ -558,7 +558,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
                                 continue;
                         }
 
-                        if (random.NextDouble() < voxelDensity)
+                        if (random.NextFloat() < voxelDensity)
                             block[x, y, z] = new Voxel(color.R, color.G, color.B, color.A, settings);
                     }
                 }

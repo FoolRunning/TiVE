@@ -10,7 +10,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
     [UsedImplicitly]
     public class MazeGenerateWorld : IWorldGenerator
     {
-        private static readonly Random random = new Random();
+        private static readonly RandomGenerator random = new RandomGenerator();
 
         private const int AreaIdDoor = 2100;
 
@@ -29,14 +29,14 @@ namespace ProdigalSoftware.ProjectM.Plugins
             if (gameWorldName != "Maze")
                 return null;
             
-            IGameWorld gameWorld = Factory.NewGameWorld(201, 201, 12); // x-axis and y-axis must be divisible by 3
+            IGameWorld gameWorld = Factory.NewGameWorld(300, 300, 12); // x-axis and y-axis must be divisible by 3
             //IGameWorld gameWorld = Factory.NewGameWorld(111, 111, 12); // x-axis and y-axis must be divisible by 3
             gameWorld.LightingModelType = LightingModelType.Fantasy3;
 
             MazeCell[,] dungeonMap = new MazeCell[gameWorld.BlockSize.X / 3, gameWorld.BlockSize.Y / 3];
-            List<Vector3i> rooms = CreateRandomRooms(30, 3, 11, 3, 11).ToList();
+            List<Vector3i> rooms = CreateRandomRooms(random.Next(50) + 20, 3, 11, 3, 11).ToList();
             //List<Vector3i> rooms = CreateRandomRooms(10, 3, 11, 3, 11).ToList();
-            int mazeStartAreaId = PlaceRooms(rooms, dungeonMap, 25);
+            int mazeStartAreaId = PlaceRooms(rooms, dungeonMap, random.Next(60) + 10);
             int lastUsedId = FillBlankWithMaze(dungeonMap, mazeStartAreaId);
 
             // Find possible door points at places where rooms and maze (or another room) meet
@@ -50,15 +50,15 @@ namespace ProdigalSoftware.ProjectM.Plugins
             //Console.WriteLine("\n\nMaze before cleaning dead ends:");
             //PrintDungeon(dungeonMap);
 
-            CleanUpDeadEnds(dungeonMap, 100);
+            CleanUpDeadEnds(dungeonMap, random.Next(60) + 40);
             
             //Console.WriteLine("\n\nMaze before removing annoying turns:");
             //PrintDungeon(dungeonMap);
 
             RemoveAnnoyingMazeTurns(dungeonMap, mazeStartAreaId, lastUsedId);
 
-            Console.WriteLine("\n\nFinished Maze:");
-            PrintDungeon(dungeonMap);
+            //Console.WriteLine("\n\nFinished Maze:");
+            //PrintDungeon(dungeonMap);
 
             FillWorld(gameWorld, dungeonMap, mazeStartAreaId);
             CommonUtils.SmoothGameWorldForMazeBlocks(gameWorld);
@@ -363,10 +363,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
                 {
                     MazeCellLocation otherPossibleDoor = possibleDoors[possibleDoors.Count - 1];
                     if (random.Next(100) < 7) // 7% chance to create another door
-                    {
                         dungeonMap[otherPossibleDoor.X, otherPossibleDoor.Y].AreaId = AreaIdDoor;
-                        //connectedAreaIds.Add(AreaIdAroundThatsNotArea(dungeonMap, otherPossibleDoor.X, otherPossibleDoor.Y, roomIdToConnect));
-                    }
 
                     dungeonMap[otherPossibleDoor.X, otherPossibleDoor.Y].PossibleDoorPoint = false;
                     possibleDoors.RemoveAt(possibleDoors.Count - 1);
@@ -440,6 +437,29 @@ namespace ProdigalSoftware.ProjectM.Plugins
                 maxAmountOfDeadEndToRemove--;
             }
             while (removedDeadEnd && maxAmountOfDeadEndToRemove > 0);
+
+            // Add a light to any remaining dead-ends
+            for (int x = 1; x < dungeonMap.GetLength(0) - 1; x++)
+            {
+                for (int y = 1; y < dungeonMap.GetLength(1) - 1; y++)
+                {
+                    if (dungeonMap[x, y].AreaId != 0)
+                    {
+                        int surroundingAreaCount = 0;
+                        if (dungeonMap[x - 1, y].AreaId != 0)
+                            surroundingAreaCount++;
+                        if (dungeonMap[x + 1, y].AreaId != 0)
+                            surroundingAreaCount++;
+                        if (dungeonMap[x, y - 1].AreaId != 0)
+                            surroundingAreaCount++;
+                        if (dungeonMap[x, y + 1].AreaId != 0)
+                            surroundingAreaCount++;
+
+                        if (surroundingAreaCount <= 1)
+                            dungeonMap[x, y].LightId = random.Next(5) + 1;
+                    }
+                }
+            }
         }
 
         private static void RemoveAnnoyingMazeTurns(MazeCell[,] dungeonMap, int mazeStartAreaId, int lastUsedAreaId)

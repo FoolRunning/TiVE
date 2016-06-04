@@ -43,7 +43,7 @@ namespace ProdigalSoftware.TiVE.SoundSystem
             speechSynthesisThread.IsBackground = true;
             speechSynthesisThread.Name = "SpeechSynthesis";
             speechSynthesisThread.Priority = ThreadPriority.AboveNormal;
-            //speechSynthesisThread.Start();
+            speechSynthesisThread.Start();
             return true;
         }
 
@@ -56,8 +56,8 @@ namespace ProdigalSoftware.TiVE.SoundSystem
                 using (new PerformanceLock(soundTaskQueue))
                     soundTaskQueue.Clear();
 
-                //while (!initialized)
-                //    Thread.Sleep(1);
+                while (!initialized)
+                    Thread.Sleep(1);
             }
         }
 

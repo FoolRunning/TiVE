@@ -29,7 +29,7 @@ namespace ProdigalSoftware.TiVE
 
         static TiVEController()
         {
-            for (int i = 0; i < 100; i++)
+            for (int i = 0; i < 50; i++)
             {
                 long startTime = Stopwatch.GetTimestamp();
                 Thread.Sleep(1);
@@ -63,6 +63,7 @@ namespace ProdigalSoftware.TiVE
             Engine.AddSystem(new GUISystem.GUISystem());
 
             Engine.AddSystem(new ScriptSystem.ScriptSystem(Backend.Keyboard, Backend.Mouse));
+            Engine.AddSystem(new AISystem.AISystem());
             Engine.AddSystem(new CameraSystem.CameraSystem());
             Engine.AddSystem(new SoundSystem.SoundSystem());
             Engine.AddSystem(new VoxelMeshSystem.VoxelMeshSystem());
@@ -90,6 +91,7 @@ namespace ProdigalSoftware.TiVE
                 starterForm.AfterInitialLoad(success);
 
                 //TestIntStructAccess();
+                //TestRandomSpeed();
                 DoBlockLineTest();
                 DoFastVoxelRayCastTest();
                 DoVoxelRayCastTest();
@@ -195,6 +197,38 @@ namespace ProdigalSoftware.TiVE
         }
         #endregion
 
+        #region Random number generator speed tests
+        //private static void TestRandomSpeed()
+        //{
+        //    DotNetRandomSpeedTest();
+        //    TiVERandomGeneratorSpeedTest();
+        //}
+
+        //private static void DotNetRandomSpeedTest()
+        //{
+        //    Stopwatch sw = Stopwatch.StartNew();
+        //    Random random = new Random();
+        //    int value = 184756152;
+        //    for (int i = 0; i < 100000000; i++)
+        //        value ^= random.Next();
+        //    sw.Stop();
+
+        //    Messages.Println(string.Format("100M .Net random numbers took {0}ms", sw.ElapsedTicks * 1000.0f / Stopwatch.Frequency), Color.Chocolate);
+        //}
+
+        //private static void TiVERandomGeneratorSpeedTest()
+        //{
+        //    Stopwatch sw = Stopwatch.StartNew();
+        //    RandomGenerator random = new RandomGenerator();
+        //    int value = 184756152;
+        //    for (int i = 0; i < 100000000; i++)
+        //        value ^= random.Next();
+        //    sw.Stop();
+
+        //    Messages.Println(string.Format("100M TiVE random numbers took {0}ms", sw.ElapsedTicks * 1000.0f / Stopwatch.Frequency), Color.Chocolate);
+        //}
+        #endregion
+
         #region Struct with int vs. int speed
         //private static void TestIntStructAccess()
         //{
@@ -263,5 +297,7 @@ namespace ProdigalSoftware.TiVE
         //    }
         //}
         #endregion
+
+
     }
 }
