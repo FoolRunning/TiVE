@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Diagnostics;
 using ProdigalSoftware.TiVE.RenderSystem.Lighting;
 using ProdigalSoftware.TiVEPluginFramework;
@@ -25,13 +24,13 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
         public void Enqueue(EntityLoadQueueItem item)
         {
             int existingItemIndex = FindRealIndex(item);
-            if (existingItemIndex >= 0 && entities[existingItemIndex].Entity != item.Entity)
-                Console.WriteLine("Probably replaced the wrong item :(");
+            //if (existingItemIndex >= 0 && entities[existingItemIndex].Entity != item.Entity)
+            //    Console.WriteLine("Probably replaced the wrong item :(");
 
             if (existingItemIndex >= 0)
             {
-                if (entities[existingItemIndex].DetailLevel == item.DetailLevel && entities[existingItemIndex].ShadowType == item.ShadowType)
-                    Console.WriteLine("Probably enqueued item for no reason :(");
+                //if (entities[existingItemIndex].DetailLevel == item.DetailLevel && entities[existingItemIndex].ShadowType == item.ShadowType)
+                //    Console.WriteLine("Probably enqueued item for no reason :(");
                 entities[existingItemIndex] = item;
             }
             else
@@ -42,8 +41,8 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
         {
             EntityLoadQueueItem queueItem = new EntityLoadQueueItem(item, 0, ShadowType.None);
             int existingItemIndex = FindRealIndex(queueItem);
-            if (existingItemIndex >= 0 && entities[existingItemIndex].Entity != item)
-                Console.WriteLine("Probably removed the wrong item :(");
+            //if (existingItemIndex >= 0 && entities[existingItemIndex].Entity != item)
+            //    Console.WriteLine("Probably removed the wrong item :(");
 
             if (existingItemIndex >= 0)
                 entities.RemoveAt(existingItemIndex);
@@ -69,8 +68,8 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
         public bool Contains(EntityLoadQueueItem item)
         {
             int existingItemIndex = FindRealIndex(item);
-            if (existingItemIndex >= 0 && entities[existingItemIndex].Entity != item.Entity)
-                Console.WriteLine("Probably found the wrong item :(");
+            //if (existingItemIndex >= 0 && entities[existingItemIndex].Entity != item.Entity)
+            //    Console.WriteLine("Probably found the wrong item :(");
             return existingItemIndex >= 0;
         }
 
@@ -132,12 +131,6 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
                 int distY = item.EntityLocation.Y - comparePoint.Y;
                 int distZ = item.EntityLocation.Z - comparePoint.Z;
                 return distX * distX + distY * distY + distZ * distZ;
-
-                //if (distFromPointSquared == 0) // rare, but could happen
-                //    return int.MaxValue;
-
-                //// Score so that near items are most important, but as you get further out, detail level is more important (with higher-value levels being more important)
-                //return 100000 / distFromPointSquared + item.DetailLevel * 11713;
             }
         }
         #endregion
