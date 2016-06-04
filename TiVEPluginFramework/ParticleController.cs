@@ -12,6 +12,8 @@
     /// </summary>
     public abstract class ParticleController
     {
+        protected static readonly RandomGenerator Random = new RandomGenerator();
+
         private readonly TransparencyType transparencyType;
         private readonly int maxParticles;
         private readonly int particlesPerSecond;

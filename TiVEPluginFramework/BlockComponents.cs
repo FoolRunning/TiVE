@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Threading;
 
 namespace ProdigalSoftware.TiVEPluginFramework
 {
@@ -65,7 +66,7 @@ namespace ProdigalSoftware.TiVEPluginFramework
     {
         public static readonly Guid ID = new Guid("7100C34D-7025-4341-9272-23CB407E201A");
 
-        private readonly Random random = new Random();
+        private readonly RandomGenerator random = new RandomGenerator();
         private readonly float variationPercentage;
         private readonly Voxel[] voxelsToIgnore;
 
@@ -101,9 +102,9 @@ namespace ProdigalSoftware.TiVEPluginFramework
                 }
             }
 
-            float rnd;
-            lock (random) // The Random class is not thread-safe and produces very strange results when multiple threads access it at the same time
-                rnd = (float)random.NextDouble();
+            Monitor.Enter(random); // The Random class is not thread-safe and produces very strange results when multiple threads access it at the same time
+            float rnd = random.NextFloat();
+            Monitor.Exit(random);
 
             float scale = rnd * variationPercentage + (1.0f - variationPercentage / 2.0f);
             return new Voxel((byte)Math.Min((int)(voxel.R * scale), 255), (byte)Math.Min((int)(voxel.G * scale), 255), 

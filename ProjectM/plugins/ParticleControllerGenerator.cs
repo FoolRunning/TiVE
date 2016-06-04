@@ -26,8 +26,6 @@ namespace ProdigalSoftware.ProjectM.Plugins
             private const float SnowDeacceleration = 21.0f;
             private const float AliveTime = 30.0f;
 
-            private static readonly Random random = new Random();
-
             public SnowUpdater()
                 : base(1, 100, TransparencyType.None, true)
             {
@@ -69,21 +67,21 @@ namespace ProdigalSoftware.ProjectM.Plugins
             }
             #endregion
 
-            private static void InitNewInternal(Particle particle, Vector3i systemLocation, bool startAtTop)
+            private void InitNewInternal(Particle particle, Vector3i systemLocation, bool startAtTop)
             {
-                particle.VelX = (float)random.NextDouble() * 48.0f - 24.0f;
-                particle.VelZ = (float)random.NextDouble() * -30.0f - 20.0f;
-                particle.VelY = (float)random.NextDouble() * 48.0f - 24.0f;
+                particle.VelX = Random.NextFloat() * 48.0f - 24.0f;
+                particle.VelZ = Random.NextFloat() * -30.0f - 20.0f;
+                particle.VelY = Random.NextFloat() * 48.0f - 24.0f;
 
-                particle.X = systemLocation.X + random.Next(Block.VoxelSize);
-                particle.Y = systemLocation.Y + random.Next(Block.VoxelSize);
+                particle.X = systemLocation.X + Random.Next(Block.VoxelSize);
+                particle.Y = systemLocation.Y + Random.Next(Block.VoxelSize);
                 if (startAtTop)
                     particle.Z = 59 * Block.VoxelSize;
                 else
-                    particle.Z = random.Next(56 * Block.VoxelSize) + 3 * Block.VoxelSize;
+                    particle.Z = Random.Next(56 * Block.VoxelSize) + 3 * Block.VoxelSize;
 
                 particle.Color = new Color4b(255, 255, 255, 255);
-                particle.Time = (float)random.NextDouble() * AliveTime / 2.0f + AliveTime / 2.0f;
+                particle.Time = Random.NextFloat() * AliveTime / 2.0f + AliveTime / 2.0f;
             }
         }
         #endregion
@@ -94,7 +92,6 @@ namespace ProdigalSoftware.ProjectM.Plugins
             private const float FlameDeacceleration = 35.0f;
             private const float AliveTime = 1.0f;
 
-            private readonly Random random = new Random();
             private static readonly Color4b[] colorList = new Color4b[256];
 
             static FireUpdater()
@@ -156,10 +153,10 @@ namespace ProdigalSoftware.ProjectM.Plugins
 
             public override void InitializeNew(Particle particle, Vector3i systemLocation)
             {
-                float angle = (float)random.NextDouble() * 2.0f * 3.141592f;
-                float totalVel = (float)random.NextDouble() * 6.0f + 10.0f;
+                float angle = Random.NextFloat() * 2.0f * 3.141592f;
+                float totalVel = Random.NextFloat() * 6.0f + 10.0f;
                 particle.VelX = (float)Math.Cos(angle) * totalVel;
-                particle.VelZ = (float)random.NextDouble() * 11.0f + 8.0f;
+                particle.VelZ = Random.NextFloat() * 11.0f + 8.0f;
                 particle.VelY = (float)Math.Sin(angle) * totalVel;
 
                 particle.X = systemLocation.X;
@@ -178,7 +175,6 @@ namespace ProdigalSoftware.ProjectM.Plugins
         {
             private const float AliveTime = 2.0f;
 
-            private readonly Random random = new Random();
             private static readonly Color4b[] colorList = new Color4b[256];
 
             static FountainUpdater()
@@ -225,10 +221,10 @@ namespace ProdigalSoftware.ProjectM.Plugins
 
             public override void InitializeNew(Particle particle, Vector3i systemLocation)
             {
-                float angle = (float)random.NextDouble() * 2.0f * 3.141592f;
-                float totalVel = (float)random.NextDouble() * 5.0f + 3.0f;
+                float angle = Random.NextFloat() * 2.0f * 3.141592f;
+                float totalVel = Random.NextFloat() * 5.0f + 3.0f;
                 particle.VelX = (float)Math.Cos(angle) * totalVel;
-                particle.VelZ = (float)random.NextDouble() * 30.0f + 110.0f;
+                particle.VelZ = Random.NextFloat() * 30.0f + 110.0f;
                 particle.VelY = (float)Math.Sin(angle) * totalVel;
 
                 particle.X = systemLocation.X - 1;
@@ -246,7 +242,6 @@ namespace ProdigalSoftware.ProjectM.Plugins
         private class LightBugsUpdater : ParticleController
         {
             private const float BugDeacceleration = 30.0f;
-            private static readonly Random random = new Random();
 
             public LightBugsUpdater() : base(10, 15, TransparencyType.Realistic, true)
             {
@@ -284,13 +279,13 @@ namespace ProdigalSoftware.ProjectM.Plugins
 
             public override void InitializeNew(Particle particle, Vector3i systemLocation)
             {
-                particle.VelX = (float)random.NextDouble() * 40.0f - 20.0f;
-                particle.VelZ = (float)random.NextDouble() * 40.0f - 20.0f;
-                particle.VelY = (float)random.NextDouble() * 40.0f - 20.0f;
+                particle.VelX = Random.NextFloat() * 40.0f - 20.0f;
+                particle.VelZ = Random.NextFloat() * 40.0f - 20.0f;
+                particle.VelY = Random.NextFloat() * 40.0f - 20.0f;
 
-                particle.X = (float)random.NextDouble() * 20.0f + systemLocation.X - 10.0f;
-                particle.Y = (float)random.NextDouble() * 20.0f + systemLocation.Y - 10.0f;
-                particle.Z = (float)random.NextDouble() * 20.0f + systemLocation.Z - 10.0f;
+                particle.X = Random.NextFloat() * 20.0f + systemLocation.X - 10.0f;
+                particle.Y = Random.NextFloat() * 20.0f + systemLocation.Y - 10.0f;
+                particle.Z = Random.NextFloat() * 20.0f + systemLocation.Z - 10.0f;
 
                 particle.Color = CreateColor();
                 particle.Time = 1.0f;
@@ -299,7 +294,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
 
             private static Color4b CreateColor()
             {
-                byte intensity = (byte)(50 + random.Next(100));
+                byte intensity = (byte)(50 + Random.Next(100));
                 return new Color4b(intensity, intensity, intensity, 200);
             }
         }

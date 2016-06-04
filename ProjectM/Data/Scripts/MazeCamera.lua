@@ -87,8 +87,8 @@ function update(entity, timeSinceLastFrame)
 
     -- Calculate the look vector
     -- With only a unit-length vector for direction, the look-at location creates some random rounding errors that cause the camera to shake back and forth
-    -- so we create a 5-length vector to remove those rounding errors.
-    local lookVector = rotateVectorX(vector(0.0, 5.0, 0.0), angleX)
+    -- so we create a 50-length vector to remove those rounding errors.
+    local lookVector = rotateVectorX(vector(0.0, 50.0, 0.0), angleX)
     lookVector = rotateVectorZ(lookVector, angleZ)
 
     camera.LookAtLocation = vector(camera.Location.X + lookVector.X, camera.Location.Y + lookVector.Y, camera.Location.Z + lookVector.Z)

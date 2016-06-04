@@ -121,6 +121,17 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AISystem\AISystem.cs" />
+    <Compile Include="AISystem\PathFinder\GridPos.cs" />
+    <Compile Include="AISystem\PathFinder\GridRect.cs" />
+    <Compile Include="AISystem\PathFinder\Grid\BaseGrid.cs" />
+    <Compile Include="AISystem\PathFinder\Grid\DynamicGrid.cs" />
+    <Compile Include="AISystem\PathFinder\Grid\DynamicGridWPool.cs" />
+    <Compile Include="AISystem\PathFinder\Grid\PartialGridWPool.cs" />
+    <Compile Include="AISystem\PathFinder\Grid\StaticGrid.cs" />
+    <Compile Include="AISystem\PathFinder\Heuristic.cs" />
+    <Compile Include="AISystem\PathFinder\JumpPointFinder.cs" />
+    <Compile Include="AISystem\PathFinder\NodePool.cs" />
     <Compile Include="CameraSystem\CameraSystem.cs" />
     <Compile Include="Core\Backend\OpenTKImpl\MouseImpl.cs" />
     <Compile Include="RenderSystem\EntityMeshDeleteQueue.cs" />

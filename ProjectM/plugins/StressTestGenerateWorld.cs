@@ -85,8 +85,8 @@ namespace ProdigalSoftware.ProjectM.Plugins
             Block fire = Factory.Get<Block>("STfire");
             Block fountain = Factory.Get<Block>("STfountain");
 
-            Random random1 = new Random((int)((seed >> 11) & 0xFFFFFFFF));
-            Random random2 = new Random((int)((seed >> 15) & 0xFFFFFFFF));
+            RandomGenerator random1 = new RandomGenerator((int)((seed >> 11) & 0xFFFFFFFF));
+            RandomGenerator random2 = new RandomGenerator((int)((seed >> 15) & 0xFFFFFFFF));
 
             double xOff1 = random1.NextDouble() * 50.0 - 25.0;
             double yOff1 = random1.NextDouble() * 50.0 - 25.0;
@@ -160,8 +160,8 @@ namespace ProdigalSoftware.ProjectM.Plugins
         /// </summary>
         private static void CreateCaves(IGameWorld gameWorld, long seed)
         {
-            Random random1 = new Random((int)(seed & 0xFFFFFFFF));
-            Random random2 = new Random((int)((seed >> 32) & 0xFFFFFFFF));
+            RandomGenerator random1 = new RandomGenerator((int)(seed & 0xFFFFFFFF));
+            RandomGenerator random2 = new RandomGenerator((int)((seed >> 32) & 0xFFFFFFFF));
 
             double xOff1 = random1.NextDouble() * 50.0 - 25.0;
             double yOff1 = random1.NextDouble() * 50.0 - 25.0;

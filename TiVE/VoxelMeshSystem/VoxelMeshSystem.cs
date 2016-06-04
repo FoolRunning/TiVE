@@ -539,25 +539,17 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
             float distZ = renderData.Location.Z - cameraData.Location.Z;
 
             float dist = distX * distX + distY * distY + distZ * distZ;
-            float distancePerLevel;
+            float shadowDistance;
             switch (currentShadowDistanceSetting)
             {
-                case ShadowDistance.Closest: distancePerLevel = 90000; break; // 300v
-                case ShadowDistance.Close: distancePerLevel = 202500; break;  // 450v
-                case ShadowDistance.Mid: distancePerLevel = 360000; break;    // 600v
-                case ShadowDistance.Far: distancePerLevel = 562500; break;    // 750v
-                default: distancePerLevel = 810000; break;                    // 900v
+                case ShadowDistance.Closest: shadowDistance = 90000; break; // 300v
+                case ShadowDistance.Close: shadowDistance = 202500; break;  // 450v
+                case ShadowDistance.Mid: shadowDistance = 360000; break;    // 600v
+                case ShadowDistance.Far: shadowDistance = 562500; break;    // 750v
+                default: shadowDistance = 810000; break;                    // 900v
             }
 
-            const int start = (int)ShadowType.Nice;
-            const int end = (int)ShadowType.None;
-            for (byte i = start; i > end; i--)
-            {
-                if (dist <= distancePerLevel)
-                    return (currentShadowDistanceSetting == ShadowDistance.Closest) ? ShadowType.Nice : (ShadowType)i;
-                dist -= distancePerLevel * (start - i + 1);
-            }
-            return ShadowType.None;
+            return dist <= shadowDistance ? ShadowType.Nice : ShadowType.None;
         }
 
         private void ReloadEntityMesh(IEntity entity, VoxelMeshComponent renderData, byte voxelDetailLevel, ShadowType shadowType)

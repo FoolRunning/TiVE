@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using ProdigalSoftware.TiVEPluginFramework;
 
 namespace ProdigalSoftware.ProjectM.Plugins
@@ -7,7 +6,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
     public sealed class BlockRandomizer
     {
         private readonly Block[] blocks;
-        private readonly Random random = new Random();
+        private readonly RandomGenerator random = new RandomGenerator();
 
         public BlockRandomizer(string blockname, int blockCount)
         {
@@ -25,7 +24,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
     public static class CommonUtils
     {
         public const int stoneBlockDuplicates = 5;
-        public const int stoneBackBlockDuplicates = 5;
+        public const int stoneBackBlockDuplicates = 10;
         public const int grassBlockDuplicates = 50;
 
         private const int Front = 1;
