@@ -138,6 +138,7 @@
     <Compile Include="SoundSystem\ISound.cs" />
     <Compile Include="SoundSystem\MaryTTSSpeechEngineImpl\MaryTTSEngine.cs" />
     <Compile Include="SoundSystem\AudioData.cs" />
+    <Compile Include="VoxelMeshSystem\MeshBuilder2.cs" />
     <Compile Include="VoxelMeshSystem\EntityMeshLoadQueue.cs" />
     <Compile Include="VoxelMeshSystem\VoxelMeshSystem.cs" />
     <Compile Include="Core\Backend\IKeyboard.cs" />
@@ -245,6 +246,10 @@
     <EmbeddedResource Include="Core\Backend\OpenTKImpl\Shaders\Simple.frag" />
     <EmbeddedResource Include="Core\Backend\OpenTKImpl\Shaders\Unshaded.vert" />
     <EmbeddedResource Include="Core\Backend\OpenTKImpl\Shaders\UnshadedInstances.vert" />
+    <EmbeddedResource Include="Core\Backend\OpenTKImpl\Shaders\Simple.vert" />
+    <EmbeddedResource Include="Core\Backend\OpenTKImpl\Shaders\Mesh.geom" />
+    <EmbeddedResource Include="Core\Backend\OpenTKImpl\Shaders\ShadedMesh.geom" />
+    <EmbeddedResource Include="Core\Backend\OpenTKImpl\Shaders\MeshPoints.geom" />
     <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>

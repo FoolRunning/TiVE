@@ -23,9 +23,9 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
         private const int SmallColorDiff = 10;
         private const int BigColorDiff = 20;
 
-        private static readonly VoxelMeshHelper cubifyNonInstanced = new CubifyNonInstancedVoxelMeshHelper();
+        private static readonly VoxelMeshHelper cubifyNonInstancedGeom = new CubifyNonInstancedGeomVoxelMeshHelper();
         private static readonly VoxelMeshHelper cubifyInstanced = new CubifyInstancedVoxelMeshHelper();
-        private static readonly VoxelMeshHelper nonCubifyNonInstanced = new NonCubifyNonInstancedVoxelMeshHelper();
+        private static readonly VoxelMeshHelper nonCubifyNonInstancedGeom = new NonCubifyNonInstancedGeomVoxelMeshHelper();
         private static readonly VoxelMeshHelper nonCubifyInstanced = new NonCubifyInstancedVoxelMeshHelper();
         private static bool cubifyVoxels;
 
@@ -35,10 +35,10 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
             TiVEController.UserSettings.SettingChanged += UserSettings_SettingChanged;
         }
 
-        static void UserSettings_SettingChanged(string settingName)
+        static void UserSettings_SettingChanged(string settingName, Setting newValue)
         {
             if (settingName == UserSettings.CubifyVoxelsKey)
-                cubifyVoxels = TiVEController.UserSettings.Get(UserSettings.CubifyVoxelsKey);
+                cubifyVoxels = newValue;
         }
 
         /// <summary>
@@ -47,114 +47,16 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
         public static VoxelMeshHelper Get(bool forInstances)
         {
             if (cubifyVoxels)
-                return forInstances ? cubifyInstanced : cubifyNonInstanced;
+                return forInstances ? cubifyInstanced : cubifyNonInstancedGeom;
 
-            return forInstances ? nonCubifyInstanced : nonCubifyNonInstanced;
+            return forInstances ? nonCubifyInstanced : nonCubifyNonInstancedGeom;
         }
 
         public abstract string ShaderName { get; }
 
-        public abstract int AddVoxel(MeshBuilder meshBuilder, VoxelSides sides, byte x, byte y, byte z, Color4b color, int voxelSize = 1);
+        public abstract int AddVoxel(MeshBuilder meshBuilder, VoxelSides sides, byte x, byte y, byte z, Color4b color, int voxelSize);
 
-        #region NonCubifyNonInstancedVoxelMeshHelper class
-        private sealed class NonCubifyNonInstancedVoxelMeshHelper : VoxelMeshHelper
-        {
-            public override string ShaderName
-            {
-                get { return "NonShadedNonInstanced"; }
-            }
-
-            public override int AddVoxel(MeshBuilder meshBuilder, VoxelSides sides, byte x, byte y, byte z, Color4b color, int voxelSize = 1)
-            {
-                byte x2 = (byte)(x + voxelSize);
-                byte y2 = (byte)(y + voxelSize);
-                byte z2 = (byte)(z + voxelSize);
-                int v1 = meshBuilder.Add(x, y2, z, color);
-                int v2 = meshBuilder.Add(x2, y2, z, color);
-                int v3 = meshBuilder.Add(x2, y2, z2, color);
-                int v4 = meshBuilder.Add(x, y2, z2, color);
-                int v5 = meshBuilder.Add(x, y, z, color);
-                int v6 = meshBuilder.Add(x2, y, z, color);
-                int v7 = meshBuilder.Add(x2, y, z2, color);
-                int v8 = meshBuilder.Add(x, y, z2, color);
-
-                int polygonCount = 0;
-                if ((sides & VoxelSides.Front) != 0)
-                {
-                    meshBuilder.AddIndex(v8);
-                    meshBuilder.AddIndex(v3);
-                    meshBuilder.AddIndex(v7);
-
-                    meshBuilder.AddIndex(v3);
-                    meshBuilder.AddIndex(v8);
-                    meshBuilder.AddIndex(v4);
-                    polygonCount += 2;
-                }
-
-                if ((sides & VoxelSides.Back) != 0)
-                {
-                    meshBuilder.AddIndex(v5);
-                    meshBuilder.AddIndex(v6);
-                    meshBuilder.AddIndex(v2);
-
-                    meshBuilder.AddIndex(v2);
-                    meshBuilder.AddIndex(v1);
-                    meshBuilder.AddIndex(v5);
-                    polygonCount += 2;
-                }
-
-                if ((sides & VoxelSides.Left) != 0)
-                {
-                    meshBuilder.AddIndex(v5);
-                    meshBuilder.AddIndex(v1);
-                    meshBuilder.AddIndex(v4);
-
-                    meshBuilder.AddIndex(v4);
-                    meshBuilder.AddIndex(v8);
-                    meshBuilder.AddIndex(v5);
-                    polygonCount += 2;
-                }
-
-                if ((sides & VoxelSides.Right) != 0)
-                {
-                    meshBuilder.AddIndex(v6);
-                    meshBuilder.AddIndex(v3);
-                    meshBuilder.AddIndex(v2);
-
-                    meshBuilder.AddIndex(v3);
-                    meshBuilder.AddIndex(v6);
-                    meshBuilder.AddIndex(v7);
-                    polygonCount += 2;
-                }
-
-                if ((sides & VoxelSides.Bottom) != 0)
-                {
-                    meshBuilder.AddIndex(v5);
-                    meshBuilder.AddIndex(v7);
-                    meshBuilder.AddIndex(v6);
-
-                    meshBuilder.AddIndex(v5);
-                    meshBuilder.AddIndex(v8);
-                    meshBuilder.AddIndex(v7);
-                    polygonCount += 2;
-                }
-
-                if ((sides & VoxelSides.Top) != 0)
-                {
-                    meshBuilder.AddIndex(v1);
-                    meshBuilder.AddIndex(v2);
-                    meshBuilder.AddIndex(v3);
-
-                    meshBuilder.AddIndex(v1);
-                    meshBuilder.AddIndex(v3);
-                    meshBuilder.AddIndex(v4);
-                    polygonCount += 2;
-                }
-
-                return polygonCount;
-            }
-        }
-        #endregion
+        public abstract int AddVoxel2(MeshBuilder2 meshBuilder, VoxelSides sides, byte x, byte y, byte z, Color4b color, int voxelSize);
 
         #region NonCubifyInstancedVoxelMeshHelper class
         private sealed class NonCubifyInstancedVoxelMeshHelper : VoxelMeshHelper
@@ -164,7 +66,7 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
                 get { return "NonShadedInstanced"; }
             }
 
-            public override int AddVoxel(MeshBuilder meshBuilder, VoxelSides sides, byte x, byte y, byte z, Color4b color, int voxelSize = 1)
+            public override int AddVoxel(MeshBuilder meshBuilder, VoxelSides sides, byte x, byte y, byte z, Color4b color, int voxelSize)
             {
                 int polygonCount = 0;
                 byte x2 = (byte)(x + voxelSize);
@@ -244,130 +146,10 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
 
                 return polygonCount;
             }
-        }
-        #endregion
 
-        #region CubifyNonInstancedVoxelMeshHelper class
-        private sealed class CubifyNonInstancedVoxelMeshHelper : VoxelMeshHelper
-        {
-            public override string ShaderName
+            public override int AddVoxel2(MeshBuilder2 meshBuilder, VoxelSides sides, byte x, byte y, byte z, Color4b color, int voxelSize)
             {
-                get { return "ShadedNonInstanced"; }
-            }
-
-            public override int AddVoxel(MeshBuilder meshBuilder, VoxelSides sides, byte x, byte y, byte z, Color4b color, int voxelSize = 1)
-            {
-                int polygonCount = 0;
-                byte x2 = (byte)(x + voxelSize);
-                byte y2 = (byte)(y + voxelSize);
-                byte z2 = (byte)(z + voxelSize);
-                if ((sides & VoxelSides.Front) != 0)
-                {
-                    int v3 = meshBuilder.Add(x2, y2, z2, color);
-                    int v4 = meshBuilder.Add(x, y2, z2, color);
-                    int v7 = meshBuilder.Add(x2, y, z2, color);
-                    int v8 = meshBuilder.Add(x, y, z2, color);
-
-                    meshBuilder.AddIndex(v8);
-                    meshBuilder.AddIndex(v3);
-                    meshBuilder.AddIndex(v7);
-
-                    meshBuilder.AddIndex(v3);
-                    meshBuilder.AddIndex(v8);
-                    meshBuilder.AddIndex(v4);
-                    polygonCount += 2;
-                }
-
-                if ((sides & VoxelSides.Back) != 0)
-                {
-                    int v1 = meshBuilder.Add(x, y2, z, color);
-                    int v2 = meshBuilder.Add(x2, y2, z, color);
-                    int v5 = meshBuilder.Add(x, y, z, color);
-                    int v6 = meshBuilder.Add(x2, y, z, color);
-
-                    meshBuilder.AddIndex(v5);
-                    meshBuilder.AddIndex(v6);
-                    meshBuilder.AddIndex(v2);
-
-                    meshBuilder.AddIndex(v2);
-                    meshBuilder.AddIndex(v1);
-                    meshBuilder.AddIndex(v5);
-                    polygonCount += 2;
-                }
-
-                if ((sides & VoxelSides.Left) != 0)
-                {
-                    Color4b colorLeft = color + SmallColorDiff;
-                    int v1 = meshBuilder.Add(x, y2, z, colorLeft);
-                    int v4 = meshBuilder.Add(x, y2, z2, colorLeft);
-                    int v5 = meshBuilder.Add(x, y, z, colorLeft);
-                    int v8 = meshBuilder.Add(x, y, z2, colorLeft);
-
-                    meshBuilder.AddIndex(v5);
-                    meshBuilder.AddIndex(v1);
-                    meshBuilder.AddIndex(v4);
-
-                    meshBuilder.AddIndex(v4);
-                    meshBuilder.AddIndex(v8);
-                    meshBuilder.AddIndex(v5);
-                    polygonCount += 2;
-                }
-
-                if ((sides & VoxelSides.Right) != 0)
-                {
-                    Color4b colorRight = color - SmallColorDiff;
-                    int v2 = meshBuilder.Add(x2, y2, z, colorRight);
-                    int v3 = meshBuilder.Add(x2, y2, z2, colorRight);
-                    int v6 = meshBuilder.Add(x2, y, z, colorRight);
-                    int v7 = meshBuilder.Add(x2, y, z2, colorRight);
-
-                    meshBuilder.AddIndex(v6);
-                    meshBuilder.AddIndex(v3);
-                    meshBuilder.AddIndex(v2);
-
-                    meshBuilder.AddIndex(v3);
-                    meshBuilder.AddIndex(v6);
-                    meshBuilder.AddIndex(v7);
-                    polygonCount += 2;
-                }
-
-                if ((sides & VoxelSides.Bottom) != 0)
-                {
-                    Color4b colorBottom = color - BigColorDiff;
-                    int v5 = meshBuilder.Add(x, y, z, colorBottom);
-                    int v6 = meshBuilder.Add(x2, y, z, colorBottom);
-                    int v7 = meshBuilder.Add(x2, y, z2, colorBottom);
-                    int v8 = meshBuilder.Add(x, y, z2, colorBottom);
-
-                    meshBuilder.AddIndex(v5);
-                    meshBuilder.AddIndex(v7);
-                    meshBuilder.AddIndex(v6);
-
-                    meshBuilder.AddIndex(v5);
-                    meshBuilder.AddIndex(v8);
-                    meshBuilder.AddIndex(v7);
-                    polygonCount += 2;
-                }
-
-                if ((sides & VoxelSides.Top) != 0)
-                {
-                    Color4b colorTop = color + BigColorDiff;
-                    int v1 = meshBuilder.Add(x, y2, z, colorTop);
-                    int v2 = meshBuilder.Add(x2, y2, z, colorTop);
-                    int v3 = meshBuilder.Add(x2, y2, z2, colorTop);
-                    int v4 = meshBuilder.Add(x, y2, z2, colorTop);
-
-                    meshBuilder.AddIndex(v1);
-                    meshBuilder.AddIndex(v2);
-                    meshBuilder.AddIndex(v3);
-
-                    meshBuilder.AddIndex(v1);
-                    meshBuilder.AddIndex(v3);
-                    meshBuilder.AddIndex(v4);
-                    polygonCount += 2;
-                }
-
-                return polygonCount;
+                return 0;
             }
         }
         #endregion
@@ -380,7 +162,7 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
                 get { return "ShadedInstanced"; }
             }
 
-            public override int AddVoxel(MeshBuilder meshBuilder, VoxelSides sides, byte x, byte y, byte z, Color4b color, int voxelSize = 1)
+            public override int AddVoxel(MeshBuilder meshBuilder, VoxelSides sides, byte x, byte y, byte z, Color4b color, int voxelSize)
             {
                 int polygonCount = 0;
                 byte x2 = (byte)(x + voxelSize);
@@ -465,6 +247,93 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
                     meshBuilder.Add(x, y2, z2, colorTop);
                     polygonCount += 2;
                 }
+
+                return polygonCount;
+            }
+
+            public override int AddVoxel2(MeshBuilder2 meshBuilder, VoxelSides sides, byte x, byte y, byte z, Color4b color, int voxelSize)
+            {
+                return 0;
+            }
+        }
+        #endregion
+
+        #region NonCubifyNonInstancedGeomVoxelMeshHelper class
+        private sealed class NonCubifyNonInstancedGeomVoxelMeshHelper : VoxelMeshHelper
+        {
+            public override string ShaderName
+            {
+                get { return "NonShadedNonInstancedGeom"; }
+            }
+
+            public override int AddVoxel(MeshBuilder meshBuilder, VoxelSides sides, byte x, byte y, byte z, Color4b color, int voxelSize)
+            {
+                return 0;
+            }
+
+            public override int AddVoxel2(MeshBuilder2 meshBuilder, VoxelSides sides, byte x, byte y, byte z, Color4b color, int voxelSize)
+            {
+                meshBuilder.Add(x, y, z, (byte)sides, color);
+
+                int polygonCount = 0;
+                if ((sides & VoxelSides.Front) != 0)
+                    polygonCount += 2;
+
+                if ((sides & VoxelSides.Back) != 0)
+                    polygonCount += 2;
+
+                if ((sides & VoxelSides.Left) != 0)
+                    polygonCount += 2;
+
+                if ((sides & VoxelSides.Right) != 0)
+                    polygonCount += 2;
+
+                if ((sides & VoxelSides.Bottom) != 0)
+                    polygonCount += 2;
+
+                if ((sides & VoxelSides.Top) != 0)
+                    polygonCount += 2;
+
+                return polygonCount;
+            }
+        }
+        #endregion
+
+        #region NonCubifyNonInstancedGeomVoxelMeshHelper class
+        private sealed class CubifyNonInstancedGeomVoxelMeshHelper : VoxelMeshHelper
+        {
+            public override string ShaderName
+            {
+                get { return "ShadedNonInstancedGeom"; }
+            }
+
+            public override int AddVoxel(MeshBuilder meshBuilder, VoxelSides sides, byte x, byte y, byte z, Color4b color, int voxelSize)
+            {
+                return 0;
+            }
+
+            public override int AddVoxel2(MeshBuilder2 meshBuilder, VoxelSides sides, byte x, byte y, byte z, Color4b color, int voxelSize)
+            {
+                meshBuilder.Add(x, y, z, (byte)sides, color);
+
+                int polygonCount = 0;
+                if ((sides & VoxelSides.Front) != 0)
+                    polygonCount += 2;
+
+                if ((sides & VoxelSides.Back) != 0)
+                    polygonCount += 2;
+
+                if ((sides & VoxelSides.Left) != 0)
+                    polygonCount += 2;
+
+                if ((sides & VoxelSides.Right) != 0)
+                    polygonCount += 2;
+
+                if ((sides & VoxelSides.Bottom) != 0)
+                    polygonCount += 2;
+
+                if ((sides & VoxelSides.Top) != 0)
+                    polygonCount += 2;
 
                 return polygonCount;
             }

@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Diagnostics;
 using ProdigalSoftware.TiVEPluginFramework;
 using ProdigalSoftware.TiVEPluginFramework.Components;
@@ -24,9 +23,6 @@ namespace ProdigalSoftware.TiVE.RenderSystem
         public void Enqueue(EntityDeleteQueueItem item)
         {
             int existingItemIndex = FindRealIndex(item);
-            if (existingItemIndex >= 0 && entities[existingItemIndex].Entity != item.Entity)
-                Console.WriteLine("Probably replaced the wrong item :(");
-
             if (existingItemIndex >= 0)
                 entities[existingItemIndex] = item;
             else
@@ -37,9 +33,6 @@ namespace ProdigalSoftware.TiVE.RenderSystem
         {
             EntityDeleteQueueItem queueItem = new EntityDeleteQueueItem(item);
             int existingItemIndex = FindRealIndex(queueItem);
-            if (existingItemIndex >= 0 && entities[existingItemIndex].Entity != item)
-                Console.WriteLine("Probably removed the wrong item :(");
-
             if (existingItemIndex >= 0)
                 entities.RemoveAt(existingItemIndex);
         }
@@ -54,7 +47,6 @@ namespace ProdigalSoftware.TiVE.RenderSystem
             return item;
         }
 
-
         public void Sort(CameraComponent cameraData)
         {
             entityComparer.SetComparePoint(cameraData.Location);
@@ -63,10 +55,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem
 
         public bool Contains(EntityDeleteQueueItem item)
         {
-            int existingItemIndex = FindRealIndex(item);
-            if (existingItemIndex >= 0 && entities[existingItemIndex].Entity != item.Entity)
-                Console.WriteLine("Probably found the wrong item :(");
-            return existingItemIndex >= 0;
+            return FindRealIndex(item) >= 0;
         }
 
         public void Clear()

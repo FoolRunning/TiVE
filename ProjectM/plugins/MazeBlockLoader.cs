@@ -284,6 +284,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
                 Block grass = new Block("grass" + i);
                 grass.AddComponent(new VoxelNoiseComponent(0.4f));
                 grass.AddComponent(new LightPassthroughComponent());
+                bool putFlowerInBlock = false;
 
                 for (int z = 0; z < Block.VoxelSize; z++)
                 {
@@ -295,10 +296,17 @@ namespace ProdigalSoftware.ProjectM.Plugins
                             {
                                 grass[x, y, z] = new Voxel(55, 180, 40, 255, VoxelSettings.SkipVoxelNormalCalc);
                                 if (z == Block.VoxelSize - 1 && random.NextFloat() < 0.5f &&
-                                    x > 1 && x < Block.VoxelSize - 2 && y > 1 && y < Block.VoxelSize - 2)
+                                    x > 1 && x < Block.VoxelSize - 2 && y > 1 && y < Block.VoxelSize - 2 && !putFlowerInBlock)
                                 {
-                                    // Make a flower
+                                    putFlowerInBlock = true;
                                     Voxel flowerVoxel = CreateRandomFlowerVoxel();
+                                    if (random.NextFloat() < 0.5)
+                                    {
+                                        grass.AddComponent(new LightComponent(new Vector3b((byte)x, (byte)y, (byte)z),
+                                            new Color3f((byte)(flowerVoxel.R / 2), (byte)(flowerVoxel.G / 2), (byte)(flowerVoxel.B / 2)), 2));
+                                    }
+                                    
+                                    // Make a flower
                                     grass[x, y, z] = flowerVoxel;
                                     grass[x - 1, y, z - 1] = flowerVoxel;
                                     grass[x + 1, y, z - 1] = flowerVoxel;
@@ -368,12 +376,12 @@ namespace ProdigalSoftware.ProjectM.Plugins
             yield return fireBlock;
 
             yield return CreateBlockInfo("loadingLight", Block.VoxelSize / 5.0f, new Color4f(1.0f, 1.0f, 1.0f, 1.0f), 1.0f, null,
-                new LightComponent(blockCenterVector, new Color3f(0.7f, 0.7f, 0.7f), 45), colorVariation: 0.0f);
+                new LightComponent(blockCenterVector, new Color3f(0.5f, 0.5f, 0.5f), 45), colorVariation: 0.0f);
 
             yield return CreateBlockInfo("roomLight", Block.VoxelSize / 2 - 1, new Color4f(1.0f, 1.0f, 1.0f, 1.0f), 1.0f, null,
                 new LightComponent(blockCenterVector, new Color3f(forFantasy ? 0.6f : 0.8f, forFantasy ? 0.6f : 0.8f, forFantasy ? 0.6f : 0.8f), forFantasy ? 35 : 50), colorVariation: 0.0f);
 
-            const int lightDist = forFantasy ? 25 : 45;
+            const int lightDist = forFantasy ? 15 : 45;
             const float lightBright = forFantasy ? 0.5f : 1.0f;
             const float lightMid = forFantasy ? 0.38f : 0.5f;
             const float lightDim = forFantasy ? 0.17f : 0.3f;
@@ -400,10 +408,13 @@ namespace ProdigalSoftware.ProjectM.Plugins
             yield return CreateBlockInfo("light5", Block.VoxelSize / 8.0f, new Color4f(objMid, objBright, objDim, 1.0f), 1.0f, bugInformation,
                 new LightComponent(blockCenterVector, new Color3f(lightMid, lightBright, lightDim), lightDist), colorVariation: 0.0f);
 
-            yield return CreateBlockInfo("smallLight", Block.VoxelSize / 16.0f, new Color4f(objDim, objDim, objBright, 1.0f), 1.0f, null,
+            yield return CreateBlockInfo("light6", Block.VoxelSize / 8.0f, new Color4f(objBright, objBright, objBright, 1.0f), 1.0f, bugInformation,
+                new LightComponent(blockCenterVector, new Color3f(lightBright, lightBright, lightBright), lightDist), colorVariation: 0.0f);
+
+            yield return CreateBlockInfo("smallLight", 1, new Color4f(objDim, objDim, objBright, 1.0f), 1.0f, null,
                 new LightComponent(new Vector3b(bc, bc, bc), new Color3f(lightDim, lightDim, lightBright), forFantasy ? 5 : 7), colorVariation: 0.0f);
 
-            yield return CreateBlockInfo("smallLightHover", Block.VoxelSize / 16.0f, new Color4f(objDim, objDim, objBright, 1.0f), 1.0f, null,
+            yield return CreateBlockInfo("smallLightHover", 1, new Color4f(objDim, objDim, objBright, 1.0f), 1.0f, null,
                 new LightComponent(new Vector3b(bc, bc, bc), new Color3f(lightDim, lightDim, lightBright), 3), colorVariation: 0.0f);
 
             Block fountainBlock = new Block("fountain");
@@ -423,12 +434,12 @@ namespace ProdigalSoftware.ProjectM.Plugins
         {
             switch (random.Next(6))
             {
-                case 1: return new Voxel(255, 0, 0);
-                case 2: return new Voxel(0, 0, 255);
-                case 3: return new Voxel(255, 0, 255);
-                case 4: return new Voxel(255, 255, 0);
-                case 5: return new Voxel(0, 255, 255);
-                default: return new Voxel(255, 255, 255);
+                case 1: return new Voxel(255, 0, 0, 255, VoxelSettings.SkipVoxelNormalCalc | VoxelSettings.AllowLightPassthrough);
+                case 2: return new Voxel(0, 0, 255, 255, VoxelSettings.SkipVoxelNormalCalc | VoxelSettings.AllowLightPassthrough);
+                case 3: return new Voxel(255, 0, 255, 255, VoxelSettings.SkipVoxelNormalCalc | VoxelSettings.AllowLightPassthrough);
+                case 4: return new Voxel(255, 255, 0, 255, VoxelSettings.SkipVoxelNormalCalc | VoxelSettings.AllowLightPassthrough);
+                case 5: return new Voxel(0, 255, 255, 255, VoxelSettings.SkipVoxelNormalCalc | VoxelSettings.AllowLightPassthrough);
+                default: return new Voxel(0, 255, 0, 255, VoxelSettings.SkipVoxelNormalCalc | VoxelSettings.AllowLightPassthrough);
             }
         }
 

@@ -71,7 +71,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem
                 while ((line = shaderDefinitionFile.ReadLine()) != null)
                 {
                     line = line.Trim();
-                    if (line.Length == 0 || line.StartsWith("#"))
+                    if (line.Length == 0 || line.StartsWith("#", StringComparison.Ordinal))
                         continue;
 
                     if (line[0] == '[' && line[line.Length - 1] == ']')
@@ -83,54 +83,30 @@ namespace ProdigalSoftware.TiVE.RenderSystem
 
                         currentProgram = TiVEController.Backend.CreateShaderProgram();
                         AddProgram(programName, currentProgram);
+                        continue;
                     }
-                    else if (line.StartsWith("vert:"))
+
+                    int colonIndex = line.IndexOf(':');
+                    if (colonIndex == -1)
+                        throw new ShaderDefinitionException("Unknown line: " + line);
+
+                    string key = line.Substring(0, colonIndex).Trim();
+                    string value = line.Substring(colonIndex + 1).Trim();
+
+                    if (currentProgram == null)
+                        throw new ShaderDefinitionException("Key ('" + key + "') without program start ('[]')");
+
+                    if (value == "")
+                        throw new ShaderDefinitionException("Value for key ('" + key + "') was empty");
+
+                    switch (key)
                     {
-                        // Definition of the vertex shader for the current program
-                        if (currentProgram == null)
-                            throw new ShaderDefinitionException("Vertex shader definition ('vert') without program start ('[]')");
-                        
-                        string shaderPath = line.Substring(5).Trim();
-                        if (string.IsNullOrEmpty(shaderPath))
-                            throw new ShaderDefinitionException("Vertex shader definition path was empty");
-
-                        currentProgram.AddShader(GetShaderSource(shaderPath), ShaderType.Vertex);
-                    }
-                    else if (line.StartsWith("frag:"))
-                    {
-                        // Definition of the fragment shader for the current program
-                        if (currentProgram == null)
-                            throw new ShaderDefinitionException("Fragment shader definition ('frag') without program start ('[]')");
-
-                        string shaderPath = line.Substring(5).Trim();
-                        if (string.IsNullOrEmpty(shaderPath))
-                            throw new ShaderDefinitionException("Fragment shader definition path was empty");
-
-                        currentProgram.AddShader(GetShaderSource(shaderPath), ShaderType.Fragment);
-                    }
-                    else if (line.StartsWith("attrib:"))
-                    {
-                        // Definition of a attribute for the current program
-                        if (currentProgram == null)
-                            throw new ShaderDefinitionException("Attribute definition without program start");
-
-                        string attribName = line.Substring(7).Trim();
-                        if (string.IsNullOrEmpty(attribName))
-                            throw new ShaderDefinitionException("Attribute definition name was empty");
-
-                        currentProgram.AddAttribute(attribName);
-                    }
-                    else if (line.StartsWith("uniform:"))
-                    {
-                        // Definition of a uniform variable for the current program
-                        if (currentProgram == null)
-                            throw new ShaderDefinitionException("Uniform definition without program start");
-
-                        string uniformName = line.Substring(8).Trim();
-                        if (string.IsNullOrEmpty(uniformName))
-                            throw new ShaderDefinitionException("Uniform definition name was empty");
-
-                        currentProgram.AddKnownUniform(uniformName);
+                        case "geom": currentProgram.AddShader(GetShaderSource(value), ShaderType.Geometry); break;
+                        case "vert": currentProgram.AddShader(GetShaderSource(value), ShaderType.Vertex); break;
+                        case "frag": currentProgram.AddShader(GetShaderSource(value), ShaderType.Fragment); break;
+                        case "attrib": currentProgram.AddAttribute(value); break;
+                        case "uniform": currentProgram.AddKnownUniform(value); break;
+                        default: throw new ShaderDefinitionException("Unknown line: " + line);
                     }
                 }
             }
@@ -151,9 +127,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem
         private static string GetShaderSource(string fullShaderResourcePath)
         {
             using (StreamReader reader = GetFileResourceStream(fullShaderResourcePath))
-            {
                 return reader.ReadToEnd();
-            }
         }
 
         private static StreamReader GetFileResourceStream(string fullResourcePath)
@@ -175,7 +149,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem
             return new StreamReader(stream);
         }
 
-        private class ShaderDefinitionException : Exception
+        private sealed class ShaderDefinitionException : Exception
         {
             public ShaderDefinitionException(string message) : base(message)
             {

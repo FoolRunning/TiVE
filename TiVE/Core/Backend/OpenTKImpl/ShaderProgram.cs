@@ -109,6 +109,7 @@ namespace ProdigalSoftware.TiVE.Core.Backend.OpenTKImpl
                     GL.UniformMatrix4(uniformLocations[name], 1, false, ptr);
                 }
             }
+            GlUtils.CheckGLErrors();
         }
 
         public void SetUniform(string name, ref Vector3f value)
@@ -120,6 +121,7 @@ namespace ProdigalSoftware.TiVE.Core.Backend.OpenTKImpl
                     GL.Uniform3(uniformLocations[name], 1, ptr);
                 }
             }
+            GlUtils.CheckGLErrors();
         }
 
         public void SetUniform(string name, ref Color4f value)
@@ -131,6 +133,13 @@ namespace ProdigalSoftware.TiVE.Core.Backend.OpenTKImpl
                     GL.Uniform4(uniformLocations[name], 1, ptr);
                 }
             }
+            GlUtils.CheckGLErrors();
+        }
+
+        public void SetUniform(string name, int value)
+        {
+            GL.Uniform1(uniformLocations[name], value);
+            GlUtils.CheckGLErrors();
         }
     }
 }

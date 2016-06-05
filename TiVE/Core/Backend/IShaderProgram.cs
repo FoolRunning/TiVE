@@ -31,5 +31,7 @@ namespace ProdigalSoftware.TiVE.Core.Backend
         void SetUniform(string name, ref Vector3f value);
 
         void SetUniform(string name, ref Color4f value);
+
+        void SetUniform(string name, int value);
     }
 }

@@ -13,7 +13,7 @@ namespace ProdigalSoftware.TiVE.Settings
 {
     internal sealed class UserSettings
     {
-        public event Action<string> SettingChanged;
+        public event Action<string, Setting> SettingChanged;
 
         public const string FullScreenModeKey = "fullScreenMode";
         public const string LightingTypeKey = "lightingType";
@@ -127,7 +127,7 @@ namespace ProdigalSoftware.TiVE.Settings
             settings[name] = newValue;
             
             if (SettingChanged != null)
-                SettingChanged(name);
+                SettingChanged(name, newValue);
         }
 
         public Setting Get(string name)

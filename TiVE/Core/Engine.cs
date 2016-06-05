@@ -12,7 +12,7 @@ namespace ProdigalSoftware.TiVE.Core
 {
     internal sealed class Engine
     {
-        private readonly int maxTicksPerUpdate = (int)(Stopwatch.Frequency / 10);
+        private readonly int maxTicksPerUpdate = (int)(Stopwatch.Frequency / 2);
 
         private readonly List<EngineSystemBase> systems = new List<EngineSystemBase>();
         private readonly float timePerUpdate;

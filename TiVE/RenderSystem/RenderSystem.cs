@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using ProdigalSoftware.TiVE.Core;
@@ -20,7 +21,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem
     internal sealed class RenderSystem : EngineSystem
     {
         #region Constants
-        private const int DeletedItemCacheSize = 3000;
+        private const int DeletedItemCacheSize = 10000;
         private static readonly int timeBetweenTimingUpdates = (int)(Stopwatch.Frequency / 2); // 1/2 second
         #endregion
 
@@ -100,13 +101,18 @@ namespace ProdigalSoftware.TiVE.RenderSystem
                     continue;
 
                 IVertexDataCollection meshData;
+                int voxelSize;
                 using (new PerformanceLock(renderData.SyncLock))
+                {
                     meshData = (IVertexDataCollection)renderData.MeshData;
+                    voxelSize = 1 << renderData.VisibleVoxelDetailLevel;
+                    stats += new RenderStatistics(1, renderData.PolygonCount, renderData.VoxelCount, renderData.RenderedVoxelCount);
+                }
 
                 if (meshData == null)
                     continue; // No data to render with
 
-                stats += RenderVoxelMesh(renderData, meshData, ref cameraData.ViewProjectionMatrix);
+                RenderVoxelMesh(renderData, meshData, voxelSize, ref cameraData.ViewProjectionMatrix);
             }
 
             drawCount.PushCount(stats.DrawCount);
@@ -176,6 +182,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem
 
                         meshBuilder.DropMesh(); // Release builder - Must be called after initializing the mesh
                         renderData.MeshBuilder = null;
+                        
                         renderData.VisibleVoxelDetailLevel = renderData.VoxelDetailLevelToLoad;
                         renderData.VisibleShadowType = renderData.ShadowTypeToLoad;
                         renderData.VoxelDetailLevelToLoad = VoxelMeshComponent.BlankDetailLevel;
@@ -227,8 +234,11 @@ namespace ProdigalSoftware.TiVE.RenderSystem
             //    loadedScene.LightProvider.RemoveLightsForChunk(chunkData);
         }
 
-        private RenderStatistics RenderVoxelMesh(VoxelMeshComponent renderData, IVertexDataCollection meshData, ref Matrix4f viewProjectionMatrix)
+        private void RenderVoxelMesh(VoxelMeshComponent renderData, IVertexDataCollection meshData, int voxelSize, ref Matrix4f viewProjectionMatrix)
         {
+            if (voxelSize < 1 || voxelSize > Block.VoxelSize)
+                throw new ArgumentException("voxelsSize was out-of-range: " + voxelSize);
+
             Debug.Assert(meshData.IsInitialized);
 
             IShaderProgram shader = shaderManager.GetShaderProgram(VoxelMeshHelper.Get(false).ShaderName);
@@ -239,9 +249,9 @@ namespace ProdigalSoftware.TiVE.RenderSystem
             Matrix4f viewProjectionModelMatrix;
             Matrix4f.Mult(ref translationMatrix, ref viewProjectionMatrix, out viewProjectionModelMatrix);
             shader.SetUniform("matrix_ModelViewProjection", ref viewProjectionModelMatrix);
+            shader.SetUniform("voxelSize", voxelSize);
 
-            TiVEController.Backend.Draw(PrimitiveType.Triangles, meshData);
-            return new RenderStatistics(1, renderData.PolygonCount, renderData.VoxelCount, renderData.RenderedVoxelCount);
+            TiVEController.Backend.Draw(PrimitiveType.Points, meshData);
         }
         #endregion
 
