@@ -103,7 +103,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem
 
                         if (sides != VoxelSides.None)
                         {
-                            polygonCount += meshHelper.AddVoxel(meshBuilder, sides, x, y, z, (Color4b)color);
+                            polygonCount += meshHelper.AddVoxel(meshBuilder, sides, x, y, z, (Color4b)color, 1);
                             renderedVoxelCount++;
                         }
                     }

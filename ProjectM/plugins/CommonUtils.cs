@@ -25,7 +25,7 @@ namespace ProdigalSoftware.ProjectM.Plugins
     {
         public const int stoneBlockDuplicates = 5;
         public const int stoneBackBlockDuplicates = 10;
-        public const int grassBlockDuplicates = 50;
+        public const int grassBlockDuplicates = 100;
 
         private const int Front = 1;
         private const int Back = 2;

@@ -60,12 +60,12 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
         /// </summary>
         public void Calculate()
         {
-            Messages.Print("Calculating static lighting...");
+            Messages.Print("Calculating block lights...");
             Stopwatch sw = Stopwatch.StartNew();
             for (int i = 0; i < chunkLightInfo.Length; i++)
                 chunkLightInfo[i] = new ChunkLights(100);
 
-            int numThreads = Environment.ProcessorCount > 3 ? 2 : 1;
+            const int numThreads = 1; // Environment.ProcessorCount > 3 ? 2 : 1;
             Thread[] threads = new Thread[numThreads];
             List<LightInfo> lightInfos = new List<LightInfo>(20000);
             lightInfos.Add(null);

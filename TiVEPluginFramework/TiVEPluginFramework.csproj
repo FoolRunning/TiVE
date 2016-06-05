@@ -96,6 +96,7 @@
     <Compile Include="Components\SpriteComponent.cs" />
     <Compile Include="Components\ScriptComponent.cs" />
     <Compile Include="Components\VoxelMeshComponent.cs" />
+    <Compile Include="Vector4b.cs" />
     <Compile Include="Generators\IBlockGenerator.cs" />
     <Compile Include="Generators\IParticleControllerGenerator.cs" />
     <Compile Include="IComponent.cs" />

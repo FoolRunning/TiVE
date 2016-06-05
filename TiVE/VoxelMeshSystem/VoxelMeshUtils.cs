@@ -44,7 +44,7 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
 
                         if (sides != VoxelSides.None)
                         {
-                            polygonCount += meshHelper.AddVoxel(meshBuilder, sides, x, y, z, (Color4b)vox);
+                            polygonCount += meshHelper.AddVoxel(meshBuilder, sides, x, y, z, (Color4b)vox, 1);
                             renderedVoxelCount++;
                         }
                     }
