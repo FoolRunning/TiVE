@@ -1,5 +1,4 @@
 ﻿using JetBrains.Annotations;
-using ProdigalSoftware.Utils;
 
 namespace ProdigalSoftware.TiVEPluginFramework
 {

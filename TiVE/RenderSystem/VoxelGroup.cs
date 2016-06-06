@@ -8,7 +8,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem
 {
     internal class VoxelGroup
     {
-        private static readonly MeshBuilder meshBuilder = new MeshBuilder(10000, 50000);
+        private static readonly MeshBuilder meshBuilder = new MeshBuilder(50000);
 
         protected readonly Voxel[] voxels;
 
@@ -57,7 +57,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem
                 meshBuilder.DropMesh();
             }
 
-            IShaderProgram shader = shaderManager.GetShaderProgram("MainWorld");
+            ShaderProgram shader = shaderManager.GetShaderProgram("MainWorld");
             shader.Bind();
 
             shader.SetUniform("matrix_ModelViewProjection", ref matrixMVP);
@@ -73,7 +73,6 @@ namespace ProdigalSoftware.TiVE.RenderSystem
             renderedVoxelCount = 0;
             polygonCount = 0;
 
-            VoxelMeshHelper meshHelper = VoxelMeshHelper.Get(false);
             meshBuilder.StartNewMesh();
             for (byte z = 0; z < size.Z; z++)
             {
@@ -103,7 +102,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem
 
                         if (sides != VoxelSides.None)
                         {
-                            polygonCount += meshHelper.AddVoxel(meshBuilder, sides, x, y, z, (Color4b)color, 1);
+                            polygonCount += meshBuilder.AddVoxel(sides, x, y, z, (Color4b)color);
                             renderedVoxelCount++;
                         }
                     }

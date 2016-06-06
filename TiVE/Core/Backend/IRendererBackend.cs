@@ -86,7 +86,7 @@ namespace ProdigalSoftware.TiVE.Core.Backend
 
         ITexture CreateTexture(int width, int height, byte[] data = null);
         
-        IShaderProgram CreateShaderProgram();
+        ShaderProgram CreateShaderProgram();
 
         void SetBlendMode(BlendMode mode);
 

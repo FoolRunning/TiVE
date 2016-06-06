@@ -9,11 +9,11 @@ namespace ProdigalSoftware.TiVE.RenderSystem
 {
     internal sealed class ShaderManager : IDisposable
     {
-        private readonly Dictionary<string, IShaderProgram> shaderPrograms = new Dictionary<string, IShaderProgram>();
+        private readonly Dictionary<string, ShaderProgram> shaderPrograms = new Dictionary<string, ShaderProgram>();
 
         public void Dispose()
         {
-            foreach (IShaderProgram program in shaderPrograms.Values)
+            foreach (ShaderProgram program in shaderPrograms.Values)
                 program.Dispose();
             shaderPrograms.Clear();
         }
@@ -49,9 +49,9 @@ namespace ProdigalSoftware.TiVE.RenderSystem
         /// Gets the shader program with the specified name. If the shader has not been initialize, it will be initialized before being returned.
         /// </summary>
         /// <exception cref="ArgumentException">If a shader with the specified name could not be found.</exception>
-        public IShaderProgram GetShaderProgram(string name)
+        public ShaderProgram GetShaderProgram(string name)
         {
-            IShaderProgram program;
+            ShaderProgram program;
             if (!shaderPrograms.TryGetValue(name, out program))
                 throw new ArgumentException("Shader with the name '" + name + "' was not found");
 
@@ -66,7 +66,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem
             using (StreamReader shaderDefinitionFile = GetFileResourceStream(resourcePath))
             {
                 string line;
-                IShaderProgram currentProgram = null;
+                ShaderProgram currentProgram = null;
 
                 while ((line = shaderDefinitionFile.ReadLine()) != null)
                 {
@@ -112,7 +112,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem
             }
         }
 
-        private void AddProgram(string name, IShaderProgram program)
+        private void AddProgram(string name, ShaderProgram program)
         {
             try
             {

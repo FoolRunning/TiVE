@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using ProdigalSoftware.TiVE.Core;
 using ProdigalSoftware.TiVE.Core.Backend;
 using ProdigalSoftware.TiVE.RenderSystem;
-using ProdigalSoftware.TiVE.Settings;
 using ProdigalSoftware.TiVE.VoxelMeshSystem;
 using ProdigalSoftware.TiVEPluginFramework;
 using ProdigalSoftware.TiVEPluginFramework.Components;
@@ -28,7 +27,6 @@ namespace ProdigalSoftware.TiVE.ParticleSystem
         private readonly ParticleController controller;
 
         private readonly IRendererData voxelInstanceLocationData;
-        private readonly IRendererData voxelInstanceColorData;
         private readonly int polysPerParticle;
         private readonly int voxelsPerParticle;
         private readonly int renderedVoxelsPerParticle;
@@ -54,13 +52,10 @@ namespace ProdigalSoftware.TiVE.ParticleSystem
             this.controller = controller;
 
             // Create particle voxel model to be used for each particle
-            MeshBuilder voxelInstanceBuilder = new MeshBuilder(1000, 0);
-            VoxelMeshUtils.GenerateMesh(controller.ParticleSprite, voxelInstanceBuilder, true,
-                out voxelsPerParticle, out renderedVoxelsPerParticle, out polysPerParticle);
+            MeshBuilder voxelInstanceBuilder = new MeshBuilder(200);
+            VoxelMeshUtils.GenerateMesh(controller.ParticleSprite, voxelInstanceBuilder, out voxelsPerParticle, out renderedVoxelsPerParticle, out polysPerParticle);
 
             voxelInstanceLocationData = voxelInstanceBuilder.GetLocationData();
-            if (TiVEController.UserSettings.Get(UserSettings.CubifyVoxelsKey))
-                voxelInstanceColorData = voxelInstanceBuilder.GetColorData();
 
             locations = new Vector3us[controller.MaxParticles * 5];
             colors = new Color4b[controller.MaxParticles * 5];
@@ -194,7 +189,7 @@ namespace ProdigalSoftware.TiVE.ParticleSystem
                 colorData.UpdateData(colors, totalParticles);
             }
             instances.Bind();
-            TiVEController.Backend.Draw(PrimitiveType.Triangles, instances);
+            TiVEController.Backend.Draw(PrimitiveType.Points, instances);
 
             if (controller.TransparencyType != TransparencyType.None)
             {
@@ -211,8 +206,6 @@ namespace ProdigalSoftware.TiVE.ParticleSystem
         {
             IVertexDataCollection instanceData = TiVEController.Backend.CreateVertexDataCollection();
             instanceData.AddBuffer(voxelInstanceLocationData);
-            if (TiVEController.UserSettings.Get(UserSettings.CubifyVoxelsKey))
-                instanceData.AddBuffer(voxelInstanceColorData);
 
             locData = TiVEController.Backend.CreateData(locations, 0, 3, DataType.Instance, DataValueType.UShort, false, true);
             instanceData.AddBuffer(locData);

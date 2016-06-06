@@ -119,7 +119,7 @@ namespace ProdigalSoftware.TiVE.ParticleSystem
         }
 
         #region ParticleSorter class
-        private class ParticleSorter : IComparer<Particle>
+        private sealed class ParticleSorter : IComparer<Particle>
         {
             public Vector3i CameraLocation;
 

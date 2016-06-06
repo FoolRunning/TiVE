@@ -5,7 +5,6 @@ using System.Linq;
 using ProdigalSoftware.TiVE.Core;
 using ProdigalSoftware.TiVE.Core.Backend;
 using ProdigalSoftware.TiVE.Debugging;
-using ProdigalSoftware.TiVE.VoxelMeshSystem;
 using ProdigalSoftware.TiVEPluginFramework;
 using ProdigalSoftware.TiVEPluginFramework.Internal;
 using ProdigalSoftware.TiVEPluginFramework.Components;
@@ -241,7 +240,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem
 
             Debug.Assert(meshData.IsInitialized);
 
-            IShaderProgram shader = shaderManager.GetShaderProgram(VoxelMeshHelper.Get(false).ShaderName);
+            ShaderProgram shader = shaderManager.GetShaderProgram(ShaderProgram.GetShaderName(false));
             shader.Bind();
 
             Matrix4f translationMatrix = Matrix4f.CreateTranslation((int)renderData.Location.X, (int)renderData.Location.Y, (int)renderData.Location.Z);

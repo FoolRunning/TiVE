@@ -8,7 +8,7 @@ using ProdigalSoftware.TiVEPluginFramework;
 
 namespace ProdigalSoftware.TiVE.Core.Backend.OpenTKImpl
 {
-    internal sealed class ShaderProgram : IShaderProgram
+    internal sealed class OpenTKShaderProgram : ShaderProgram
     {
         private readonly List<Shader> shaders = new List<Shader>();
         private readonly Dictionary<string, int> uniformLocations = new Dictionary<string, int>();
@@ -16,12 +16,12 @@ namespace ProdigalSoftware.TiVE.Core.Backend.OpenTKImpl
 
         private int programId;
 
-        ~ShaderProgram()
+        ~OpenTKShaderProgram()
         {
             Messages.Assert(programId == 0, "Shader program was not properly deleted");
         }
 
-        public void Dispose()
+        public override void Dispose()
         {
             // Shaders are deleted after attempting to compile
 
@@ -32,37 +32,37 @@ namespace ProdigalSoftware.TiVE.Core.Backend.OpenTKImpl
             GC.SuppressFinalize(this);
         }
 
-        public bool IsInitialized
+        public override bool IsInitialized
         {
             get { return programId != 0; }
         }
 
-        public void AddShader(string shaderSource, ShaderType shaderType)
+        public override void AddShader(string shaderSource, ShaderType shaderType)
         {
             shaders.Add(new Shader(shaderSource, shaderType));
         }
 
-        public void AddAttribute(string name)
+        public override void AddAttribute(string name)
         {
             attributes.Add(name);
         }
 
-        public void AddKnownUniform(string name)
+        public override void AddKnownUniform(string name)
         {
             uniformLocations.Add(name, -1);
         }
 
-        public void Bind()
+        public override void Bind()
         {
             GL.UseProgram(programId);
         }
 
-        public void Unbind()
+        public override void Unbind()
         {
             GL.UseProgram(0);
         }
 
-        public bool Initialize()
+        public override bool Initialize()
         {
             programId = GL.CreateProgram();
 
@@ -100,7 +100,7 @@ namespace ProdigalSoftware.TiVE.Core.Backend.OpenTKImpl
             return success;
         }
 
-        public void SetUniform(string name, ref Matrix4f value)
+        public override void SetUniform(string name, ref Matrix4f value)
         {
             unsafe
             {
@@ -112,7 +112,7 @@ namespace ProdigalSoftware.TiVE.Core.Backend.OpenTKImpl
             GlUtils.CheckGLErrors();
         }
 
-        public void SetUniform(string name, ref Vector3f value)
+        public override void SetUniform(string name, ref Vector3f value)
         {
             unsafe
             {
@@ -124,7 +124,7 @@ namespace ProdigalSoftware.TiVE.Core.Backend.OpenTKImpl
             GlUtils.CheckGLErrors();
         }
 
-        public void SetUniform(string name, ref Color4f value)
+        public override void SetUniform(string name, ref Color4f value)
         {
             unsafe
             {
@@ -136,7 +136,7 @@ namespace ProdigalSoftware.TiVE.Core.Backend.OpenTKImpl
             GlUtils.CheckGLErrors();
         }
 
-        public void SetUniform(string name, int value)
+        public override void SetUniform(string name, int value)
         {
             GL.Uniform1(uniformLocations[name], value);
             GlUtils.CheckGLErrors();

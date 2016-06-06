@@ -103,9 +103,9 @@ namespace ProdigalSoftware.TiVE.Core.Backend.OpenTKImpl
             return new OpenTKTexture(width, height, data);
         }
 
-        public IShaderProgram CreateShaderProgram()
+        public ShaderProgram CreateShaderProgram()
         {
-            return new ShaderProgram();
+            return new OpenTKShaderProgram();
         }
 
         public string GetShaderDefinitionFileResourcePath()
