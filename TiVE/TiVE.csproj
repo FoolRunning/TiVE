@@ -138,14 +138,14 @@
     <Compile Include="SoundSystem\ISound.cs" />
     <Compile Include="SoundSystem\MaryTTSSpeechEngineImpl\MaryTTSEngine.cs" />
     <Compile Include="SoundSystem\AudioData.cs" />
-    <Compile Include="VoxelMeshSystem\MeshBuilder2.cs" />
+    <Compile Include="VoxelMeshSystem\MeshBuilder.cs" />
     <Compile Include="VoxelMeshSystem\EntityMeshLoadQueue.cs" />
     <Compile Include="VoxelMeshSystem\VoxelMeshSystem.cs" />
     <Compile Include="Core\Backend\IKeyboard.cs" />
     <Compile Include="Core\Backend\IMouse.cs" />
     <Compile Include="Core\Backend\INativeWindow.cs" />
     <Compile Include="Core\Backend\IRendererBackend.cs" />
-    <Compile Include="Core\Backend\IShaderProgram.cs" />
+    <Compile Include="Core\Backend\ShaderProgram.cs" />
     <Compile Include="Core\Backend\ITexture.cs" />
     <Compile Include="Core\Backend\IVertexData.cs" />
     <Compile Include="Core\Backend\IVertexDataCollection.cs" />
@@ -161,7 +161,7 @@
     <Compile Include="Core\Backend\OpenTKImpl\OpenTKTexture.cs" />
     <Compile Include="Core\Backend\OpenTKImpl\RenderData.cs" />
     <Compile Include="Core\Backend\OpenTKImpl\Shader.cs" />
-    <Compile Include="Core\Backend\OpenTKImpl\ShaderProgram.cs" />
+    <Compile Include="Core\Backend\OpenTKImpl\OpenTKShaderProgram.cs" />
     <Compile Include="Core\Backend\OpenTKImpl\VertexDataCollection.cs" />
     <Compile Include="Core\Engine.cs" />
     <Compile Include="Core\EngineSystem.cs" />
@@ -178,7 +178,6 @@
     <Compile Include="RenderSystem\Lighting\LightingModel.cs" />
     <Compile Include="RenderSystem\Lighting\LightProvider.cs" />
     <Compile Include="VoxelMeshSystem\LargeMeshBuilder.cs" />
-    <Compile Include="VoxelMeshSystem\MeshBuilder.cs" />
     <Compile Include="ParticleSystem\ParticleEmitter.cs" />
     <Compile Include="ParticleSystem\ParticleEmitterCollection.cs" />
     <Compile Include="RenderSystem\RenderStatistics.cs" />
@@ -186,7 +185,6 @@
     <Compile Include="RenderSystem\ShaderManager.cs" />
     <Compile Include="RenderSystem\Sprite.cs" />
     <Compile Include="RenderSystem\VoxelGroup.cs" />
-    <Compile Include="VoxelMeshSystem\VoxelMeshHelper.cs" />
     <Compile Include="VoxelMeshSystem\VoxelMeshUtils.cs" />
     <Compile Include="RenderSystem\World\AnimationInfo.cs" />
     <Compile Include="RenderSystem\World\BlockManager.cs" />
@@ -240,14 +238,11 @@
     <EmbeddedResource Include="Starter\StarterForm.resx">
       <DependentUpon>StarterForm.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Core\Backend\OpenTKImpl\Shaders\Shaded.vert" />
-    <EmbeddedResource Include="Core\Backend\OpenTKImpl\Shaders\ShadedInstances.vert" />
     <EmbeddedResource Include="Core\Backend\OpenTKImpl\Shaders\Shaders.shad" />
     <EmbeddedResource Include="Core\Backend\OpenTKImpl\Shaders\Simple.frag" />
-    <EmbeddedResource Include="Core\Backend\OpenTKImpl\Shaders\Unshaded.vert" />
-    <EmbeddedResource Include="Core\Backend\OpenTKImpl\Shaders\UnshadedInstances.vert" />
-    <EmbeddedResource Include="Core\Backend\OpenTKImpl\Shaders\Simple.vert" />
-    <EmbeddedResource Include="Core\Backend\OpenTKImpl\Shaders\Mesh.geom" />
+    <EmbeddedResource Include="Core\Backend\OpenTKImpl\Shaders\Instanced.vert" />
+    <EmbeddedResource Include="Core\Backend\OpenTKImpl\Shaders\NonInstanced.vert" />
+    <EmbeddedResource Include="Core\Backend\OpenTKImpl\Shaders\UnshadedMesh.geom" />
     <EmbeddedResource Include="Core\Backend\OpenTKImpl\Shaders\ShadedMesh.geom" />
     <EmbeddedResource Include="Core\Backend\OpenTKImpl\Shaders\MeshPoints.geom" />
     <None Include="packages.config" />

@@ -1,48 +1,33 @@
 ﻿# Shder definitions for OpenGL
 
-# Shader for unshaded voxels - non-instanced
-[NonShadedNonInstanced]
-vert: ProdigalSoftware.TiVE.Core.Backend.OpenTKImpl.Shaders.Unshaded.vert
-frag: ProdigalSoftware.TiVE.Core.Backend.OpenTKImpl.Shaders.Simple.frag
-attrib: in_Position
-attrib: in_Color
-uniform: matrix_ModelViewProjection
-
-
 # Shader for unshaded voxels - instanced
 [NonShadedInstanced]
-vert: ProdigalSoftware.TiVE.Core.Backend.OpenTKImpl.Shaders.UnshadedInstances.vert
+vert: ProdigalSoftware.TiVE.Core.Backend.OpenTKImpl.Shaders.Instanced.vert
+geom: ProdigalSoftware.TiVE.Core.Backend.OpenTKImpl.Shaders.UnshadedMesh.geom
 frag: ProdigalSoftware.TiVE.Core.Backend.OpenTKImpl.Shaders.Simple.frag
 attrib: in_Position
 attrib: in_InstancePos
 attrib: in_InstanceColor
 uniform: matrix_ModelViewProjection
-
-
-# Shader for shaded voxels - non-instanced
-[ShadedNonInstanced]
-vert: ProdigalSoftware.TiVE.Core.Backend.OpenTKImpl.Shaders.Shaded.vert
-frag: ProdigalSoftware.TiVE.Core.Backend.OpenTKImpl.Shaders.Simple.frag
-attrib: in_Position
-attrib: in_Color
-uniform: matrix_ModelViewProjection
+uniform: voxelSize
 
 
 # Shader for shaded voxels - instanced
 [ShadedInstanced]
-vert: ProdigalSoftware.TiVE.Core.Backend.OpenTKImpl.Shaders.ShadedInstances.vert
+vert: ProdigalSoftware.TiVE.Core.Backend.OpenTKImpl.Shaders.Instanced.vert
+geom: ProdigalSoftware.TiVE.Core.Backend.OpenTKImpl.Shaders.ShadedMesh.geom
 frag: ProdigalSoftware.TiVE.Core.Backend.OpenTKImpl.Shaders.Simple.frag
 attrib: in_Position
-attrib: in_Color
 attrib: in_InstancePos
 attrib: in_InstanceColor
 uniform: matrix_ModelViewProjection
+uniform: voxelSize
 
 
-# Shader for unshaded voxels - non-instanced using a geometry shader
-[NonShadedNonInstancedGeom]
-geom: ProdigalSoftware.TiVE.Core.Backend.OpenTKImpl.Shaders.Mesh.geom
-vert: ProdigalSoftware.TiVE.Core.Backend.OpenTKImpl.Shaders.Simple.vert
+# Shader for unshaded voxels - non-instanced
+[NonShadedNonInstanced]
+vert: ProdigalSoftware.TiVE.Core.Backend.OpenTKImpl.Shaders.NonInstanced.vert
+geom: ProdigalSoftware.TiVE.Core.Backend.OpenTKImpl.Shaders.UnshadedMesh.geom
 frag: ProdigalSoftware.TiVE.Core.Backend.OpenTKImpl.Shaders.Simple.frag
 attrib: inPosition
 attrib: inColor
@@ -50,33 +35,12 @@ uniform: matrix_ModelViewProjection
 uniform: voxelSize
 
 
-# Shader for unshaded voxels - instanced
-# [NonShadedInstanced]
-# vert: ProdigalSoftware.TiVE.Core.Backend.OpenTKImpl.Shaders.UnshadedInstances.vert
-# frag: ProdigalSoftware.TiVE.Core.Backend.OpenTKImpl.Shaders.Simple.frag
-# attrib: in_Position
-# attrib: in_InstancePos
-# attrib: in_InstanceColor
-# uniform: matrix_ModelViewProjection
-
-
-# Shader for shaded voxels - non-instanced using a geometry shader
-[ShadedNonInstancedGeom]
+# Shader for shaded voxels - non-instanced
+[ShadedNonInstanced]
+vert: ProdigalSoftware.TiVE.Core.Backend.OpenTKImpl.Shaders.NonInstanced.vert
 geom: ProdigalSoftware.TiVE.Core.Backend.OpenTKImpl.Shaders.ShadedMesh.geom
-vert: ProdigalSoftware.TiVE.Core.Backend.OpenTKImpl.Shaders.Simple.vert
 frag: ProdigalSoftware.TiVE.Core.Backend.OpenTKImpl.Shaders.Simple.frag
 attrib: inPosition
 attrib: inColor
 uniform: matrix_ModelViewProjection
 uniform: voxelSize
-
-
-# Shader for shaded voxels - instanced
-# [ShadedInstanced]
-# vert: ProdigalSoftware.TiVE.Core.Backend.OpenTKImpl.Shaders.ShadedInstances.vert
-# frag: ProdigalSoftware.TiVE.Core.Backend.OpenTKImpl.Shaders.Simple.frag
-# attrib: in_Position
-# attrib: in_Color
-# attrib: in_InstancePos
-# attrib: in_InstanceColor
-# uniform: matrix_ModelViewProjection

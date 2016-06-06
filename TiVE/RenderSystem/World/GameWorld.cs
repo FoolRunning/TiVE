@@ -113,11 +113,8 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
                 {
                     blockNameToId[value.Name] = blockId = (ushort)blockIdCount;
                     if (blockIdCount >= blockIdToBlock.Length)
-                    {
-                        Block[] newBlockIdToBlock = new Block[blockIdToBlock.Length * 3 / 2 + 1];
-                        Array.Copy(blockIdToBlock, newBlockIdToBlock, blockIdToBlock.Length);
-                        blockIdToBlock = newBlockIdToBlock;
-                    }
+                        Array.Resize(ref blockIdToBlock, blockIdToBlock.Length * 3 / 2 + 1);
+
                     blockIdToBlock[blockIdCount++] = value;
                 }
                 gameWorldBlocks[blockSize.GetArrayOffset(blockX, blockY, blockZ)] = blockId;

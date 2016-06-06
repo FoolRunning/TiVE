@@ -54,8 +54,8 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
 
         private readonly List<Thread> meshCreationThreads = new List<Thread>();
         private readonly EntityMeshLoadQueue entityLoadQueue = new EntityMeshLoadQueue();
-        private readonly List<MeshBuilder2> chunkMeshBuilders = new List<MeshBuilder2>(TotalChunkMeshBuilders);
-        private readonly List<MeshBuilder2> spriteMeshBuilders = new List<MeshBuilder2>(TotalSpriteMeshBuilders);
+        private readonly List<MeshBuilder> chunkMeshBuilders = new List<MeshBuilder>(TotalChunkMeshBuilders);
+        private readonly List<MeshBuilder> spriteMeshBuilders = new List<MeshBuilder>(TotalSpriteMeshBuilders);
 
         private Scene loadedScene;
 
@@ -90,10 +90,10 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
         public override bool Initialize()
         {
             for (int i = 0; i < TotalChunkMeshBuilders; i++)
-                chunkMeshBuilders.Add(new MeshBuilder2(300000));
+                chunkMeshBuilders.Add(new MeshBuilder(300000));
 
             for (int i = 0; i < TotalSpriteMeshBuilders; i++)
-                spriteMeshBuilders.Add(new MeshBuilder2(3000000)); // Sprites can be max of 256x256x256 and contain a lot of voxels
+                spriteMeshBuilders.Add(new MeshBuilder(3000000)); // Sprites can be max of 256x256x256 and contain a lot of voxels
 
             int maxThreads = TiVEController.UserSettings.Get(UserSettings.ChunkCreationThreadsKey);
             for (int i = 0; i < maxThreads; i++)
@@ -114,7 +114,7 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
             using (new PerformanceLock(entityLoadQueue))
                 entityLoadQueue.Clear();
 
-            foreach (MeshBuilder2 meshBuilder in chunkMeshBuilders.Concat(spriteMeshBuilders)) // Make sure all mesh builders are available for the new scene
+            foreach (MeshBuilder meshBuilder in chunkMeshBuilders.Concat(spriteMeshBuilders)) // Make sure all mesh builders are available for the new scene
                 meshBuilder.DropMesh();
 
             // Start threads for new scene
@@ -225,7 +225,7 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
                     continue;
                 }
 
-                MeshBuilder2 meshBuilder;
+                MeshBuilder meshBuilder;
                 using (new PerformanceLock(chunkMeshBuilders))
                 {
                     meshBuilder = chunkMeshBuilders.Find(mb => !mb.IsLocked);
@@ -270,7 +270,7 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
         #endregion
 
         #region Methods for loading chunk meshes
-        private void LoadChunkMesh(ChunkComponent chunkData, MeshBuilder2 meshBuilder, EntityLoadQueueItem queueItem)
+        private void LoadChunkMesh(ChunkComponent chunkData, MeshBuilder meshBuilder, EntityLoadQueueItem queueItem)
         {
             Scene scene = loadedScene; // For thread safety
 
@@ -344,11 +344,10 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
 
         private static void CreateMeshForBlockInChunk(Block block, int blockX, int blockY, int blockZ,
             int voxelStartX, int voxelStartY, int voxelStartZ, EntityLoadQueueItem queueItem, Scene scene,
-            MeshBuilder2 meshBuilder, ref int polygonCount, ref int renderedVoxelCount)
+            MeshBuilder meshBuilder, ref int polygonCount, ref int renderedVoxelCount)
         {
             GameWorld gameWorld = scene.GameWorldInternal;
             LightProvider lightProvider = scene.GetLightProvider(queueItem.ShadowType);
-            VoxelMeshHelper meshHelper = VoxelMeshHelper.Get(false);
             Voxel[] blockVoxels = block.VoxelsArray;
 
             int voxelSize = 1 << queueItem.DetailLevel;
@@ -439,8 +438,8 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
                             if (voxelNoiseComponent != null)
                                 vox = voxelNoiseComponent.Adjust(vox);
 
-                            polygonCount += meshHelper.AddVoxel2(meshBuilder, sides, chunkVoxelX, (byte)(voxelY - voxelStartY), chunkVoxelZ,
-                                ignoreLighting ? (Color4b)vox : lightProvider.GetFinalColor(vox, voxelX, voxelY, voxelZ, voxelSize, blockX, blockY, blockZ, sides), voxelSize);
+                            polygonCount += meshBuilder.AddVoxel(sides, chunkVoxelX, (byte)(voxelY - voxelStartY), chunkVoxelZ,
+                                ignoreLighting ? (Color4b)vox : lightProvider.GetFinalColor(vox, voxelX, voxelY, voxelZ, voxelSize, blockX, blockY, blockZ, sides));
                             renderedVoxelCount++;
                         }
                     }
@@ -488,7 +487,7 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
         #endregion
 
         #region Methods for loading entity meshes
-        private void LoadMesh(IEntity entity, VoxelMeshComponent renderData, MeshBuilder2 meshBuilder, EntityLoadQueueItem queueItem)
+        private void LoadMesh(IEntity entity, VoxelMeshComponent renderData, MeshBuilder meshBuilder, EntityLoadQueueItem queueItem)
         {
         }
         #endregion

@@ -3,24 +3,36 @@ using System.Runtime.CompilerServices;
 using ProdigalSoftware.TiVE.Core.Backend;
 using ProdigalSoftware.TiVEPluginFramework;
 using ProdigalSoftware.TiVEPluginFramework.Internal;
+using ProdigalSoftware.Utils;
 
 namespace ProdigalSoftware.TiVE.VoxelMeshSystem
 {
+    [Flags]
+    internal enum VoxelSides : byte
+    {
+        None = 0,
+        Top = 1 << 0,
+        Left = 1 << 1,
+        Right = 1 << 2,
+        Bottom = 1 << 3,
+        Front = 1 << 4,
+        Back = 1 << 5,
+        Unknown = 1 << 7,
+        All = Top | Left | Right | Bottom | Front | Back,
+    }
+
     internal sealed class MeshBuilder : IMeshBuilder
     {
-        private readonly Vector3b[] locationData;
+        private readonly Vector4b[] locationData;
         private readonly Color4b[] colorData;
-        private readonly int[] indexData;
         private int vertexCount;
 
-        private int indexCount;
         private volatile bool locked;
 
-        public MeshBuilder(int initialItemSize, int initialIndexSize)
+        public MeshBuilder(int initialItemSize)
         {
-            locationData = new Vector3b[initialItemSize];
+            locationData = new Vector4b[initialItemSize];
             colorData = new Color4b[initialItemSize];
-            indexData = new int[initialIndexSize];
         }
 
         public bool IsLocked 
@@ -34,8 +46,6 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
             IVertexDataCollection meshData = TiVEController.Backend.CreateVertexDataCollection();
             meshData.AddBuffer(GetLocationData());
             meshData.AddBuffer(GetColorData());
-            if (indexCount > 0)
-                meshData.AddBuffer(GetIndexData());
             return meshData;
         }
 
@@ -46,12 +56,13 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
         #endregion
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int Add(byte x, byte y, byte z, Color4b color)
+        public int AddVoxel(VoxelSides sides, byte x, byte y, byte z, Color4b color)
         {
-            locationData[vertexCount] = new Vector3b(x, y, z);
-            colorData[vertexCount] = color;
+            locationData[vertexCount] = new Vector4b(x, y, z, (byte)sides);
+            colorData[vertexCount++] = color;
 
-            return vertexCount++;
+            int numOfSides = ((int)sides).NumberOfSetBits();
+            return numOfSides + numOfSides;
         }
 
         public void StartNewMesh()
@@ -61,18 +72,9 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
 
             locked = true;
             vertexCount = 0;
-            indexCount = 0;
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void AddIndex(int index)
-        {
-            indexData[indexCount] = index;
-            indexCount++;
         }
         
         private static readonly object syncRoot = new object();
-        private static volatile int maxIndex;
         private static volatile int maxData;
 
         public IRendererData GetColorData()
@@ -87,28 +89,15 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
                 if (vertexCount > maxData)
                 {
                     maxData = vertexCount;
-                    Console.WriteLine("Max data non-geom: " + maxData);
+                    Console.WriteLine("Max data: " + maxData);
                 }
             }
-            return TiVEController.Backend.CreateData(locationData, vertexCount, 3, DataType.Vertex, DataValueType.Byte, false, false);
-        }
-
-        private IRendererData GetIndexData()
-        {
-            lock (syncRoot)
-            {
-                if (indexCount > maxIndex)
-                {
-                    maxIndex = indexCount;
-                    Console.WriteLine("Max index non-geom: " + maxIndex);
-                }
-            }
-            return TiVEController.Backend.CreateData(indexData, indexCount, 1, DataType.Index, DataValueType.UInt, false, false);
+            return TiVEController.Backend.CreateData(locationData, vertexCount, 4, DataType.Vertex, DataValueType.Byte, false, false);
         }
 
         public override string ToString()
         {
-            return string.Format("MeshBuilder locked={0} ({1}vert {2}ind)", locked, vertexCount, indexCount);
+            return string.Format("MeshBuilder locked={0} ({1}vert)", locked, vertexCount);
         }
     }
 }

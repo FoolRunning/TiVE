@@ -4,14 +4,12 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
 {
     internal static class VoxelMeshUtils
     {
-        public static void GenerateMesh(VoxelSprite sprite, MeshBuilder meshBuilder, bool forInstances, 
-            out int voxelCount, out int renderedVoxelCount, out int polygonCount)
+        public static void GenerateMesh(VoxelSprite sprite, MeshBuilder meshBuilder, out int voxelCount, out int renderedVoxelCount, out int polygonCount)
         {
             voxelCount = 0;
             renderedVoxelCount = 0;
             polygonCount = 0;
 
-            VoxelMeshHelper meshHelper = VoxelMeshHelper.Get(forInstances);
             meshBuilder.StartNewMesh();
             int xSize = sprite.Size.X;
             int ySize = sprite.Size.Y;
@@ -23,7 +21,7 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
                     for (byte y = 0; y < ySize; y++)
                     {
                         Voxel vox = sprite[x, y, z];
-                        if (vox == 0)
+                        if (vox == Voxel.Empty)
                             continue;
 
                         voxelCount++;
@@ -44,7 +42,7 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
 
                         if (sides != VoxelSides.None)
                         {
-                            polygonCount += meshHelper.AddVoxel(meshBuilder, sides, x, y, z, (Color4b)vox, 1);
+                            polygonCount += meshBuilder.AddVoxel(sides, x, y, z, (Color4b)vox);
                             renderedVoxelCount++;
                         }
                     }

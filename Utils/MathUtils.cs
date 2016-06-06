@@ -21,5 +21,13 @@ namespace ProdigalSoftware.Utils
                 pow = pow << 1;
             return pow;
         }
+    
+        public static int NumberOfSetBits(this int i)
+        {
+            // Code taken from: http://stackoverflow.com/a/109025/4953232
+            i = i - ((i >> 1) & 0x55555555);
+            i = (i & 0x33333333) + ((i >> 2) & 0x33333333);
+            return (((i + (i >> 4)) & 0x0F0F0F0F) * 0x01010101) >> 24;
+        }
     }
 }

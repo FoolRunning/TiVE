@@ -7,7 +7,6 @@ using ProdigalSoftware.TiVE.Core.Backend;
 using ProdigalSoftware.TiVE.RenderSystem;
 using ProdigalSoftware.TiVE.Settings;
 using ProdigalSoftware.TiVE.Starter;
-using ProdigalSoftware.TiVE.VoxelMeshSystem;
 using ProdigalSoftware.TiVEPluginFramework;
 using ProdigalSoftware.TiVEPluginFramework.Components;
 using ProdigalSoftware.TiVEPluginFramework.Generators;
@@ -100,9 +99,10 @@ namespace ProdigalSoftware.TiVE.ParticleSystem
                 UpdateEntities(ticksSinceLastFrame / (float)Stopwatch.Frequency);
             }
 
-            IShaderProgram shader = shaderManager.GetShaderProgram(VoxelMeshHelper.Get(true).ShaderName);
+            ShaderProgram shader = shaderManager.GetShaderProgram(ShaderProgram.GetShaderName(true));
             shader.Bind();
             shader.SetUniform("matrix_ModelViewProjection", ref cameraData.ViewProjectionMatrix);
+            shader.SetUniform("voxelSize", 1);
 
             renderList.Clear();
             using (new PerformanceLock(particleSystemCollections))
