@@ -35,13 +35,11 @@ THE SOFTWARE.
 An Interface for the NodePool Class.
 
 */
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Collections;
 
-namespace EpPathFinding
+using System.Collections.Generic;
+using ProdigalSoftware.TiVE.AISystem.PathFinder.Grid;
+
+namespace ProdigalSoftware.TiVE.AISystem.PathFinder
 {
     public class NodePool
     {
@@ -56,6 +54,7 @@ namespace EpPathFinding
         {
             get { return m_nodes; }
         }
+
         public Node GetNode(int iX, int iY)
         {
             GridPos pos = new GridPos(iX, iY);
@@ -79,7 +78,9 @@ namespace EpPathFinding
         {
             if (iWalkable.HasValue)
             {
-                if (iWalkable.Value == true)
+                if (!iWalkable.Value)
+                    removeNode(iPos);
+                else
                 {
                     if (m_nodes.ContainsKey(iPos))
                         return m_nodes[iPos];
@@ -87,11 +88,6 @@ namespace EpPathFinding
                     m_nodes.Add(iPos, newNode);
                     return newNode;
                 }
-                else
-                {
-                    removeNode(iPos);
-                }
-                
             }
             else
             {
@@ -101,11 +97,13 @@ namespace EpPathFinding
             }
             return null;
         }
+
         protected void removeNode(int iX, int iY)
         {
             GridPos pos = new GridPos(iX, iY);
             removeNode(pos);
         }
+
         protected void removeNode(GridPos iPos)
         {
             if (m_nodes.ContainsKey(iPos))

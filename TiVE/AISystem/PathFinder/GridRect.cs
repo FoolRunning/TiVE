@@ -42,7 +42,7 @@ using System.Text;
 using System.Collections;
 //using General;
 
-namespace EpPathFinding
+namespace ProdigalSoftware.TiVE.AISystem.PathFinder
 {
     public struct GridRect
     {

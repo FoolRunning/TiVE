@@ -41,7 +41,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace EpPathFinding
+namespace ProdigalSoftware.TiVE.AISystem.PathFinder
 {
     public struct GridPos
     {

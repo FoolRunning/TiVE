@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
-using OpenTK.Graphics.OpenGL4;
+using OpenTK.Graphics.OpenGL;
 using ProdigalSoftware.TiVE.Starter;
 
 namespace ProdigalSoftware.TiVE.Core.Backend.OpenTKImpl
@@ -59,15 +59,15 @@ namespace ProdigalSoftware.TiVE.Core.Backend.OpenTKImpl
             return true;
         }
 
-        private OpenTK.Graphics.OpenGL4.ShaderType GLShaderType
+        private OpenTK.Graphics.OpenGL.ShaderType GLShaderType
         {
             get
             {
                 switch (shaderType)
                 {
-                    case ShaderType.Vertex: return OpenTK.Graphics.OpenGL4.ShaderType.VertexShader;
-                    case ShaderType.Fragment: return OpenTK.Graphics.OpenGL4.ShaderType.FragmentShader;
-                    case ShaderType.Geometry: return OpenTK.Graphics.OpenGL4.ShaderType.GeometryShader;
+                    case ShaderType.Vertex: return OpenTK.Graphics.OpenGL.ShaderType.VertexShader;
+                    case ShaderType.Fragment: return OpenTK.Graphics.OpenGL.ShaderType.FragmentShader;
+                    case ShaderType.Geometry: return OpenTK.Graphics.OpenGL.ShaderType.GeometryShader;
                     default: throw new InvalidOperationException("Unknown shader type: " + shaderType);
                 }
             }

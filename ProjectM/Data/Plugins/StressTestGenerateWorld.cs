@@ -2,7 +2,7 @@
 using ProdigalSoftware.TiVEPluginFramework;
 using ProdigalSoftware.TiVEPluginFramework.Generators;
 
-namespace ProdigalSoftware.ProjectM.Plugins
+namespace ProdigalSoftware.ProjectM.Data.Plugins
 {
     /// <summary>
     /// World generation to create a random world

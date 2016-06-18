@@ -4,7 +4,7 @@ using ProdigalSoftware.TiVEPluginFramework;
 using ProdigalSoftware.TiVEPluginFramework.Components;
 using ProdigalSoftware.TiVEPluginFramework.Generators;
 
-namespace ProdigalSoftware.ProjectM.Plugins
+namespace ProdigalSoftware.ProjectM.Data.Plugins
 {
     public class StressTestBlockLoader : IBlockGenerator
     {

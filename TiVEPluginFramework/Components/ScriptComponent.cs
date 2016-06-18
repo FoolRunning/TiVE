@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using JetBrains.Annotations;
+using MoonSharp.Interpreter;
 
 namespace ProdigalSoftware.TiVEPluginFramework.Components
 {
@@ -15,6 +16,8 @@ namespace ProdigalSoftware.TiVEPluginFramework.Components
 
         #region Internal data
         internal bool Loaded;
+        internal Script Script;
+        internal DynValue UpdateFunctionCached;
         #endregion
 
         public readonly string ScriptName;

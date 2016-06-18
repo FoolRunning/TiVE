@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using ProdigalSoftware.TiVEPluginFramework;
 
-namespace ProdigalSoftware.ProjectM.Plugins
+namespace ProdigalSoftware.ProjectM.Data.Plugins
 {
     public sealed class BlockRandomizer
     {

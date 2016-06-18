@@ -5,7 +5,7 @@ using JetBrains.Annotations;
 using ProdigalSoftware.TiVEPluginFramework;
 using ProdigalSoftware.TiVEPluginFramework.Generators;
 
-namespace ProdigalSoftware.ProjectM.Plugins
+namespace ProdigalSoftware.ProjectM.Data.Plugins
 {
     [UsedImplicitly]
     public class MazeGenerateWorld : IWorldGenerator

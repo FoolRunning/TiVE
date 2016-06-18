@@ -148,14 +148,14 @@ namespace ProdigalSoftware.TiVE.Core.Backend.OpenTKImpl
         /// <summary>
         /// Gets the OpenTK primitive type for the specified TiVE primitive type
         /// </summary>
-        private static OpenTK.Graphics.OpenGL.PrimitiveType GlPrimitiveType(PrimitiveType primitiveType)
+        private static BeginMode GlPrimitiveType(PrimitiveType primitiveType)
         {
             switch (primitiveType)
             {
-                case PrimitiveType.Lines: return OpenTK.Graphics.OpenGL.PrimitiveType.Lines;
-                case PrimitiveType.Triangles: return OpenTK.Graphics.OpenGL.PrimitiveType.Triangles;
-                case PrimitiveType.Quads: return OpenTK.Graphics.OpenGL.PrimitiveType.Quads;
-                default: return OpenTK.Graphics.OpenGL.PrimitiveType.Points;
+                case PrimitiveType.Lines: return BeginMode.Lines;
+                case PrimitiveType.Triangles: return BeginMode.Triangles;
+                case PrimitiveType.Quads: return BeginMode.Quads;
+                default: return BeginMode.Points;
             }
         }
 

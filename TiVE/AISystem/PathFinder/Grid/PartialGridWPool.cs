@@ -35,14 +35,12 @@ THE SOFTWARE.
 An Interface for the PartialGrid with Pool Class.
 
 */
-using System;
+
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Collections;
+
 //using General;
 
-namespace EpPathFinding
+namespace ProdigalSoftware.TiVE.AISystem.PathFinder.Grid
 {
     public class PartialGridWPool : BaseGrid
     {
@@ -74,7 +72,6 @@ namespace EpPathFinding
 
 
         public PartialGridWPool(NodePool iNodePool, GridRect? iGridRect = null)
-            : base()
         {
             if (iGridRect == null)
                 m_gridRect = new GridRect();
@@ -89,7 +86,6 @@ namespace EpPathFinding
             m_gridRect = iGridRect;
         }
 
-
         public bool IsInside(int iX, int iY)
         {
             if (iX < m_gridRect.minX || iX > m_gridRect.maxX || iY < m_gridRect.minY || iY > m_gridRect.maxY)
@@ -99,22 +95,19 @@ namespace EpPathFinding
 
         public override Node GetNodeAt(int iX, int iY)
         {
-            GridPos pos = new GridPos(iX, iY);
-            return GetNodeAt(pos);
+            return GetNodeAt(new GridPos(iX, iY));
         }
 
         public override bool IsWalkableAt(int iX, int iY)
         {
-            GridPos pos = new GridPos(iX, iY);
-            return IsWalkableAt(pos);
+            return IsWalkableAt(new GridPos(iX, iY));
         }
 
         public override bool SetWalkableAt(int iX, int iY, bool iWalkable)
         {
             if (!IsInside(iX,iY))
                 return false;
-            GridPos pos = new GridPos(iX, iY);
-            m_nodePool.SetNode(pos, iWalkable);
+            m_nodePool.SetNode(new GridPos(iX, iY), iWalkable);
             return true;
         }
 
@@ -163,17 +156,14 @@ namespace EpPathFinding
             else
             {
                 foreach (KeyValuePair<GridPos, Node> keyValue in m_nodePool.Nodes)
-                {
                     keyValue.Value.Reset();
-                }
             }
         }
 
 
         public override BaseGrid Clone()
         {
-            PartialGridWPool tNewGrid = new PartialGridWPool(m_nodePool,m_gridRect);
-            return tNewGrid;
+            return new PartialGridWPool(m_nodePool,m_gridRect);
         }
     }
 

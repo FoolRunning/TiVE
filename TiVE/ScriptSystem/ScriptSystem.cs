@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using MoonSharp.Interpreter;
@@ -10,6 +10,7 @@ using ProdigalSoftware.TiVE.RenderSystem.World;
 using ProdigalSoftware.TiVE.Starter;
 using ProdigalSoftware.TiVEPluginFramework;
 using ProdigalSoftware.TiVEPluginFramework.Components;
+using ProdigalSoftware.Utils;
 
 namespace ProdigalSoftware.TiVE.ScriptSystem
 {
@@ -22,9 +23,10 @@ namespace ProdigalSoftware.TiVE.ScriptSystem
         private const string ScriptFileExtension = ".lua";
         private const CoreModules AllowedModules = CoreModules.Preset_SoftSandbox | CoreModules.LoadMethods;
 
-        private readonly Dictionary<string, ScriptDataInternal> scripts = new Dictionary<string, ScriptDataInternal>();
+        private readonly MostRecentlyUsedCache<string, string> scriptCodeCache = new MostRecentlyUsedCache<string, string>(10);
         private readonly IKeyboard keyboard;
         private readonly IMouse mouse;
+        private DynValue keysEnum;
         private bool keepRunning;
         private Scene currentScene;
 
@@ -37,10 +39,15 @@ namespace ProdigalSoftware.TiVE.ScriptSystem
         #region Implementation of TimeSlicedEngineSystem
         public override bool Initialize()
         {
-            Messages.Print("Loading scripts...");
+            Messages.Print("Initializing script system...");
             keepRunning = true;
 
             Script.DefaultOptions.ScriptLoader = new ScriptLoader();
+            UserData.DefaultAccessMode = InteropAccessMode.Preoptimized;
+
+            Stopwatch sw = Stopwatch.StartNew();
+            
+            UserData.RegisterType<Keys>();
 
             // Register anything explicitly registered as script-accessible
             foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies())
@@ -53,32 +60,17 @@ namespace ProdigalSoftware.TiVE.ScriptSystem
                 if (asmName == "TiVEPluginFramework" || asmName == "Utils")
                     RegisterTypesIn(assembly);
             }
+            sw.Stop();
+
+            keysEnum = UserData.CreateStatic<Keys>();
 
             Messages.AddDoneText();
+            Messages.AddDebug("Object registration took " + sw.ElapsedMilliseconds + "ms");
             return true;
-        }
-
-        private ScriptDataInternal GetScript(string scriptName)
-        {
-            ScriptDataInternal scriptData;
-            if (!scripts.TryGetValue(scriptName, out scriptData))
-            {
-                Script script = new Script(AllowedModules);
-                AddLuaGlobals(script);
-
-                using (Stream stream = TiVEController.ResourceLoader.OpenFile(Path.Combine(ScriptsDirName, scriptName + ScriptFileExtension)))
-                using (StreamReader reader = new StreamReader(stream))
-                    script.DoString(reader.ReadToEnd()); // Can't use the DoStream() method because it calls Seek() on the stream which isn't supported by zip file entry streams
-
-                scriptData = new ScriptDataInternal(script);
-                scripts.Add(scriptName, scriptData);
-            }
-            return scriptData;
         }
 
         public override void Dispose()
         {
-            scripts.Clear();
         }
 
         public override void ChangeScene(Scene oldScene, Scene newScene)
@@ -95,31 +87,34 @@ namespace ProdigalSoftware.TiVE.ScriptSystem
             foreach (IEntity entity in currentScene.GetEntitiesWithComponent<ScriptComponent>())
             {
                 ScriptComponent scriptData = entity.GetComponent<ScriptComponent>();
-                ScriptDataInternal scriptDataInternal = GetScript(scriptData.ScriptName);
                 if (!scriptData.Loaded)
                 {
-                    if (scriptDataInternal == null)
+                    scriptData.Script = CreateScript(scriptData.ScriptName);
+                    if (scriptData.Script == null)
                         Messages.AddWarning("Unable to find script " + scriptData.ScriptName + " needed by entity " + entity.Name);
                     else
                     {
-                        DynValue entityValue = DynValue.FromObject(scriptDataInternal.Script, entity);
-                        scriptDataInternal.UpdateFunctionCached = scriptDataInternal.Script.Globals.Get("update");
-                        if (scriptDataInternal.UpdateFunctionCached == null || Equals(scriptDataInternal.UpdateFunctionCached, DynValue.Nil))
+                        DynValue entityValue = DynValue.FromObject(scriptData.Script, entity);
+                        scriptData.UpdateFunctionCached = scriptData.Script.Globals.Get("update");
+                        if (scriptData.UpdateFunctionCached == null || Equals(scriptData.UpdateFunctionCached, DynValue.Nil))
                             Messages.AddWarning("Unable to find update(entity, frameTime) method for " + scriptData.ScriptName);
 
-                        DynValue initFunction = scriptDataInternal.Script.Globals.Get("initialize");
+                        Stopwatch sw = Stopwatch.StartNew();
+                        DynValue initFunction = scriptData.Script.Globals.Get("initialize");
                         if (initFunction != null && !Equals(initFunction, DynValue.Nil))
-                            CallLuaFunction(scriptDataInternal.Script, initFunction, entity, entityValue);
+                            CallLuaFunction(scriptData.Script, initFunction, entity, entityValue);
                         else
                             Messages.AddWarning("Unable to find initialize(entity) method for " + scriptData.ScriptName);
+                        sw.Stop();
+                        Messages.AddDebug("Initialization for script " + scriptData.ScriptName + " took " + sw.ElapsedMilliseconds + "ms");
                     }
                     scriptData.Loaded = true;
                 }
 
-                if (scriptDataInternal != null && scriptDataInternal.UpdateFunctionCached != null)
+                if (scriptData.Script != null && scriptData.UpdateFunctionCached != null)
                 {
-                    DynValue entityValue = DynValue.FromObject(scriptDataInternal.Script, entity);
-                    CallLuaFunction(scriptDataInternal.Script, scriptDataInternal.UpdateFunctionCached, entity, entityValue, tsluValue);
+                    DynValue entityValue = DynValue.FromObject(scriptData.Script, entity);
+                    CallLuaFunction(scriptData.Script, scriptData.UpdateFunctionCached, entity, entityValue, tsluValue);
                 }
             }
 
@@ -127,83 +122,7 @@ namespace ProdigalSoftware.TiVE.ScriptSystem
         }
         #endregion
 
-        #region Private helper methods
-        private static void RegisterTypesIn(Assembly asm)
-        {
-            foreach (Type type in asm.ExportedTypes)
-            {
-                if (!type.IsInterface)
-                    UserData.RegisterType(type);
-            }
-        }
-
-        private static void CallLuaFunction(Script script, DynValue function, IEntity entity, params DynValue[] args)
-        {
-            try
-            {
-                script.Call(function, args);
-            }
-            catch (Exception)
-            {
-                Messages.AddError("Got unknown exception when processing script for " + entity.Name);
-                throw;
-            }
-        }
-
-        private void AddLuaGlobals(Script lua)
-        {
-            AddLuaTableForEnum<Keys>(lua);
-            lua.Globals["BlockSize"] = Block.VoxelSize;
-            lua.Globals["EmptyVoxel"] = Voxel.Empty;
-            lua.Globals["EmptyBlock"] = Block.Empty;
-
-            lua.Globals["block"] = (Func<string, Block>)GetBlock;
-            lua.Globals["blockAt"] = (Func<int, int, int, Block>)BlockAt;
-            lua.Globals["blockAtVoxel"] = (Func<int, int, int, Block>)BlockAtVoxel;
-            lua.Globals["voxelAt"] = (Func<int, int, int, Voxel>)VoxelAt;
-            lua.Globals["color"] = (Func<float, float, float, Color3f>)Color;
-            lua.Globals["message"] = (Action<object>)Message;
-            lua.Globals["stopRunning"] = (Action)StopRunning;
-            lua.Globals["keyPressed"] = (Func<int, bool>)IsKeyPressed;
-            lua.Globals["mouseLocation"] = (Func<Vector2i>)MouseLocation;
-            lua.Globals["setting"] = (Func<string, object>)GetSetting;
-            lua.Globals["vector"] = (Func<float, float, float, Vector3f>)Vector;
-            lua.Globals["rotateVectorX"] = (Func<Vector3f, float, Vector3f>)RotateVectorX;
-            lua.Globals["rotateVectorZ"] = (Func<Vector3f, float, Vector3f>)RotateVectorZ;
-            lua.Globals["gameWorld"] = (Func<IGameWorld>)GetGameWorld;
-            lua.Globals["scene"] = (Func<IScene>)GetScene;
-
-            //gameScript.UserSettings = new Func<UserSettings>(() => TiVEController.UserSettings);
-            //gameScript.ReloadLevel = new Action(() => renderer.RefreshLevel());
-            
-            //gameScript.LoadWorld = new Func<string, GameWorld>(worldName =>
-            //{
-            //    BlockList blockList;
-            //    GameWorld newWorld = GameWorldManager.LoadGameWorld(worldName, out blockList);
-            //    if (newWorld == null)
-            //        throw new TiVEException("Failed to create game world");
-            //    newWorld.Initialize(blockList);
-            //    renderer.SetGameWorld(blockList, newWorld);
-            //    return newWorld;
-            //});
-        }
-
-        internal static void AddLuaTableForEnum<T>(Script lua)
-        {
-            Type enumType = typeof(T);
-            if (!enumType.IsEnum)
-                throw new ArgumentException("Type parameter must be for an Enum type");
-
-            string tableName = enumType.Name;
-            Table keyTable = new Table(lua);
-
-            foreach (string enumProperty in Enum.GetNames(enumType))
-                keyTable[enumProperty] = (int)Enum.Parse(enumType, enumProperty);
-            lua.Globals[tableName] = keyTable;
-        }
-        #endregion
-
-        #region Private helper methods
+        #region Script-accessible methods
         private static Block GetBlock(string name)
         {
             return Factory.Get<Block>(name);
@@ -245,9 +164,9 @@ namespace ProdigalSoftware.TiVE.ScriptSystem
             return TiVEController.UserSettings.Get(name).RawValue;
         }
 
-        private bool IsKeyPressed(int key)
+        private bool IsKeyPressed(Keys key)
         {
-            return keyboard.IsKeyPressed((Keys)key);
+            return keyboard.IsKeyPressed(key);
         }
 
         private Vector2i MouseLocation()
@@ -315,22 +234,95 @@ namespace ProdigalSoftware.TiVE.ScriptSystem
         }
         #endregion
 
-        #region ScriptDataInternal class
-        private sealed class ScriptDataInternal
+        #region Private helper methods
+        private static void RegisterTypesIn(Assembly asm)
         {
-            public readonly Script Script;
-            public DynValue UpdateFunctionCached;
-
-            public ScriptDataInternal(Script script)
+            foreach (Type type in asm.ExportedTypes)
             {
-                Script = script;
+                if (!type.IsInterface)
+                    UserData.RegisterType(type);
             }
+        }
+
+        private static void CallLuaFunction(Script script, DynValue function, IEntity entity, params DynValue[] args)
+        {
+            try
+            {
+                script.Call(function, args);
+            }
+            catch (Exception)
+            {
+                Messages.AddError("Got unknown exception when processing script for " + entity.Name);
+                throw;
+            }
+        }
+
+        private Script CreateScript(string scriptName)
+        {
+            string scriptCode = scriptCodeCache.GetFromCache(scriptName, name =>
+            {
+                string scriptPath = Path.Combine(ScriptsDirName, scriptName + ScriptFileExtension);
+                if (!TiVEController.ResourceLoader.FileExists(scriptPath))
+                    return null;
+
+                using (Stream stream = TiVEController.ResourceLoader.OpenFile(scriptPath))
+                using (StreamReader reader = new StreamReader(stream))
+                    return reader.ReadToEnd();
+            });
+
+            if (scriptCode == null)
+                return null;
+
+            Script script = new Script(AllowedModules);
+            AddLuaGlobals(script);
+
+            script.DoString(scriptCode);
+            return script;
+        }
+
+        private void AddLuaGlobals(Script lua)
+        {
+            lua.Globals["Keys"] = keysEnum;
+
+            lua.Globals["BlockSize"] = Block.VoxelSize;
+            lua.Globals["EmptyVoxel"] = Voxel.Empty;
+            lua.Globals["EmptyBlock"] = Block.Empty;
+
+            lua.Globals["block"] = (Func<string, Block>)GetBlock;
+            lua.Globals["blockAt"] = (Func<int, int, int, Block>)BlockAt;
+            lua.Globals["blockAtVoxel"] = (Func<int, int, int, Block>)BlockAtVoxel;
+            lua.Globals["voxelAt"] = (Func<int, int, int, Voxel>)VoxelAt;
+            lua.Globals["color"] = (Func<float, float, float, Color3f>)Color;
+            lua.Globals["message"] = (Action<object>)Message;
+            lua.Globals["stopRunning"] = (Action)StopRunning;
+            lua.Globals["keyPressed"] = (Func<Keys, bool>)IsKeyPressed;
+            lua.Globals["mouseLocation"] = (Func<Vector2i>)MouseLocation;
+            lua.Globals["setting"] = (Func<string, object>)GetSetting;
+            lua.Globals["vector"] = (Func<float, float, float, Vector3f>)Vector;
+            lua.Globals["rotateVectorX"] = (Func<Vector3f, float, Vector3f>)RotateVectorX;
+            lua.Globals["rotateVectorZ"] = (Func<Vector3f, float, Vector3f>)RotateVectorZ;
+            lua.Globals["gameWorld"] = (Func<IGameWorld>)GetGameWorld;
+            lua.Globals["scene"] = (Func<IScene>)GetScene;
+
+            //gameScript.UserSettings = new Func<UserSettings>(() => TiVEController.UserSettings);
+            //gameScript.ReloadLevel = new Action(() => renderer.RefreshLevel());
+
+            //gameScript.LoadWorld = new Func<string, GameWorld>(worldName =>
+            //{
+            //    BlockList blockList;
+            //    GameWorld newWorld = GameWorldManager.LoadGameWorld(worldName, out blockList);
+            //    if (newWorld == null)
+            //        throw new TiVEException("Failed to create game world");
+            //    newWorld.Initialize(blockList);
+            //    renderer.SetGameWorld(blockList, newWorld);
+            //    return newWorld;
+            //});
         }
         #endregion
 
+        #region ScriptLoader class
         private sealed class ScriptLoader : ScriptLoaderBase
         {
-            #region Implementation of ScriptLoaderBase
             public override bool ScriptFileExists(string name)
             {
                 return false;
@@ -347,7 +339,7 @@ namespace ProdigalSoftware.TiVE.ScriptSystem
                 using (StreamReader reader = new StreamReader(stream))
                     return reader.ReadToEnd();
             }
-            #endregion
         }
+        #endregion
     }
 }

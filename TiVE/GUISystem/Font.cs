@@ -4,7 +4,6 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
-using System.Reflection;
 using System.Runtime.InteropServices;
 using ProdigalSoftware.TiVE.Core.Backend;
 using ProdigalSoftware.TiVEPluginFramework;
@@ -25,8 +24,7 @@ namespace ProdigalSoftware.TiVE.GUISystem
         {
             this.fontName = fontName;
             
-            string fontDir = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "Data");
-            using (TextReader reader = new StreamReader(Path.Combine(fontDir, fontName + FontInfoExtension)))
+            using (TextReader reader = new StreamReader(TiVEController.ResourceLoader.OpenFile(fontName + FontInfoExtension)))
             {
                 string line;
                 while ((line = reader.ReadLine()) != null)
@@ -72,7 +70,8 @@ namespace ProdigalSoftware.TiVE.GUISystem
                 }
             }
 
-            using (Bitmap fontImage = new Bitmap(Path.Combine(fontDir, fontName + FontImageExtension)))
+            using (Stream stream = TiVEController.ResourceLoader.OpenFile(fontName + FontImageExtension))
+            using (Bitmap fontImage = new Bitmap(stream))
             {
                 BitmapData data = fontImage.LockBits(new Rectangle(0, 0, fontImage.Width, fontImage.Height),
                     ImageLockMode.ReadOnly, PixelFormat.Format32bppArgb);
