@@ -35,14 +35,10 @@ THE SOFTWARE.
 An Interface for the DynamicGrid Class.
 
 */
-using System;
+
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Collections;
 
-
-namespace EpPathFinding
+namespace ProdigalSoftware.TiVE.AISystem.PathFinder.Grid
 {
     public class DynamicGrid : BaseGrid
     {
@@ -79,7 +75,6 @@ namespace EpPathFinding
         }
 
         public DynamicGrid(List<GridPos> iWalkableGridList = null)
-            : base()
         {
             m_gridRect = new GridRect();
             m_gridRect.minX = 0;
@@ -144,28 +139,23 @@ namespace EpPathFinding
                    // this.m_nodes[pos].walkable = iWalkable;
                     return true;
                 }
-                else
-                {
-                    if (iX < m_gridRect.minX || m_notSet)
-                        m_gridRect.minX = iX;
-                    if (iX > m_gridRect.maxX || m_notSet)
-                        m_gridRect.maxX = iX;
-                    if (iY < m_gridRect.minY || m_notSet)
-                        m_gridRect.minY = iY;
-                    if (iY > m_gridRect.maxY || m_notSet)
-                        m_gridRect.maxY = iY;
-                    m_nodes.Add(new GridPos(pos.x, pos.y), new Node(pos.x, pos.y, iWalkable));
-                    m_notSet = false;
-                }
+
+                if (iX < m_gridRect.minX || m_notSet)
+                    m_gridRect.minX = iX;
+                if (iX > m_gridRect.maxX || m_notSet)
+                    m_gridRect.maxX = iX;
+                if (iY < m_gridRect.minY || m_notSet)
+                    m_gridRect.minY = iY;
+                if (iY > m_gridRect.maxY || m_notSet)
+                    m_gridRect.maxY = iY;
+                m_nodes.Add(new GridPos(pos.x, pos.y), new Node(pos.x, pos.y, true));
+                m_notSet = false;
             }
-            else
+            else if (m_nodes.ContainsKey(pos))
             {
-                if (m_nodes.ContainsKey(pos))
-                {
-                    m_nodes.Remove(pos);
-                    if (iX == m_gridRect.minX || iX == m_gridRect.maxX || iY == m_gridRect.minY || iY == m_gridRect.maxY)
-                        m_notSet = true;
-                }
+                m_nodes.Remove(pos);
+                if (iX == m_gridRect.minX || iX == m_gridRect.maxX || iY == m_gridRect.minY || iY == m_gridRect.maxY)
+                    m_notSet = true;
             }
             return true;
         }
@@ -173,9 +163,7 @@ namespace EpPathFinding
         public override Node GetNodeAt(GridPos iPos)
         {
             if (m_nodes.ContainsKey(iPos))
-            {
                 return m_nodes[iPos];
-            }
             return null;
         }
 
@@ -196,14 +184,12 @@ namespace EpPathFinding
 
         public void Reset(List<GridPos> iWalkableGridList)
         {
-
             foreach (KeyValuePair<GridPos, Node> keyValue in m_nodes)
-            {
                 keyValue.Value.Reset();
-            }
 
             if (iWalkableGridList == null)
                 return;
+
             foreach (KeyValuePair<GridPos, Node> keyValue in m_nodes)
             {
                 if (iWalkableGridList.Contains(keyValue.Key))
@@ -215,13 +201,10 @@ namespace EpPathFinding
 
         public override BaseGrid Clone()
         {
-            DynamicGrid tNewGrid = new DynamicGrid(null);
+            DynamicGrid tNewGrid = new DynamicGrid();
 
             foreach (KeyValuePair<GridPos, Node> keyValue in m_nodes)
-            {
                 tNewGrid.SetWalkableAt(keyValue.Key.x, keyValue.Key.y, true);
-
-            }
 
             return tNewGrid;
         }

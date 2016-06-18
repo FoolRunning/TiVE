@@ -4,8 +4,10 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using Ionic.Zip;
 using ProdigalSoftware.TiVE.Starter;
+using ProdigalSoftware.Utils;
 
 namespace ProdigalSoftware.TiVE.Core
 {
@@ -15,7 +17,7 @@ namespace ProdigalSoftware.TiVE.Core
     internal sealed class ResourceLoader : IDisposable
     {
         #region Constants/member variables
-        public const string DataDirName = "Data";
+        private const string DataDirName = "Data";
         private const string ResourcePackExtension = ".TiVEPack";
 
         private static readonly string dataDirPath;
@@ -54,7 +56,7 @@ namespace ProdigalSoftware.TiVE.Core
 
             try
             {
-                foreach (string file in Directory.EnumerateFiles(dataDirPath, "*", SearchOption.AllDirectories))
+                foreach (string file in Directory.EnumerateFiles(dataDirPath, "*", SearchOption.AllDirectories).Where(f => Path.GetExtension(f) != ResourcePackExtension))
                     looseFiles.Add(MakeRelativeToDataDir(file));
 
                 foreach (string packFile in Directory.EnumerateFiles(dataDirPath, "*" + ResourcePackExtension))
@@ -76,6 +78,28 @@ namespace ProdigalSoftware.TiVE.Core
 
             Messages.AddDoneText();
             return true;
+        }
+
+        public IEnumerable<string> Files(string relFolder, string searchStr)
+        {
+            Regex searchRegex = new Regex(Regex.Escape(searchStr).Replace("\\*", ".+"));
+
+            if (!string.IsNullOrEmpty(relFolder) && !relFolder.EndsWith(Path.DirectorySeparatorChar) && !relFolder.EndsWith(Path.AltDirectorySeparatorChar))
+                relFolder += Path.DirectorySeparatorChar;
+
+            foreach (string relFilePath in looseFiles.Concat(filesInPack.Keys))
+            {
+                if ((string.IsNullOrEmpty(relFolder) || relFilePath.StartsWith(relFolder, StringComparison.Ordinal)) &&
+                    searchRegex.IsMatch(Path.GetFileName(relFilePath)))
+                {
+                    yield return relFilePath;
+                }
+            }
+        }
+
+        public bool FileExists(string relFilePath)
+        {
+            return looseFiles.Contains(relFilePath) || filesInPack.ContainsKey(relFilePath);
         }
 
         /// <summary>

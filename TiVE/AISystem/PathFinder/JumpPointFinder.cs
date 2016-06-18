@@ -40,8 +40,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Collections;
+using ProdigalSoftware.TiVE.AISystem.PathFinder.Grid;
 
-namespace EpPathFinding
+namespace ProdigalSoftware.TiVE.AISystem.PathFinder
 {
 
     public delegate float HeuristicDelegate(int iDx, int iDy);

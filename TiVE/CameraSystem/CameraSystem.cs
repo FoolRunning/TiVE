@@ -34,6 +34,7 @@ namespace ProdigalSoftware.TiVE.CameraSystem
 
         public override void ChangeScene(Scene oldScene, Scene newScene)
         {
+            visibleEntities.Clear();
         }
 
         protected override bool UpdateInternal(int ticksSinceLastUpdate, float timeBlendFactor, Scene currentScene)

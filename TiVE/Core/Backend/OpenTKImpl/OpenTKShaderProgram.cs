@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using OpenTK.Graphics.OpenGL4;
+using OpenTK.Graphics.OpenGL;
 using ProdigalSoftware.TiVE.Starter;
 using ProdigalSoftware.TiVEPluginFramework;
 
@@ -84,7 +84,7 @@ namespace ProdigalSoftware.TiVE.Core.Backend.OpenTKImpl
                     Debug.WriteLine(info);
 
                 int linkResult;
-                GL.GetProgram(programId, GetProgramParameterName.LinkStatus, out linkResult);
+                GL.GetProgram(programId, ProgramParameter.LinkStatus, out linkResult);
                 success = (linkResult == 1);
             }
 

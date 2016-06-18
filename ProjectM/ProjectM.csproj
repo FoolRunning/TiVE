@@ -87,8 +87,8 @@
     <ApplicationIcon>p button.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="MoonSharp.Interpreter, Version=1.1.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\MoonSharp.1.1.0.1\lib\net40-client\MoonSharp.Interpreter.dll</HintPath>
+    <Reference Include="MoonSharp.Interpreter, Version=1.6.0.0, Culture=neutral, PublicKeyToken=921e73ce94aa17f8, processorArchitecture=MSIL">
+      <HintPath>..\packages\MoonSharp.1.6.0.0\lib\net40-client\MoonSharp.Interpreter.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="OpenTK, Version=1.1.0.0, Culture=neutral, PublicKeyToken=bad199fe84eb3df4, processorArchitecture=MSIL" />
@@ -118,22 +118,22 @@
     <Content Include="Data\StressTest.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Compile Include="Plugins\CommonUtils.cs">
+    <Compile Include="Data\Plugins\CommonUtils.cs">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Compile>
-    <Compile Include="Plugins\LoadingGenerateWorld.cs">
+    <Compile Include="Data\Plugins\LoadingGenerateWorld.cs">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Compile>
-    <Compile Include="Plugins\MazeBlockLoader.cs">
+    <Compile Include="Data\Plugins\MazeBlockLoader.cs">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Compile>
-    <Compile Include="Plugins\ParticleControllerGenerator.cs">
+    <Compile Include="Data\Plugins\ParticleControllerGenerator.cs">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Compile>
-    <Compile Include="Plugins\SceneLoader.cs">
+    <Compile Include="Data\Plugins\SceneLoader.cs">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Compile>
-    <Compile Include="Plugins\StressTestBlockLoader.cs">
+    <Compile Include="Data\Plugins\StressTestBlockLoader.cs">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Compile>
     <Content Include="Data\Blocks\Snake16x16.TiVEb">
@@ -148,16 +148,16 @@
     <Content Include="Data\Scripts\MazeCamera.lua">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Compile Include="Plugins\MazeGenerateWorld.cs">
+    <Compile Include="Data\Plugins\MazeGenerateWorld.cs">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Compile>
-    <Compile Include="Plugins\SnakeLevelCreator.cs">
+    <Compile Include="Data\Plugins\SnakeLevelCreator.cs">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Compile>
-    <Compile Include="Plugins\TableDefinitionProvider.cs">
+    <Compile Include="Data\Plugins\TableDefinitionProvider.cs">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Compile>
-    <Compile Include="Plugins\StressTestGenerateWorld.cs">
+    <Compile Include="Data\Plugins\StressTestGenerateWorld.cs">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Compile>
     <Compile Include="Program.cs" />

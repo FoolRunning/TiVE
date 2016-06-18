@@ -58,15 +58,15 @@ namespace ProdigalSoftware.TiVE
         internal static void RunEngine(string sceneToLoad)
         {
             Engine = new Engine(60);
-            Engine.AddSystem(new RenderSystem.RenderSystem());
-            Engine.AddSystem(new ParticleSystem.ParticleSystem());
-            Engine.AddSystem(new GUISystem.GUISystem());
-
             Engine.AddSystem(new ScriptSystem.ScriptSystem(Backend.Keyboard, Backend.Mouse));
             Engine.AddSystem(new AISystem.AISystem());
             Engine.AddSystem(new CameraSystem.CameraSystem());
             Engine.AddSystem(new SoundSystem.SoundSystem());
             Engine.AddSystem(new VoxelMeshSystem.VoxelMeshSystem());
+
+            Engine.AddSystem(new RenderSystem.RenderSystem());
+            Engine.AddSystem(new ParticleSystem.ParticleSystem());
+            Engine.AddSystem(new GUISystem.GUISystem());
 
             Engine.MainLoop(sceneToLoad);
 
@@ -78,13 +78,13 @@ namespace ProdigalSoftware.TiVE
         {
             Thread initialLoadThread = new Thread(() =>
             {
-                bool success = PluginManager.LoadPlugins();
+                bool success = ResourceLoader.Initialize();
+                if (success)
+                    success = PluginManager.LoadPlugins();
                 if (success)
                     UserSettings.Load();
                 if (success)
                     success = ((TiVESerializerImplementation)TiVESerializer.Implementation).Initialize();
-                if (success)
-                    success = ResourceLoader.Initialize();
                 if (success)
                     success = BlockManager.Initialize();
 

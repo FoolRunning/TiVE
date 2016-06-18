@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Runtime.InteropServices;
-using OpenTK.Graphics.OpenGL4;
+using OpenTK.Graphics.OpenGL;
 using ProdigalSoftware.TiVE.Starter;
 
 namespace ProdigalSoftware.TiVE.Core.Backend.OpenTKImpl

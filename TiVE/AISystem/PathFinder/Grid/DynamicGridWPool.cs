@@ -35,14 +35,10 @@ THE SOFTWARE.
 An Interface for the DynamicGrid with Pool Class.
 
 */
-using System;
+
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Collections;
 
-
-namespace EpPathFinding
+namespace ProdigalSoftware.TiVE.AISystem.PathFinder.Grid
 {
     public class DynamicGridWPool : BaseGrid
     {
@@ -78,7 +74,6 @@ namespace EpPathFinding
         }
 
         public DynamicGridWPool(NodePool iNodePool)
-            : base()
         {
             m_gridRect = new GridRect();
             m_gridRect.minX = 0;
@@ -89,7 +84,6 @@ namespace EpPathFinding
             m_nodePool = iNodePool;
         }
 
-
         public override Node GetNodeAt(int iX, int iY)
         {
             GridPos pos = new GridPos(iX, iY);
@@ -98,8 +92,7 @@ namespace EpPathFinding
 
         public override bool IsWalkableAt(int iX, int iY)
         {
-            GridPos pos = new GridPos(iX, iY);
-            return IsWalkableAt(pos);
+            return IsWalkableAt(new GridPos(iX, iY));
         }
 
         private void setBoundingBox()
@@ -163,15 +156,12 @@ namespace EpPathFinding
         public override void Reset()
         {
             foreach (KeyValuePair<GridPos, Node> keyValue in m_nodePool.Nodes)
-            {
                 keyValue.Value.Reset();
-            }
         }
 
         public override BaseGrid Clone()
         {
-            DynamicGridWPool tNewGrid = new DynamicGridWPool(m_nodePool);
-            return tNewGrid;
+            return new DynamicGridWPool(m_nodePool);
         }
     }
 

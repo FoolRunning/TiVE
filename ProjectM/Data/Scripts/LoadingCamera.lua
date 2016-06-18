@@ -11,19 +11,19 @@ function initialize(entity)
     --WorldZSize = gameWorld.BlockSize.Z
     --Renderer().LightProvider.AmbientLight = Color(0.2, 0.2, 0.2)
 
-    camera.FieldOfView = math.rad(70)
+    camera.FieldOfView = math.rad(80)
     camera.Location = vector(WorldXSize * BlockSize / 2, WorldYSize * BlockSize / 2 - 50, 0)
     camera.LookAtLocation = vector(WorldXSize * BlockSize / 2, WorldYSize * BlockSize / 2, 0)
-    camera.FarDistance = 3000
-    camera.UpVector = vector(0, 0, 1)
+    camera.FarDistance = 2500
+    camera.UpVector = vector(0, 1, 0)
 end
 
 cameraAngle = 150
 
 function update(entity, timeSinceLastFrame)
-    cameraAngle = cameraAngle + (20 * timeSinceLastFrame)
+    cameraAngle = cameraAngle + (50 * timeSinceLastFrame)
 
     local camera = entity.GetComponent(ComponentCamera)
-    camera.Location = vector(WorldXSize * BlockSize / 2 + math.cos(math.rad(cameraAngle / 3)) * 100, 500 + math.sin(math.rad(cameraAngle)) * 60, BlockSize * 20)
+    camera.Location = vector(WorldXSize * BlockSize / 2 + math.cos(math.rad(cameraAngle / 3)) * 90, 550 + math.sin(math.rad(cameraAngle)) * 60, BlockSize * 18)
 end
 

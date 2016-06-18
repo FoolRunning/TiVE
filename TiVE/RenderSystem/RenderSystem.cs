@@ -45,7 +45,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem
         #region Implementation of EngineSystem
         public override void Dispose()
         {
-            DeleteAllLoadedMeshes();
+            DeleteAllLoadedMeshes(true);
             shaderManager.Dispose();
         }
 
@@ -74,7 +74,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem
 
             if (initializeForNewScene)
             {
-                DeleteAllLoadedMeshes();
+                DeleteAllLoadedMeshes(false);
                 initializeForNewScene = false;
             }
 
@@ -155,7 +155,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem
             }
 
             while (deleteQueue.Size > DeletedItemCacheSize)
-                DeleteEntityMesh(deleteQueue.Dequeue().Entity);
+                DeleteEntityMesh(deleteQueue.Dequeue().Entity, true);
         }
 
         private void HandleEntitiesWithUninitializedMeshes()
@@ -191,21 +191,21 @@ namespace ProdigalSoftware.TiVE.RenderSystem
             }
         }
 
-        private void DeleteAllLoadedMeshes()
+        private void DeleteAllLoadedMeshes(bool dropMeshes)
         {
             foreach (IEntity entity in loadedEntities)
-                DeleteEntityMesh(entity);
+                DeleteEntityMesh(entity, dropMeshes);
             loadedEntities.Clear();
 
             while (deleteQueue.Size > 0)
-                DeleteEntityMesh(deleteQueue.Dequeue().Entity);
+                DeleteEntityMesh(deleteQueue.Dequeue().Entity, dropMeshes);
         }
 
         /// <summary>
         /// Deletes the mesh data and cached render information for the specified entity. This method does nothing if the specified entitiy has
         /// not had a mesh created yet.
         /// </summary>
-        private static void DeleteEntityMesh(IEntity entity)
+        private static void DeleteEntityMesh(IEntity entity, bool dropMesh)
         {
             VoxelMeshComponent renderData = entity.GetComponent<VoxelMeshComponent>();
             using (new PerformanceLock(renderData.SyncLock))
@@ -213,7 +213,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem
                 if (renderData.MeshData != null)
                     ((IVertexDataCollection)renderData.MeshData).Dispose();
 
-                if (renderData.MeshBuilder != null)
+                if (renderData.MeshBuilder != null && dropMesh)
                     renderData.MeshBuilder.DropMesh();
 
                 renderData.MeshData = null;

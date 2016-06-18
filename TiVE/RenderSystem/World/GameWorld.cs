@@ -122,6 +122,24 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
         }
         #endregion
 
+        public Vector3us FindBlock(Block block)
+        {
+            Vector3us foundLocation = new Vector3us();
+            for (int z = 0; z < blockSize.Z; z++)
+            {
+                for (int x = 0; x < blockSize.X; x++)
+                {
+                    for (int y = 0; y < blockSize.Y; y++)
+                    {
+                        if (this[x, y, z] == block)
+                            foundLocation = new Vector3us(x, y, z);
+                    }
+                }
+            }
+
+            return foundLocation;
+        }
+
         #region Implementation of ITiVESerializable
         [MoonSharpVisible(false)]
         public void SaveTo(BinaryWriter writer)

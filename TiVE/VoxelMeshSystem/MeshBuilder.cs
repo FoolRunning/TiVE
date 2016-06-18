@@ -17,7 +17,6 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
         Bottom = 1 << 3,
         Front = 1 << 4,
         Back = 1 << 5,
-        Unknown = 1 << 7,
         All = Top | Left | Right | Bottom | Front | Back,
     }
 

@@ -2,7 +2,7 @@
 using System.Reflection;
 using ProdigalSoftware.TiVEPluginFramework.Generators;
 
-namespace ProdigalSoftware.ProjectM.Plugins
+namespace ProdigalSoftware.ProjectM.Data.Plugins
 {
     public class TableDefinitionProvider : ITableDefinitionProvider
     {

@@ -3,6 +3,7 @@ using System.Drawing;
 using System.IO;
 using System.Reflection;
 using System.Windows.Forms;
+using ProdigalSoftware.TiVE.Core;
 using ProdigalSoftware.TiVE.Settings;
 
 namespace ProdigalSoftware.TiVE.Starter
@@ -41,7 +42,7 @@ namespace ProdigalSoftware.TiVE.Starter
             {
                 if (success)
                 {
-                    foreach (string filePath in Directory.EnumerateFiles(Path.Combine(Path.GetDirectoryName(Assembly.GetEntryAssembly().Location), "Data"), "*.xml"))
+                    foreach (string filePath in TiVEController.ResourceLoader.Files("", "*.xml"))
                     {
                         try
                         {

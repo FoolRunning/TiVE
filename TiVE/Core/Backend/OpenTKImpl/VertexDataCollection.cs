@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using OpenTK.Graphics.OpenGL4;
+using OpenTK.Graphics.OpenGL;
 using ProdigalSoftware.TiVE.Starter;
 using ProdigalSoftware.Utils;
 

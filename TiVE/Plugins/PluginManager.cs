@@ -19,18 +19,9 @@ namespace ProdigalSoftware.TiVE.Plugins
         public bool LoadPlugins()
         {
             Messages.Print("Loading plugins...");
-            string path = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
-            if (path == null)
-            {
-                Messages.AddFailText();
-                return false;
-            }
-
-            string pluginPath = Path.Combine(path, PluginDir);
-            string[] pluginFiles = Directory.Exists(pluginPath) ? Directory.GetFiles(pluginPath, "*.cs", SearchOption.AllDirectories) : new string[0];
 
             List<string> errorMessages;
-            Assembly asm = LoadPlugin(pluginFiles, out errorMessages);
+            Assembly asm = LoadPlugins(TiVEController.ResourceLoader.Files(PluginDir, "*.cs"), out errorMessages);
 
             List<string> warnings = new List<string>();
             if (asm == null)
@@ -91,7 +82,7 @@ namespace ProdigalSoftware.TiVE.Plugins
                 yield return (T)type.GetConstructor(Type.EmptyTypes).Invoke(null);
         }
 
-        private static Assembly LoadPlugin(string[] codeFiles, out List<string> errorMessages)
+        private static Assembly LoadPlugins(IEnumerable<string> codeFiles, out List<string> errorMessages)
         {
             errorMessages = null;
 
@@ -104,7 +95,15 @@ namespace ProdigalSoftware.TiVE.Plugins
             parameters.GenerateInMemory = true;
             parameters.GenerateExecutable = false;
             parameters.IncludeDebugInformation = true;
-            CompilerResults results = codeCompiler.CompileAssemblyFromFile(parameters, codeFiles);
+
+            List<string> pluginCode = new List<string>();
+            foreach (string codeFile in codeFiles)
+            {
+                using (TextReader reader = new StreamReader(TiVEController.ResourceLoader.OpenFile(codeFile)))
+                    pluginCode.Add(reader.ReadToEnd());
+            }
+
+            CompilerResults results = codeCompiler.CompileAssemblyFromSource(parameters, pluginCode.ToArray());
 
             if (results.Errors.HasErrors)
             {

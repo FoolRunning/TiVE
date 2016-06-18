@@ -41,7 +41,7 @@ using System.Linq;
 using System.Text;
 using System.Collections;
 
-namespace EpPathFinding
+namespace ProdigalSoftware.TiVE.AISystem.PathFinder.Grid
 {
     public class StaticGrid : BaseGrid
     {

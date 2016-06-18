@@ -74,10 +74,10 @@ namespace ProdigalSoftware.TiVEPluginFramework
         /// </summary>
         public Voxel this[int x, int y, int z]
         {
-            get { return voxels[GetOffset(x, y, z)]; }
+            get { return voxels[GetArrayOffset(x, y, z)]; }
             set
             {
-                voxels[GetOffset(x, y, z)] = value;
+                voxels[GetArrayOffset(x, y, z)] = value;
                 totalVoxels = -1; // Need to recalculate
             }
         }
@@ -213,7 +213,7 @@ namespace ProdigalSoftware.TiVEPluginFramework
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static int GetOffset(int x, int y, int z)
+        private static int GetArrayOffset(int x, int y, int z)
         {
             Debug.Assert(x >= 0 && x < VoxelSize);
             Debug.Assert(y >= 0 && y < VoxelSize);

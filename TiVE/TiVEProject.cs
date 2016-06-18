@@ -36,10 +36,11 @@ namespace ProdigalSoftware.TiVE
         /// <summary>
         /// Creates a new TiVEProject from the specified XML file
         /// </summary>
-        public static TiVEProject FromFile(string filePath)
+        public static TiVEProject FromFile(string relFilePath)
         {
             XmlSerializer ser = new XmlSerializer(typeof(TiVEProject), "");
-            return (TiVEProject)ser.Deserialize(new StreamReader(filePath));
+            using (Stream stream = TiVEController.ResourceLoader.OpenFile(relFilePath))
+                return (TiVEProject)ser.Deserialize(stream);
         }
 
         public override string ToString()

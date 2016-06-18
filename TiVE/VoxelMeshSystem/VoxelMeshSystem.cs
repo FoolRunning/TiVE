@@ -46,7 +46,6 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
         private const byte BestVoxelDetailLevel = 0;
         private const byte WorstVoxelDetailLevel = VoxelDetailLevelSections - 1;
         private const int TotalChunkMeshBuilders = 40;
-        private const int TotalSpriteMeshBuilders = 3;
         #endregion
 
         #region Member variables
@@ -54,8 +53,7 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
 
         private readonly List<Thread> meshCreationThreads = new List<Thread>();
         private readonly EntityMeshLoadQueue entityLoadQueue = new EntityMeshLoadQueue();
-        private readonly List<MeshBuilder> chunkMeshBuilders = new List<MeshBuilder>(TotalChunkMeshBuilders);
-        private readonly List<MeshBuilder> spriteMeshBuilders = new List<MeshBuilder>(TotalSpriteMeshBuilders);
+        private readonly List<MeshBuilder> meshBuilders = new List<MeshBuilder>(TotalChunkMeshBuilders);
 
         private Scene loadedScene;
 
@@ -90,10 +88,7 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
         public override bool Initialize()
         {
             for (int i = 0; i < TotalChunkMeshBuilders; i++)
-                chunkMeshBuilders.Add(new MeshBuilder(300000));
-
-            for (int i = 0; i < TotalSpriteMeshBuilders; i++)
-                spriteMeshBuilders.Add(new MeshBuilder(3000000)); // Sprites can be max of 256x256x256 and contain a lot of voxels
+                meshBuilders.Add(new MeshBuilder(1000000));
 
             int maxThreads = TiVEController.UserSettings.Get(UserSettings.ChunkCreationThreadsKey);
             for (int i = 0; i < maxThreads; i++)
@@ -114,8 +109,10 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
             using (new PerformanceLock(entityLoadQueue))
                 entityLoadQueue.Clear();
 
-            foreach (MeshBuilder meshBuilder in chunkMeshBuilders.Concat(spriteMeshBuilders)) // Make sure all mesh builders are available for the new scene
+            foreach (MeshBuilder meshBuilder in meshBuilders) // Make sure all mesh builders are available for the new scene
                 meshBuilder.DropMesh();
+
+            loadedEntities.Clear();
 
             // Start threads for new scene
             endCreationThreads = false;
@@ -226,9 +223,9 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
                 }
 
                 MeshBuilder meshBuilder;
-                using (new PerformanceLock(chunkMeshBuilders))
+                using (new PerformanceLock(meshBuilders))
                 {
-                    meshBuilder = chunkMeshBuilders.Find(mb => !mb.IsLocked);
+                    meshBuilder = meshBuilders.Find(mb => !mb.IsLocked);
                     if (meshBuilder != null)
                         meshBuilder.StartNewMesh(); // Found a mesh builder - grab it quick!
                 }
@@ -317,13 +314,6 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
                 }
             }
 
-            if (polygonCount == 0)
-            {
-                // Loading resulted in no mesh data (i.e. all blocks were empty) so just release the lock on the mesh builder since we're done with it.
-                meshBuilder.DropMesh();
-                return;
-            }
-
             using (new PerformanceLock(chunkData.SyncLock))
             {
                 if (!chunkData.Visible || chunkData.VoxelDetailLevelToLoad != queueItem.DetailLevel)
@@ -334,7 +324,19 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
                 }
                 else
                 {
-                    chunkData.MeshBuilder = meshBuilder;
+                    if (polygonCount > 0)
+                        chunkData.MeshBuilder = meshBuilder;
+                    else
+                    {
+                        // Loading resulted in no mesh data (i.e. all blocks were empty). Since there is no mesh, we can just release the lock on the mesh builder
+                        // since we're done with it. However, we need to make sure that this chunk isn't re-loaded again later so we pretend like it was initialized.
+                        meshBuilder.DropMesh();
+                        chunkData.VisibleVoxelDetailLevel = chunkData.VoxelDetailLevelToLoad;
+                        chunkData.VisibleShadowType = chunkData.ShadowTypeToLoad;
+                        chunkData.VoxelDetailLevelToLoad = VoxelMeshComponent.BlankDetailLevel;
+                        chunkData.ShadowTypeToLoad = VoxelMeshComponent.BlankShadowType;
+                        return;
+                    }
                     chunkData.PolygonCount = polygonCount;
                     chunkData.VoxelCount = voxelCount;
                     chunkData.RenderedVoxelCount = renderedVoxelCount;
