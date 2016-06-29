@@ -86,17 +86,22 @@ namespace ProdigalSoftware.TiVE.Core.Backend.OpenTKImpl
                 int linkResult;
                 GL.GetProgram(programId, ProgramParameter.LinkStatus, out linkResult);
                 success = (linkResult == 1);
+                GlUtils.CheckGLErrors();
             }
 
             if (success)
             {
                 foreach (string uniform in uniformLocations.Keys.ToList()) // Make copy of the keys so we can change the dictionary
-                    uniformLocations[uniform] = GL.GetUniformLocation(programId, uniform);
+                {
+                    int location = GL.GetUniformLocation(programId, uniform);
+                    if (location < 0)
+                        Messages.AddWarning("Unable to find uniform " + uniform + " in program");
+                    uniformLocations[uniform] = location;
+                }
+                GlUtils.CheckGLErrors();
             }
 
             shaders.ForEach(s => s.Dispose());
-            GlUtils.CheckGLErrors();
-
             return success;
         }
 

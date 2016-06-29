@@ -4,6 +4,8 @@ layout (points) in;
 layout (triangle_strip, max_vertices=24) out;
 
 uniform mat4 matrix_ModelViewProjection;
+uniform vec3 cameraLoc;
+uniform vec3 modelTranslation;
 uniform int voxelSize;
 
 flat in vec4 colorPass[];
@@ -13,6 +15,7 @@ flat out vec4 fragment_color;
 void main()
 {
     vec3 pos = gl_in[0].gl_Position.xyz;
+    vec3 voxelPos = modelTranslation + pos;
     float x2 = pos.x + voxelSize;
     float y2 = pos.y + voxelSize;
     float z2 = pos.z + voxelSize;
@@ -28,7 +31,7 @@ void main()
     fragment_color = colorPass[0];
 
     int sides = int(gl_in[0].gl_Position.w);
-    if ((sides & 1) != 0) // top
+    if ((sides & 1) != 0 && cameraLoc.y > voxelPos.y) // top
     {
         gl_Position = v2; EmitVertex();
         gl_Position = v3; EmitVertex();
@@ -37,7 +40,7 @@ void main()
         EndPrimitive();
     }
     
-    if ((sides & 2) != 0) // left
+    if ((sides & 2) != 0 && cameraLoc.x < voxelPos.x) // left
     {
         gl_Position = v4; EmitVertex();
         gl_Position = v8; EmitVertex();
@@ -46,7 +49,7 @@ void main()
         EndPrimitive();
     }
         
-    if ((sides & 4) != 0) // right
+    if ((sides & 4) != 0 && cameraLoc.x > voxelPos.x) // right
     {
         gl_Position = v2; EmitVertex();
         gl_Position = v6; EmitVertex();
@@ -55,7 +58,7 @@ void main()
         EndPrimitive();
     }
 
-    if ((sides & 8) != 0) // bottom
+    if ((sides & 8) != 0 && cameraLoc.y < voxelPos.y) // bottom
     {
         gl_Position = v7; EmitVertex();
         gl_Position = v6; EmitVertex();
@@ -64,7 +67,7 @@ void main()
         EndPrimitive();
     }
 
-    if ((sides & 16) != 0) // front
+    if ((sides & 16) != 0 && cameraLoc.z > voxelPos.z) // front
     {
         gl_Position = v3; EmitVertex();
         gl_Position = v7; EmitVertex();
@@ -73,7 +76,7 @@ void main()
         EndPrimitive();
     }
 
-    if ((sides & 32) != 0) // back
+    if ((sides & 32) != 0 && cameraLoc.z < voxelPos.z) // back
     {
         gl_Position = v6; EmitVertex();
         gl_Position = v2; EmitVertex();

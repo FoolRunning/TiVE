@@ -69,6 +69,8 @@ namespace ProdigalSoftware.TiVE.Core.Backend.OpenTKImpl
 
         public void CloseWindow()
         {
+            CursorVisible = true; // Some times the cursor remains invisible after the window closes for some reason
+
             Exit();
 
             DisplayDevice.Default.RestoreResolution();
