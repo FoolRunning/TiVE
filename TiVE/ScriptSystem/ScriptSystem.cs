@@ -99,14 +99,14 @@ namespace ProdigalSoftware.TiVE.ScriptSystem
                         if (scriptData.UpdateFunctionCached == null || Equals(scriptData.UpdateFunctionCached, DynValue.Nil))
                             Messages.AddWarning("Unable to find update(entity, frameTime) method for " + scriptData.ScriptName);
 
-                        Stopwatch sw = Stopwatch.StartNew();
+                        //Stopwatch sw = Stopwatch.StartNew();
                         DynValue initFunction = scriptData.Script.Globals.Get("initialize");
                         if (initFunction != null && !Equals(initFunction, DynValue.Nil))
                             CallLuaFunction(scriptData.Script, initFunction, entity, entityValue);
                         else
                             Messages.AddWarning("Unable to find initialize(entity) method for " + scriptData.ScriptName);
-                        sw.Stop();
-                        Messages.AddDebug("Initialization for script " + scriptData.ScriptName + " took " + sw.ElapsedMilliseconds + "ms");
+                        //sw.Stop();
+                        //Messages.AddDebug("Initialization for script " + scriptData.ScriptName + " took " + sw.ElapsedMilliseconds + "ms");
                     }
                     scriptData.Loaded = true;
                 }

@@ -49,6 +49,8 @@ namespace ProdigalSoftware.TiVE.Core.Backend.OpenTKImpl
 
             int compileResult;
             GL.GetShader(ShaderId, ShaderParameter.CompileStatus, out compileResult);
+            GlUtils.CheckGLErrors();
+
             if (compileResult != 1)
             {
                 Messages.AddWarning(shaderType + " shader compile error!");

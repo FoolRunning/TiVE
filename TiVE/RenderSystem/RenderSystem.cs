@@ -111,7 +111,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem
                 if (meshData == null)
                     continue; // No data to render with
 
-                RenderVoxelMesh(renderData, meshData, voxelSize, ref cameraData.ViewProjectionMatrix);
+                RenderVoxelMesh(renderData, meshData, voxelSize, cameraData);
             }
 
             drawCount.PushCount(stats.DrawCount);
@@ -233,7 +233,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem
             //    loadedScene.LightProvider.RemoveLightsForChunk(chunkData);
         }
 
-        private void RenderVoxelMesh(VoxelMeshComponent renderData, IVertexDataCollection meshData, int voxelSize, ref Matrix4f viewProjectionMatrix)
+        private void RenderVoxelMesh(VoxelMeshComponent renderData, IVertexDataCollection meshData, int voxelSize, CameraComponent cameraData)
         {
             if (voxelSize < 1 || voxelSize > Block.VoxelSize)
                 throw new ArgumentException("voxelsSize was out-of-range: " + voxelSize);
@@ -246,9 +246,11 @@ namespace ProdigalSoftware.TiVE.RenderSystem
             Matrix4f translationMatrix = Matrix4f.CreateTranslation((int)renderData.Location.X, (int)renderData.Location.Y, (int)renderData.Location.Z);
 
             Matrix4f viewProjectionModelMatrix;
-            Matrix4f.Mult(ref translationMatrix, ref viewProjectionMatrix, out viewProjectionModelMatrix);
+            Matrix4f.Mult(ref translationMatrix, ref cameraData.ViewProjectionMatrix, out viewProjectionModelMatrix);
             shader.SetUniform("matrix_ModelViewProjection", ref viewProjectionModelMatrix);
             shader.SetUniform("voxelSize", voxelSize);
+            shader.SetUniform("modelTranslation", ref renderData.Location);
+            shader.SetUniform("cameraLoc", ref cameraData.Location);
 
             TiVEController.Backend.Draw(PrimitiveType.Points, meshData);
         }

@@ -4,6 +4,8 @@ layout (points) in;
 layout (triangle_strip, max_vertices=24) out;
 
 uniform mat4 matrix_ModelViewProjection;
+uniform vec3 cameraLoc;
+uniform vec3 modelTranslation;
 uniform int voxelSize;
 
 flat in vec4 colorPass[];
@@ -13,6 +15,7 @@ flat out vec4 fragment_color;
 void main()
 {
     vec3 pos = gl_in[0].gl_Position.xyz;
+    vec3 voxelPos = modelTranslation + pos;
     float x2 = pos.x + voxelSize;
     float y2 = pos.y + voxelSize;
     float z2 = pos.z + voxelSize;
@@ -26,7 +29,7 @@ void main()
     vec4 v8 = matrix_ModelViewProjection * vec4(pos.x, pos.y, z2   , 1);
     
     int sides = int(gl_in[0].gl_Position.w);
-    if ((sides & 1) != 0) // top
+    if ((sides & 1) != 0 && cameraLoc.y > voxelPos.y) // top
     {
         fragment_color = vec4(colorPass[0].rgb * 1.2, colorPass[0].a);
         gl_Position = v2; EmitVertex();
@@ -36,7 +39,7 @@ void main()
         EndPrimitive();
     }
     
-    if ((sides & 2) != 0) // left
+    if ((sides & 2) != 0 && cameraLoc.x < voxelPos.x) // left
     {
         fragment_color = vec4(colorPass[0].rgb * 1.1, colorPass[0].a);
         gl_Position = v4; EmitVertex();
@@ -46,7 +49,7 @@ void main()
         EndPrimitive();
     }
         
-    if ((sides & 4) != 0) // right
+    if ((sides & 4) != 0 && cameraLoc.x > voxelPos.x) // right
     {
         fragment_color = vec4(colorPass[0].rgb * 0.9, colorPass[0].a);
         gl_Position = v2; EmitVertex();
@@ -56,7 +59,7 @@ void main()
         EndPrimitive();
     }
 
-    if ((sides & 8) != 0) // bottom
+    if ((sides & 8) != 0 && cameraLoc.y < voxelPos.y) // bottom
     {
         fragment_color = vec4(colorPass[0].rgb * 0.8, colorPass[0].a);
         gl_Position = v7; EmitVertex();
@@ -66,7 +69,7 @@ void main()
         EndPrimitive();
     }
 
-    if ((sides & 16) != 0) // front
+    if ((sides & 16) != 0 && cameraLoc.z > voxelPos.z) // front
     {
         fragment_color = colorPass[0];
         gl_Position = v3; EmitVertex();
@@ -76,7 +79,7 @@ void main()
         EndPrimitive();
     }
 
-    if ((sides & 32) != 0) // back
+    if ((sides & 32) != 0 && cameraLoc.z < voxelPos.z) // back
     {
         fragment_color = colorPass[0];
         gl_Position = v6; EmitVertex();

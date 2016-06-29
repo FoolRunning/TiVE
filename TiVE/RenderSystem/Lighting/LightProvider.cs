@@ -47,7 +47,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
             if (lightType == LightType.Debug)
                 return new DebugLightProvider(scene);
 
-            return shadowType == ShadowType.None ? (LightProvider)new NoShadowsLightProvider(scene) : new WithShadowsLightProvider(scene, shadowType == ShadowType.Fast);
+            return shadowType == ShadowType.None ? (LightProvider)new NoShadowsLightProvider(scene) : new WithShadowsLightProvider(scene);
         }
         #endregion
 
@@ -271,11 +271,8 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
         #region WithShadowsLightProvider class
         private sealed class WithShadowsLightProvider : LightProvider
         {
-            private readonly bool useFastShadowCalc;
-
-            public WithShadowsLightProvider(Scene scene, bool useFastShadowCalc) : base(scene)
+            public WithShadowsLightProvider(Scene scene) : base(scene)
             {
-                this.useFastShadowCalc = useFastShadowCalc;
             }
 
             public override Color3f GetLightAtFast(int voxelX, int voxelY, int voxelZ)
@@ -294,7 +291,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
                         break;
 
                     LightInfo lightInfo = lights[lightIndex];
-                    if (world.NoVoxelInLineFast(voxelX, voxelY, voxelZ, lightInfo.VoxelLocX, lightInfo.VoxelLocY, lightInfo.VoxelLocZ))
+                    if (world.NoVoxelInLine(voxelX, voxelY, voxelZ, lightInfo.VoxelLocX, lightInfo.VoxelLocY, lightInfo.VoxelLocZ))
                         color += lightInfo.LightColor * lightInfo.GetLightPercentageDiffuseAndAmbient(voxelX, voxelY, voxelZ, lightingModel);
                     else
                         color += lightInfo.LightColor * lightInfo.GetLightPercentageAmbient(voxelX, voxelY, voxelZ, lightingModel);
@@ -344,12 +341,12 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
                         brightness = MathHelper.Clamp(dot / surfaceToLight.LengthFast, 0.0f, 1.0f);
                     }
 
-                    if ((availableMinusX && NoVoxelInLine(world, voxelX - 1, voxelY, voxelZ, lx, ly, lz)) ||
-                        (availableMinusY && NoVoxelInLine(world, voxelX, voxelY - 1, voxelZ, lx, ly, lz)) ||
-                        (availableMinusZ && NoVoxelInLine(world, voxelX, voxelY, voxelZ - 1, lx, ly, lz)) ||
-                        (availablePlusX && NoVoxelInLine(world, voxelX + voxelSize, voxelY, voxelZ, lx, ly, lz)) ||
-                        (availablePlusY && NoVoxelInLine(world, voxelX, voxelY + voxelSize, voxelZ, lx, ly, lz)) ||
-                        (availablePlusZ && NoVoxelInLine(world, voxelX, voxelY, voxelZ + voxelSize, lx, ly, lz)))
+                    if ((availableMinusX && world.NoVoxelInLine(voxelX - 1, voxelY, voxelZ, lx, ly, lz)) ||
+                        (availableMinusY && world.NoVoxelInLine(voxelX, voxelY - 1, voxelZ, lx, ly, lz)) ||
+                        (availableMinusZ && world.NoVoxelInLine(voxelX, voxelY, voxelZ - 1, lx, ly, lz)) ||
+                        (availablePlusX && world.NoVoxelInLine(voxelX + voxelSize, voxelY, voxelZ, lx, ly, lz)) ||
+                        (availablePlusY && world.NoVoxelInLine(voxelX, voxelY + voxelSize, voxelZ, lx, ly, lz)) ||
+                        (availablePlusZ && world.NoVoxelInLine(voxelX, voxelY, voxelZ + voxelSize, lx, ly, lz)))
                     {
                         color += lightInfo.LightColor * (brightness * lightInfo.GetLightPercentage(voxelX, voxelY, voxelZ, lightingModel) +
                             lightInfo.GetLightPercentageAmbient(voxelX, voxelY, voxelZ, lightingModel));
@@ -358,11 +355,6 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
                         color += lightInfo.LightColor * lightInfo.GetLightPercentageAmbient(voxelX, voxelY, voxelZ, lightingModel);
                 }
                 return color;
-            }
-
-            private bool NoVoxelInLine(GameWorld world, int x, int y, int z, int endX, int endY, int endZ)
-            {
-                return useFastShadowCalc ? world.NoVoxelInLineFast(x, y, z, endX, endY, endZ) : world.NoVoxelInLine(x, y, z, endX, endY, endZ);
             }
         }
         #endregion

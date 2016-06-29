@@ -103,6 +103,10 @@ namespace ProdigalSoftware.TiVE.ParticleSystem
             shader.Bind();
             shader.SetUniform("matrix_ModelViewProjection", ref cameraData.ViewProjectionMatrix);
             shader.SetUniform("voxelSize", 1);
+            shader.SetUniform("cameraLoc", ref cameraData.Location);
+
+            Vector3f translation = Vector3f.Zero;
+            shader.SetUniform("modelTranslation", ref translation);
 
             renderList.Clear();
             using (new PerformanceLock(particleSystemCollections))

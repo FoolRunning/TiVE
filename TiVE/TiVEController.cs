@@ -92,9 +92,9 @@ namespace ProdigalSoftware.TiVE
 
                 //TestIntStructAccess();
                 //TestRandomSpeed();
-                DoBlockLineTest();
-                DoFastVoxelRayCastTest();
-                DoVoxelRayCastTest();
+                //DoBlockLineTest();
+                //DoFastVoxelRayCastTest();
+                //DoVoxelRayCastTest();
             });
             initialLoadThread.IsBackground = true;
             initialLoadThread.Name = "InitialLoad";
@@ -108,93 +108,93 @@ namespace ProdigalSoftware.TiVE
         }
 
         #region Ray cast speed tests
-        private static void DoVoxelRayCastTest()
-        {
-            GameWorld gameWorld = new GameWorld(100, 100, 100);
-            Block block = new Block("dummy");
-            for (int x = 0; x < 100; x++)
-            {
-                for (int z = 0; z < 100; z++)
-                {
-                    for (int y = 0; y < 100; y++)
-                        gameWorld[x, y, z] = (x + y + z % 2 == 0) ? block : Block.Empty;
-                }
-            }
+        //private static void DoVoxelRayCastTest()
+        //{
+        //    GameWorld gameWorld = new GameWorld(100, 100, 100);
+        //    Block block = new Block("dummy");
+        //    for (int x = 0; x < 100; x++)
+        //    {
+        //        for (int z = 0; z < 100; z++)
+        //        {
+        //            for (int y = 0; y < 100; y++)
+        //                gameWorld[x, y, z] = (x + y + z % 2 == 0) ? block : Block.Empty;
+        //        }
+        //    }
 
-            gameWorld.Initialize();
-            int center = gameWorld.VoxelSize.X / 2;
+        //    gameWorld.Initialize();
+        //    int center = gameWorld.VoxelSize.X / 2;
 
-            long totalMs = 0;
-            Stopwatch sw = new Stopwatch();
-            for (int t = 0; t < 20; t++)
-            {
-                sw.Restart();
-                for (int i = 0; i < 10000; i++)
-                    gameWorld.NoVoxelInLine(center, center, center, i % center + 200, i % center + 200, i % center + 200);
-                sw.Stop();
-                totalMs += sw.ElapsedMilliseconds;
-            }
-            Messages.Println(string.Format("10,000 accurate ray casts took average of {0}ms", totalMs / 20.0f), Color.Chocolate);
-        }
+        //    long totalMs = 0;
+        //    Stopwatch sw = new Stopwatch();
+        //    for (int t = 0; t < 20; t++)
+        //    {
+        //        sw.Restart();
+        //        for (int i = 0; i < 10000; i++)
+        //            gameWorld.NoVoxelInLine(center, center, center, i % center + 200, i % center + 200, i % center + 200);
+        //        sw.Stop();
+        //        totalMs += sw.ElapsedMilliseconds;
+        //    }
+        //    Messages.Println(string.Format("10,000 accurate ray casts took average of {0}ms", totalMs / 20.0f), Color.Chocolate);
+        //}
 
-        private static void DoFastVoxelRayCastTest()
-        {
-            GameWorld gameWorld = new GameWorld(100, 100, 100);
-            Block block = new Block("dummy");
-            for (int x = 0; x < 100; x++)
-            {
-                for (int z = 0; z < 100; z++)
-                {
-                    for (int y = 0; y < 100; y++)
-                        gameWorld[x, y, z] = (x + y + z % 2 == 0) ? block : Block.Empty;
-                }
-            }
+        //private static void DoFastVoxelRayCastTest()
+        //{
+        //    GameWorld gameWorld = new GameWorld(100, 100, 100);
+        //    Block block = new Block("dummy");
+        //    for (int x = 0; x < 100; x++)
+        //    {
+        //        for (int z = 0; z < 100; z++)
+        //        {
+        //            for (int y = 0; y < 100; y++)
+        //                gameWorld[x, y, z] = (x + y + z % 2 == 0) ? block : Block.Empty;
+        //        }
+        //    }
 
-            gameWorld.Initialize();
-            int center = gameWorld.VoxelSize.X / 2;
+        //    gameWorld.Initialize();
+        //    int center = gameWorld.VoxelSize.X / 2;
 
-            long totalMs = 0;
-            Stopwatch sw = new Stopwatch();
-            for (int t = 0; t < 20; t++)
-            {
-                sw.Restart();
-                for (int i = 0; i < 10000; i++)
-                    gameWorld.NoVoxelInLineFast(center, center, center, i % center + 200, i % center + 200, i % center + 200);
-                sw.Stop();
-                totalMs += sw.ElapsedMilliseconds;
-            }
-            Messages.Println(string.Format("10,000 fast ray casts took average of {0}ms", totalMs / 20.0f), Color.Chocolate);
-        }
+        //    long totalMs = 0;
+        //    Stopwatch sw = new Stopwatch();
+        //    for (int t = 0; t < 20; t++)
+        //    {
+        //        sw.Restart();
+        //        for (int i = 0; i < 10000; i++)
+        //            gameWorld.NoVoxelInLineFast(center, center, center, i % center + 200, i % center + 200, i % center + 200);
+        //        sw.Stop();
+        //        totalMs += sw.ElapsedMilliseconds;
+        //    }
+        //    Messages.Println(string.Format("10,000 fast ray casts took average of {0}ms", totalMs / 20.0f), Color.Chocolate);
+        //}
 
-        private static void DoBlockLineTest()
-        {
-            GameWorld gameWorld = new GameWorld(200, 200, 200);
-            Block block = new Block("dummy");
-            block.AddComponent(new LightPassthroughComponent());
-            for (int x = 0; x < 100; x++)
-            {
-                for (int z = 0; z < 100; z++)
-                {
-                    for (int y = 0; y < 100; y++)
-                        gameWorld[x, y, z] = (x + y + z % 2 == 0) ? block : Block.Empty;
-                }
-            }
+        //private static void DoBlockLineTest()
+        //{
+        //    GameWorld gameWorld = new GameWorld(200, 200, 200);
+        //    Block block = new Block("dummy");
+        //    block.AddComponent(new LightPassthroughComponent());
+        //    for (int x = 0; x < 100; x++)
+        //    {
+        //        for (int z = 0; z < 100; z++)
+        //        {
+        //            for (int y = 0; y < 100; y++)
+        //                gameWorld[x, y, z] = (x + y + z % 2 == 0) ? block : Block.Empty;
+        //        }
+        //    }
 
-            gameWorld.Initialize();
-            int center = gameWorld.BlockSize.X / 2;
+        //    gameWorld.Initialize();
+        //    int center = gameWorld.BlockSize.X / 2;
 
-            long totalMs = 0;
-            Stopwatch sw = new Stopwatch();
-            for (int t = 0; t < 20; t++)
-            {
-                sw.Restart();
-                for (int i = 0; i < 10000; i++)
-                    gameWorld.NoBlocksInLine(center, center, center, i % center + 98, i % center + 98, i % center + 98);
-                sw.Stop();
-                totalMs += sw.ElapsedMilliseconds;
-            }
-            Messages.Println(string.Format("10,000 block lines took average of {0}ms", totalMs / 20.0f), Color.Chocolate);
-        }
+        //    long totalMs = 0;
+        //    Stopwatch sw = new Stopwatch();
+        //    for (int t = 0; t < 20; t++)
+        //    {
+        //        sw.Restart();
+        //        for (int i = 0; i < 10000; i++)
+        //            gameWorld.NoBlocksInLine(center, center, center, i % center + 98, i % center + 98, i % center + 98);
+        //        sw.Stop();
+        //        totalMs += sw.ElapsedMilliseconds;
+        //    }
+        //    Messages.Println(string.Format("10,000 block lines took average of {0}ms", totalMs / 20.0f), Color.Chocolate);
+        //}
         #endregion
 
         #region Random number generator speed tests
