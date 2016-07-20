@@ -76,6 +76,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
             Messages.AddDoneText();
             Messages.AddDebug(string.Format("Loading world took {0}ms", sw.ElapsedMilliseconds));
             Messages.AddDebug(string.Format("Blocks in world: {0:N0}", totalBlocks));
+            Messages.AddDebug(string.Format("Block types in world: {0:N0}", createdWorld.BlockTypeCount));
             Messages.AddDebug(string.Format("Voxels in world: {0:N0}", totalVoxels));
 
             return createdWorld;

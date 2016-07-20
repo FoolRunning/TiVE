@@ -30,8 +30,8 @@ function initialize(entity)
     --    --end
     --end
 
-    camera.FieldOfView = math.rad(80)
-    camera.FarDistance = 1500
+    camera.FieldOfView = math.rad(70)
+    camera.FarDistance = BlockSize * 50
     camera.UpVector = vector(0, 0, 1)
 end
 

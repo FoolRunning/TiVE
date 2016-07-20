@@ -81,6 +81,7 @@
   <ItemGroup>
     <Compile Include="ArrayUtilsTests.cs" />
     <Compile Include="MathUtilsTests.cs" />
+    <Compile Include="MostRecentlyUsedCacheTests.cs" />
     <Compile Include="PerformanceLockTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

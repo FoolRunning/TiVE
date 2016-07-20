@@ -1,9 +1,7 @@
-﻿using System.Collections.Generic;
-
-namespace ProdigalSoftware.TiVEPluginFramework.Generators
+﻿namespace ProdigalSoftware.TiVEPluginFramework.Generators
 {
     public interface IBlockGenerator
     {
-        IEnumerable<Block> CreateBlocks();
+        Block CreateBlock(string name);
     }
 }

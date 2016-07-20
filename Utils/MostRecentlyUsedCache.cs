@@ -1,51 +1,115 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace ProdigalSoftware.Utils
 {
     public sealed class MostRecentlyUsedCache<TKey, TValue>
     {
-        private readonly KeyValuePair<TKey, TValue>[] itemCache;
+        #region Member variables
+        /// <summary>The most recently used item</summary>
+        private ItemContainer cacheRoot;
+        /// <summary>The item used the longest time ago</summary>
+        private ItemContainer cacheTail;
+        private readonly Dictionary<TKey, ItemContainer> itemIndexes;
         private readonly int maxCacheSize;
-        private int itemCount;
+        #endregion
 
+        #region Constructor
         public MostRecentlyUsedCache(int maxCacheSize)
         {
-            itemCache = new KeyValuePair<TKey, TValue>[maxCacheSize];
+            if (maxCacheSize <= 1)
+                throw new ArgumentOutOfRangeException("maxCacheSize", "Value must be greater than one");
+
+            itemIndexes = new Dictionary<TKey, ItemContainer>(maxCacheSize);
             this.maxCacheSize = maxCacheSize;
         }
+        #endregion
 
+        #region Public methods
         public TValue GetFromCache(TKey key, Func<TKey, TValue> createValueItemFunc)
         {
-            for (int i = 0; i < itemCount; i++)
+            ItemContainer itemContainer;
+            if (itemIndexes.TryGetValue(key, out itemContainer))
             {
-                if (Equals(itemCache[i].Key,key))
-                {
-                    KeyValuePair<TKey, TValue> item = itemCache[i];
-                    RemoveItemAt(i);
-                    AddItem(item);
-                    return item.Value;
-                }
+                MakeRecent(itemContainer);
+                return itemContainer.Item;
             }
 
-            TValue value = createValueItemFunc(key);
-            AddItem(new KeyValuePair<TKey, TValue>(key, value));
-            return value;
+            TValue item = createValueItemFunc(key);
+            AddItem(key, item);
+            return item;
         }
+        #endregion
 
-        private void AddItem(KeyValuePair<TKey, TValue> item)
+        #region Private helper methods
+        private void MakeRecent(ItemContainer itemContainer)
         {
-            if (itemCount == maxCacheSize)
-                RemoveItemAt(0);
+            if (itemContainer == cacheRoot)
+                return; // Already the MRU item
 
-            itemCache[itemCount++] = item;
+            if (itemContainer == cacheTail)
+            {
+                Debug.Assert(itemContainer.Next == null);
+                cacheTail = itemContainer.Prev;
+                cacheTail.Next = null;
+            }
+            else
+            {
+                itemContainer.Prev.Next = itemContainer.Next;
+                itemContainer.Next.Prev = itemContainer.Prev;
+            }
+
+            itemContainer.Prev = null;
+            itemContainer.Next = cacheRoot;
+            cacheRoot.Prev = itemContainer;
+            cacheRoot = itemContainer;
         }
 
-        private void RemoveItemAt(int index)
+        private void AddItem(TKey key, TValue item)
         {
-            for (int j = index; j < itemCount - 1; j++)
-                itemCache[j] = itemCache[j + 1];
-            itemCount--;
+            if (itemIndexes.Count == maxCacheSize)
+            {
+                // Cache is full, so remove the item used the longest time ago (always the tail)
+                ItemContainer itemToRemove = cacheTail;
+                itemToRemove.Prev.Next = null;
+                cacheTail = itemToRemove.Prev;
+                itemIndexes.Remove(itemToRemove.Key);
+            }
+
+            ItemContainer newItemContainer = new ItemContainer(key, item);
+            itemIndexes.Add(key, newItemContainer);
+            if (cacheRoot == null)
+            {
+                Debug.Assert(cacheTail == null);
+                cacheRoot = cacheTail = newItemContainer;
+            }
+            else
+            {
+                // New item is the MRU item (always the root)
+                newItemContainer.Next = cacheRoot;
+                cacheRoot.Prev = newItemContainer;
+                cacheRoot = newItemContainer;
+            }
+
+            Debug.Assert(itemIndexes.Count <= maxCacheSize);
         }
+        #endregion
+
+        #region ItemContainer class
+        private sealed class ItemContainer
+        {
+            public readonly TKey Key;
+            public readonly TValue Item;
+            public ItemContainer Next;
+            public ItemContainer Prev;
+
+            public ItemContainer(TKey key, TValue item)
+            {
+                Key = key;
+                Item = item;
+            }
+        }
+        #endregion
     }
 }

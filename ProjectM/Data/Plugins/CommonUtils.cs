@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using ProdigalSoftware.TiVEPluginFramework;
 
 namespace ProdigalSoftware.ProjectM.Data.Plugins
@@ -23,8 +24,8 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
 
     public static class CommonUtils
     {
-        public const int stoneBlockDuplicates = 5;
-        public const int stoneBackBlockDuplicates = 10;
+        public const int stoneBlockDuplicates = 4;
+        public const int stoneBackBlockDuplicates = 15;
         public const int grassBlockDuplicates = 100;
 
         private const int Front = 1;
@@ -33,6 +34,25 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
         private const int Right = 8;
         private const int Top = 16;
         private const int Bottom = 32;
+
+        private static readonly Regex blockNameRegex = new Regex(@"(?<part>[^\d]+)(?<num>\d+)?_?(?<other>\d+)?", RegexOptions.Compiled);
+
+        public static bool ParseBlockName(string blockName, out string part, out int num, out string other)
+        {
+            Match match = blockNameRegex.Match(blockName);
+            if (!match.Success)
+            {
+                part = null;
+                num = 0;
+                other = null;
+                return false;
+            }
+
+            part = match.Groups["part"].Value;
+            num = match.Groups["num"].Success ? int.Parse(match.Groups["num"].Value) : 0;
+            other = match.Groups["other"].Success ? match.Groups["other"].Value : null;
+            return true;
+        }
 
         public static void SmoothGameWorldForMazeBlocks(IGameWorld gameWorld)
         {

@@ -21,6 +21,7 @@ namespace ProdigalSoftware.TiVEPluginFramework
         private const byte SerializedFileVersion = 1;
 
         public static readonly Block Empty = new Block("3ptEe");
+        public static readonly Block Missing = new Block("M1s51Ng");
 
         private readonly List<IBlockComponent> components = new List<IBlockComponent>();
         private readonly Voxel[] voxels = new Voxel[VoxelSize * VoxelSize * VoxelSize];
@@ -29,6 +30,12 @@ namespace ProdigalSoftware.TiVEPluginFramework
         #endregion
 
         #region Constructors
+        static Block()
+        {
+            for (int i = 0; i < Missing.voxels.Length; i++)
+                Missing.voxels[i] = new Voxel(255, 0, 0, 255, VoxelSettings.IgnoreLighting);
+        }
+
         private Block(Block toCopy, string newBlockName) : this(newBlockName)
         {
             Array.Copy(toCopy.voxels, voxels, voxels.Length);
