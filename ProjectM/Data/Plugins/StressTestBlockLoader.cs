@@ -16,7 +16,12 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
         private const int Right = 8;
         private const int Top = 16;
         private const int Bottom = 32;
-
+        
+        public Block CreateBlock(string name)
+        {
+            return null;
+        }
+        
         public IEnumerable<Block> CreateBlocks()
         {
             const bool forFantasyLighting = true;

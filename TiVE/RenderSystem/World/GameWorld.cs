@@ -77,6 +77,11 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
         }
         #endregion
 
+        internal int BlockTypeCount
+        {
+            get { return blockIdCount; }
+        }
+
         #region Implementation of IGameWorld
         public LightingModelType LightingModelType { get; set; }
 
@@ -384,7 +389,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
                 }
             }
 
-            if (ay >= Math.Max(ax, az))            /* y dominant */
+            if (ay >= az)            /* y dominant */
             {
                 xd = ax - (ay >> 1);
                 zd = az - (ay >> 1);

@@ -34,7 +34,7 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
             gameWorld.LightingModelType = LightingModelType.Fantasy3;
 
             MazeCell[,] dungeonMap = new MazeCell[gameWorld.BlockSize.X / 3, gameWorld.BlockSize.Y / 3];
-            List<Vector3i> rooms = CreateRandomRooms(random.Next(50) + 20, 3, 11, 3, 11).ToList();
+            List<Vector3i> rooms = CreateRandomRooms(random.Next(50) + 20, 3, 15, 3, 15).ToList();
             //List<Vector3i> rooms = CreateRandomRooms(10, 3, 11, 3, 11).ToList();
             int mazeStartAreaId = PlaceRooms(rooms, dungeonMap, random.Next(60) + 10);
             int lastUsedId = FillBlankWithMaze(dungeonMap, mazeStartAreaId);
@@ -50,7 +50,7 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
             //Console.WriteLine("\n\nMaze before cleaning dead ends:");
             //PrintDungeon(dungeonMap);
 
-            CleanUpDeadEnds(dungeonMap, random.Next(60) + 40);
+            CleanUpDeadEnds(dungeonMap, random.Next(60) + 20);
             
             //Console.WriteLine("\n\nMaze before removing annoying turns:");
             //PrintDungeon(dungeonMap);

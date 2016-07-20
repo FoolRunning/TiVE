@@ -510,11 +510,11 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
             float distancePerLevel;
             switch (currentVoxelDetalLevelSetting)
             {
-                case VoxelDetailLevelDistance.Closest: distancePerLevel = 90000; break; // 300v
-                case VoxelDetailLevelDistance.Close: distancePerLevel = 202500; break;  // 450v
-                case VoxelDetailLevelDistance.Mid: distancePerLevel = 360000; break;    // 600v
-                case VoxelDetailLevelDistance.Far: distancePerLevel = 562500; break;    // 750v
-                default: distancePerLevel = 810000; break;                              // 900v
+                case VoxelDetailLevelDistance.Closest: distancePerLevel = Block.VoxelSize * Block.VoxelSize * 100; break; // voxelSize * 10 = 320v
+                case VoxelDetailLevelDistance.Close: distancePerLevel = Block.VoxelSize * Block.VoxelSize * 196; break;   // voxelSize * 14 = 448v
+                case VoxelDetailLevelDistance.Mid: distancePerLevel = Block.VoxelSize * Block.VoxelSize * 361; break;     // voxelSize * 19 = 608v
+                case VoxelDetailLevelDistance.Far: distancePerLevel = Block.VoxelSize * Block.VoxelSize * 576; break;     // voxelSize * 24 = 768v
+                default: distancePerLevel = Block.VoxelSize * Block.VoxelSize * 841; break;                               // voxelSize * 29 = 918v
             }
 
             for (byte i = BestVoxelDetailLevel; i <= WorstVoxelDetailLevel; i++)
@@ -544,11 +544,11 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
             float shadowDistance;
             switch (currentShadowDistanceSetting)
             {
-                case ShadowDistance.Closest: shadowDistance = 90000; break; // 300v
-                case ShadowDistance.Close: shadowDistance = 202500; break;  // 450v
-                case ShadowDistance.Mid: shadowDistance = 360000; break;    // 600v
-                case ShadowDistance.Far: shadowDistance = 562500; break;    // 750v
-                default: shadowDistance = 810000; break;                    // 900v
+                case ShadowDistance.Closest: shadowDistance = Block.VoxelSize * Block.VoxelSize * 100; break; // voxelSize * 10 = 320v
+                case ShadowDistance.Close: shadowDistance = Block.VoxelSize * Block.VoxelSize * 196; break;   // voxelSize * 14 = 448v
+                case ShadowDistance.Mid: shadowDistance = Block.VoxelSize * Block.VoxelSize * 361; break;     // voxelSize * 19 = 608v
+                case ShadowDistance.Far: shadowDistance = Block.VoxelSize * Block.VoxelSize * 576; break;     // voxelSize * 24 = 768v
+                default: shadowDistance = Block.VoxelSize * Block.VoxelSize * 841; break;                     // voxelSize * 29 = 918v
             }
 
             return dist <= shadowDistance ? ShadowType.Nice : ShadowType.None;
