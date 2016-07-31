@@ -8,7 +8,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
     internal sealed class BlockManager
     {
         private static readonly string emptyBlockName = Block.Empty.Name;
-        private readonly MostRecentlyUsedCache<string, Block> blockCache = new MostRecentlyUsedCache<string, Block>(1000);
+        private readonly MostRecentlyUsedCache<string, Block> blockCache = new MostRecentlyUsedCache<string, Block>(10000);
 
         public Block GetBlock(string blockName)
         {

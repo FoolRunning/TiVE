@@ -41,7 +41,7 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
 
             BlockRandomizer grasses = new BlockRandomizer("grass", CommonUtils.grassBlockDuplicates);
             Block dirt = Factory.Get<Block>("dirt");
-            Block stoneBack = Factory.Get<Block>("backStone0");
+            Block stoneBack = Factory.Get<Block>("backStone");
             Block stone = Factory.Get<Block>("ston0_0");
             Block light = Factory.Get<Block>("loadingLight");
             for (int x = 0; x < worldSizeX; x++)

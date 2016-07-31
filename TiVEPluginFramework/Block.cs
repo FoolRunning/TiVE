@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Runtime.CompilerServices;
 using JetBrains.Annotations;
@@ -13,11 +12,8 @@ namespace ProdigalSoftware.TiVEPluginFramework
         #region Member variables/constants
         public static readonly Guid ID = new Guid("105FC0BF-E194-46BC-8ED8-61942721CC7F");
 
-        /// <summary>Number of voxels that make up a block on each axis (must be a power-of-two)</summary>
-        public const int VoxelSize = 32;
-        /// <summary>Number of bit shifts neccessary on a number to produce the number of voxels on each axis.
-        /// This allows us to quickly multiply or divide a value by the voxel size by bitshifting</summary>
-        public const int VoxelSizeBitShift = 5;
+        /// <summary>Number of voxels that make up a block on each axis</summary>
+        public const int VoxelSize = 16;
         private const byte SerializedFileVersion = 1;
 
         public static readonly Block Empty = new Block("3ptEe");
@@ -222,11 +218,8 @@ namespace ProdigalSoftware.TiVEPluginFramework
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static int GetArrayOffset(int x, int y, int z)
         {
-            Debug.Assert(x >= 0 && x < VoxelSize);
-            Debug.Assert(y >= 0 && y < VoxelSize);
-            Debug.Assert(z >= 0 && z < VoxelSize);
-
-            return (((z << VoxelSizeBitShift) + x) << VoxelSizeBitShift) + y; // y-axis major for speed
+            MiscUtils.CheckConstraints(x, y, z, VoxelSize);
+            return (((z * VoxelSize) + x) * VoxelSize) + y; // y-axis major for speed
         }
         #endregion
     }

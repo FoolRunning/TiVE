@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Runtime.CompilerServices;
 using MoonSharp.Interpreter;
@@ -129,6 +128,10 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
 
         public Vector3us FindBlock(Block block)
         {
+            ushort blockId;
+            if (!blockNameToId.TryGetValue(block.Name, out blockId))
+                return new Vector3us();
+
             Vector3us foundLocation = new Vector3us();
             for (int z = 0; z < blockSize.Z; z++)
             {
@@ -136,7 +139,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
                 {
                     for (int y = 0; y < blockSize.Y; y++)
                     {
-                        if (this[x, y, z] == block)
+                        if (gameWorldBlocks[blockSize.GetArrayOffset(x, y, z)] == blockId)
                             foundLocation = new Vector3us(x, y, z);
                     }
                 }
@@ -202,9 +205,9 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
         {
             MiscUtils.CheckConstraints(voxelX, voxelY, voxelZ, voxelSize);
 
-            int blockX = voxelX >> Block.VoxelSizeBitShift;
-            int blockY = voxelY >> Block.VoxelSizeBitShift;
-            int blockZ = voxelZ >> Block.VoxelSizeBitShift;
+            int blockX = voxelX / Block.VoxelSize;
+            int blockY = voxelY / Block.VoxelSize;
+            int blockZ = voxelZ / Block.VoxelSize;
             ushort block = gameWorldBlocks[blockSize.GetArrayOffset(blockX, blockY, blockZ)];
             int blockVoxelX = voxelX % Block.VoxelSize;
             int blockVoxelY = voxelY % Block.VoxelSize;
@@ -235,9 +238,9 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
             float tMaxX = tStepX;
             float tMaxY = tStepY;
             float tMaxZ = tStepZ;
-            int blockX = x >> Block.VoxelSizeBitShift;
-            int blockY = y >> Block.VoxelSizeBitShift;
-            int blockZ = z >> Block.VoxelSizeBitShift;
+            int blockX = x / Block.VoxelSize;
+            int blockY = y / Block.VoxelSize;
+            int blockZ = z / Block.VoxelSize;
             int blockVoxelX = x % Block.VoxelSize;
             int blockVoxelY = y % Block.VoxelSize;
             int blockVoxelZ = z % Block.VoxelSize;
@@ -248,8 +251,8 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
             
             ushort[] blocksLocal = gameWorldBlocks;
             Vector3i blockSizeLocal = blockSize;
-            Block[] blockIdToBlockLocal = blockIdToBlock;
-            Block block = null;
+            bool[] blockVoxelsEmptyForLightingLocal = blockVoxelsEmptyForLighting;
+            ushort blockId = 0;
             for (; ;)
             {
                 if (tMaxX < tMaxY)
@@ -259,11 +262,10 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
                         x = x + stepX;
                         tMaxX = tMaxX + tStepX;
                         blockVoxelX = x % Block.VoxelSize;
-                        blockX = x >> Block.VoxelSizeBitShift;
+                        blockX = x / Block.VoxelSize;
                         if (blockX != prevBlockX)
                         {
-                            ushort blockId = blocksLocal[blockSizeLocal.GetArrayOffset(blockX, blockY, blockZ)];
-                            block = blockId != 0 ? blockIdToBlockLocal[blockId] : null;
+                            blockId = blocksLocal[blockSizeLocal.GetArrayOffset(blockX, blockY, blockZ)];
                             prevBlockX = blockX;
                         }
                     }
@@ -272,11 +274,10 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
                         z = z + stepZ;
                         tMaxZ = tMaxZ + tStepZ;
                         blockVoxelZ = z % Block.VoxelSize;
-                        blockZ = z >> Block.VoxelSizeBitShift;
+                        blockZ = z / Block.VoxelSize;
                         if (blockZ != prevBlockZ)
                         {
-                            ushort blockId = blocksLocal[blockSizeLocal.GetArrayOffset(blockX, blockY, blockZ)];
-                            block = blockId != 0 ? blockIdToBlockLocal[blockId] : null;
+                            blockId = blocksLocal[blockSizeLocal.GetArrayOffset(blockX, blockY, blockZ)];
                             prevBlockZ = blockZ;
                         }
                     }
@@ -286,11 +287,10 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
                     y = y + stepY;
                     tMaxY = tMaxY + tStepY;
                     blockVoxelY = y % Block.VoxelSize;
-                    blockY = y >> Block.VoxelSizeBitShift;
+                    blockY = y / Block.VoxelSize;
                     if (blockY != prevBlockY)
                     {
-                        ushort blockId = blocksLocal[blockSizeLocal.GetArrayOffset(blockX, blockY, blockZ)];
-                        block = blockId != 0 ? blockIdToBlockLocal[blockId] : null;
+                        blockId = blocksLocal[blockSizeLocal.GetArrayOffset(blockX, blockY, blockZ)];
                         prevBlockY = blockY;
                     }
                 }
@@ -299,11 +299,10 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
                     z = z + stepZ;
                     tMaxZ = tMaxZ + tStepZ;
                     blockVoxelZ = z % Block.VoxelSize;
-                    blockZ = z >> Block.VoxelSizeBitShift;
+                    blockZ = z / Block.VoxelSize;
                     if (blockZ != prevBlockZ)
                     {
-                        ushort blockId = blocksLocal[blockSizeLocal.GetArrayOffset(blockX, blockY, blockZ)];
-                        block = blockId != 0 ? blockIdToBlockLocal[blockId] : null;
+                        blockId = blocksLocal[blockSizeLocal.GetArrayOffset(blockX, blockY, blockZ)];
                         prevBlockZ = blockZ;
                     }
                 }
@@ -311,7 +310,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
                 if (x == endX && y == endY && z == endZ)
                     return true;
 
-                if (block != null && !block[blockVoxelX, blockVoxelY, blockVoxelZ].AllowLightPassthrough)
+                if (blockId != 0 && !blockVoxelsEmptyForLightingLocal[GetBlockVoxelsOffset(blockId, blockVoxelX, blockVoxelY, blockVoxelZ)])
                     return false;
             }
         }
@@ -338,9 +337,9 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
             int sy = FastSign(dy);
             int sz = FastSign(dz);
 
-            int blockX = x >> Block.VoxelSizeBitShift;
-            int blockY = y >> Block.VoxelSizeBitShift;
-            int blockZ = z >> Block.VoxelSizeBitShift;
+            int blockX = x / Block.VoxelSize;
+            int blockY = y / Block.VoxelSize;
+            int blockZ = z / Block.VoxelSize;
             int blockVoxelX = x % Block.VoxelSize;
             int blockVoxelY = y % Block.VoxelSize;
             int blockVoxelZ = z % Block.VoxelSize;
@@ -349,7 +348,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
             Vector3i blockSizeLocal = blockSize;
             bool[] blockVoxelsEmptyForLightingLocal = blockVoxelsEmptyForLighting;
 
-            ushort block;
+            ushort blockId;
             int xd, yd, zd;
             if (ax >= Math.Max(ay, az))            /* x dominant */
             {
@@ -361,7 +360,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
                     {
                         y += sy;
                         yd -= ax;
-                        blockY = y >> Block.VoxelSizeBitShift;
+                        blockY = y / Block.VoxelSize;
                         blockVoxelY = y % Block.VoxelSize;
                     }
 
@@ -369,12 +368,12 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
                     {
                         z += sz;
                         zd -= ax;
-                        blockZ = z >> Block.VoxelSizeBitShift;
+                        blockZ = z / Block.VoxelSize;
                         blockVoxelZ = z % Block.VoxelSize;
                     }
 
                     x += sx;
-                    blockX = x >> Block.VoxelSizeBitShift;
+                    blockX = x / Block.VoxelSize;
                     blockVoxelX = x % Block.VoxelSize;
 
                     yd += ay;
@@ -383,8 +382,8 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
                     if (x == x2)
                         return true;
 
-                    block = blocksLocal[blockSizeLocal.GetArrayOffset(blockX, blockY, blockZ)];
-                    if (block != 0 && !blockVoxelsEmptyForLightingLocal[GetBlockVoxelsOffset(block, blockVoxelX, blockVoxelY, blockVoxelZ)])
+                    blockId = blocksLocal[blockSizeLocal.GetArrayOffset(blockX, blockY, blockZ)];
+                    if (blockId != 0 && !blockVoxelsEmptyForLightingLocal[GetBlockVoxelsOffset(blockId, blockVoxelX, blockVoxelY, blockVoxelZ)])
                         return false;
                 }
             }
@@ -399,7 +398,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
                     {
                         x += sx;
                         xd -= ay;
-                        blockX = x >> Block.VoxelSizeBitShift;
+                        blockX = x / Block.VoxelSize;
                         blockVoxelX = x % Block.VoxelSize;
                     }
 
@@ -407,12 +406,12 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
                     {
                         z += sz;
                         zd -= ay;
-                        blockZ = z >> Block.VoxelSizeBitShift;
+                        blockZ = z / Block.VoxelSize;
                         blockVoxelZ = z % Block.VoxelSize;
                     }
 
                     y += sy;
-                    blockY = y >> Block.VoxelSizeBitShift;
+                    blockY = y / Block.VoxelSize;
                     blockVoxelY = y % Block.VoxelSize;
 
                     xd += ax;
@@ -421,8 +420,8 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
                     if (y == y2)
                         return true;
 
-                    block = blocksLocal[blockSizeLocal.GetArrayOffset(blockX, blockY, blockZ)];
-                    if (block != 0 && !blockVoxelsEmptyForLightingLocal[GetBlockVoxelsOffset(block, blockVoxelX, blockVoxelY, blockVoxelZ)])
+                    blockId = blocksLocal[blockSizeLocal.GetArrayOffset(blockX, blockY, blockZ)];
+                    if (blockId != 0 && !blockVoxelsEmptyForLightingLocal[GetBlockVoxelsOffset(blockId, blockVoxelX, blockVoxelY, blockVoxelZ)])
                         return false;
                 }
             }
@@ -436,7 +435,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
                 {
                     x += sx;
                     xd -= az;
-                    blockX = x >> Block.VoxelSizeBitShift;
+                    blockX = x / Block.VoxelSize;
                     blockVoxelX = x % Block.VoxelSize;
                 }
 
@@ -444,12 +443,12 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
                 {
                     y += sy;
                     yd -= az;
-                    blockY = y >> Block.VoxelSizeBitShift;
+                    blockY = y / Block.VoxelSize;
                     blockVoxelY = y % Block.VoxelSize;
                 }
 
                 z += sz;
-                blockZ = z >> Block.VoxelSizeBitShift;
+                blockZ = z / Block.VoxelSize;
                 blockVoxelZ = z % Block.VoxelSize;
 
                 xd += ax;
@@ -458,8 +457,8 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
                 if (z == z2)
                     return true;
 
-                block = blocksLocal[blockSizeLocal.GetArrayOffset(blockX, blockY, blockZ)];
-                if (block != 0 && !blockVoxelsEmptyForLightingLocal[GetBlockVoxelsOffset(block, blockVoxelX, blockVoxelY, blockVoxelZ)])
+                blockId = blocksLocal[blockSizeLocal.GetArrayOffset(blockX, blockY, blockZ)];
+                if (blockId != 0 && !blockVoxelsEmptyForLightingLocal[GetBlockVoxelsOffset(blockId, blockVoxelX, blockVoxelY, blockVoxelZ)])
                     return false;
             }
         }
@@ -591,11 +590,8 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static int GetBlockVoxelsOffset(ushort blockIndex, int x, int y, int z)
         {
-            Debug.Assert(x >= 0 && x < Block.VoxelSize);
-            Debug.Assert(y >= 0 && y < Block.VoxelSize);
-            Debug.Assert(z >= 0 && z < Block.VoxelSize);
-
-            return blockIndex * BlockTotalVoxelCount + (((z << Block.VoxelSizeBitShift) + x) << Block.VoxelSizeBitShift) + y; // y-axis major for speed
+            MiscUtils.CheckConstraints(x, y, z, Block.VoxelSize);
+            return blockIndex * BlockTotalVoxelCount + (((z * Block.VoxelSize) + x) * Block.VoxelSize) + y; // y-axis major for speed
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

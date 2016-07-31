@@ -128,6 +128,10 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
             CameraComponent cameraData = currentScene.FindCamera();
             if (cameraData == null)
                 return true;
+
+            VoxelDetailLevelDistance currentVoxelDetalLevelSetting = (VoxelDetailLevelDistance)(int)TiVEController.UserSettings.Get(UserSettings.DetailDistanceKey);
+            ShadowDistance currentShadowDistanceSetting = (ShadowDistance)(int)TiVEController.UserSettings.Get(UserSettings.ShadowDistanceKey);
+
             using (new PerformanceLock(entityLoadQueue))
             {
                 entityLoadQueue.Sort(cameraData);
@@ -139,21 +143,15 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
                 }
             }
 
-            VoxelDetailLevelDistance currentVoxelDetalLevelSetting = (VoxelDetailLevelDistance)(int)TiVEController.UserSettings.Get(UserSettings.DetailDistanceKey);
-            ShadowDistance currentShadowDistanceSetting = (ShadowDistance)(int)TiVEController.UserSettings.Get(UserSettings.ShadowDistanceKey);
-
             foreach (IEntity entity in loadedEntities)
             {
                 VoxelMeshComponent renderData = entity.GetComponent<VoxelMeshComponent>();
                 Debug.Assert(renderData != null);
 
-                if (renderData.MeshData != null)
-                {
-                    byte perferedDetailLevel = GetPerferedVoxelDetailLevel(renderData, cameraData, currentVoxelDetalLevelSetting);
-                    ShadowType shadowType = GetPerferedShadowType(renderData, cameraData, currentShadowDistanceSetting);
-                    if (NeedToUpdateMesh(renderData, perferedDetailLevel, shadowType))
-                        ReloadEntityMesh(entity, renderData, perferedDetailLevel, shadowType);
-                }
+                byte perferedDetailLevel = GetPerferedVoxelDetailLevel(renderData, cameraData, currentVoxelDetalLevelSetting);
+                ShadowType shadowType = GetPerferedShadowType(renderData, cameraData, currentShadowDistanceSetting);
+                if (NeedToUpdateMesh(renderData, perferedDetailLevel, shadowType))
+                    ReloadEntityMesh(entity, renderData, perferedDetailLevel, shadowType);
             }
 
             foreach (IEntity entity in cameraData.NewlyVisibleEntitites.Where(e => e.HasComponent<VoxelMeshComponent>()))
@@ -175,10 +173,10 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
         }
         #endregion
 
-        private static bool NeedToUpdateMesh(VoxelMeshComponent renderData, byte perferedDetailLevel, ShadowType shadowType)
+        private static bool NeedToUpdateMesh(VoxelMeshComponent renderData, byte perferedDetailLevel, ShadowType perferedShadowType)
         {
-            return (renderData.VisibleVoxelDetailLevel != perferedDetailLevel || renderData.VisibleShadowType != (byte)shadowType) &&
-                (renderData.VoxelDetailLevelToLoad != perferedDetailLevel || renderData.ShadowTypeToLoad != (byte)shadowType);
+            return (renderData.VoxelDetailLevelToLoad != perferedDetailLevel && renderData.VisibleVoxelDetailLevel != perferedDetailLevel) ||
+                (renderData.ShadowTypeToLoad != (byte)perferedShadowType && renderData.VisibleShadowType != (byte)perferedShadowType);
         }
 
         #region Public methods
@@ -286,9 +284,9 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
             int blockStartZ = chunkData.ChunkBlockLoc.Z;
             int blockEndZ = Math.Min((chunkData.ChunkLoc.Z + 1) * ChunkComponent.BlockSize, gameWorld.BlockSize.Z);
 
-            int voxelStartX = blockStartX << Block.VoxelSizeBitShift;
-            int voxelStartY = blockStartY << Block.VoxelSizeBitShift;
-            int voxelStartZ = blockStartZ << Block.VoxelSizeBitShift;
+            int voxelStartX = blockStartX * Block.VoxelSize;
+            int voxelStartY = blockStartY * Block.VoxelSize;
+            int voxelStartZ = blockStartZ * Block.VoxelSize;
 
             int voxelCount = 0;
             int renderedVoxelCount = 0;
@@ -349,7 +347,8 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
             MeshBuilder meshBuilder, ref int polygonCount, ref int renderedVoxelCount)
         {
             GameWorld gameWorld = scene.GameWorldInternal;
-            LightProvider lightProvider = scene.GetLightProvider(queueItem.ShadowType);
+            LightProvider lightProviderShadow = scene.GetLightProvider(queueItem.ShadowType);
+            LightProvider lightProviderNoShadow = scene.GetLightProvider(ShadowType.None);
             Voxel[] blockVoxels = block.VoxelsArray;
 
             int voxelSize = 1 << queueItem.DetailLevel;
@@ -363,11 +362,11 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
             //for (int bvz = Block.VoxelSize - 1; bvz >= 0; bvz -= voxelSize)
             for (int bvz = 0; bvz < Block.VoxelSize; bvz += voxelSize)
             {
-                int voxelZ = (blockZ << Block.VoxelSizeBitShift) + bvz;
+                int voxelZ = (blockZ * Block.VoxelSize) + bvz;
                 byte chunkVoxelZ = (byte)(voxelZ - voxelStartZ);
                 for (int bvx = 0; bvx < Block.VoxelSize; bvx += voxelSize)
                 {
-                    int voxelX = (blockX << Block.VoxelSizeBitShift) + bvx;
+                    int voxelX = (blockX * Block.VoxelSize) + bvx;
                     byte chunkVoxelX = (byte)(voxelX - voxelStartX);
                     for (int bvy = 0; bvy < Block.VoxelSize; bvy += voxelSize)
                     {
@@ -375,7 +374,7 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
                         if (vox == Voxel.Empty)
                             continue;
 
-                        int voxelY = (blockY << Block.VoxelSizeBitShift) + bvy;
+                        int voxelY = (blockY * Block.VoxelSize) + bvy;
 
                         VoxelSides sides = VoxelSides.None;
 
@@ -435,13 +434,12 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
 
                         if (sides != VoxelSides.None)
                         {
-                            bool ignoreLighting = vox.IgnoreLighting;
-
                             if (voxelNoiseComponent != null)
                                 vox = voxelNoiseComponent.Adjust(vox);
 
+                            LightProvider lightProvider = vox.AllowLightPassthrough ? lightProviderNoShadow : lightProviderShadow;
                             polygonCount += meshBuilder.AddVoxel(sides, chunkVoxelX, (byte)(voxelY - voxelStartY), chunkVoxelZ,
-                                ignoreLighting ? (Color4b)vox : lightProvider.GetFinalColor(vox, voxelX, voxelY, voxelZ, voxelSize, blockX, blockY, blockZ, sides));
+                                vox.IgnoreLighting ? (Color4b)vox : lightProvider.GetFinalColor(vox, voxelX, voxelY, voxelZ, voxelSize, blockX, blockY, blockZ, sides));
                             renderedVoxelCount++;
                         }
                     }
@@ -510,11 +508,11 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
             float distancePerLevel;
             switch (currentVoxelDetalLevelSetting)
             {
-                case VoxelDetailLevelDistance.Closest: distancePerLevel = Block.VoxelSize * Block.VoxelSize * 100; break; // voxelSize * 10 = 320v
-                case VoxelDetailLevelDistance.Close: distancePerLevel = Block.VoxelSize * Block.VoxelSize * 196; break;   // voxelSize * 14 = 448v
-                case VoxelDetailLevelDistance.Mid: distancePerLevel = Block.VoxelSize * Block.VoxelSize * 361; break;     // voxelSize * 19 = 608v
-                case VoxelDetailLevelDistance.Far: distancePerLevel = Block.VoxelSize * Block.VoxelSize * 576; break;     // voxelSize * 24 = 768v
-                default: distancePerLevel = Block.VoxelSize * Block.VoxelSize * 841; break;                               // voxelSize * 29 = 918v
+                case VoxelDetailLevelDistance.Closest: distancePerLevel = Block.VoxelSize * Block.VoxelSize * 400; break; // voxelSize * 20 = 320v
+                case VoxelDetailLevelDistance.Close: distancePerLevel = Block.VoxelSize * Block.VoxelSize * 784; break;   // voxelSize * 28 = 448v
+                case VoxelDetailLevelDistance.Mid: distancePerLevel = Block.VoxelSize * Block.VoxelSize * 1444; break;    // voxelSize * 38 = 608v
+                case VoxelDetailLevelDistance.Far: distancePerLevel = Block.VoxelSize * Block.VoxelSize * 2304; break;    // voxelSize * 48 = 768v
+                default: distancePerLevel = Block.VoxelSize * Block.VoxelSize * 3364; break;                              // voxelSize * 58 = 918v
             }
 
             for (byte i = BestVoxelDetailLevel; i <= WorstVoxelDetailLevel; i++)
@@ -544,11 +542,11 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
             float shadowDistance;
             switch (currentShadowDistanceSetting)
             {
-                case ShadowDistance.Closest: shadowDistance = Block.VoxelSize * Block.VoxelSize * 100; break; // voxelSize * 10 = 320v
-                case ShadowDistance.Close: shadowDistance = Block.VoxelSize * Block.VoxelSize * 196; break;   // voxelSize * 14 = 448v
-                case ShadowDistance.Mid: shadowDistance = Block.VoxelSize * Block.VoxelSize * 361; break;     // voxelSize * 19 = 608v
-                case ShadowDistance.Far: shadowDistance = Block.VoxelSize * Block.VoxelSize * 576; break;     // voxelSize * 24 = 768v
-                default: shadowDistance = Block.VoxelSize * Block.VoxelSize * 841; break;                     // voxelSize * 29 = 918v
+                case ShadowDistance.Closest: shadowDistance = Block.VoxelSize * Block.VoxelSize * 400; break; // voxelSize * 20 = 320v
+                case ShadowDistance.Close: shadowDistance = Block.VoxelSize * Block.VoxelSize * 784; break;   // voxelSize * 28 = 448v
+                case ShadowDistance.Mid: shadowDistance = Block.VoxelSize * Block.VoxelSize * 1444; break;    // voxelSize * 38 = 608v
+                case ShadowDistance.Far: shadowDistance = Block.VoxelSize * Block.VoxelSize * 2304; break;    // voxelSize * 48 = 768v
+                default: shadowDistance = Block.VoxelSize * Block.VoxelSize * 3364; break;                    // voxelSize * 58 = 918v
             }
 
             return dist <= shadowDistance ? ShadowType.Nice : ShadowType.None;
@@ -581,7 +579,7 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static int GetBlockVoxelOffset(int x, int y, int z)
         {
-            return (((z << Block.VoxelSizeBitShift) + x) << Block.VoxelSizeBitShift) + y; // y-axis major for speed
+            return (((z * Block.VoxelSize) + x) * Block.VoxelSize) + y; // y-axis major for speed
         }
         #endregion
     }

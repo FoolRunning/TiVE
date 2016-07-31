@@ -135,10 +135,10 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
                 int lbz = lightInfo.BlockZ;
                 for (int bz = startZ; bz < endZ; bz++)
                 {
-                    int vz = (bz << Block.VoxelSizeBitShift) + HalfBlockVoxelSize;
+                    int vz = (bz * Block.VoxelSize) + HalfBlockVoxelSize;
                     for (int bx = startX; bx < endX; bx++)
                     {
-                        int vx = (bx << Block.VoxelSizeBitShift) + HalfBlockVoxelSize;
+                        int vx = (bx * Block.VoxelSize) + HalfBlockVoxelSize;
                         for (int by = startY; by < endY; by++)
                         {
                             if ((lightCullType == LightCullType.Fast && CullLightFast(lbx, lby, lbz, bx, by, bz)) ||
@@ -147,7 +147,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
                                 continue; // The light won't actually hit the block
                             }
 
-                            int vy = (by << Block.VoxelSizeBitShift) + HalfBlockVoxelSize;
+                            int vy = (by * Block.VoxelSize) + HalfBlockVoxelSize;
                             ushort[] blockLights = blocksLights[GetBlockLightOffset(bx - startX, by - startY, bz - startZ)];
 
                             // Calculate lighting information

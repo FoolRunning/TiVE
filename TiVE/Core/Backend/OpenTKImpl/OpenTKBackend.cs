@@ -43,7 +43,7 @@ namespace ProdigalSoftware.TiVE.Core.Backend.OpenTKImpl
             GL.ClearColor(0, 0, 0, 1);
 
             GL.Enable(EnableCap.DepthTest);
-            GL.DepthFunc(DepthFunction.Less);
+            GL.DepthFunc(DepthFunction.Lequal);
 
             GL.Enable(EnableCap.CullFace);
             GL.CullFace(CullFaceMode.Back);

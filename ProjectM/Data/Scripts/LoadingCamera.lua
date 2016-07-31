@@ -24,6 +24,6 @@ function update(entity, timeSinceLastFrame)
     cameraAngle = cameraAngle + (50 * timeSinceLastFrame)
 
     local camera = entity.GetComponent(ComponentCamera)
-    camera.Location = vector(WorldXSize * BlockSize / 2 + math.cos(math.rad(cameraAngle / 3)) * 90, 550 + math.sin(math.rad(cameraAngle)) * 60, BlockSize * 18)
+    camera.Location = vector(WorldXSize * BlockSize / 2 + math.cos(math.rad(cameraAngle / 3)) * BlockSize * 3, 18 * BlockSize + math.sin(math.rad(cameraAngle)) * BlockSize * 2, BlockSize * 18)
 end
 
