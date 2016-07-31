@@ -63,6 +63,17 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
         {
             entityComparer.SetComparePoint(cameraData.Location);
             entities.Sort(entityComparer);
+
+            //for (int i = 0; i < entities.Count; i++)
+            //{
+            //    for (int j = i + 1; j < entities.Count; j++)
+            //    {
+            //        if (entities[i].Entity == entities[j].Entity)
+            //        {
+            //            Console.WriteLine("Somehow got the same entity in the queue twice!");
+            //        }
+            //    }
+            //}
         }
 
         public bool Contains(EntityLoadQueueItem item)

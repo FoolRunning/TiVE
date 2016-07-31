@@ -148,9 +148,9 @@ namespace ProdigalSoftware.TiVE.ScriptSystem
             if (gameWorld == null)
                 return Block.Empty;
 
-            int blockX = voxelX >> Block.VoxelSizeBitShift;
-            int blockY = voxelY >> Block.VoxelSizeBitShift;
-            int blockZ = voxelZ >> Block.VoxelSizeBitShift;
+            int blockX = voxelX / Block.VoxelSize;
+            int blockY = voxelY / Block.VoxelSize;
+            int blockZ = voxelZ / Block.VoxelSize;
             return gameWorld[blockX, blockY, blockZ];
         }
 

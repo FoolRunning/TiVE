@@ -13,6 +13,7 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
             {
                 case "Snow": return new SnowUpdater();
                 case "Fire": return new FireUpdater();
+                case "Lava": return new LavaUpdater();
                 case "Fountain": return new FountainUpdater();
                 case "LightBugs": return new LightBugsUpdater();
                 default: return null;
@@ -230,6 +231,80 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
                 particle.X = systemLocation.X - 1;
                 particle.Y = systemLocation.Y - 1;
                 particle.Z = systemLocation.Z - 1;
+
+                particle.Color = colorList[0];
+                particle.Time = AliveTime;
+            }
+            #endregion
+        }
+        #endregion
+
+        #region LavaUpdater class
+        private class LavaUpdater : ParticleController
+        {
+            private const float AliveTime = 2.0f;
+
+            private static readonly Color4b[] colorList = new Color4b[256];
+
+            static LavaUpdater()
+            {
+                for (int i = 0; i < 256; i++)
+                    colorList[i] = new Color4b((byte)(255 - i), (byte)(10 - i / 30), (byte)(5 - i / 70), 255);
+            }
+
+            public LavaUpdater() : base(14, 5, TransparencyType.Additive, false)
+            {
+            }
+
+            #region Implementation of ParticleController
+            public override VoxelSprite ParticleSprite
+            {
+                get
+                {
+                    const int mid = 5;
+                    const int sphereRadius = 4;
+                    VoxelSprite particleVoxels = new VoxelSprite(10, 10, 10);
+                    for (int z = 0; z < 10; z++)
+                    {
+                        for (int x = 0; x < 10; x++)
+                        {
+                            for (int y = 0; y < 10; y++)
+                            {
+                                int dist = (x - mid) * (x - mid) + (y - mid) * (y - mid) + (z - mid) * (z - mid);
+                                if (dist > sphereRadius * sphereRadius)
+                                    continue;
+
+                                particleVoxels[x, y, z] = Voxel.White;
+                            }
+                        }
+                    }
+                    return particleVoxels;
+                }
+            }
+
+            public override void Update(Particle particle, float timeSinceLastFrame, Vector3i systemLocation)
+            {
+                ApplyVelocity(particle, timeSinceLastFrame);
+                if (particle.Z > systemLocation.Z - 4)
+                    particle.VelZ = 0.0f;
+
+                particle.Time -= timeSinceLastFrame;
+
+                // set color
+                if (particle.Time > 0.0f)
+                {
+                    int colorIndex = (int)(((AliveTime - particle.Time) / AliveTime) * (colorList.Length - 1));
+                    particle.Color = colorList[Math.Min(colorIndex, colorList.Length - 1)];
+                }
+            }
+
+            public override void InitializeNew(Particle particle, Vector3i systemLocation)
+            {
+                particle.VelZ = 8;
+
+                particle.X = systemLocation.X + Random.Next(Block.VoxelSize + 5) - 4;
+                particle.Y = systemLocation.Y + Random.Next(Block.VoxelSize + 5) - 4;
+                particle.Z = systemLocation.Z - 12;
 
                 particle.Color = colorList[0];
                 particle.Time = AliveTime;

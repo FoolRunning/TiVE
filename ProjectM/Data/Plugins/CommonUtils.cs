@@ -24,8 +24,8 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
 
     public static class CommonUtils
     {
-        public const int stoneBlockDuplicates = 4;
-        public const int stoneBackBlockDuplicates = 15;
+        public const int stoneBlockDuplicates = 6;
+        public const int stoneBackBlockDuplicates = 9;
         public const int grassBlockDuplicates = 100;
 
         private const int Front = 1;
@@ -56,12 +56,17 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
 
         public static void SmoothGameWorldForMazeBlocks(IGameWorld gameWorld)
         {
-            HashSet<Block> blocksToConsiderEmpty = new HashSet<Block>();
             List<BlockRandomizer> stoneRandomizers = new List<BlockRandomizer>();
+            List<BlockRandomizer> backRandomizers = new List<BlockRandomizer>();
             for (int i = 0; i < 64; i++)
+            {
                 stoneRandomizers.Add(new BlockRandomizer("ston" + i + "_", stoneBlockDuplicates));
+                backRandomizers.Add(new BlockRandomizer("back" + i + "_", stoneBackBlockDuplicates));
+            }
 
+            HashSet<Block> blocksToConsiderEmpty = new HashSet<Block>();
             blocksToConsiderEmpty.Add(Block.Empty);
+            blocksToConsiderEmpty.Add(Factory.Get<Block>("fire"));
             blocksToConsiderEmpty.Add(Factory.Get<Block>("smallLightHover"));
             for (int i = 0; i < grassBlockDuplicates; i++)
                 blocksToConsiderEmpty.Add(Factory.Get<Block>("grass" + i));
@@ -73,6 +78,8 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
             {
                 for (int q = 0; q < stoneBlockDuplicates; q++)
                     blocksToSmooth.Add(Factory.Get<Block>("ston" + i + "_" + q));
+                for (int q = 0; q < stoneBackBlockDuplicates; q++)
+                    blocksToSmooth.Add(Factory.Get<Block>("back" + i + "_" + q));
                 blocksToSmooth.Add(Factory.Get<Block>("wood" + i));
             }
 
@@ -109,6 +116,8 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
                         string blockNamePart = block.Name.Substring(0, 4);
                         if (blockNamePart == "ston")
                             gameWorld[x, y, z] = stoneRandomizers[sides].NextBlock();
+                        else if (blockNamePart == "back")
+                            gameWorld[x, y, z] = backRandomizers[sides].NextBlock();
                         else
                             gameWorld[x, y, z] = Factory.Get<Block>(blockNamePart + sides);
                     }

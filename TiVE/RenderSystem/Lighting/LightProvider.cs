@@ -110,15 +110,25 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
             {
                 new Color3f(0.0f, 0.2f, 0.0f),
                 new Color3f(0.0f, 1.0f, 0.0f),
+                new Color3f(0.1f, 1.0f, 0.0f),
                 new Color3f(0.2f, 1.0f, 0.0f),
+                new Color3f(0.3f, 1.0f, 0.0f),
                 new Color3f(0.4f, 1.0f, 0.0f),
+                new Color3f(0.5f, 1.0f, 0.0f),
                 new Color3f(0.6f, 1.0f, 0.0f),
+                new Color3f(0.7f, 1.0f, 0.0f),
                 new Color3f(0.8f, 1.0f, 0.0f),
+                new Color3f(0.9f, 1.0f, 0.0f), // 10
                 new Color3f(1.0f, 1.0f, 0.0f),
                 new Color3f(1.0f, 0.9f, 0.0f),
+                new Color3f(1.0f, 0.8f, 0.0f),
+                new Color3f(1.0f, 0.7f, 0.0f),
                 new Color3f(1.0f, 0.6f, 0.0f),
+                new Color3f(1.0f, 0.5f, 0.0f),
+                new Color3f(1.0f, 0.4f, 0.0f),
                 new Color3f(1.0f, 0.3f, 0.0f),
-                new Color3f(1.0f, 0.0f, 0.0f), // 10
+                new Color3f(1.0f, 0.15f, 0.0f),
+                new Color3f(1.0f, 0.0f, 0.0f), // 20
                 new Color3f(1.0f, 0.0f, 1.0f),
                 new Color3f(1.0f, 0.1f, 1.0f),
                 new Color3f(1.0f, 0.2f, 1.0f),
@@ -128,28 +138,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
                 new Color3f(1.0f, 0.6f, 1.0f),
                 new Color3f(1.0f, 0.7f, 1.0f),
                 new Color3f(1.0f, 0.8f, 1.0f),
-                new Color3f(1.0f, 1.0f, 1.0f) // 20
-                //new Color3f(0.0f, 0.2f, 0.0f),
-                //new Color3f(0.0f, 1.0f, 0.0f),
-                //new Color3f(0.1f, 1.0f, 0.0f),
-                //new Color3f(0.2f, 1.0f, 0.0f),
-                //new Color3f(0.3f, 1.0f, 0.0f),
-                //new Color3f(0.4f, 1.0f, 0.0f),
-                //new Color3f(0.5f, 1.0f, 0.0f),
-                //new Color3f(0.6f, 1.0f, 0.0f),
-                //new Color3f(0.7f, 1.0f, 0.0f),
-                //new Color3f(0.8f, 1.0f, 0.0f),
-                //new Color3f(0.9f, 1.0f, 0.0f), // 10
-                //new Color3f(1.0f, 1.0f, 0.0f),
-                //new Color3f(1.0f, 0.9f, 0.0f),
-                //new Color3f(1.0f, 0.8f, 0.0f),
-                //new Color3f(1.0f, 0.7f, 0.0f),
-                //new Color3f(1.0f, 0.6f, 0.0f),
-                //new Color3f(1.0f, 0.5f, 0.0f),
-                //new Color3f(1.0f, 0.4f, 0.0f),
-                //new Color3f(1.0f, 0.2f, 0.0f),
-                //new Color3f(1.0f, 0.0f, 0.0f),
-                //new Color3f(1.0f, 1.0f, 1.0f) // 20
+                new Color3f(1.0f, 1.0f, 1.0f) // 30
             };
 
             public DebugLightProvider(Scene scene) : base(scene)
@@ -165,9 +154,9 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
 
             public override Color3f GetLightAtFast(int voxelX, int voxelY, int voxelZ)
             {
-                int worldBlockX = voxelX >> Block.VoxelSizeBitShift;
-                int worldBlockY = voxelY >> Block.VoxelSizeBitShift;
-                int worldBlockZ = voxelZ >> Block.VoxelSizeBitShift;
+                int worldBlockX = voxelX / Block.VoxelSize;
+                int worldBlockY = voxelY / Block.VoxelSize;
+                int worldBlockZ = voxelZ / Block.VoxelSize;
                 return GetLightAt(voxelX, voxelY, voxelZ, 1, worldBlockX, worldBlockY, worldBlockZ, VoxelSides.All, false);
             }
 
@@ -199,7 +188,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
 
             public override Color3f GetLightAtFast(int voxelX, int voxelY, int voxelZ)
             {
-                ushort[] lightsInBlock = scene.LightData.GetLightsForBlock(voxelX >> Block.VoxelSizeBitShift, voxelY >> Block.VoxelSizeBitShift, voxelZ >> Block.VoxelSizeBitShift);
+                ushort[] lightsInBlock = scene.LightData.GetLightsForBlock(voxelX / Block.VoxelSize, voxelY / Block.VoxelSize, voxelZ / Block.VoxelSize);
                 if (lightsInBlock == null)
                     return Color3f.Empty; // Probably unloaded the chunk while loading
 
@@ -276,7 +265,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
 
             public override Color3f GetLightAtFast(int voxelX, int voxelY, int voxelZ)
             {
-                ushort[] lightsInBlock = scene.LightData.GetLightsForBlock(voxelX >> Block.VoxelSizeBitShift, voxelY >> Block.VoxelSizeBitShift, voxelZ >> Block.VoxelSizeBitShift);
+                ushort[] lightsInBlock = scene.LightData.GetLightsForBlock(voxelX / Block.VoxelSize, voxelY / Block.VoxelSize, voxelZ / Block.VoxelSize);
                 if (lightsInBlock == null)
                     return Color3f.Empty; // Probably unloaded the chunk while loading
 

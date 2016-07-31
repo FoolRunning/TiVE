@@ -26,6 +26,11 @@ namespace ProdigalSoftware.Utils
         }
         #endregion
 
+        public int ItemCount
+        {
+            get { return itemIndexes.Count; }
+        }
+
         #region Public methods
         public TValue GetFromCache(TKey key, Func<TKey, TValue> createValueItemFunc)
         {
