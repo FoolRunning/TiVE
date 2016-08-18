@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using ProdigalSoftware.TiVE.Core;
@@ -89,11 +90,11 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
 
             //Messages.Print("Pre-loading lighting...");
             //sw.Restart();
-            //numThreads = Environment.ProcessorCount > 3 ? Environment.ProcessorCount - 2 : 1;
-            //threads = new Thread[numThreads];
+            //int preLoadNumThreads = Environment.ProcessorCount > 3 ? Environment.ProcessorCount - 2 : 1;
+            //threads = new Thread[preLoadNumThreads];
             //List<ChunkComponent> allChunks = scene.GetEntitiesWithComponent<ChunkComponent>().Select(e => e.GetComponent<ChunkComponent>()).ToList();
-            //for (int i = 0; i < numThreads; i++)
-            //    threads[i] = StartLightPreLoadThread("Light preload " + (i + 1), allChunks, i * allChunks.Count / numThreads, (i + 1) * allChunks.Count / numThreads);
+            //for (int i = 0; i < preLoadNumThreads; i++)
+            //    threads[i] = StartLightPreLoadThread("Light preload " + (i + 1), allChunks, i * allChunks.Count / preLoadNumThreads, (i + 1) * allChunks.Count / preLoadNumThreads);
             //foreach (Thread thread in threads)
             //    thread.Join();
 

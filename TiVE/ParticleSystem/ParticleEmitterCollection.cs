@@ -17,6 +17,7 @@ namespace ProdigalSoftware.TiVE.ParticleSystem
     {
         #region Member variables
         private static readonly ParticleSystemSorter sorter = new ParticleSystemSorter();
+
         /// <summary>List of particles systems in this collection</summary>
         private readonly List<ParticleEmitter> particleSystems = new List<ParticleEmitter>();
         /// <summary>Copy of the particle systems list used for updating without locking too long</summary>
@@ -52,9 +53,8 @@ namespace ProdigalSoftware.TiVE.ParticleSystem
             this.controller = controller;
 
             // Create particle voxel model to be used for each particle
-            MeshBuilder voxelInstanceBuilder = new MeshBuilder(200);
+            MeshBuilder voxelInstanceBuilder = new MeshBuilder(controller.ParticleSprite.VoxelCount);
             VoxelMeshUtils.GenerateMesh(controller.ParticleSprite, voxelInstanceBuilder, out voxelsPerParticle, out renderedVoxelsPerParticle, out polysPerParticle);
-
             voxelInstanceLocationData = voxelInstanceBuilder.GetLocationData();
 
             locations = new Vector3us[controller.MaxParticles * 5];

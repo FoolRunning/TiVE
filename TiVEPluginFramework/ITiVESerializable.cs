@@ -15,6 +15,7 @@ namespace ProdigalSoftware.TiVEPluginFramework
         /// <summary>
         /// Saves the object to the specified writer
         /// </summary>
+        [Pure]
         void SaveTo(BinaryWriter writer);
     }
 }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using ProdigalSoftware.TiVEPluginFramework.Components;
 
 namespace ProdigalSoftware.TiVEPluginFramework
@@ -33,6 +34,18 @@ namespace ProdigalSoftware.TiVEPluginFramework
                     return false;
             }
             return true;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int FastAbs(int value)
+        {
+            return value >= 0 ? value : -value;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int FastSign(int value)
+        {
+            return value == 0 ? 0 : (value < 0 ? -1 : 1);
         }
     }
 }

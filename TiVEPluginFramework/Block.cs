@@ -13,7 +13,7 @@ namespace ProdigalSoftware.TiVEPluginFramework
         public static readonly Guid ID = new Guid("105FC0BF-E194-46BC-8ED8-61942721CC7F");
 
         /// <summary>Number of voxels that make up a block on each axis</summary>
-        public const int VoxelSize = 16;
+        public const int VoxelSize = 32;
         private const byte SerializedFileVersion = 1;
 
         public static readonly Block Empty = new Block("3ptEe");
@@ -95,7 +95,7 @@ namespace ProdigalSoftware.TiVEPluginFramework
             get
             {
                 if (totalVoxels == -1)
-                    totalVoxels = GetCountOfNonEmptyVoxels();
+                    totalVoxels = MiscUtils.GetCountOfNonEmptyVoxels(voxels);
                 return totalVoxels;
             }
         }
@@ -204,17 +204,6 @@ namespace ProdigalSoftware.TiVEPluginFramework
         #endregion
 
         #region Private helper methods
-        private int GetCountOfNonEmptyVoxels()
-        {
-            int count = 0;
-            for (int i = 0; i < voxels.Length; i++) // For loop for speed
-            {
-                if (voxels[i] != Voxel.Empty)
-                    count++;
-            }
-            return count;
-        }
-
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static int GetArrayOffset(int x, int y, int z)
         {

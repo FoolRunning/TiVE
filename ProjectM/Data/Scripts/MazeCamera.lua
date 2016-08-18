@@ -43,7 +43,7 @@ function update(entity, timeSinceLastFrame)
         stopRunning()
     end
 
-    local speed = BlockSize / 32
+    local speed = BlockSize / 24
     if (keyPressed(Keys.LShift)) then --Speed up
         speed = speed * 3
     elseif (keyPressed(Keys.LControl)) then --Slow down
