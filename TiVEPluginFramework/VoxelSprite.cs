@@ -7,6 +7,7 @@ namespace ProdigalSoftware.TiVEPluginFramework
         public readonly Vector3i Size;
 
         private readonly Voxel[] voxels;
+        private int totalVoxels = -1;
 
         public VoxelSprite(int sizeX, int sizeY, int sizeZ)
         {
@@ -16,10 +17,24 @@ namespace ProdigalSoftware.TiVEPluginFramework
                 voxels[i] = Voxel.Empty;
         }
 
+        public int VoxelCount
+        {
+            get
+            {
+                if (totalVoxels == -1)
+                    totalVoxels = MiscUtils.GetCountOfNonEmptyVoxels(voxels);
+                return totalVoxels;
+            }
+        }
+
         public Voxel this[int x, int y, int z]
         {
             get { return voxels[GetBlockOffset(x, y, z)]; }
-            set { voxels[GetBlockOffset(x, y, z)] = value; }
+            set 
+            { 
+                voxels[GetBlockOffset(x, y, z)] = value;
+                totalVoxels = -1;
+            }
         }
 
         /// <summary>

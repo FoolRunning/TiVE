@@ -242,17 +242,19 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
         #region LavaUpdater class
         private class LavaUpdater : ParticleController
         {
-            private const float AliveTime = 2.0f;
+            private const int SpriteSize = (int)(Block.VoxelSize * 0.65f);
+            private const int SpriteMid = SpriteSize / 2;
+            private const float AliveTime = 5.0f;
 
             private static readonly Color4b[] colorList = new Color4b[256];
 
             static LavaUpdater()
             {
                 for (int i = 0; i < 256; i++)
-                    colorList[i] = new Color4b((byte)(255 - i), (byte)(10 - i / 30), (byte)(5 - i / 70), 255);
+                    colorList[i] = new Color4b((byte)(255 - i), (byte)(10 - i / 30), (byte)(5 - i / 70), (byte)(255 - i));
             }
 
-            public LavaUpdater() : base(14, 5, TransparencyType.Additive, false)
+            public LavaUpdater() : base(25, 4, TransparencyType.Realistic, false)
             {
             }
 
@@ -261,16 +263,16 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
             {
                 get
                 {
-                    const int mid = 5;
-                    const int sphereRadius = 4;
-                    VoxelSprite particleVoxels = new VoxelSprite(10, 10, 10);
-                    for (int z = 0; z < 10; z++)
+                    const int sphereRadius = SpriteMid - 1;
+
+                    VoxelSprite particleVoxels = new VoxelSprite(SpriteSize, SpriteSize, SpriteSize);
+                    for (int z = 0; z < SpriteSize; z++)
                     {
-                        for (int x = 0; x < 10; x++)
+                        for (int x = 0; x < SpriteSize; x++)
                         {
-                            for (int y = 0; y < 10; y++)
+                            for (int y = 0; y < SpriteSize; y++)
                             {
-                                int dist = (x - mid) * (x - mid) + (y - mid) * (y - mid) + (z - mid) * (z - mid);
+                                int dist = (x - SpriteMid) * (x - SpriteMid) + (y - SpriteMid) * (y - SpriteMid) + (z - SpriteMid) * (z - SpriteMid);
                                 if (dist > sphereRadius * sphereRadius)
                                     continue;
 
@@ -285,7 +287,7 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
             public override void Update(Particle particle, float timeSinceLastFrame, Vector3i systemLocation)
             {
                 ApplyVelocity(particle, timeSinceLastFrame);
-                if (particle.Z > systemLocation.Z - 4)
+                if (particle.Z > systemLocation.Z - SpriteMid + 1)
                     particle.VelZ = 0.0f;
 
                 particle.Time -= timeSinceLastFrame;
@@ -300,14 +302,14 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
 
             public override void InitializeNew(Particle particle, Vector3i systemLocation)
             {
-                particle.VelZ = 8;
+                particle.VelZ = SpriteSize * 0.8f;
 
-                particle.X = systemLocation.X + Random.Next(Block.VoxelSize + 5) - 4;
-                particle.Y = systemLocation.Y + Random.Next(Block.VoxelSize + 5) - 4;
-                particle.Z = systemLocation.Z - 12;
+                particle.X = systemLocation.X + Random.Next(Block.VoxelSize + SpriteMid) - SpriteMid + 1;
+                particle.Y = systemLocation.Y + Random.Next(Block.VoxelSize + SpriteMid) - SpriteMid + 1;
+                particle.Z = systemLocation.Z - SpriteSize - 2;
 
                 particle.Color = colorList[0];
-                particle.Time = AliveTime;
+                particle.Time = Random.NextFloat() * AliveTime / 2.0f + AliveTime / 2.0f;
             }
             #endregion
         }

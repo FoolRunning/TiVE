@@ -7,6 +7,8 @@ namespace ProdigalSoftware.TiVEPluginFramework
     [PublicAPI]
     public static class MiscUtils
     {
+        private const int MaxPowerOfTwo = (1 << 30);
+
         /// <summary>
         /// Throws an ArgumentOutOfRangeException if the specified location is outside the bounds of the specified size.
         /// This method is not compiled into release builds.
@@ -35,6 +37,38 @@ namespace ProdigalSoftware.TiVEPluginFramework
                 throw new ArgumentOutOfRangeException("y");
             if (z < 0 || z >= size)
                 throw new ArgumentOutOfRangeException("z");
+        }
+
+        public static int GetCountOfNonEmptyVoxels(Voxel[] voxels)
+        {
+            int count = 0;
+            for (int i = 0; i < voxels.Length; i++) // For loop for speed
+            {
+                if (voxels[i] != Voxel.Empty)
+                    count++;
+            }
+            return count;
+        }
+
+        /// <summary>
+        /// Gets the power-of-two that is greater than or equal to the specified value
+        /// </summary>
+        /// <param name="value">The value</param>
+        /// <param name="bitShifts">The number of bit shifts required to create the returned value</param>
+        public static int GetNearestPowerOfTwo(int value, out int bitShifts)
+        {
+            if (value <= 0 || value > MaxPowerOfTwo)
+                throw new ArgumentOutOfRangeException("value", "value must be greater than 0 and less than or equal to 2^30");
+
+            int pow2Value = 1;
+            bitShifts = 0;
+            while (pow2Value < value)
+            {
+                pow2Value = pow2Value << 1;
+                bitShifts++;
+            }
+
+            return pow2Value;
         }
     }
 }

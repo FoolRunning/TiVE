@@ -23,6 +23,8 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
         private const int ItemIdFountain = 4;
         private const int ItemIdFire = 5;
         private const int ItemIdLava = 6;
+        private const int ItemIdGrass = 7;
+        private const int ItemIdNoCeiling = 8;
 
         private enum Direction { Up, Down, Left, Right, None }
 
@@ -31,7 +33,7 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
             if (gameWorldName != "Maze")
                 return null;
             
-            IGameWorld gameWorld = Factory.NewGameWorld(300, 300, 12); // x-axis and y-axis must be divisible by 3
+            IGameWorld gameWorld = Factory.NewGameWorld(300, 300, 16); // x-axis and y-axis must be divisible by 3
             //IGameWorld gameWorld = Factory.NewGameWorld(111, 111, 12); // x-axis and y-axis must be divisible by 3
             gameWorld.LightingModelType = LightingModelType.Fantasy3;
 
@@ -104,6 +106,16 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
             return areaId;
         }
 
+        private enum BigRoomType
+        {
+            None,
+            Fountain,
+            Fire,
+            Columns,
+            Lava,
+            Grass
+        }
+
         private static bool TryPlaceRoom(Vector3i room, int roomX, int roomY, MazeCell[,] dungeonMap, int areaId)
         {
             for (int x = 0; x < room.X; x++)
@@ -115,32 +127,31 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
                 }
             }
 
-            bool isBigRoom = room.X >= 9 && room.Y >= 9;
-            bool createFountains = false;
-            bool createFire = false;
-            bool createColumns = false;
-            bool createLava = false;
-            if (isBigRoom)
+            BigRoomType roomType = BigRoomType.None;
+            if (room.X >= 9 && room.Y >= 9)
             {
                 int testValue = random.Next(100);
-                if (testValue < 30)
-                    createFountains = true;
-                else if (testValue < 50)
-                    createFire = true;
+                if (testValue < 20)
+                    roomType = BigRoomType.Fountain;
+                else if (testValue < 40)
+                    roomType = BigRoomType.Fire;
+                else if (testValue < 60)
+                    roomType = BigRoomType.Columns;
                 else if (testValue < 80)
-                    createColumns = true;
+                    roomType = BigRoomType.Lava;
                 else
-                    createLava = true;
+                    roomType = BigRoomType.Grass;
             }
+
             for (int x = 0; x < room.X; x++)
             {
                 for (int y = 0; y < room.Y; y++)
                 {
                     dungeonMap[x + roomX, y + roomY].AreaId = areaId;
 
-                    if (!isBigRoom && (x == 1 || x == room.X - 2) && (y == 1 || y == room.Y - 2))
+                    if (roomType == BigRoomType.None && (x == 1 || x == room.X - 2) && (y == 1 || y == room.Y - 2))
                         dungeonMap[x + roomX, y + roomY].LightId = LightIdRoomLight;
-                    else if (createLava)
+                    else if (roomType == BigRoomType.Lava)
                     {
                         if ((x % 3 == 1 && (y == 1 || y == room.Y - 2)) ||
                             (y % 3 == 1 && (x == 1 || x == room.X - 2)))
@@ -151,13 +162,20 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
                         if (x > 2 && x < room.X - 3 && y > 2 && y < room.Y - 3)
                             dungeonMap[x + roomX, y + roomY].ItemId = ItemIdLava;
                     }
-                    else if (isBigRoom && (x % 9 == 4 || room.X - x - 1 % 9 == 4) && ((y % 9 == 4 || room.Y - y - 1 % 9 == 4)))
+                    else if (roomType == BigRoomType.Grass)
                     {
-                        if (createFountains)
+                        if (x > 0 && x < room.X - 1 && y > 0 && y < room.Y - 1)
+                            dungeonMap[x + roomX, y + roomY].ItemId = ItemIdGrass;
+                        else
+                            dungeonMap[x + roomX, y + roomY].ItemId = ItemIdNoCeiling;
+                    }
+                    else if (roomType != BigRoomType.None && (x % 9 == 4 || room.X - x - 1 % 9 == 4) && ((y % 9 == 4 || room.Y - y - 1 % 9 == 4)))
+                    {
+                        if (roomType == BigRoomType.Fountain)
                             dungeonMap[x + roomX, y + roomY].ItemId = ItemIdFountain;
-                        else if (createFire)
+                        else if (roomType == BigRoomType.Fire)
                             dungeonMap[x + roomX, y + roomY].ItemId = ItemIdFire;
-                        else if (createColumns)
+                        else if (roomType == BigRoomType.Columns)
                             dungeonMap[x + roomX, y + roomY].ItemId = ItemIdColumn;
                     }
                 }
@@ -661,13 +679,17 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
         private static void FillWorld(IGameWorld gameWorld, MazeCell[,] dungeonMap, int mazeStartAreaId)
         {
             BlockRandomizer grasses = new BlockRandomizer("grass", CommonUtils.grassBlockDuplicates);
+            BlockRandomizer unlitGrasses = new BlockRandomizer("loadingGrass", CommonUtils.grassBlockDuplicates);
             Block player = Factory.Get<Block>("player");
             Block dirt = Factory.Get<Block>("dirt");
-            Block stone = Factory.Get<Block>("ston0_0");
+            //Block stone = Factory.Get<Block>("stoneBrick0_0");
             Block stoneBack = Factory.Get<Block>("back0_0");
             Block wood = Factory.Get<Block>("wood0");
+            Block leaves = Factory.Get<Block>("leaves0_0");
             Block fountain = Factory.Get<Block>("fountain");
             Block smallLight = Factory.Get<Block>("smallLight");
+            Block redLight = Factory.Get<Block>("redLight");
+            Block treeLight = Factory.Get<Block>("treeLight");
             //Block smallLightHover = blockList["smallLightHover"];
             Block fire = Factory.Get<Block>("fire");
             Block lava = Factory.Get<Block>("lava");
@@ -684,27 +706,50 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
                     int areaId = dungeonMap[mazeLocX, mazeLocY].AreaId;
                     int itemId = dungeonMap[mazeLocX, mazeLocY].ItemId;
                     gameWorld[x, y, 0] = dirt;
-                    gameWorld[x, y, 1] = stone;
+                    gameWorld[x, y, 1] = stoneBack;
                     if (areaId == 0)
                     {
                         // Stone wall (i.e. not maze or room)
                         gameWorld[x, y, 2] = stoneBack;
-                        gameWorld[x, y, 3] = stone;
-                        gameWorld[x, y, 4] = stone;
-                        gameWorld[x, y, 5] = stone;
-                        gameWorld[x, y, 6] = stone;
-                        gameWorld[x, y, 7] = stone;
+                        gameWorld[x, y, 3] = stoneBack;
+                        gameWorld[x, y, 4] = stoneBack;
+                        gameWorld[x, y, 5] = stoneBack;
+                        gameWorld[x, y, 6] = stoneBack;
+                        gameWorld[x, y, 7] = stoneBack;
 
-                        if (mazeLocX == 0 || mazeLocX == dungeonMap.GetLength(0) - 1 || mazeLocY == 0 || mazeLocY == dungeonMap.GetLength(1) - 1 || 
-                            roomIds.Contains(dungeonMap[mazeLocX - 1, mazeLocY].AreaId) || roomIds.Contains(dungeonMap[mazeLocX + 1, mazeLocY].AreaId) ||
+                        if (mazeLocX == 0 || mazeLocX == dungeonMap.GetLength(0) - 1 || mazeLocY == 0 || mazeLocY == dungeonMap.GetLength(1) - 1)
+                        {
+                            // Map bounds
+                            gameWorld[x, y, 3] = stoneBack;
+                            gameWorld[x, y, 4] = stoneBack;
+                            gameWorld[x, y, 5] = stoneBack;
+                            gameWorld[x, y, 6] = stoneBack;
+                            gameWorld[x, y, 7] = stoneBack;
+                            gameWorld[x, y, 8] = stoneBack;
+                            gameWorld[x, y, 9] = stoneBack;
+                            gameWorld[x, y, 10] = stoneBack;
+                            gameWorld[x, y, 11] = stoneBack;
+                            if (x % 3 == 1 && y % 3 == 1 && (mazeLocX % 3 == 1 || mazeLocY % 3 == 1))
+                            {
+                                if (mazeLocX == 0)
+                                    gameWorld[x + 2, y, 10] = redLight;
+                                else if (mazeLocX == dungeonMap.GetLength(0) - 1)
+                                    gameWorld[x - 2, y, 10] = redLight;
+                                else if (mazeLocY == 0)
+                                    gameWorld[x, y + 2, 10] = redLight;
+                                else if (mazeLocY == dungeonMap.GetLength(1) - 1)
+                                    gameWorld[x, y - 2, 10] = redLight;
+                            }
+                        }
+                        else if (roomIds.Contains(dungeonMap[mazeLocX - 1, mazeLocY].AreaId) || roomIds.Contains(dungeonMap[mazeLocX + 1, mazeLocY].AreaId) ||
                             roomIds.Contains(dungeonMap[mazeLocX, mazeLocY - 1].AreaId) || roomIds.Contains(dungeonMap[mazeLocX, mazeLocY + 1].AreaId) ||
                             roomIds.Contains(dungeonMap[mazeLocX - 1, mazeLocY - 1].AreaId) || roomIds.Contains(dungeonMap[mazeLocX + 1, mazeLocY - 1].AreaId) ||
                             roomIds.Contains(dungeonMap[mazeLocX - 1, mazeLocY + 1].AreaId) || roomIds.Contains(dungeonMap[mazeLocX + 1, mazeLocY + 1].AreaId))
                         {
-                            // Empty space next to a room
-                            gameWorld[x, y, 8] = stone;
-                            gameWorld[x, y, 9] = stone;
-                            gameWorld[x, y, 10] = stone;
+                            // Stone wall next to a room
+                            gameWorld[x, y, 8] = stoneBack;
+                            gameWorld[x, y, 9] = stoneBack;
+                            gameWorld[x, y, 10] = stoneBack;
                             if (BlockNextToRoom(dungeonMap, roomIds, gameWorld, x, y))
                                 gameWorld[x, y, 11] = wood;
                         }
@@ -712,9 +757,9 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
                     else if (areaId == AreaIdDoor)
                     {
                         gameWorld[x, y, 2] = stoneBack;
-                        gameWorld[x, y, 8] = stone;
-                        gameWorld[x, y, 9] = stone;
-                        gameWorld[x, y, 10] = stone;
+                        gameWorld[x, y, 8] = stoneBack;
+                        gameWorld[x, y, 9] = stoneBack;
+                        gameWorld[x, y, 10] = stoneBack;
                         if (BlockNextToRoom(dungeonMap, roomIds, gameWorld, x, y))
                             gameWorld[x, y, 11] = wood;
                     }
@@ -728,7 +773,8 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
                     {
                         // Room
                         gameWorld[x, y, 2] = stoneBack;
-                        gameWorld[x, y, 11] = wood;
+                        if (itemId != ItemIdGrass && itemId != ItemIdNoCeiling)
+                            gameWorld[x, y, 11] = wood;
                     }
 
                     if (itemId == ItemIdPlayer && x % 3 == 1 && y % 3 == 1)
@@ -754,6 +800,53 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
                         gameWorld[x, y, 0] = lava;
                         gameWorld[x, y, 1] = Block.Empty;
                         gameWorld[x, y, 2] = Block.Empty;
+                        if (x % 3 == 1 || y % 3 == 1)
+                            gameWorld[x, y, 2] = stoneBack;
+                    }
+                    else if (itemId == ItemIdGrass)
+                    {
+                        gameWorld[x, y, 1] = dirt;
+                        if (random.Next(100) < 10 && x % 3 == 1 && y % 3 == 1)
+                            gameWorld[x, y, 8] = treeLight;
+
+                        if (random.Next(100) < 10 && x % 3 == 1 && y % 3 == 1)
+                        {
+                            // Add a tree
+                            gameWorld[x, y, 2] = wood;
+                            gameWorld[x, y, 3] = wood;
+                            gameWorld[x, y, 4] = wood;
+                            gameWorld[x, y, 5] = wood;
+                            gameWorld[x, y, 6] = wood;
+                            gameWorld[x, y, 7] = wood;
+                            gameWorld[x, y, 8] = wood;
+                            gameWorld[x, y, 9] = wood;
+                            gameWorld[x, y, 10] = wood;
+                            gameWorld[x - 1, y, 10] = wood;
+                            gameWorld[x + 1, y, 10] = wood;
+                            gameWorld[x, y - 1, 10] = wood;
+                            gameWorld[x, y + 1, 10] = wood;
+                            for (int z = 11; z < 16; z++)
+                            {
+                                for (int lx = x - 6; lx <= x + 6; lx++)
+                                {
+                                    for (int ly = y - 6; ly <= y + 6; ly++)
+                                    {
+                                        int dist = (lx - x) * (lx - x) + (ly - y) * (ly - y) + (15 - z) * (15 - z);
+                                        if (dist <= 9)
+                                            gameWorld[lx, ly, z] = wood;
+                                        else if (dist <= 25)//(z - 9) * (z - 9))
+                                            gameWorld[lx, ly, z] = leaves;
+                                    }
+                                }
+                            }
+                            gameWorld[x, y, 11] = wood;
+                            gameWorld[x - 1, y, 11] = wood;
+                            gameWorld[x + 1, y, 11] = wood;
+                            gameWorld[x, y - 1, 11] = wood;
+                            gameWorld[x, y + 1, 11] = wood;
+                        }
+                        else
+                            gameWorld[x, y, 2] = unlitGrasses.NextBlock();
                     }
                     else if (itemId == ItemIdColumn && x % 3 == 1 && y % 3 == 1)
                     {
