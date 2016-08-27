@@ -80,7 +80,7 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
                 }
             }
 
-            CommonUtils.SmoothGameWorldForMazeBlocks(gameWorld);
+            CommonUtils.SmoothGameWorldForMazeBlocks(gameWorld, true);
             return gameWorld;
         }
         #endregion

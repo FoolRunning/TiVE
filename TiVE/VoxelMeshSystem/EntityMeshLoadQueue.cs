@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using ProdigalSoftware.TiVE.RenderSystem.Lighting;
 using ProdigalSoftware.TiVEPluginFramework;
@@ -157,20 +158,23 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
         /// </summary>
         private readonly byte meshCreationInfo;
 
-        public EntityLoadQueueItem(IEntity entity, byte detailLevel, ShadowType shadowType)
+        public EntityLoadQueueItem(IEntity entity, LODLevel detailLevel, ShadowType shadowType)
         {
+            if (detailLevel == LODLevel.NotSet || detailLevel == LODLevel.NumOfLevels)
+                throw new ArgumentException("detailLevel not valid: " + detailLevel);
+
             Entity = entity;
             
             VoxelMeshComponent meshData = entity.GetComponent<VoxelMeshComponent>();
             Debug.Assert(meshData != null);
             EntityLocation = new Vector3i((int)meshData.Location.X, (int)meshData.Location.Y, (int)meshData.Location.Z);
 
-            meshCreationInfo = (byte)((detailLevel & 0x7) | ((int)shadowType << 3) & 0x18);
+            meshCreationInfo = (byte)(((int)detailLevel & 0x7) | ((int)shadowType << 3) & 0x18);
         }
 
-        public byte DetailLevel
+        public LODLevel DetailLevel
         {
-            get { return (byte)(meshCreationInfo & 0x7); }
+            get { return (LODLevel)(meshCreationInfo & 0x7); }
         }
 
         public ShadowType ShadowType

@@ -139,9 +139,9 @@ namespace ProdigalSoftware.TiVE.Core
                         {
                             IEntity entity = CreateNewEntity(string.Format("BlockParticles({0}, {1}, {2})", x, y, z));
                             entity.AddComponent(new ParticleComponent(particleData.ControllerName,
-                                new Vector3i(x * Block.VoxelSize + particleData.Location.X,
-                                    y * Block.VoxelSize + particleData.Location.Y,
-                                    z * Block.VoxelSize + particleData.Location.Z)));
+                                new Vector3i(x * BlockLOD32.VoxelSize + particleData.Location.X,
+                                    y * BlockLOD32.VoxelSize + particleData.Location.Y,
+                                    z * BlockLOD32.VoxelSize + particleData.Location.Z)));
                         }
                     }
                 }

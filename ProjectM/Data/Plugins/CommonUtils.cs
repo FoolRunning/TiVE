@@ -55,7 +55,7 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
             return true;
         }
 
-        public static void SmoothGameWorldForMazeBlocks(IGameWorld gameWorld)
+        public static void SmoothGameWorldForMazeBlocks(IGameWorld gameWorld, bool forLoadingWorld)
         {
             List<BlockRandomizer> stoneRandomizers = new List<BlockRandomizer>();
             List<BlockRandomizer> backRandomizers = new List<BlockRandomizer>();
@@ -63,33 +63,46 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
             for (int i = 0; i < 64; i++)
             {
                 stoneRandomizers.Add(new BlockRandomizer("stoneBrick" + i + "_", stoneBlockDuplicates));
-                backRandomizers.Add(new BlockRandomizer("back" + i + "_", stoneBackBlockDuplicates));
-                leavesRandomizers.Add(new BlockRandomizer("leaves" + i + "_", leavesBlockDuplicates));
+                if (!forLoadingWorld)
+                {
+                    backRandomizers.Add(new BlockRandomizer("back" + i + "_", stoneBackBlockDuplicates));
+                    leavesRandomizers.Add(new BlockRandomizer("leaves" + i + "_", leavesBlockDuplicates));
+                }
             }
 
             HashSet<Block> blocksToConsiderEmpty = new HashSet<Block>();
             blocksToConsiderEmpty.Add(Block.Empty);
-            blocksToConsiderEmpty.Add(Factory.Get<Block>("fire"));
-            blocksToConsiderEmpty.Add(Factory.Get<Block>("redLight"));
-            blocksToConsiderEmpty.Add(Factory.Get<Block>("treeLight"));
+            if (!forLoadingWorld)
+            {
+                blocksToConsiderEmpty.Add(Factory.Get<Block>("fire"));
+                blocksToConsiderEmpty.Add(Factory.Get<Block>("redLight"));
+                blocksToConsiderEmpty.Add(Factory.Get<Block>("treeLight"));
+            }
             for (int i = 0; i < grassBlockDuplicates; i++)
             {
-                blocksToConsiderEmpty.Add(Factory.Get<Block>("grass" + i));
+                if (!forLoadingWorld)
+                    blocksToConsiderEmpty.Add(Factory.Get<Block>("grass" + i));
                 blocksToConsiderEmpty.Add(Factory.Get<Block>("loadingGrass" + i));
             }
-            for (int i = 0; i < 6; i++)
-                blocksToConsiderEmpty.Add(Factory.Get<Block>("light" + i));
+            if (!forLoadingWorld)
+            {
+                for (int i = 0; i < 6; i++)
+                    blocksToConsiderEmpty.Add(Factory.Get<Block>("light" + i));
+            }
 
             HashSet<Block> blocksToSmooth = new HashSet<Block>();
             for (int i = 0; i < 64; i++)
             {
                 for (int q = 0; q < stoneBlockDuplicates; q++)
                     blocksToSmooth.Add(Factory.Get<Block>("stoneBrick" + i + "_" + q));
-                for (int q = 0; q < stoneBackBlockDuplicates; q++)
-                    blocksToSmooth.Add(Factory.Get<Block>("back" + i + "_" + q));
-                for (int q = 0; q < leavesBlockDuplicates; q++)
-                    blocksToSmooth.Add(Factory.Get<Block>("leaves" + i + "_" + q));
-                blocksToSmooth.Add(Factory.Get<Block>("wood" + i));
+                if (!forLoadingWorld)
+                {
+                    for (int q = 0; q < stoneBackBlockDuplicates; q++)
+                        blocksToSmooth.Add(Factory.Get<Block>("back" + i + "_" + q));
+                    for (int q = 0; q < leavesBlockDuplicates; q++)
+                        blocksToSmooth.Add(Factory.Get<Block>("leaves" + i + "_" + q));
+                    blocksToSmooth.Add(Factory.Get<Block>("wood" + i));
+                }
             }
 
             for (int z = 0; z < gameWorld.BlockSize.Z; z++)

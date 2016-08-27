@@ -19,7 +19,7 @@ namespace ProdigalSoftware.TiVEPluginFramework
         /// <summary>
         /// Gets the voxel size of the game world
         /// </summary>
-        Vector3i VoxelSize { get; }
+        Vector3i VoxelSize32 { get; }
 
         /// <summary>
         /// Gets the size of the game world in blocks

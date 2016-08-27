@@ -56,18 +56,18 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
         /// Gets the light value at the specified voxel
         /// </summary>
         /// <remarks>Very performance-critical method</remarks>
-        public abstract Color3f GetLightAtFast(int voxelX, int voxelY, int voxelZ);
+        public abstract Color3f GetLightAtFast(int voxelX, int voxelY, int voxelZ, LODLevel detailLevel);
 
         /// <summary>
         /// Gets the light value at the specified voxel. This version is faster if the caller already has the other parameters
         /// </summary>
         /// <remarks>Very performance-critical method</remarks>
-        protected abstract Color3f GetLightAt(int voxelX, int voxelY, int voxelZ, int voxelSize, int worldBlockX, int worldBlockY, int worldBlockZ,
+        protected abstract Color3f GetLightAt(int voxelX, int voxelY, int voxelZ, LODLevel detailLevel, int worldBlockX, int worldBlockY, int worldBlockZ,
             VoxelSides visibleSides, bool skipVoxelNormalCalc);
 
-        public virtual Color4b GetFinalColor(Voxel voxel, int voxelX, int voxelY, int voxelZ, int voxelSize, int worldBlockX, int worldBlockY, int worldBlockZ, VoxelSides visibleSides)
+        public virtual Color4b GetFinalColor(Voxel voxel, int voxelX, int voxelY, int voxelZ, LODLevel detailLevel, int worldBlockX, int worldBlockY, int worldBlockZ, VoxelSides visibleSides)
         {
-            Color3f lightColorPercentage = GetLightAt(voxelX, voxelY, voxelZ, voxelSize, worldBlockX, worldBlockY, worldBlockZ, visibleSides, voxel.SkipVoxelNormalCalc);
+            Color3f lightColorPercentage = GetLightAt(voxelX, voxelY, voxelZ, detailLevel, worldBlockX, worldBlockY, worldBlockZ, visibleSides, voxel.SkipVoxelNormalCalc);
             byte a = voxel.A;
             byte r = (byte)Math.Min(255, (int)(voxel.R * lightColorPercentage.R));
             byte g = (byte)Math.Min(255, (int)(voxel.G * lightColorPercentage.G));
@@ -145,22 +145,23 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
             {
             }
 
-            public override Color4b GetFinalColor(Voxel voxel, int voxelX, int voxelY, int voxelZ, int voxelSize, int worldBlockX, int worldBlockY,
+            public override Color4b GetFinalColor(Voxel voxel, int voxelX, int voxelY, int voxelZ, LODLevel detailLevel, int worldBlockX, int worldBlockY,
                 int worldBlockZ, VoxelSides visibleSides)
             {
-                Color3f lightColor = GetLightAt(voxelX, voxelY, voxelZ, voxelSize, worldBlockX, worldBlockY, worldBlockZ, visibleSides, false);
+                Color3f lightColor = GetLightAt(voxelX, voxelY, voxelZ, detailLevel, worldBlockX, worldBlockY, worldBlockZ, visibleSides, false);
                 return new Color4b(lightColor.R, lightColor.G, lightColor.B, 1.0f);
             }
 
-            public override Color3f GetLightAtFast(int voxelX, int voxelY, int voxelZ)
+            public override Color3f GetLightAtFast(int voxelX, int voxelY, int voxelZ, LODLevel detailLevel)
             {
-                int worldBlockX = voxelX / Block.VoxelSize;
-                int worldBlockY = voxelY / Block.VoxelSize;
-                int worldBlockZ = voxelZ / Block.VoxelSize;
-                return GetLightAt(voxelX, voxelY, voxelZ, 1, worldBlockX, worldBlockY, worldBlockZ, VoxelSides.All, false);
+                int bitShift = BlockLOD.GetVoxelSizeBitShift(detailLevel);
+                int worldBlockX = voxelX >> bitShift;
+                int worldBlockY = voxelY >> bitShift;
+                int worldBlockZ = voxelZ >> bitShift;
+                return GetLightAt(voxelX, voxelY, voxelZ, detailLevel, worldBlockX, worldBlockY, worldBlockZ, VoxelSides.All, false);
             }
 
-            protected override Color3f GetLightAt(int voxelX, int voxelY, int voxelZ, int voxelSize, int worldBlockX, int worldBlockY, int worldBlockZ,
+            protected override Color3f GetLightAt(int voxelX, int voxelY, int voxelZ, LODLevel detailLevel, int worldBlockX, int worldBlockY, int worldBlockZ,
                 VoxelSides visibleSides, bool skipVoxelNormalCalc)
             {
                 ushort[] lightsInBlock = scene.LightData.GetLightsForBlock(worldBlockX, worldBlockY, worldBlockZ);
@@ -186,14 +187,20 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
             {
             }
 
-            public override Color3f GetLightAtFast(int voxelX, int voxelY, int voxelZ)
+            public override Color3f GetLightAtFast(int voxelX, int voxelY, int voxelZ, LODLevel detailLevel)
             {
-                ushort[] lightsInBlock = scene.LightData.GetLightsForBlock(voxelX / Block.VoxelSize, voxelY / Block.VoxelSize, voxelZ / Block.VoxelSize);
+                int bitShift = BlockLOD.GetVoxelSizeBitShift(detailLevel);
+                ushort[] lightsInBlock = scene.LightData.GetLightsForBlock(voxelX >> bitShift, voxelY >> bitShift, voxelZ >> bitShift);
                 if (lightsInBlock == null)
                     return Color3f.Empty; // Probably unloaded the chunk while loading
 
                 Color3f color = scene.AmbientLight;
                 LightInfo[] lights = scene.LightData.LightList;
+                int voxelX32 = voxelX;
+                int voxelY32 = voxelY;
+                int voxelZ32 = voxelZ;
+                LODUtils.AdjustLocationForDetailLevelTo32(ref voxelX32, ref voxelY32, ref voxelZ32, detailLevel);
+
                 for (int i = 0; i < lightsInBlock.Length; i++)
                 {
                     ushort lightIndex = lightsInBlock[i];
@@ -201,12 +208,14 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
                         break;
 
                     LightInfo lightInfo = lights[lightIndex];
-                    color += lightInfo.LightColor * lightInfo.GetLightPercentageDiffuseAndAmbient(voxelX, voxelY, voxelZ, lightingModel);
+                    int lx, ly, lz;
+                    lightInfo.VoxelLocation(detailLevel, out lx, out ly, out lz);
+                    color += lightInfo.LightColor * lightInfo.GetLightPercentageDiffuseAndAmbient(voxelX32, voxelY32, voxelZ32, lightingModel);
                 }
                 return color;
             }
 
-            protected override Color3f GetLightAt(int voxelX, int voxelY, int voxelZ, int voxelSize, int worldBlockX, int worldBlockY, int worldBlockZ, 
+            protected override Color3f GetLightAt(int voxelX, int voxelY, int voxelZ, LODLevel detailLevel, int worldBlockX, int worldBlockY, int worldBlockZ, 
                 VoxelSides visibleSides, bool skipVoxelNormalCalc)
             {
                 ushort[] lightsInBlock = scene.LightData.GetLightsForBlock(worldBlockX, worldBlockY, worldBlockZ);
@@ -228,6 +237,11 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
 
                 Color3f color = scene.AmbientLight;
                 LightInfo[] lights = scene.LightData.LightList;
+                int voxelX32 = voxelX;
+                int voxelY32 = voxelY;
+                int voxelZ32 = voxelZ;
+                LODUtils.AdjustLocationForDetailLevelTo32(ref voxelX32, ref voxelY32, ref voxelZ32, detailLevel);
+
                 for (int i = 0; i < lightsInBlock.Length; i++)
                 {
                     ushort lightIndex = lightsInBlock[i];
@@ -236,9 +250,8 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
 
                     LightInfo lightInfo = lights[lightIndex];
 
-                    int lx = lightInfo.VoxelLocX;
-                    int ly = lightInfo.VoxelLocY;
-                    int lz = lightInfo.VoxelLocZ;
+                    int lx, ly, lz;
+                    lightInfo.VoxelLocation(detailLevel, out lx, out ly, out lz);
 
                     float brightness;
                     if (!calculateSurfaceAngle)
@@ -248,8 +261,8 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
                         Vector3f surfaceToLight = new Vector3f(lx - voxelX, ly - voxelY, lz - voxelZ);
                         brightness = MathHelper.Clamp(Vector3f.Dot(ref voxelNormal, ref surfaceToLight) / surfaceToLight.LengthFast, 0.0f, 1.0f);
                     }
-                    color += lightInfo.LightColor * (brightness * lightInfo.GetLightPercentage(voxelX, voxelY, voxelZ, lightingModel) +
-                        lightInfo.GetLightPercentageAmbient(voxelX, voxelY, voxelZ, lightingModel));
+                    color += lightInfo.LightColor * (brightness * lightInfo.GetLightPercentageDiffuse(voxelX32, voxelY32, voxelZ32, lightingModel) +
+                        lightInfo.GetLightPercentageAmbient(voxelX32, voxelY32, voxelZ32, lightingModel));
                 }
                 return color;
             }
@@ -263,15 +276,21 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
             {
             }
 
-            public override Color3f GetLightAtFast(int voxelX, int voxelY, int voxelZ)
+            public override Color3f GetLightAtFast(int voxelX, int voxelY, int voxelZ, LODLevel detailLevel)
             {
-                ushort[] lightsInBlock = scene.LightData.GetLightsForBlock(voxelX / Block.VoxelSize, voxelY / Block.VoxelSize, voxelZ / Block.VoxelSize);
+                int bitShift = BlockLOD.GetVoxelSizeBitShift(detailLevel);
+                ushort[] lightsInBlock = scene.LightData.GetLightsForBlock(voxelX >> bitShift, voxelY >> bitShift, voxelZ >> bitShift);
                 if (lightsInBlock == null)
                     return Color3f.Empty; // Probably unloaded the chunk while loading
 
                 GameWorld world = scene.GameWorldInternal;
                 Color3f color = scene.AmbientLight;
                 LightInfo[] lights = scene.LightData.LightList;
+                int voxelX32 = voxelX;
+                int voxelY32 = voxelY;
+                int voxelZ32 = voxelZ;
+                LODUtils.AdjustLocationForDetailLevelTo32(ref voxelX32, ref voxelY32, ref voxelZ32, detailLevel);
+
                 for (int i = 0; i < lightsInBlock.Length; i++)
                 {
                     ushort lightIndex = lightsInBlock[i];
@@ -279,15 +298,17 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
                         break;
 
                     LightInfo lightInfo = lights[lightIndex];
-                    if (world.NoVoxelInLine(voxelX, voxelY, voxelZ, lightInfo.VoxelLocX, lightInfo.VoxelLocY, lightInfo.VoxelLocZ))
-                        color += lightInfo.LightColor * lightInfo.GetLightPercentageDiffuseAndAmbient(voxelX, voxelY, voxelZ, lightingModel);
+                    int lx, ly, lz;
+                    lightInfo.VoxelLocation(detailLevel, out lx, out ly, out lz);
+                    if (world.NoVoxelInLine(voxelX, voxelY, voxelZ, lx, ly, lz, detailLevel))
+                        color += lightInfo.LightColor * lightInfo.GetLightPercentageDiffuseAndAmbient(voxelX32, voxelY32, voxelZ32, lightingModel);
                     else
-                        color += lightInfo.LightColor * lightInfo.GetLightPercentageAmbient(voxelX, voxelY, voxelZ, lightingModel);
+                        color += lightInfo.LightColor * lightInfo.GetLightPercentageAmbient(voxelX32, voxelY32, voxelZ32, lightingModel);
                 }
                 return color;
             }
 
-            protected override Color3f GetLightAt(int voxelX, int voxelY, int voxelZ, int voxelSize, int worldBlockX, int worldBlockY, int worldBlockZ, 
+            protected override Color3f GetLightAt(int voxelX, int voxelY, int voxelZ, LODLevel detailLevel, int worldBlockX, int worldBlockY, int worldBlockZ, 
                 VoxelSides visibleSides, bool skipVoxelNormalCalc)
             {
                 ushort[] lightsInBlock = scene.LightData.GetLightsForBlock(worldBlockX, worldBlockY, worldBlockZ);
@@ -303,11 +324,23 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
 
                 Vector3f voxelNormal = !skipVoxelNormalCalc ? GetVoxelNormal(visibleSides) : Vector3f.Zero;
                 bool calculateSurfaceAngle = voxelNormal != Vector3f.Zero;
+                // TODO: Create a user setting for the shadow detail level
+                LODLevel shadowDetailLevel = (LODLevel)Math.Min((int)detailLevel + 2, (int)LODLevel.V4);
 
                 // For thread-safety copy all member variables
                 GameWorld world = scene.GameWorldInternal;
                 Color3f color = scene.AmbientLight;
                 LightInfo[] lights = scene.LightData.LightList;
+                int voxelX32 = voxelX;
+                int voxelY32 = voxelY;
+                int voxelZ32 = voxelZ;
+                LODUtils.AdjustLocationForDetailLevelTo32(ref voxelX32, ref voxelY32, ref voxelZ32, detailLevel);
+                int lightBitShift = BlockLOD32.VoxelSizeBitShift - BlockLOD.GetVoxelSizeBitShift(detailLevel);
+                int shadowBitShift = BlockLOD32.VoxelSizeBitShift - BlockLOD.GetVoxelSizeBitShift(shadowDetailLevel);
+                int voxelShadowX = voxelX32 >> shadowBitShift;
+                int voxelShadowY = voxelY32 >> shadowBitShift;
+                int voxelShadowZ = voxelZ32 >> shadowBitShift;
+
                 for (int i = 0; i < lightsInBlock.Length; i++)
                 {
                     ushort lightIndex = lightsInBlock[i];
@@ -315,9 +348,12 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
                         break;
 
                     LightInfo lightInfo = lights[lightIndex];
-                    int lx = lightInfo.VoxelLocX;
-                    int ly = lightInfo.VoxelLocY;
-                    int lz = lightInfo.VoxelLocZ;
+                    int lx = lightInfo.VoxelLocX >> lightBitShift;
+                    int ly = lightInfo.VoxelLocY >> lightBitShift;
+                    int lz = lightInfo.VoxelLocZ >> lightBitShift;
+                    int lxShadow = lightInfo.VoxelLocX >> shadowBitShift;
+                    int lyShadow = lightInfo.VoxelLocY >> shadowBitShift;
+                    int lzShadow = lightInfo.VoxelLocZ >> shadowBitShift;
 
                     float brightness;
                     if (!calculateSurfaceAngle)
@@ -328,18 +364,18 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
                         brightness = MathHelper.Clamp(Vector3f.Dot(ref voxelNormal, ref surfaceToLight) / surfaceToLight.LengthFast, 0.0f, 1.0f);
                     }
 
-                    if ((availableMinusX && lx <= voxelX && world.NoVoxelInLine(voxelX - 1, voxelY, voxelZ, lx, ly, lz)) ||
-                        (availableMinusY && ly <= voxelY && world.NoVoxelInLine(voxelX, voxelY - 1, voxelZ, lx, ly, lz)) ||
-                        (availableMinusZ && lz <= voxelZ && world.NoVoxelInLine(voxelX, voxelY, voxelZ - 1, lx, ly, lz)) ||
-                        (availablePlusX && lx >= voxelX && world.NoVoxelInLine(voxelX + voxelSize, voxelY, voxelZ, lx, ly, lz)) ||
-                        (availablePlusY && ly >= voxelY && world.NoVoxelInLine(voxelX, voxelY + voxelSize, voxelZ, lx, ly, lz)) ||
-                        (availablePlusZ && lz >= voxelZ && world.NoVoxelInLine(voxelX, voxelY, voxelZ + voxelSize, lx, ly, lz)))
+                    if ((availableMinusX && lx <= voxelX && world.NoVoxelInLine(voxelShadowX - 1, voxelShadowY, voxelShadowZ, lxShadow, lyShadow, lzShadow, shadowDetailLevel)) ||
+                        (availableMinusY && ly <= voxelY && world.NoVoxelInLine(voxelShadowX, voxelShadowY - 1, voxelShadowZ, lxShadow, lyShadow, lzShadow, shadowDetailLevel)) ||
+                        (availableMinusZ && lz <= voxelZ && world.NoVoxelInLine(voxelShadowX, voxelShadowY, voxelShadowZ - 1, lxShadow, lyShadow, lzShadow, shadowDetailLevel)) ||
+                        (availablePlusX && lx >= voxelX && world.NoVoxelInLine(voxelShadowX + 1, voxelShadowY, voxelShadowZ, lxShadow, lyShadow, lzShadow, shadowDetailLevel)) ||
+                        (availablePlusY && ly >= voxelY && world.NoVoxelInLine(voxelShadowX, voxelShadowY + 1, voxelShadowZ, lxShadow, lyShadow, lzShadow, shadowDetailLevel)) ||
+                        (availablePlusZ && lz >= voxelZ && world.NoVoxelInLine(voxelShadowX, voxelShadowY, voxelShadowZ + 1, lxShadow, lyShadow, lzShadow, shadowDetailLevel)))
                     {
-                        color += lightInfo.LightColor * (brightness * lightInfo.GetLightPercentage(voxelX, voxelY, voxelZ, lightingModel) +
-                            lightInfo.GetLightPercentageAmbient(voxelX, voxelY, voxelZ, lightingModel));
+                        color += lightInfo.LightColor * (brightness * lightInfo.GetLightPercentageDiffuse(voxelX32, voxelY32, voxelZ32, lightingModel) +
+                            lightInfo.GetLightPercentageAmbient(voxelX32, voxelY32, voxelZ32, lightingModel));
                     }
                     else
-                        color += lightInfo.LightColor * lightInfo.GetLightPercentageAmbient(voxelX, voxelY, voxelZ, lightingModel);
+                        color += lightInfo.LightColor * lightInfo.GetLightPercentageAmbient(voxelX32, voxelY32, voxelZ32, lightingModel);
                 }
                 return color;
             }

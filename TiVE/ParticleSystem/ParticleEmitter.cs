@@ -107,7 +107,10 @@ namespace ProdigalSoftware.TiVE.ParticleSystem
                     if (partX >= worldSize.X || partY >= worldSize.Y || partZ >= worldSize.Z)
                         lightColor = scene.AmbientLight;
                     else
-                        lightColor = scene.GetLightProvider(ShadowType.None).GetLightAtFast(partX, partY, partZ);
+                    {
+                        // ENHANCE: Calculate lighting at different LOD for speed
+                        lightColor = scene.GetLightProvider(ShadowType.None).GetLightAtFast(partX, partY, partZ, LODLevel.V32);
+                    }
 
                     colorArray[dataIndex] = new Color4b(
                         (byte)Math.Min(255, (int)(part.Color.R * lightColor.R)),

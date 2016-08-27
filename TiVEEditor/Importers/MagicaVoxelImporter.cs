@@ -39,9 +39,9 @@ namespace ProdigalSoftware.TiVEEditor.Importers
         {
             VoxelSprite spriteData = CreateSprite(filePath);
 
-            int sizex = Math.Min(spriteData.Size.X, Block.VoxelSize);
-            int sizey = Math.Min(spriteData.Size.Y, Block.VoxelSize);
-            int sizez = Math.Min(spriteData.Size.Z, Block.VoxelSize);
+            int sizex = Math.Min(spriteData.Size.X, BlockLOD32.VoxelSize);
+            int sizey = Math.Min(spriteData.Size.Y, BlockLOD32.VoxelSize);
+            int sizez = Math.Min(spriteData.Size.Z, BlockLOD32.VoxelSize);
 
             Block block = new Block(blockName);
             for (int z = 0; z < sizez; z++)
@@ -49,10 +49,11 @@ namespace ProdigalSoftware.TiVEEditor.Importers
                 for (int x = 0; x < sizex; x++)
                 {
                     for (int y = 0; y < sizey; y++)
-                        block[x, y, z] = spriteData[x, y, z];
+                        block.LOD32[x, y, z] = spriteData[x, y, z];
                 }
             }
 
+            block.GenerateLODLevels();
             return block;
         }
 

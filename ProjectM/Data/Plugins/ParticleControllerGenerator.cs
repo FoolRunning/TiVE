@@ -47,11 +47,11 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
             {
                 ApplyVelocity(particle, timeSinceLastFrame);
 
-                if (particle.X > systemLocation.X + Block.VoxelSize)
+                if (particle.X > systemLocation.X + BlockLOD32.VoxelSize)
                     particle.VelX -= SnowDeacceleration * timeSinceLastFrame;
                 if (particle.X < systemLocation.X)
                     particle.VelX += SnowDeacceleration * timeSinceLastFrame;
-                if (particle.Y > systemLocation.Y + Block.VoxelSize)
+                if (particle.Y > systemLocation.Y + BlockLOD32.VoxelSize)
                     particle.VelY -= SnowDeacceleration * timeSinceLastFrame;
                 if (particle.Y < systemLocation.Y)
                     particle.VelY += SnowDeacceleration * timeSinceLastFrame;
@@ -74,12 +74,12 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
                 particle.VelZ = Random.NextFloat() * -30.0f - 20.0f;
                 particle.VelY = Random.NextFloat() * 48.0f - 24.0f;
 
-                particle.X = systemLocation.X + Random.Next(Block.VoxelSize);
-                particle.Y = systemLocation.Y + Random.Next(Block.VoxelSize);
+                particle.X = systemLocation.X + Random.Next(BlockLOD32.VoxelSize);
+                particle.Y = systemLocation.Y + Random.Next(BlockLOD32.VoxelSize);
                 if (startAtTop)
-                    particle.Z = 59 * Block.VoxelSize;
+                    particle.Z = 59 * BlockLOD32.VoxelSize;
                 else
-                    particle.Z = Random.Next(56 * Block.VoxelSize) + 3 * Block.VoxelSize;
+                    particle.Z = Random.Next(56 * BlockLOD32.VoxelSize) + 3 * BlockLOD32.VoxelSize;
 
                 particle.Color = new Color4b(255, 255, 255, 255);
                 particle.Time = Random.NextFloat() * AliveTime / 2.0f + AliveTime / 2.0f;
@@ -242,7 +242,7 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
         #region LavaUpdater class
         private class LavaUpdater : ParticleController
         {
-            private const int SpriteSize = (int)(Block.VoxelSize * 0.65f);
+            private const int SpriteSize = (int)(BlockLOD32.VoxelSize * 0.333f);
             private const int SpriteMid = SpriteSize / 2;
             private const float AliveTime = 5.0f;
 
@@ -304,8 +304,8 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
             {
                 particle.VelZ = SpriteSize * 0.8f;
 
-                particle.X = systemLocation.X + Random.Next(Block.VoxelSize + SpriteMid) - SpriteMid + 1;
-                particle.Y = systemLocation.Y + Random.Next(Block.VoxelSize + SpriteMid) - SpriteMid + 1;
+                particle.X = systemLocation.X + Random.Next(BlockLOD32.VoxelSize + SpriteMid) - SpriteMid + 1;
+                particle.Y = systemLocation.Y + Random.Next(BlockLOD32.VoxelSize + SpriteMid) - SpriteMid + 1;
                 particle.Z = systemLocation.Z - SpriteSize - 2;
 
                 particle.Color = colorList[0];

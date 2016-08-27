@@ -22,6 +22,7 @@ namespace ProdigalSoftware.TiVE.ScriptSystem
         private const string ScriptsDirName = "Scripts";
         private const string ScriptFileExtension = ".lua";
         private const CoreModules AllowedModules = CoreModules.Preset_SoftSandbox | CoreModules.LoadMethods;
+        private static bool initializedMoonSharp;
 
         private readonly MostRecentlyUsedCache<string, string> scriptCodeCache = new MostRecentlyUsedCache<string, string>(10);
         private readonly IKeyboard keyboard;
@@ -42,27 +43,30 @@ namespace ProdigalSoftware.TiVE.ScriptSystem
             Messages.Print("Initializing script system...");
             keepRunning = true;
 
-            Script.DefaultOptions.ScriptLoader = new ScriptLoader();
-            UserData.DefaultAccessMode = InteropAccessMode.Preoptimized;
-
             Stopwatch sw = Stopwatch.StartNew();
-            
-            UserData.RegisterType<Keys>();
-
-            // Register anything explicitly registered as script-accessible
-            foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies())
-                UserData.RegisterAssembly(assembly);
-
-            // Register all public classes in the plugin framework and the utils
-            foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies())
+            if (!initializedMoonSharp)
             {
-                string asmName = assembly.GetName().Name;
-                if (asmName == "TiVEPluginFramework" || asmName == "Utils")
-                    RegisterTypesIn(assembly);
+                Script.DefaultOptions.ScriptLoader = new ScriptLoader();
+                UserData.DefaultAccessMode = InteropAccessMode.Preoptimized;
+
+                UserData.RegisterType<Keys>();
+
+                // Register anything explicitly registered as script-accessible
+                foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies())
+                    UserData.RegisterAssembly(assembly);
+
+                // Register all public classes in the plugin framework and the utils
+                foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies())
+                {
+                    string asmName = assembly.GetName().Name;
+                    if (asmName == "TiVEPluginFramework" || asmName == "Utils")
+                        RegisterTypesIn(assembly);
+                }
+                initializedMoonSharp = true;
             }
-            sw.Stop();
 
             keysEnum = UserData.CreateStatic<Keys>();
+            sw.Stop();
 
             Messages.AddDoneText();
             Messages.AddDebug("Object registration took " + sw.ElapsedMilliseconds + "ms");
@@ -148,9 +152,9 @@ namespace ProdigalSoftware.TiVE.ScriptSystem
             if (gameWorld == null)
                 return Block.Empty;
 
-            int blockX = voxelX / Block.VoxelSize;
-            int blockY = voxelY / Block.VoxelSize;
-            int blockZ = voxelZ / Block.VoxelSize;
+            int blockX = voxelX / BlockLOD32.VoxelSize;
+            int blockY = voxelY / BlockLOD32.VoxelSize;
+            int blockZ = voxelZ / BlockLOD32.VoxelSize;
             return gameWorld[blockX, blockY, blockZ];
         }
 
@@ -211,7 +215,7 @@ namespace ProdigalSoftware.TiVE.ScriptSystem
             if (gameWorld == null)
                 return Voxel.Empty;
 
-            Vector3i voxelSize = gameWorld.VoxelSize;
+            Vector3i voxelSize = gameWorld.VoxelSize32;
             if (voxelX < 0 || voxelX >= voxelSize.X ||
                 voxelY < 0 || voxelY >= voxelSize.Y ||
                 voxelZ < 0 || voxelZ >= voxelSize.Z)
@@ -219,7 +223,7 @@ namespace ProdigalSoftware.TiVE.ScriptSystem
                 return Voxel.Empty;
             }
 
-            return gameWorld.GetVoxel(voxelX, voxelY, voxelZ);
+            return gameWorld.GetVoxel(voxelX, voxelY, voxelZ, LODLevel.V32);
         }
 
         private IGameWorld GetGameWorld()
@@ -284,7 +288,7 @@ namespace ProdigalSoftware.TiVE.ScriptSystem
         {
             lua.Globals["Keys"] = keysEnum;
 
-            lua.Globals["BlockSize"] = Block.VoxelSize;
+            lua.Globals["BlockSize"] = BlockLOD32.VoxelSize;
             lua.Globals["EmptyVoxel"] = Voxel.Empty;
             lua.Globals["EmptyBlock"] = Block.Empty;
 

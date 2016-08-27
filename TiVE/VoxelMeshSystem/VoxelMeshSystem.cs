@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using ProdigalSoftware.TiVE.Core;
 using ProdigalSoftware.TiVE.RenderSystem.Lighting;
@@ -42,10 +41,18 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
     internal sealed class VoxelMeshSystem : EngineSystem
     {
         #region Constants
-        private const byte VoxelDetailLevelSections = 4; // 32x32x32 = 32768v, 16x16x16 = 4096v, 8x8x8 = 512v, 4x4x4 = 64v, not worth going to 2x2x2 = 8v.
-        private const byte BestVoxelDetailLevel = 0;
-        private const byte WorstVoxelDetailLevel = VoxelDetailLevelSections - 1;
         private const int TotalChunkMeshBuilders = 40;
+
+        //private const int DistClosest = Block.VoxelSize * Block.VoxelSize * 225;   // voxelSize * 15 = 480v
+        //private const int DistClose = Block.VoxelSize * Block.VoxelSize * 676;     // voxelSize * 26 = 832v
+        //private const int DistMid = Block.VoxelSize * Block.VoxelSize * 1369;      // voxelSize * 37 = 1184v
+        //private const int DistFar = Block.VoxelSize * Block.VoxelSize * 2401;      // voxelSize * 49 = 1568v
+        //private const int DistFurthest = Block.VoxelSize * Block.VoxelSize * 3600; // voxelSize * 60 = 1920v
+        private const int DistClosest = BlockLOD32.VoxelSize * 12;   // voxelSize * 12 = 384v
+        private const int DistClose = BlockLOD32.VoxelSize * 19;     // voxelSize * 19 = 608v
+        private const int DistMid = BlockLOD32.VoxelSize * 26;       // voxelSize * 26 = 832v
+        private const int DistFar = BlockLOD32.VoxelSize * 33;       // voxelSize * 33 = 1056v
+        private const int DistFurthest = BlockLOD32.VoxelSize * 40;  // voxelSize * 40 = 1280v
         #endregion
 
         #region Member variables
@@ -88,7 +95,7 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
         public override bool Initialize()
         {
             for (int i = 0; i < TotalChunkMeshBuilders; i++)
-                meshBuilders.Add(new MeshBuilder(1000000));
+                meshBuilders.Add(new MeshBuilder(500000));
 
             int maxThreads = TiVEController.UserSettings.Get(UserSettings.ChunkCreationThreadsKey);
             for (int i = 0; i < maxThreads; i++)
@@ -148,7 +155,7 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
                 VoxelMeshComponent renderData = entity.GetComponent<VoxelMeshComponent>();
                 Debug.Assert(renderData != null);
 
-                byte perferedDetailLevel = GetPerferedVoxelDetailLevel(renderData, cameraData, currentVoxelDetalLevelSetting);
+                LODLevel perferedDetailLevel = GetPerferedVoxelDetailLevel(renderData, cameraData, currentVoxelDetalLevelSetting);
                 ShadowType shadowType = GetPerferedShadowType(renderData, cameraData, currentShadowDistanceSetting);
                 if (NeedToUpdateMesh(renderData, perferedDetailLevel, shadowType))
                     ReloadEntityMesh(entity, renderData, perferedDetailLevel, shadowType);
@@ -160,7 +167,7 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
                 Debug.Assert(renderData != null);
                 EnsureVisible(entity, renderData);
 
-                byte perferedDetailLevel = GetPerferedVoxelDetailLevel(renderData, cameraData, currentVoxelDetalLevelSetting);
+                LODLevel perferedDetailLevel = GetPerferedVoxelDetailLevel(renderData, cameraData, currentVoxelDetalLevelSetting);
                 ShadowType shadowType = GetPerferedShadowType(renderData, cameraData, currentShadowDistanceSetting);
                 if (NeedToUpdateMesh(renderData, perferedDetailLevel, shadowType))
                     ReloadEntityMesh(entity, renderData, perferedDetailLevel, shadowType);
@@ -173,7 +180,7 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
         }
         #endregion
 
-        private static bool NeedToUpdateMesh(VoxelMeshComponent renderData, byte perferedDetailLevel, ShadowType perferedShadowType)
+        private static bool NeedToUpdateMesh(VoxelMeshComponent renderData, LODLevel perferedDetailLevel, ShadowType perferedShadowType)
         {
             return (renderData.VoxelDetailLevelToLoad != perferedDetailLevel && renderData.VisibleVoxelDetailLevel != perferedDetailLevel) ||
                 (renderData.ShadowTypeToLoad != (byte)perferedShadowType && renderData.VisibleShadowType != (byte)perferedShadowType);
@@ -183,7 +190,7 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
         public void ReloadAllEntities()
         {
             foreach (IEntity chunk in loadedEntities)
-                ReloadEntityMesh(chunk, chunk.GetComponent<VoxelMeshComponent>(), WorstVoxelDetailLevel, ShadowType.None); // TODO: Reload with the correct detail level and shadow type
+                ReloadEntityMesh(chunk, chunk.GetComponent<VoxelMeshComponent>(), LODLevel.V4, ShadowType.None); // TODO: Reload with the correct detail level and shadow type
         }
         #endregion
 
@@ -284,9 +291,10 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
             int blockStartZ = chunkData.ChunkBlockLoc.Z;
             int blockEndZ = Math.Min((chunkData.ChunkLoc.Z + 1) * ChunkComponent.BlockSize, gameWorld.BlockSize.Z);
 
-            int voxelStartX = blockStartX * Block.VoxelSize;
-            int voxelStartY = blockStartY * Block.VoxelSize;
-            int voxelStartZ = blockStartZ * Block.VoxelSize;
+            int bitShift = BlockLOD.GetVoxelSizeBitShift(queueItem.DetailLevel);
+            int voxelStartX = blockStartX << bitShift;
+            int voxelStartY = blockStartY << bitShift;
+            int voxelStartZ = blockStartZ << bitShift;
 
             int voxelCount = 0;
             int renderedVoxelCount = 0;
@@ -331,7 +339,7 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
                         meshBuilder.DropMesh();
                         chunkData.VisibleVoxelDetailLevel = chunkData.VoxelDetailLevelToLoad;
                         chunkData.VisibleShadowType = chunkData.ShadowTypeToLoad;
-                        chunkData.VoxelDetailLevelToLoad = VoxelMeshComponent.BlankDetailLevel;
+                        chunkData.VoxelDetailLevelToLoad = LODLevel.NotSet;
                         chunkData.ShadowTypeToLoad = VoxelMeshComponent.BlankShadowType;
                         return;
                     }
@@ -347,89 +355,91 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
             MeshBuilder meshBuilder, ref int polygonCount, ref int renderedVoxelCount)
         {
             GameWorld gameWorld = scene.GameWorldInternal;
-            LightProvider lightProviderShadow = scene.GetLightProvider(queueItem.ShadowType);
+            LightProvider lightProviderShadow = scene.GetLightProvider(ShadowType.Nice);
             LightProvider lightProviderNoShadow = scene.GetLightProvider(ShadowType.None);
-            Voxel[] blockVoxels = block.VoxelsArray;
+            LODLevel detailLevel = queueItem.DetailLevel;
+            BlockLOD blockLOD = block.GetLOD(detailLevel);
 
-            int voxelSize = 1 << queueItem.DetailLevel;
-            int maxVoxelX = gameWorld.VoxelSize.X - 1 - voxelSize;
-            int maxVoxelY = gameWorld.VoxelSize.Y - 1 - voxelSize;
-            int maxVoxelZ = gameWorld.VoxelSize.Z - 1 - voxelSize;
-            int maxBlockVoxelSize = Block.VoxelSize - voxelSize;
+            int maxBlockVoxel = blockLOD.VoxelAxisSize - 1;
+            int bitShift = blockLOD.VoxelAxisSizeBitShift;
+            int renderedVoxelSize = blockLOD.RenderedVoxelSize;
+            int maxVoxelX = (gameWorld.BlockSize.X << bitShift) - 1;
+            int maxVoxelY = (gameWorld.BlockSize.Y << bitShift) - 1;
+            int maxVoxelZ = (gameWorld.BlockSize.Z << bitShift) - 1;
 
             VoxelNoiseComponent voxelNoiseComponent = block.GetComponent<VoxelNoiseComponent>();
 
             //for (int bvz = Block.VoxelSize - 1; bvz >= 0; bvz -= voxelSize)
-            for (int bvz = 0; bvz < Block.VoxelSize; bvz += voxelSize)
+            for (int bvz = 0; bvz <= maxBlockVoxel; bvz++)
             {
-                int voxelZ = (blockZ * Block.VoxelSize) + bvz;
-                byte chunkVoxelZ = (byte)(voxelZ - voxelStartZ);
-                for (int bvx = 0; bvx < Block.VoxelSize; bvx += voxelSize)
+                int voxelZ = (blockZ << bitShift) + bvz;
+                byte chunkVoxelZ = (byte)((voxelZ - voxelStartZ) * renderedVoxelSize);
+                for (int bvx = 0; bvx <= maxBlockVoxel; bvx++)
                 {
-                    int voxelX = (blockX * Block.VoxelSize) + bvx;
-                    byte chunkVoxelX = (byte)(voxelX - voxelStartX);
-                    for (int bvy = 0; bvy < Block.VoxelSize; bvy += voxelSize)
+                    int voxelX = (blockX << bitShift) + bvx;
+                    byte chunkVoxelX = (byte)((voxelX - voxelStartX) * renderedVoxelSize);
+                    for (int bvy = 0; bvy <= maxBlockVoxel; bvy++)
                     {
-                        Voxel vox = (voxelSize == 1) ? blockVoxels[GetBlockVoxelOffset(bvx, bvy, bvz)] : GetLODVoxel(blockVoxels, bvz, bvx, bvy, voxelSize);
+                        Voxel vox = blockLOD.VoxelAt(bvx, bvy, bvz);
                         if (vox == Voxel.Empty)
                             continue;
 
-                        int voxelY = (blockY * Block.VoxelSize) + bvy;
+                        int voxelY = (blockY << bitShift) + bvy;
 
                         VoxelSides sides = VoxelSides.None;
 
                         // Check to see if the back side is visible
-                        if (bvz >= voxelSize)
+                        if (bvz > 0)
                         {
-                            if (blockVoxels[GetBlockVoxelOffset(bvx, bvy, bvz - voxelSize)] == Voxel.Empty)
+                            if (blockLOD.VoxelAt(bvx, bvy, bvz - 1) == Voxel.Empty)
                                 sides |= VoxelSides.Back;
                         }
-                        else if (voxelZ >= voxelSize && gameWorld.GetVoxel(voxelX, voxelY, voxelZ - voxelSize) == Voxel.Empty)
+                        else if (voxelZ > 0 && gameWorld.GetVoxel(voxelX, voxelY, voxelZ - 1, detailLevel) == Voxel.Empty)
                             sides |= VoxelSides.Back;
 
                         // Check to see if the front side is visible
-                        if (bvz < maxBlockVoxelSize)
+                        if (bvz < maxBlockVoxel)
                         {
-                            if (blockVoxels[GetBlockVoxelOffset(bvx, bvy, bvz + voxelSize)] == Voxel.Empty)
+                            if (blockLOD.VoxelAt(bvx, bvy, bvz + 1) == Voxel.Empty)
                                 sides |= VoxelSides.Front;
                         }
-                        else if (voxelZ <= maxVoxelZ && gameWorld.GetVoxel(voxelX, voxelY, voxelZ + voxelSize) == Voxel.Empty)
+                        else if (voxelZ < maxVoxelZ && gameWorld.GetVoxel(voxelX, voxelY, voxelZ + 1, detailLevel) == Voxel.Empty)
                             sides |= VoxelSides.Front;
 
                         // Check to see if the left side is visible
-                        if (bvx >= voxelSize)
+                        if (bvx > 0)
                         {
-                            if (blockVoxels[GetBlockVoxelOffset(bvx - voxelSize, bvy, bvz)] == Voxel.Empty)
+                            if (blockLOD.VoxelAt(bvx - 1, bvy, bvz) == Voxel.Empty)
                                 sides |= VoxelSides.Left;
                         }
-                        else if (voxelX >= voxelSize && gameWorld.GetVoxel(voxelX - voxelSize, voxelY, voxelZ) == Voxel.Empty)
+                        else if (voxelX > 0 && gameWorld.GetVoxel(voxelX - 1, voxelY, voxelZ, detailLevel) == Voxel.Empty)
                             sides |= VoxelSides.Left;
 
                         // Check to see if the right side is visible
-                        if (bvx < maxBlockVoxelSize)
+                        if (bvx < maxBlockVoxel)
                         {
-                            if (blockVoxels[GetBlockVoxelOffset(bvx + voxelSize, bvy, bvz)] == Voxel.Empty)
+                            if (blockLOD.VoxelAt(bvx + 1, bvy, bvz) == Voxel.Empty)
                                 sides |= VoxelSides.Right;
                         }
-                        else if (voxelX <= maxVoxelX && gameWorld.GetVoxel(voxelX + voxelSize, voxelY, voxelZ) == Voxel.Empty)
+                        else if (voxelX < maxVoxelX && gameWorld.GetVoxel(voxelX + 1, voxelY, voxelZ, detailLevel) == Voxel.Empty)
                             sides |= VoxelSides.Right;
 
                         // Check to see if the bottom side is visible
-                        if (bvy >= voxelSize)
+                        if (bvy > 0)
                         {
-                            if (blockVoxels[GetBlockVoxelOffset(bvx, bvy - voxelSize, bvz)] == Voxel.Empty)
+                            if (blockLOD.VoxelAt(bvx, bvy - 1, bvz) == Voxel.Empty)
                                 sides |= VoxelSides.Bottom;
                         }
-                        else if (voxelY >= voxelSize && gameWorld.GetVoxel(voxelX, voxelY - voxelSize, voxelZ) == Voxel.Empty)
+                        else if (voxelY > 0 && gameWorld.GetVoxel(voxelX, voxelY - 1, voxelZ, detailLevel) == Voxel.Empty)
                             sides |= VoxelSides.Bottom;
 
                         // Check to see if the top side is visible
-                        if (bvy < maxBlockVoxelSize)
+                        if (bvy < maxBlockVoxel)
                         {
-                            if (blockVoxels[GetBlockVoxelOffset(bvx, bvy + voxelSize, bvz)] == Voxel.Empty)
+                            if (blockLOD.VoxelAt(bvx, bvy + 1, bvz) == Voxel.Empty)
                                 sides |= VoxelSides.Top;
                         }
-                        else if (voxelY <= maxVoxelY && gameWorld.GetVoxel(voxelX, voxelY + voxelSize, voxelZ) == Voxel.Empty)
+                        else if (voxelY < maxVoxelY && gameWorld.GetVoxel(voxelX, voxelY + 1, voxelZ, detailLevel) == Voxel.Empty)
                             sides |= VoxelSides.Top;
 
                         if (sides != VoxelSides.None)
@@ -438,51 +448,13 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
                                 vox = voxelNoiseComponent.Adjust(vox);
 
                             LightProvider lightProvider = vox.AllowLightPassthrough ? lightProviderNoShadow : lightProviderShadow;
-                            polygonCount += meshBuilder.AddVoxel(sides, chunkVoxelX, (byte)(voxelY - voxelStartY), chunkVoxelZ,
-                                vox.IgnoreLighting ? (Color4b)vox : lightProvider.GetFinalColor(vox, voxelX, voxelY, voxelZ, voxelSize, blockX, blockY, blockZ, sides));
+                            polygonCount += meshBuilder.AddVoxel(sides, chunkVoxelX, (byte)((voxelY - voxelStartY) * renderedVoxelSize), chunkVoxelZ,
+                                vox.IgnoreLighting ? (Color4b)vox : lightProvider.GetFinalColor(vox, voxelX, voxelY, voxelZ, detailLevel, blockX, blockY, blockZ, sides));
                             renderedVoxelCount++;
                         }
                     }
                 }
             }
-        }
-
-        private static Voxel GetLODVoxel(Voxel[] blockVoxels, int bvz, int bvx, int bvy, int voxelSize)
-        {
-            int voxelsFound = 0;
-            int totalA = 0;
-            int totalR = 0;
-            int totalG = 0;
-            int totalB = 0;
-            int maxX = bvx + voxelSize;
-            int maxY = bvy + voxelSize;
-            int maxZ = bvz + voxelSize;
-            //for (int z = bvz; z > bvz - voxelSize; z--)
-            VoxelSettings settings = VoxelSettings.None;
-            for (int z = bvz; z < maxZ; z++)
-            {
-                for (int x = bvx; x < maxX; x++)
-                {
-                    for (int y = bvy; y < maxY; y++)
-                    {
-                        Voxel otherColor = blockVoxels[GetBlockVoxelOffset(x, y, z)];
-                        if (otherColor == Voxel.Empty)
-                            continue;
-
-                        voxelsFound++;
-                        totalA += otherColor.A;
-                        totalR += otherColor.R;
-                        totalG += otherColor.G;
-                        totalB += otherColor.B;
-                        settings |= otherColor.Settings;
-                    }
-                }
-            }
-
-            if (voxelsFound == 0) // Prevent divide-by-zero
-                return Voxel.Empty;
-
-            return new Voxel((byte)(totalR / voxelsFound), (byte)(totalG / voxelsFound), (byte)(totalB / voxelsFound), (byte)(totalA / voxelsFound), settings);
         }
         #endregion
 
@@ -496,7 +468,7 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
         /// <summary>
         /// Given the specified render data and camera data determine the wanted voxel detail level given the specified user detail setting
         /// </summary>
-        private static byte GetPerferedVoxelDetailLevel(VoxelMeshComponent renderData, CameraComponent cameraData, 
+        private static LODLevel GetPerferedVoxelDetailLevel(VoxelMeshComponent renderData, CameraComponent cameraData, 
             VoxelDetailLevelDistance currentVoxelDetalLevelSetting)
         {
             // TODO: Make the renderdata location be the center of the renderdata instead of the corner
@@ -504,24 +476,24 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
             float distY = renderData.Location.Y - cameraData.Location.Y;
             float distZ = renderData.Location.Z - cameraData.Location.Z;
 
-            float dist = distX * distX + distY * distY + distZ * distZ;
+            float dist = (float)Math.Sqrt(distX * distX + distY * distY + distZ * distZ);
             float distancePerLevel;
             switch (currentVoxelDetalLevelSetting)
             {
-                case VoxelDetailLevelDistance.Closest: distancePerLevel = Block.VoxelSize * Block.VoxelSize * 400; break; // voxelSize * 20 = 320v
-                case VoxelDetailLevelDistance.Close: distancePerLevel = Block.VoxelSize * Block.VoxelSize * 784; break;   // voxelSize * 28 = 448v
-                case VoxelDetailLevelDistance.Mid: distancePerLevel = Block.VoxelSize * Block.VoxelSize * 1444; break;    // voxelSize * 38 = 608v
-                case VoxelDetailLevelDistance.Far: distancePerLevel = Block.VoxelSize * Block.VoxelSize * 2304; break;    // voxelSize * 48 = 768v
-                default: distancePerLevel = Block.VoxelSize * Block.VoxelSize * 3364; break;                              // voxelSize * 58 = 918v
+                case VoxelDetailLevelDistance.Closest: distancePerLevel = DistClosest; break;
+                case VoxelDetailLevelDistance.Close: distancePerLevel = DistClose; break;
+                case VoxelDetailLevelDistance.Mid: distancePerLevel = DistMid; break;
+                case VoxelDetailLevelDistance.Far: distancePerLevel = DistFar; break;
+                default: distancePerLevel = DistFurthest; break;
             }
 
-            for (byte i = BestVoxelDetailLevel; i <= WorstVoxelDetailLevel; i++)
+            for (byte level = (byte)LODLevel.V32; level < (byte)LODLevel.NumOfLevels; level++)
             {
                 if (dist <= distancePerLevel)
-                    return i;
-                dist -= distancePerLevel;// *(i + 1);
+                    return (LODLevel)level;
+                dist -= distancePerLevel;// *(level + 1);
             }
-            return WorstVoxelDetailLevel;
+            return LODLevel.V4;
         }
 
         /// <summary>
@@ -538,21 +510,21 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
             float distY = renderData.Location.Y - cameraData.Location.Y;
             float distZ = renderData.Location.Z - cameraData.Location.Z;
 
-            float dist = distX * distX + distY * distY + distZ * distZ;
+            float dist = (float)Math.Sqrt(distX * distX + distY * distY + distZ * distZ);
             float shadowDistance;
             switch (currentShadowDistanceSetting)
             {
-                case ShadowDistance.Closest: shadowDistance = Block.VoxelSize * Block.VoxelSize * 400; break; // voxelSize * 20 = 320v
-                case ShadowDistance.Close: shadowDistance = Block.VoxelSize * Block.VoxelSize * 784; break;   // voxelSize * 28 = 448v
-                case ShadowDistance.Mid: shadowDistance = Block.VoxelSize * Block.VoxelSize * 1444; break;    // voxelSize * 38 = 608v
-                case ShadowDistance.Far: shadowDistance = Block.VoxelSize * Block.VoxelSize * 2304; break;    // voxelSize * 48 = 768v
-                default: shadowDistance = Block.VoxelSize * Block.VoxelSize * 3364; break;                    // voxelSize * 58 = 918v
+                case ShadowDistance.Closest: shadowDistance = DistClosest; break;
+                case ShadowDistance.Close: shadowDistance = DistClose; break;
+                case ShadowDistance.Mid: shadowDistance = DistMid; break;
+                case ShadowDistance.Far: shadowDistance = DistFar; break;
+                default: shadowDistance = DistFurthest; break;
             }
 
             return dist <= shadowDistance ? ShadowType.Nice : ShadowType.None;
         }
 
-        private void ReloadEntityMesh(IEntity entity, VoxelMeshComponent renderData, byte voxelDetailLevel, ShadowType shadowType)
+        private void ReloadEntityMesh(IEntity entity, VoxelMeshComponent renderData, LODLevel voxelDetailLevel, ShadowType shadowType)
         {
             if (entity == null)
                 throw new ArgumentNullException("entity");
@@ -574,12 +546,6 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
             using (new PerformanceLock(renderData.SyncLock))
                 renderData.Visible = true;
             loadedEntities.Add(entity);
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static int GetBlockVoxelOffset(int x, int y, int z)
-        {
-            return (((z * Block.VoxelSize) + x) * Block.VoxelSize) + y; // y-axis major for speed
         }
         #endregion
     }

@@ -1,5 +1,4 @@
-﻿using System;
-using System.Runtime.CompilerServices;
+﻿using System.Runtime.CompilerServices;
 using ProdigalSoftware.TiVE.Core.Backend;
 using ProdigalSoftware.TiVE.VoxelMeshSystem;
 using ProdigalSoftware.TiVEPluginFramework;
@@ -24,10 +23,10 @@ namespace ProdigalSoftware.TiVE.RenderSystem
             voxels = new Voxel[sizeX * sizeY * sizeZ];
         }
 
-        public VoxelGroup(Block block) : this(Block.VoxelSize, Block.VoxelSize, Block.VoxelSize)
-        {
-            Array.Copy(block.VoxelsArray, voxels, voxels.Length);
-        }
+        //public VoxelGroup(Block block) : this(Block.VoxelSize, Block.VoxelSize, Block.VoxelSize)
+        //{
+        //    Array.Copy(block.VoxelsArray, voxels, voxels.Length);
+        //}
 
         public void Dispose()
         {
