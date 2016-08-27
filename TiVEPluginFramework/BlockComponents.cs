@@ -4,6 +4,10 @@ using System.Threading;
 
 namespace ProdigalSoftware.TiVEPluginFramework
 {
+    public interface IBlockComponent : ITiVESerializable
+    {
+    }
+
     public sealed class LightComponent : IBlockComponent
     {
         public static readonly Guid ID = new Guid("67767135-A2B9-4FF6-A39E-CFE6F052CD6D");

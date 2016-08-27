@@ -53,7 +53,7 @@ namespace ProdigalSoftware.TiVE.Settings
                 new UserSettingOption("True", new BoolSetting(true)),
                 new UserSettingOption("False", new BoolSetting(false))));
 
-            settingOptions.Add(new UserSettingOptions(AntiAliasAmountKey, "Anti-Aliasing", UserOptionTab.Display, new IntSetting(0),
+            settingOptions.Add(new UserSettingOptions(AntiAliasAmountKey, "Anti-Aliasing", UserOptionTab.Display, new IntSetting(4),
                 new UserSettingOption("None", new IntSetting(0)),
                 new UserSettingOption("2x", new IntSetting(2)),
                 new UserSettingOption("4x", new IntSetting(4)),
@@ -77,7 +77,7 @@ namespace ProdigalSoftware.TiVE.Settings
                 new UserSettingOption("Far", new EnumSetting<ShadowDistance>(ShadowDistance.Far)),
                 new UserSettingOption("Furthest", new EnumSetting<ShadowDistance>(ShadowDistance.Furthest))));
 
-            settingOptions.Add(new UserSettingOptions(LightsPerBlockKey, "Max lights per block", UserOptionTab.Display, new IntSetting(30),
+            settingOptions.Add(new UserSettingOptions(LightsPerBlockKey, "Max lights per block", UserOptionTab.Display, new IntSetting(20),
                 new UserSettingOption(new IntSetting(10)),
                 new UserSettingOption(new IntSetting(20)),
                 new UserSettingOption(new IntSetting(30))));

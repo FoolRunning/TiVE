@@ -100,18 +100,18 @@ namespace ProdigalSoftware.TiVE.RenderSystem
                     continue;
 
                 IVertexDataCollection meshData;
-                int voxelSize;
+                LODLevel detailLevel;
                 using (new PerformanceLock(renderData.SyncLock))
                 {
                     meshData = (IVertexDataCollection)renderData.MeshData;
-                    voxelSize = 1 << renderData.VisibleVoxelDetailLevel;
+                    detailLevel = renderData.VisibleVoxelDetailLevel;
                     stats += new RenderStatistics(1, renderData.PolygonCount, renderData.VoxelCount, renderData.RenderedVoxelCount);
                 }
 
                 if (meshData == null)
                     continue; // No data to render with
 
-                RenderVoxelMesh(renderData, meshData, voxelSize, cameraData);
+                RenderVoxelMesh(renderData, meshData, detailLevel, cameraData);
             }
 
             drawCount.PushCount(stats.DrawCount);
@@ -146,7 +146,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem
                         renderData.MeshBuilder.DropMesh();
                     renderData.MeshBuilder = null;
                     renderData.Visible = false;
-                    renderData.VoxelDetailLevelToLoad = VoxelMeshComponent.BlankDetailLevel;
+                    renderData.VoxelDetailLevelToLoad = LODLevel.NotSet;
                     renderData.ShadowTypeToLoad = VoxelMeshComponent.BlankShadowType;
                 }
 
@@ -184,7 +184,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem
                         
                         renderData.VisibleVoxelDetailLevel = renderData.VoxelDetailLevelToLoad;
                         renderData.VisibleShadowType = renderData.ShadowTypeToLoad;
-                        renderData.VoxelDetailLevelToLoad = VoxelMeshComponent.BlankDetailLevel;
+                        renderData.VoxelDetailLevelToLoad = LODLevel.NotSet;
                         renderData.ShadowTypeToLoad = VoxelMeshComponent.BlankShadowType;
                     }
                 }
@@ -219,9 +219,9 @@ namespace ProdigalSoftware.TiVE.RenderSystem
                 renderData.MeshData = null;
                 renderData.MeshBuilder = null;
                 renderData.Visible = false;
-                renderData.VisibleVoxelDetailLevel = VoxelMeshComponent.BlankDetailLevel;
+                renderData.VisibleVoxelDetailLevel = LODLevel.NotSet;
                 renderData.VisibleShadowType = VoxelMeshComponent.BlankShadowType;
-                renderData.VoxelDetailLevelToLoad = VoxelMeshComponent.BlankDetailLevel;
+                renderData.VoxelDetailLevelToLoad = LODLevel.NotSet;
                 renderData.ShadowTypeToLoad = VoxelMeshComponent.BlankShadowType;
                 renderData.PolygonCount = 0;
                 renderData.VoxelCount = 0;
@@ -233,10 +233,10 @@ namespace ProdigalSoftware.TiVE.RenderSystem
             //    loadedScene.LightProvider.RemoveLightsForChunk(chunkData);
         }
 
-        private void RenderVoxelMesh(VoxelMeshComponent renderData, IVertexDataCollection meshData, int voxelSize, CameraComponent cameraData)
+        private void RenderVoxelMesh(VoxelMeshComponent renderData, IVertexDataCollection meshData, LODLevel detailLevel, CameraComponent cameraData)
         {
-            if (voxelSize < 1 || voxelSize > Block.VoxelSize)
-                throw new ArgumentException("voxelsSize was out-of-range: " + voxelSize);
+            if (detailLevel == LODLevel.NotSet || detailLevel == LODLevel.NumOfLevels)
+                throw new ArgumentException("detailLevel invalid: " + detailLevel);
 
             Debug.Assert(meshData.IsInitialized);
 
@@ -248,11 +248,11 @@ namespace ProdigalSoftware.TiVE.RenderSystem
             Matrix4f viewProjectionModelMatrix;
             Matrix4f.Mult(ref translationMatrix, ref cameraData.ViewProjectionMatrix, out viewProjectionModelMatrix);
             shader.SetUniform("matrix_ModelViewProjection", ref viewProjectionModelMatrix);
-            shader.SetUniform("voxelSize", voxelSize);
+            shader.SetUniform("voxelSize", LODUtils.GetRenderedVoxelSize(detailLevel));
             shader.SetUniform("modelTranslation", ref renderData.Location);
             shader.SetUniform("cameraLoc", ref cameraData.Location);
 
-            TiVEController.Backend.Draw(PrimitiveType.Points, meshData);
+            TiVEController.Backend.Draw(PrimitiveType.Points, meshData); // Geometry shader will change points into cubes of the correct size
         }
         #endregion
 

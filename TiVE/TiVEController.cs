@@ -120,7 +120,7 @@ namespace ProdigalSoftware.TiVE
             }
 
             gameWorld.Initialize();
-            int center = gameWorld.VoxelSize.X / 2;
+            int center = gameWorld.VoxelSize32.X / 2;
 
             long totalMs = 0;
             Stopwatch sw = new Stopwatch();
@@ -130,7 +130,7 @@ namespace ProdigalSoftware.TiVE
             {
                 sw.Restart();
                 for (int i = 0; i < 10000; i++)
-                    gameWorld.NoVoxelInLine(center, center, center, i % center + 200, i % center + 200, i % center + 200);
+                    gameWorld.NoVoxelInLine(center, center, center, i % center + 200, i % center + 200, i % center + 200, LODLevel.V32);
                 sw.Stop();
                 totalMs += sw.ElapsedMilliseconds;
                 if (sw.ElapsedMilliseconds < minMs)

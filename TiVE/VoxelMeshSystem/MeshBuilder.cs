@@ -8,7 +8,7 @@ using ProdigalSoftware.Utils;
 namespace ProdigalSoftware.TiVE.VoxelMeshSystem
 {
     [Flags]
-    internal enum VoxelSides : byte
+    internal enum VoxelSides
     {
         None = 0,
         Top = 1 << 0,

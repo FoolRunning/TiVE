@@ -7,7 +7,6 @@ namespace ProdigalSoftware.TiVEPluginFramework.Components
     public abstract class VoxelMeshComponent : IComponent
     {
         #region Internal data
-        internal const byte BlankDetailLevel = byte.MaxValue;
         internal const byte BlankShadowType = byte.MaxValue;
 
         /// <summary>True if the entity is in the visible area of the screen, false otherwise</summary>
@@ -21,11 +20,11 @@ namespace ProdigalSoftware.TiVEPluginFramework.Components
         /// <summary>Mesh data for the entity for rendering</summary>
         internal IVertexDataInfo MeshData;
         /// <summary>Detail level of the mesh used to represent the voxels that make up this component</summary>
-        internal byte VoxelDetailLevelToLoad = BlankDetailLevel;
+        internal LODLevel VoxelDetailLevelToLoad = LODLevel.NotSet;
         /// <summary></summary>
         internal byte ShadowTypeToLoad = BlankShadowType;
         /// <summary>Detail level of the mesh used to represent the voxels that make up this component</summary>
-        internal byte VisibleVoxelDetailLevel = BlankDetailLevel;
+        internal LODLevel VisibleVoxelDetailLevel = LODLevel.NotSet;
         /// <summary></summary>
         internal byte VisibleShadowType = BlankShadowType;
         /// <summary>The MeshBuilder containing the </summary>

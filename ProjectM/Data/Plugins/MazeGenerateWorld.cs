@@ -32,12 +32,14 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
         {
             if (gameWorldName != "Maze")
                 return null;
-            
+
+            //IGameWorld gameWorld = Factory.NewGameWorld(1110, 1110, 120); // x-axis and y-axis must be divisible by 3
             IGameWorld gameWorld = Factory.NewGameWorld(300, 300, 16); // x-axis and y-axis must be divisible by 3
             //IGameWorld gameWorld = Factory.NewGameWorld(111, 111, 12); // x-axis and y-axis must be divisible by 3
             gameWorld.LightingModelType = LightingModelType.Fantasy3;
 
             MazeCell[,] dungeonMap = new MazeCell[gameWorld.BlockSize.X / 3, gameWorld.BlockSize.Y / 3];
+            //List<Vector3i> rooms = CreateRandomRooms(random.Next(50) + 160, 3, 15, 3, 15).ToList();
             List<Vector3i> rooms = CreateRandomRooms(random.Next(50) + 20, 3, 15, 3, 15).ToList();
             //List<Vector3i> rooms = CreateRandomRooms(10, 3, 11, 3, 11).ToList();
             int mazeStartAreaId = PlaceRooms(rooms, dungeonMap, random.Next(60) + 10);
@@ -65,7 +67,7 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
             //PrintDungeon(dungeonMap);
 
             FillWorld(gameWorld, dungeonMap, mazeStartAreaId);
-            CommonUtils.SmoothGameWorldForMazeBlocks(gameWorld);
+            CommonUtils.SmoothGameWorldForMazeBlocks(gameWorld, false);
 
             return gameWorld;
         }

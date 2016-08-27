@@ -26,7 +26,7 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
         {
             const bool forFantasyLighting = true;
 
-            const byte blockCenter = Block.VoxelSize / 2;
+            const byte blockCenter = BlockLOD32.VoxelSize / 2;
             Vector3b blockCenterVector = new Vector3b(blockCenter, blockCenter, blockCenter);
             for (int i = 0; i < 64; i++)
             {
@@ -67,15 +67,15 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
             yield return CreateBlockInfo("STlight6", false, 2, new Color4f(255, 255, 255, 255), 1.0f, null,
                 new LightComponent(blockCenterVector, new Color3f(1.0f, 1.0f, 1.0f), lightDist), true);
 
-            yield return CreateBlockInfo("STfountain", false, Block.VoxelSize / 2, new Color4f(20, 20, 150, 255), 1.0f,
+            yield return CreateBlockInfo("STfountain", false, BlockLOD32.VoxelSize / 2, new Color4f(20, 20, 150, 255), 1.0f,
                 new ParticleComponent("Fountain", new Vector3i(blockCenter, blockCenter, 13)));
         }
 
         private static Block CreateBlockInfo(string name, Color4f color, float voxelDensity, int sides, 
             LightComponent light = null, bool allowLightPassthrough = false)
         {
-            const float mid = Block.VoxelSize / 2.0f - 0.5f;
-            float sphereSize = Block.VoxelSize / 2.0f;
+            const float mid = BlockLOD32.VoxelSize / 2.0f - 0.5f;
+            float sphereSize = BlockLOD32.VoxelSize / 2.0f;
 
             Block block = new Block(name);
             VoxelSettings settings = VoxelSettings.None;
@@ -93,15 +93,15 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
             if (voxelDensity < 0.5f)
                 settings |= VoxelSettings.SkipVoxelNormalCalc;
 
-            for (int x = 0; x < Block.VoxelSize; x++)
+            for (int x = 0; x < BlockLOD32.VoxelSize; x++)
             {
-                for (int y = 0; y < Block.VoxelSize; y++)
+                for (int y = 0; y < BlockLOD32.VoxelSize; y++)
                 {
-                    for (int z = 0; z < Block.VoxelSize; z++)
+                    for (int z = 0; z < BlockLOD32.VoxelSize; z++)
                     {
-                        if (((sides & Top) != 0 && (sides & Front) != 0 && y - (int)mid > Block.VoxelSize - z) ||   // rounded Top-Front
+                        if (((sides & Top) != 0 && (sides & Front) != 0 && y - (int)mid > BlockLOD32.VoxelSize - z) ||   // rounded Top-Front
                             ((sides & Front) != 0 && (sides & Bottom) != 0 && y + (int)mid < z) ||                             // rounded Front-Bottom
-                            ((sides & Bottom) != 0 && (sides & Back) != 0 && y + (int)mid < Block.VoxelSize - z) || // rounded Bottom-Back
+                            ((sides & Bottom) != 0 && (sides & Back) != 0 && y + (int)mid < BlockLOD32.VoxelSize - z) || // rounded Bottom-Back
                             ((sides & Back) != 0 && (sides & Top) != 0 && y - (int)mid > z))                                   // rounded Back-Top
                         {
                             // Cylinder around the x-axis
@@ -110,9 +110,9 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
                                 continue;
                         }
 
-                        if (((sides & Right) != 0 && (sides & Front) != 0 && x - (int)mid > Block.VoxelSize - z) || // rounded Right-Front
+                        if (((sides & Right) != 0 && (sides & Front) != 0 && x - (int)mid > BlockLOD32.VoxelSize - z) || // rounded Right-Front
                             ((sides & Front) != 0 && (sides & Left) != 0 && x + (int)mid < z) ||                               // rounded Front-Left
-                            ((sides & Left) != 0 && (sides & Back) != 0 && x + (int)mid < Block.VoxelSize - z) ||   // rounded Left-Back
+                            ((sides & Left) != 0 && (sides & Back) != 0 && x + (int)mid < BlockLOD32.VoxelSize - z) ||   // rounded Left-Back
                             ((sides & Back) != 0 && (sides & Right) != 0 && x - (int)mid > z))                                 // rounded Back-Right
                         {
                             // Cylinder around the y-axis
@@ -121,9 +121,9 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
                                 continue;
                         }
 
-                        if (((sides & Right) != 0 && (sides & Top) != 0 && x - (int)mid > Block.VoxelSize - y) ||   // rounded Right-Top
+                        if (((sides & Right) != 0 && (sides & Top) != 0 && x - (int)mid > BlockLOD32.VoxelSize - y) ||   // rounded Right-Top
                             ((sides & Top) != 0 && (sides & Left) != 0 && x + (int)mid < y) ||                                 // rounded Top-Left
-                            ((sides & Left) != 0 && (sides & Bottom) != 0 && x + (int)mid < Block.VoxelSize - y) || // rounded Left-Bottom
+                            ((sides & Left) != 0 && (sides & Bottom) != 0 && x + (int)mid < BlockLOD32.VoxelSize - y) || // rounded Left-Bottom
                             ((sides & Bottom) != 0 && (sides & Right) != 0 && x - (int)mid > y))                               // rounded Bottom-Right
                         {
                             // Cylinder around the z-axis
@@ -145,7 +145,7 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
                         }
 
                         if (random.NextDouble() < voxelDensity)
-                            block[x, y, z] = new Voxel(color.R, color.G, color.B, color.A, settings);
+                            block.LOD32[x, y, z] = new Voxel(color.R, color.G, color.B, color.A, settings);
                     }
                 }
             }
@@ -156,7 +156,7 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
         private static Block CreateBlockInfo(string name, bool frontOnly, float sphereSize, Color4f color, float voxelDensity,
             ParticleComponent particleSystem = null, LightComponent light = null, bool allowLightPassthrough = false)
         {
-            const int mid = Block.VoxelSize / 2;
+            const int mid = BlockLOD32.VoxelSize / 2;
 
             Block block = new Block(name);
             if (particleSystem != null)
@@ -174,11 +174,11 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
             if (allowLightPassthrough)
                 block.AddComponent(new LightPassthroughComponent());
 
-            for (int x = 0; x < Block.VoxelSize; x++)
+            for (int x = 0; x < BlockLOD32.VoxelSize; x++)
             {
-                for (int y = 0; y < Block.VoxelSize; y++)
+                for (int y = 0; y < BlockLOD32.VoxelSize; y++)
                 {
-                    for (int z = frontOnly ? Block.VoxelSize - 2 : 0; z < Block.VoxelSize; z++)
+                    for (int z = frontOnly ? BlockLOD32.VoxelSize - 2 : 0; z < BlockLOD32.VoxelSize; z++)
                     {
                         if (sphereSize > 0)
                         {
@@ -188,7 +188,7 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
                         }
 
                         if (random.NextDouble() < voxelDensity)
-                            block[x, y, z] = new Voxel(color.R, color.G, color.B, color.A, settings);
+                            block.LOD32[x, y, z] = new Voxel(color.R, color.G, color.B, color.A, settings);
                     }
                 }
             }

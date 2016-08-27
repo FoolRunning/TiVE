@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using ProdigalSoftware.TiVE.Core;
@@ -23,7 +22,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
     internal sealed class GameWorldLightData
     {
         #region Constants
-        private const int HalfBlockVoxelSize = Block.VoxelSize / 2;
+        private const int HalfBlockVoxelSize = BlockLOD32.VoxelSize / 2;
         #endregion
 
         #region Member variables
@@ -136,10 +135,10 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
                 int lbz = lightInfo.BlockZ;
                 for (int bz = startZ; bz < endZ; bz++)
                 {
-                    int vz = (bz * Block.VoxelSize) + HalfBlockVoxelSize;
+                    int vz = (bz << BlockLOD32.VoxelSizeBitShift) + HalfBlockVoxelSize;
                     for (int bx = startX; bx < endX; bx++)
                     {
-                        int vx = (bx * Block.VoxelSize) + HalfBlockVoxelSize;
+                        int vx = (bx << BlockLOD32.VoxelSizeBitShift) + HalfBlockVoxelSize;
                         for (int by = startY; by < endY; by++)
                         {
                             if ((lightCullType == LightCullType.Fast && CullLightFast(lbx, lby, lbz, bx, by, bz)) ||
@@ -148,16 +147,16 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
                                 continue; // The light won't actually hit the block
                             }
 
-                            int vy = (by * Block.VoxelSize) + HalfBlockVoxelSize;
+                            int vy = (by << BlockLOD32.VoxelSizeBitShift) + HalfBlockVoxelSize;
                             ushort[] blockLights = blocksLights[GetBlockLightOffset(bx - startX, by - startY, bz - startZ)];
 
                             // Calculate lighting information
                             // Sort lights by highest percentage to lowest
-                            float newLightPercentage = lightInfo.GetLightPercentage(vx, vy, vz, lightingModel);
+                            float newLightPercentage = lightInfo.GetLightPercentageDiffuse(vx, vy, vz, lightingModel);
                             int leastLightIndex = blockLights.Length;
                             for (int i = 0; i < blockLights.Length; i++)
                             {
-                                if (blockLights[i] == 0 || LightList[blockLights[i]].GetLightPercentage(vx, vy, vz, lightingModel) < newLightPercentage)
+                                if (blockLights[i] == 0 || LightList[blockLights[i]].GetLightPercentageDiffuse(vx, vy, vz, lightingModel) < newLightPercentage)
                                 {
                                     leastLightIndex = i;
                                     break;
@@ -185,11 +184,11 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
             int chunkX = worldBlockX / ChunkComponent.BlockSize;
             int chunkY = worldBlockY / ChunkComponent.BlockSize;
             int chunkZ = worldBlockZ / ChunkComponent.BlockSize;
+            ushort[][] chunkLights = chunkLightInfo[chunkSize.GetArrayOffset(chunkX, chunkY, chunkZ)].BlockLights;
+
             int chunkBlockX = worldBlockX % ChunkComponent.BlockSize;
             int chunkBlockY = worldBlockY % ChunkComponent.BlockSize;
             int chunkBlockZ = worldBlockZ % ChunkComponent.BlockSize;
-
-            ushort[][] chunkLights = chunkLightInfo[chunkSize.GetArrayOffset(chunkX, chunkY, chunkZ)].BlockLights;
             return chunkLights != null ? chunkLights[GetBlockLightOffset(chunkBlockX, chunkBlockY, chunkBlockZ)] : null;
         }
 

@@ -84,6 +84,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BlockComponents.cs" />
+    <Compile Include="BlockLOD.cs" />
     <Compile Include="BlockState.cs" />
     <Compile Include="Block.cs" />
     <Compile Include="BoundingBox.cs" />
@@ -96,6 +97,7 @@
     <Compile Include="Components\SpriteComponent.cs" />
     <Compile Include="Components\ScriptComponent.cs" />
     <Compile Include="Components\VoxelMeshComponent.cs" />
+    <Compile Include="LODUtils.cs" />
     <Compile Include="Vector4b.cs" />
     <Compile Include="Generators\IBlockGenerator.cs" />
     <Compile Include="Generators\IParticleControllerGenerator.cs" />

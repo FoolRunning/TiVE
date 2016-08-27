@@ -23,7 +23,7 @@ namespace ProdigalSoftware.TiVEEditor.BlockLists
         private const float CameraMaxDist = 50;
         private const float CameraMinDist = 10;
         private const float CameraZoomSpeed = 0.04f;
-        private const float CenterZ = Block.VoxelSize + (Block.VoxelSize + 1) / 2;
+        private const float CenterZ = BlockLOD32.VoxelSize + (BlockLOD32.VoxelSize + 1) / 2;
         #endregion
 
         #region Member variables
@@ -58,9 +58,9 @@ namespace ProdigalSoftware.TiVEEditor.BlockLists
             titleFormatString = Text;
 
             lstBxBlocks.ItemHeight = BlockPreviewCache.PreviewImageSize + 6;
-            spnLightLocX.Maximum = Block.VoxelSize - 1;
-            spnLightLocY.Maximum = Block.VoxelSize - 1;
-            spnLightLocZ.Maximum = Block.VoxelSize - 1;
+            spnLightLocX.Maximum = BlockLOD32.VoxelSize - 1;
+            spnLightLocY.Maximum = BlockLOD32.VoxelSize - 1;
+            spnLightLocZ.Maximum = BlockLOD32.VoxelSize - 1;
 
             //blockList = BlockList.FromFile(filePath) ?? new BlockList();
             gameWorld = new GameWorld(WorldSize, WorldSize, ChunkComponent.BlockSize);
@@ -70,19 +70,21 @@ namespace ProdigalSoftware.TiVEEditor.BlockLists
             for (int i = 0; i < floorBlocks.Length; i++)
             {
                 floorBlocks[i] = new Block("Floor" + i);
-                for (int x = 0; x < Block.VoxelSize; x++)
+                for (int x = 0; x < BlockLOD32.VoxelSize; x++)
                 {
-                    for (int y = 0; y < Block.VoxelSize; y++)
-                        floorBlocks[i][x, y, Block.VoxelSize - 1] = (Voxel)((uint)random.Next(0xFFFFFF) | 0xFF000000);
+                    for (int y = 0; y < BlockLOD32.VoxelSize; y++)
+                        floorBlocks[i].LOD32[x, y, BlockLOD32.VoxelSize - 1] = (Voxel)((uint)random.Next(0xFFFFFF) | 0xFF000000);
                 }
 
-                for (int s = 0; s < Block.VoxelSize; s++)
+                for (int s = 0; s < BlockLOD32.VoxelSize; s++)
                 {
-                    floorBlocks[i][s, 0, Block.VoxelSize - 1] = Voxel.White;
-                    floorBlocks[i][s, Block.VoxelSize - 1, Block.VoxelSize - 1] = Voxel.White;
-                    floorBlocks[i][0, s, Block.VoxelSize - 1] = Voxel.White;
-                    floorBlocks[i][Block.VoxelSize - 1, s, Block.VoxelSize - 1] = Voxel.White;
+                    floorBlocks[i].LOD32[s, 0, BlockLOD32.VoxelSize - 1] = Voxel.White;
+                    floorBlocks[i].LOD32[s, BlockLOD32.VoxelSize - 1, BlockLOD32.VoxelSize - 1] = Voxel.White;
+                    floorBlocks[i].LOD32[0, s, BlockLOD32.VoxelSize - 1] = Voxel.White;
+                    floorBlocks[i].LOD32[BlockLOD32.VoxelSize - 1, s, BlockLOD32.VoxelSize - 1] = Voxel.White;
                 }
+
+                floorBlocks[i].GenerateLODLevels();
             }
             
             //for (int x = 0; x < gameWorld.BlockSize.X; x++)
@@ -153,8 +155,8 @@ namespace ProdigalSoftware.TiVEEditor.BlockLists
             //cntrlCurrentBlock.SetGameWorld(blockList, gameWorld);
             cntrlCurrentBlock.Scene.AmbientLight = new Color3f(230, 230, 230);
             cntrlCurrentBlock.Camera.UpVector = Vector3f.UnitZ;
-            float centerX = cntrlCurrentBlock.GameWorld.VoxelSize.X / 2.0f;
-            float centerY = cntrlCurrentBlock.GameWorld.VoxelSize.Y / 2.0f;
+            float centerX = cntrlCurrentBlock.GameWorld.VoxelSize32.X / 2.0f;
+            float centerY = cntrlCurrentBlock.GameWorld.VoxelSize32.Y / 2.0f;
             cntrlCurrentBlock.Camera.FieldOfView = (float)Math.PI / 4; // 45 degrees
             cntrlCurrentBlock.Camera.LookAtLocation = new Vector3f(centerX, centerY, CenterZ);
             UpdateCameraPos();
@@ -395,9 +397,9 @@ namespace ProdigalSoftware.TiVEEditor.BlockLists
             ignoreValueChange = true;
             txtBlockName.Text = hasSelectedItem ? block.Name : "";
             btnLightColor.BackColor = hasLight ? Color.FromArgb((int)((Color4b)light.Color).ToArgb()) : Color.Black;
-            spnLightLocX.Value = hasLight ? light.Location.X : Block.VoxelSize / 2;
-            spnLightLocY.Value = hasLight ? light.Location.Y : Block.VoxelSize / 2;
-            spnLightLocZ.Value = hasLight ? light.Location.Z : Block.VoxelSize / 2;
+            spnLightLocX.Value = hasLight ? light.Location.X : BlockLOD32.VoxelSize / 2;
+            spnLightLocY.Value = hasLight ? light.Location.Y : BlockLOD32.VoxelSize / 2;
+            spnLightLocZ.Value = hasLight ? light.Location.Z : BlockLOD32.VoxelSize / 2;
             ignoreValueChange = false;
 
             btnDeleteBlock.Enabled = hasSelectedItem;
@@ -407,8 +409,8 @@ namespace ProdigalSoftware.TiVEEditor.BlockLists
 
         private void UpdateCameraPos()
         {
-            float centerX = cntrlCurrentBlock.GameWorld.VoxelSize.X / 2.0f;
-            float centerY = cntrlCurrentBlock.GameWorld.VoxelSize.Y / 2.0f;
+            float centerX = cntrlCurrentBlock.GameWorld.VoxelSize32.X / 2.0f;
+            float centerY = cntrlCurrentBlock.GameWorld.VoxelSize32.Y / 2.0f;
             float circleX = (float)(Math.Sin(camAngleAxisY) * camDist);
             float circleY = (float)(Math.Cos(camAngleAxisY) * camDist);
             cntrlCurrentBlock.Camera.Location = new Vector3f(centerX + circleX, centerY + circleY, CenterZ + 30);

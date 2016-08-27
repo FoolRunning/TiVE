@@ -47,19 +47,19 @@ namespace ProdigalSoftware.TiVEEditor.BlockLists
             {
                 g.FillRectangle(brush, 0, 0, PreviewImageSize, PreviewImageSize);
 
-                for (int y = Block.VoxelSize - 1; y >= 0; y--)
+                for (int y = BlockLOD32.VoxelSize - 1; y >= 0; y--)
                 {
-                    for (int x = 0; x < Block.VoxelSize; x++)
+                    for (int x = 0; x < BlockLOD32.VoxelSize; x++)
                     {
-                        for (int z = 0; z < Block.VoxelSize; z++)
+                        for (int z = 0; z < BlockLOD32.VoxelSize; z++)
                         {
-                            Voxel color = block[x, y, z];
+                            Voxel color = block.LOD32[x, y, z];
                             if (color == Voxel.Empty)
                                 continue;
 
                             brush.Color = Color.FromArgb(color.A, color.R, color.G, color.B);
                             //g.FillRectangle(brush, x * 2 + 18 - BlockInformation.VoxelSize + y, 28 - y - z * 2 + x, 3, 3);
-                            g.FillRectangle(brush, x * 2 + 24 - Block.VoxelSize + y, 42 - y - z * 2 + x, 3, 3);
+                            g.FillRectangle(brush, x * 2 + 24 - BlockLOD32.VoxelSize + y, 42 - y - z * 2 + x, 3, 3);
                         }
                     }
                 }

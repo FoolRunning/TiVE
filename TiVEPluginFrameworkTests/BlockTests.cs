@@ -16,22 +16,23 @@ namespace ProdigalSoftware.TiVEPluginFramework
         {
             Block block = new Block("Monkey");
             uint index = 0;
-            for (int x = 0; x < Block.VoxelSize; x++)
+            BlockLOD32 lod32 = block.LOD32;
+            for (int x = 0; x < lod32.VoxelAxisSize; x++)
             {
-                for (int y = 0; y < Block.VoxelSize; y++)
+                for (int y = 0; y < lod32.VoxelAxisSize; y++)
                 {
-                    for (int z = 0; z < Block.VoxelSize; z++)
-                        block[x, y, z] = (Voxel)index++;
+                    for (int z = 0; z < lod32.VoxelAxisSize; z++)
+                        lod32[x, y, z] = (Voxel)index++;
                 }
             }
 
             uint testIndex = 0;
-            for (int x = 0; x < Block.VoxelSize; x++)
+            for (int x = 0; x < lod32.VoxelAxisSize; x++)
             {
-                for (int y = 0; y < Block.VoxelSize; y++)
+                for (int y = 0; y < lod32.VoxelAxisSize; y++)
                 {
-                    for (int z = 0; z < Block.VoxelSize; z++)
-                        Assert.That(block[x, y, z], Is.EqualTo((Voxel)testIndex++));
+                    for (int z = 0; z < lod32.VoxelAxisSize; z++)
+                        Assert.That(lod32[x, y, z], Is.EqualTo((Voxel)testIndex++));
                 }
             }
         }

@@ -33,20 +33,44 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
         /// <param name="cachedLightCalcAmbient">Cached lighting calculation needed by the current light model for ambient lighting</param>
         public LightInfo(int blockX, int blockY, int blockZ, LightComponent light, float cachedLightCalc, float cachedLightCalcAmbient)
         {
-            VoxelLocX = (ushort)(light.Location.X + (blockX * Block.VoxelSize));
-            VoxelLocY = (ushort)(light.Location.Y + (blockY * Block.VoxelSize));
-            VoxelLocZ = (ushort)(light.Location.Z + (blockZ * Block.VoxelSize));
+            VoxelLocX = (ushort)(light.Location.X + (blockX * BlockLOD32.VoxelSize));
+            VoxelLocY = (ushort)(light.Location.Y + (blockY * BlockLOD32.VoxelSize));
+            VoxelLocZ = (ushort)(light.Location.Z + (blockZ * BlockLOD32.VoxelSize));
             LightColor = light.Color;
+
             this.cachedLightCalc = cachedLightCalc;
             this.cachedLightCalcAmbient = cachedLightCalcAmbient;
+        }
+
+        public int BlockX
+        {
+            get { return VoxelLocX / BlockLOD32.VoxelSize; }
+        }
+
+        public int BlockY
+        {
+            get { return VoxelLocY / BlockLOD32.VoxelSize; }
+        }
+
+        public int BlockZ
+        {
+            get { return VoxelLocZ / BlockLOD32.VoxelSize; }
+        }
+
+        public void VoxelLocation(LODLevel detailLevel, out int x, out int y, out int z)
+        {
+            x = VoxelLocX;
+            y = VoxelLocY;
+            z = VoxelLocZ;
+            LODUtils.AdjustLocationForDetailLevelFrom32(ref x, ref y, ref z, detailLevel);
         }
 
         /// <summary>
         /// Gets the amount of light (0.0 - 1.0) that this light would produce for the voxel at the specified location
         /// </summary>
-        public float GetLightPercentageDiffuseAndAmbient(int voxelX, int voxelY, int voxelZ, LightingModel lightingModel)
+        public float GetLightPercentageDiffuseAndAmbient(int voxelX32, int voxelY32, int voxelZ32, LightingModel lightingModel)
         {
-            float distSquared = DistanceSquared(voxelX, voxelY, voxelZ);
+            float distSquared = DistanceSquared(voxelX32, voxelY32, voxelZ32);
             return lightingModel.GetLightPercentage(distSquared, cachedLightCalc) +
                 lightingModel.GetLightPercentage(distSquared, cachedLightCalcAmbient);
         }
@@ -54,42 +78,27 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
         /// <summary>
         /// Gets the amount of light (0.0 - 1.0) that this light would produce for the voxel at the specified location
         /// </summary>
-        public float GetLightPercentage(int voxelX, int voxelY, int voxelZ, LightingModel lightingModel)
+        public float GetLightPercentageDiffuse(int voxelX32, int voxelY32, int voxelZ32, LightingModel lightingModel)
         {
-            float distSquared = DistanceSquared(voxelX, voxelY, voxelZ);
+            float distSquared = DistanceSquared(voxelX32, voxelY32, voxelZ32);
             return lightingModel.GetLightPercentage(distSquared, cachedLightCalc);
         }
 
         /// <summary>
         /// Gets the amount of light (0.0 - 1.0) that this light would produce for the voxel at the specified location when in a shadow
         /// </summary>
-        public float GetLightPercentageAmbient(int voxelX, int voxelY, int voxelZ, LightingModel lightingModel)
+        public float GetLightPercentageAmbient(int voxelX32, int voxelY32, int voxelZ32, LightingModel lightingModel)
         {
-            float distSquared = DistanceSquared(voxelX, voxelY, voxelZ);
+            float distSquared = DistanceSquared(voxelX32, voxelY32, voxelZ32);
             return lightingModel.GetLightPercentage(distSquared, cachedLightCalcAmbient);
         }
 
-        public int BlockX
-        {
-            get { return VoxelLocX / Block.VoxelSize; }
-        }
-
-        public int BlockY
-        {
-            get { return VoxelLocY / Block.VoxelSize; }
-        }
-
-        public int BlockZ
-        {
-            get { return VoxelLocZ / Block.VoxelSize; }
-        }
-
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private float DistanceSquared(int voxelX, int voxelY, int voxelZ)
+        private float DistanceSquared(int voxelX32, int voxelY32, int voxelZ32)
         {
-            int lightDistX = VoxelLocX - voxelX;
-            int lightDistY = VoxelLocY - voxelY;
-            int lightDistZ = VoxelLocZ - voxelZ;
+            int lightDistX = VoxelLocX - voxelX32;
+            int lightDistY = VoxelLocY - voxelY32;
+            int lightDistZ = VoxelLocZ - voxelZ32;
             return lightDistX * lightDistX + lightDistY * lightDistY + lightDistZ * lightDistZ;
         }
     }
