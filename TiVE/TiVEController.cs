@@ -120,25 +120,30 @@ namespace ProdigalSoftware.TiVE
             }
 
             gameWorld.Initialize();
-            int center = gameWorld.VoxelSize32.X / 2;
 
-            long totalMs = 0;
-            Stopwatch sw = new Stopwatch();
-            int minMs = int.MaxValue;
-            int maxMs = 0;
-            for (int t = 0; t < 10; t++)
+            for (int level = (int)LODLevel.V32; level <= (int)LODLevel.V4; level++)
             {
-                sw.Restart();
-                for (int i = 0; i < 10000; i++)
-                    gameWorld.NoVoxelInLine(center, center, center, i % center + 200, i % center + 200, i % center + 200, LODLevel.V32);
-                sw.Stop();
-                totalMs += sw.ElapsedMilliseconds;
-                if (sw.ElapsedMilliseconds < minMs)
-                    minMs = (int)sw.ElapsedMilliseconds;
-                if (sw.ElapsedMilliseconds > maxMs)
-                    maxMs = (int)sw.ElapsedMilliseconds;
+                LODLevel detailLevel = (LODLevel)level;
+                long totalMs = 0;
+                Stopwatch sw = new Stopwatch();
+                int center = gameWorld.VoxelSize32.X / LODUtils.AdjustForDetailLevelTo32(2, detailLevel);
+                int offSet = LODUtils.AdjustForDetailLevelFrom32(200, detailLevel);
+                int minMs = int.MaxValue;
+                int maxMs = 0;
+                for (int t = 0; t < 10; t++)
+                {
+                    sw.Restart();
+                    for (int i = 0; i < 10000; i++)
+                        gameWorld.NoVoxelInLine(center, center, center, i % center + offSet, i % center + offSet, i % center + offSet, detailLevel);
+                    sw.Stop();
+                    totalMs += sw.ElapsedMilliseconds;
+                    if (sw.ElapsedMilliseconds < minMs)
+                        minMs = (int)sw.ElapsedMilliseconds;
+                    if (sw.ElapsedMilliseconds > maxMs)
+                        maxMs = (int)sw.ElapsedMilliseconds;
+                }
+                Messages.Println(string.Format("10,000 ray casts at detail {0} took average of {1}ms ({2}-{3})", detailLevel, totalMs / 10.0f, minMs, maxMs), Color.Chocolate);
             }
-            Messages.Println(string.Format("10,000 accurate ray casts took average of {0}ms ({1}-{2})", totalMs / 10.0f, minMs, maxMs), Color.Chocolate);
         }
 
         //private static void DoFastVoxelRayCastTest()

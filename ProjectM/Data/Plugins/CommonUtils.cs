@@ -25,9 +25,9 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
     public static class CommonUtils
     {
         public const int stoneBlockDuplicates = 1;
-        public const int stoneBackBlockDuplicates = 12;
+        public const int stoneBackBlockDuplicates = 10;
         public const int grassBlockDuplicates = 200;
-        public const int leavesBlockDuplicates = 3;
+        public const int leavesBlockDuplicates = 5;
 
         private const int Front = 1;
         private const int Back = 2;
@@ -36,7 +36,7 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
         private const int Top = 16;
         private const int Bottom = 32;
 
-        private static readonly Regex blockNameRegex = new Regex(@"(?<part>[^\d]+)(?<num>\d+)?_?(?<other>\d+)?", RegexOptions.Compiled);
+        private static readonly Regex blockNameRegex = new Regex(@"(?<part>[^\d]+)(?<num>\d+)?(?:_(?<other>\d+))?", RegexOptions.Compiled);
 
         public static bool ParseBlockName(string blockName, out string part, out int num, out string other)
         {

@@ -10,7 +10,7 @@ namespace ProdigalSoftware.TiVE.Core.Backend.OpenTKImpl
         {
             get 
             {
-                MouseState mouseState = Mouse.GetState(0);
+                MouseState mouseState = Mouse.GetState();
                 return new Vector2i(mouseState.X, mouseState.Y); 
             }
         }
@@ -19,7 +19,7 @@ namespace ProdigalSoftware.TiVE.Core.Backend.OpenTKImpl
         {
             get 
             {
-                MouseState mouseState = Mouse.GetState(0);
+                MouseState mouseState = Mouse.GetState();
                 return mouseState.Wheel; 
             }
         }

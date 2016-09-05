@@ -95,7 +95,7 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
         public override bool Initialize()
         {
             for (int i = 0; i < TotalChunkMeshBuilders; i++)
-                meshBuilders.Add(new MeshBuilder(500000));
+                meshBuilders.Add(new MeshBuilder(1000000));
 
             int maxThreads = TiVEController.UserSettings.Get(UserSettings.ChunkCreationThreadsKey);
             for (int i = 0; i < maxThreads; i++)
