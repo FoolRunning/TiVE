@@ -181,11 +181,10 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
             static FountainUpdater()
             {
                 for (int i = 0; i < 256; i++)
-                    colorList[i] = new Color4b((byte)(55 - (int)((255 - i) / 5.0f)), (byte)(150 - (int)((255 - i) / 2.0f)), 255, (byte)(100 - i / 3));
+                    colorList[i] = new Color4b((byte)(55 - (int)((255 - i) / 5.0f)), (byte)(150 - (int)((255 - i) / 2.0f)), 255, (byte)(100 - i / 4));
             }
 
-            public FountainUpdater()
-                : base(300, 100, TransparencyType.Realistic, true)
+            public FountainUpdater() : base(300, 100, TransparencyType.Realistic, true)
             {
             }
 
@@ -194,14 +193,21 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
             {
                 get
                 {
-                    VoxelSprite particleVoxels = new VoxelSprite(3, 3, 3);
-                    particleVoxels[1, 1, 1] = Voxel.White;
-                    particleVoxels[0, 1, 1] = Voxel.White;
-                    particleVoxels[2, 1, 1] = Voxel.White;
-                    particleVoxels[1, 0, 1] = Voxel.White;
-                    particleVoxels[1, 2, 1] = Voxel.White;
-                    particleVoxels[1, 1, 0] = Voxel.White;
-                    particleVoxels[1, 1, 2] = Voxel.White;
+                    VoxelSprite particleVoxels = new VoxelSprite(5, 5, 5);
+                    const int mid = 5 / 2;
+
+                    for (int z = 0; z < 5; z++)
+                    {
+                        for (int x = 0; x < 5; x++)
+                        {
+                            for (int y = 0; y < 5; y++)
+                            {
+                                int dist = (x - mid) * (x - mid) + (y - mid) * (y - mid) + (z - mid) * (z - mid);
+                                if (dist <= 4)
+                                    particleVoxels[x, y, z] = Voxel.White;
+                            }
+                        }
+                    }
                     return particleVoxels;
                 }
             }
@@ -223,14 +229,14 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
             public override void InitializeNew(Particle particle, Vector3i systemLocation)
             {
                 float angle = Random.NextFloat() * 2.0f * 3.141592f;
-                float totalVel = Random.NextFloat() * 5.0f + 3.0f;
+                float totalVel = Random.NextFloat() * 10.0f + 3.0f;
                 particle.VelX = (float)Math.Cos(angle) * totalVel;
-                particle.VelZ = Random.NextFloat() * 30.0f + 110.0f;
+                particle.VelZ = Random.NextFloat() * 30.0f + 180.0f;
                 particle.VelY = (float)Math.Sin(angle) * totalVel;
 
-                particle.X = systemLocation.X - 1;
-                particle.Y = systemLocation.Y - 1;
-                particle.Z = systemLocation.Z - 1;
+                particle.X = systemLocation.X - 2;
+                particle.Y = systemLocation.Y - 2;
+                particle.Z = systemLocation.Z - 2;
 
                 particle.Color = colorList[0];
                 particle.Time = AliveTime;

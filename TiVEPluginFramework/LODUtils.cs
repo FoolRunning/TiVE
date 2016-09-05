@@ -6,6 +6,11 @@ namespace ProdigalSoftware.TiVEPluginFramework
     [PublicAPI]
     public static class LODUtils
     {
+        public static int AdjustForDetailLevelFrom32(int val, LODLevel toDetailLevel)
+        {
+            return val >> (BlockLOD32.VoxelSizeBitShift - BlockLOD.GetVoxelSizeBitShift(toDetailLevel));
+        }
+
         public static void AdjustLocationForDetailLevelFrom32(ref int x, ref int y, ref int z, LODLevel toDetailLevel)
         {
             int bitShift = BlockLOD32.VoxelSizeBitShift - BlockLOD.GetVoxelSizeBitShift(toDetailLevel);
@@ -27,6 +32,11 @@ namespace ProdigalSoftware.TiVEPluginFramework
         //    y = (ushort)(y >> bitShift);
         //    z = (ushort)(z >> bitShift);
         //}
+
+        public static int AdjustForDetailLevelTo32(int val, LODLevel fromDetailLevel)
+        {
+            return val << (BlockLOD32.VoxelSizeBitShift - BlockLOD.GetVoxelSizeBitShift(fromDetailLevel));
+        }
 
         public static void AdjustLocationForDetailLevelTo32(ref int x, ref int y, ref int z, LODLevel fromDetailLevel)
         {

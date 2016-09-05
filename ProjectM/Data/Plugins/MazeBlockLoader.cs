@@ -22,11 +22,11 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
         private const byte bc = BlockLOD32.VoxelSize / 2;
         private const int mv = BlockLOD32.VoxelSize - 1;
         private const int ImperfectionIterations = BlockLOD32.VoxelSize > 16 ? 100 : 25;
-        private const bool ForFantasy = true;
-        private const int LightDist = ForFantasy ? 17 : 35;
+        private const bool ForFantasy = false;
+        private const int LightDist = ForFantasy ? 17 : 28;
         private const float LightBright = ForFantasy ? 0.5f : 1.0f;
-        private const float LightMid = ForFantasy ? 0.38f : 0.5f;
-        private const float LightDim = ForFantasy ? 0.17f : 0.3f;
+        private const float LightMid = ForFantasy ? 0.38f : 0.76f;
+        private const float LightDim = ForFantasy ? 0.17f : 0.34f;
         private const float ObjBright = 1.0f;
         private const float ObjMid = 0.76f;
         private const float ObjDim = 0.34f;
@@ -55,22 +55,22 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
                 case "fountain": return CreateFountain();
                 case "roomLight":
                     return CreateBlockInfo(name, BlockLOD32.VoxelSize / 2 - 1, new Color4f(1.0f, 1.0f, 1.0f, 1.0f), 1.0f, null,
-                        new LightComponent(blockCenterVector, new Color3f(ForFantasy ? 0.6f : 0.8f, ForFantasy ? 0.6f : 0.8f, ForFantasy ? 0.6f : 0.8f), ForFantasy ? 35 : 50), colorVariation: 0.0f);
+                        new LightComponent(blockCenterVector, new Color3f(ForFantasy ? 0.6f : 0.8f, ForFantasy ? 0.6f : 0.8f, ForFantasy ? 0.6f : 0.8f), ForFantasy ? 25 : 45), colorVariation: 0.0f);
                 case "redLight":
                     return CreateBlockInfo(name, BlockLOD32.VoxelSize / 5.0f, new Color4f(ObjBright, ObjDim, ObjDim, 1.0f), 1.0f, null,
-                        new LightComponent(new Vector3b(bc, bc, bc), new Color3f(LightBright, LightDim, LightDim), ForFantasy ? 5 : 9), colorVariation: 0.0f);
+                        new LightComponent(new Vector3b(bc, bc, bc), new Color3f(LightBright, LightDim, LightDim), ForFantasy ? 5 : 7), colorVariation: 0.0f);
                 case "smallLight":
                     return CreateBlockInfo(name, BlockLOD32.VoxelSize / 16.0f, new Color4f(ObjDim, ObjDim, ObjBright, 1.0f), 1.0f, null,
-                        new LightComponent(new Vector3b(bc, bc, bc), new Color3f(LightDim, LightDim, LightBright), ForFantasy ? 12 : 20), colorVariation: 0.0f);
+                        new LightComponent(new Vector3b(bc, bc, bc), new Color3f(LightDim, LightDim, LightBright), ForFantasy ? 12 : 18), colorVariation: 0.0f);
                 case "hoverLightBlue":
                     return CreateBlockInfo(name, BlockLOD32.VoxelSize / 4.0f, new Color4f(ObjDim, ObjDim, ObjBright, 1.0f), 1.0f, null,
-                        new LightComponent(new Vector3b(bc, bc, bc), new Color3f(LightDim, LightDim, LightBright), ForFantasy ? 16 : 25), colorVariation: 0.0f);
+                        new LightComponent(new Vector3b(bc, bc, bc), new Color3f(LightDim, LightDim, LightBright), ForFantasy ? 16 : 24), colorVariation: 0.0f);
                 case "loadingLight":
                     return CreateBlockInfo(name, BlockLOD32.VoxelSize / 5.0f, new Color4f(1.0f, 1.0f, 1.0f, 1.0f), 1.0f, null,
-                        new LightComponent(blockCenterVector, new Color3f(0.5f, 0.5f, 0.5f), 40), colorVariation: 0.0f);
+                        new LightComponent(blockCenterVector, new Color3f(0.5f, 0.5f, 0.5f), 80), colorVariation: 0.0f);
                 case "treeLight":
                     return CreateBlockInfo(name, BlockLOD32.VoxelSize / 8.0f, new Color4f(ObjBright, ObjBright, ObjBright, 1.0f), 1.0f, null,
-                        new LightComponent(new Vector3b(bc, bc, bc), new Color3f(LightBright, LightBright, LightBright), 15), colorVariation: 0.0f);
+                        new LightComponent(new Vector3b(bc, bc, bc), new Color3f(LightBright, LightBright, LightBright), ForFantasy ? 15 : 25), colorVariation: 0.0f);
 
                 default: return null;
             }
@@ -82,15 +82,32 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
             fireBlock.AddComponent(new ParticleComponent("Fire", new Vector3i(bc, bc, 1)));
             fireBlock.AddComponent(new LightPassthroughComponent());
             fireBlock.AddComponent(new LightComponent(new Vector3b(bc, bc, bc),
-                new Color3f(ForFantasy ? 0.7f : 1.0f, ForFantasy ? 0.55f : 0.8f, ForFantasy ? 0.4f : 0.6f), ForFantasy ? 12 : 20));
+                new Color3f(ForFantasy ? 0.7f : 1.0f, ForFantasy ? 0.55f : 0.8f, ForFantasy ? 0.4f : 0.6f), ForFantasy ? 12 : 18));
             return fireBlock;
         }
 
         private static Block CreateFountain()
         {
             Block fountainBlock = new Block("fountain");
-            fountainBlock.AddComponent(new ParticleComponent("Fountain", new Vector3i(bc, bc, 0)));
+            for (int z = 0; z < 5; z++)
+            {
+                int circleSize = (7 - z) * (7 - z);
+                for (int x = 0; x < BlockLOD32.VoxelSize; x++)
+                {
+                    for (int y = 0; y < BlockLOD32.VoxelSize; y++)
+                    {
+                        int dist = (x - bc) * (x - bc) + (y - bc) * (y - bc);
+                        if (dist > circleSize)
+                            continue;
+                        fountainBlock.LOD32[x, y, z] = new Voxel(213, 128, 43);
+                    }
+                }
+            }
+            fountainBlock.AddComponent(new ParticleComponent("Fountain", new Vector3i(bc, bc, 4)));
             fountainBlock.AddComponent(new LightPassthroughComponent());
+            fountainBlock.AddComponent(new VoxelNoiseComponent(0.2f));
+
+            fountainBlock.GenerateLODLevels();
             return fountainBlock;
         }
 
@@ -107,10 +124,11 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
                         lavaBlock.LOD32[x, y, z] = new Voxel(230, 32, 18, 255, VoxelSettings.IgnoreLighting | VoxelSettings.AllowLightPassthrough);
                 }
             }
-            lavaBlock.AddComponent(new LightComponent(new Vector3b(bc, bc, bc), new Color3f(0.4f, 0.02f, 0.01f), 4));
+            lavaBlock.AddComponent(new LightComponent(new Vector3b(bc, bc, bc), new Color3f(0.4f, 0.02f, 0.01f), ForFantasy ? 4 : 6));
             lavaBlock.AddComponent(new ParticleComponent("Lava", new Vector3i(0, 0, BlockLOD32.VoxelSize - 1)));
             lavaBlock.AddComponent(new VoxelNoiseComponent(0.3f));
             lavaBlock.AddComponent(new LightPassthroughComponent());
+            lavaBlock.GenerateLODLevels();
             return lavaBlock;
         }
 
@@ -145,8 +163,9 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
             }
         }
 
-        private static Block CreateGrass(string name, int lightDist = 2)
+        private static Block CreateGrass(string name)
         {
+            const int lightDist = ForFantasy ? 2 : 4;
             Block grass = new Block(name);
             grass.AddComponent(new VoxelNoiseComponent(0.4f));
             grass.AddComponent(new LightPassthroughComponent());
@@ -275,7 +294,9 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
                                 if (isLit)
                                 {
                                     grass.AddComponent(new LightComponent(new Vector3b((byte)x, (byte)y, (byte)z),
-                                        new Color3f((byte)(flowerVoxel.R / 2), (byte)(flowerVoxel.G / 2), (byte)(flowerVoxel.B / 2)), lightDist));
+                                        new Color3f(ForFantasy ? (byte)(flowerVoxel.R / 2) : flowerVoxel.R, 
+                                            ForFantasy ? (byte)(flowerVoxel.G / 2) : flowerVoxel.G, 
+                                            ForFantasy ? (byte)(flowerVoxel.B / 2) : flowerVoxel.B), lightDist));
                                 }
 
                                 // Make a flower

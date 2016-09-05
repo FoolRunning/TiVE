@@ -28,6 +28,14 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
                 entity.AddComponent(new CameraComponent());
                 entity.AddComponent(new ScriptComponent("MazeCamera"));
             }
+            else if (sceneName == "Field")
+            {
+                scene = Factory.New<IScene>();
+                scene.SetGameWorld("Field");
+                IEntity entity = scene.CreateNewEntity("Camera");
+                entity.AddComponent(new CameraComponent());
+                entity.AddComponent(new ScriptComponent("FieldCamera"));
+            }
             else if (sceneName == "StressTest")
             {
                 scene = Factory.New<IScene>();
