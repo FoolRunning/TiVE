@@ -55,6 +55,66 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
             return true;
         }
 
+        public static void MakeBlockRound(Block block, int sides)
+        {
+            const float mid = BlockLOD32.VoxelSize / 2.0f - 0.5f;
+            const float sphereSize = BlockLOD32.VoxelSize / 2.0f;
+
+            for (int x = 0; x < BlockLOD32.VoxelSize; x++)
+            {
+                for (int y = 0; y < BlockLOD32.VoxelSize; y++)
+                {
+                    for (int z = 0; z < BlockLOD32.VoxelSize; z++)
+                    {
+                        if (((sides & Top) != 0 && (sides & Front) != 0 && y - (int)mid > BlockLOD32.VoxelSize - z) ||   // rounded Top-Front
+                            ((sides & Front) != 0 && (sides & Bottom) != 0 && y + (int)mid < z) ||                  // rounded Front-Bottom
+                            ((sides & Bottom) != 0 && (sides & Back) != 0 && y + (int)mid < BlockLOD32.VoxelSize - z) || // rounded Bottom-Back
+                            ((sides & Back) != 0 && (sides & Top) != 0 && y - (int)mid > z))                        // rounded Back-Top
+                        {
+                            // Cylinder around the x-axis
+                            float dist = (y - mid) * (y - mid) + (z - mid) * (z - mid);
+                            if (dist > sphereSize * sphereSize)
+                                block.LOD32[x, y, z] = Voxel.Empty;
+                        }
+
+                        if (((sides & Right) != 0 && (sides & Front) != 0 && x - (int)mid > BlockLOD32.VoxelSize - z) || // rounded Right-Front
+                            ((sides & Front) != 0 && (sides & Left) != 0 && x + (int)mid < z) ||                    // rounded Front-Left
+                            ((sides & Left) != 0 && (sides & Back) != 0 && x + (int)mid < BlockLOD32.VoxelSize - z) ||   // rounded Left-Back
+                            ((sides & Back) != 0 && (sides & Right) != 0 && x - (int)mid > z))                      // rounded Back-Right
+                        {
+                            // Cylinder around the y-axis
+                            float dist = (x - mid) * (x - mid) + (z - mid) * (z - mid);
+                            if (dist > sphereSize * sphereSize)
+                                block.LOD32[x, y, z] = Voxel.Empty;
+                        }
+
+                        if (((sides & Right) != 0 && (sides & Top) != 0 && x - (int)mid > BlockLOD32.VoxelSize - y) ||   // rounded Right-Top
+                            ((sides & Top) != 0 && (sides & Left) != 0 && x + (int)mid < y) ||                      // rounded Top-Left
+                            ((sides & Left) != 0 && (sides & Bottom) != 0 && x + (int)mid < BlockLOD32.VoxelSize - y) || // rounded Left-Bottom
+                            ((sides & Bottom) != 0 && (sides & Right) != 0 && x - (int)mid > y))                    // rounded Bottom-Right
+                        {
+                            // Cylinder around the z-axis
+                            float dist = (x - mid) * (x - mid) + (y - mid) * (y - mid);
+                            if (dist > sphereSize * sphereSize)
+                                block.LOD32[x, y, z] = Voxel.Empty;
+                        }
+
+                        if ((((sides & Top) != 0 && (sides & Bottom) != 0 && (sides & Left) != 0 && x < mid) || // rounded Left
+                            ((sides & Top) != 0 && (sides & Bottom) != 0 && (sides & Right) != 0 && x > mid) || // rounded Right
+                            ((sides & Top) != 0 && (sides & Right) != 0 && (sides & Left) != 0 && y > mid) ||   // rounded Top
+                            ((sides & Bottom) != 0 && (sides & Right) != 0 && (sides & Left) != 0 && y < mid))  // rounded Bottom
+                            && (((sides & Front) != 0 && z > mid) || ((sides & Back) != 0 && z < mid)))         // on the front or back
+                        {
+                            // rounded front or back
+                            float dist = (x - mid) * (x - mid) + (y - mid) * (y - mid) + (z - mid) * (z - mid);
+                            if (dist > sphereSize * sphereSize)
+                                block.LOD32[x, y, z] = Voxel.Empty;
+                        }
+                    }
+                }
+            }
+        }
+
         public static void SmoothGameWorldForMazeBlocks(IGameWorld gameWorld, bool forLoadingWorld)
         {
             List<BlockRandomizer> stoneRandomizers = new List<BlockRandomizer>();

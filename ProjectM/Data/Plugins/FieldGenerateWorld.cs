@@ -26,7 +26,7 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
 
         private static void FillWorld(IGameWorld gameWorld)
         {
-            BlockRandomizer grasses = new BlockRandomizer("grass", CommonUtils.grassBlockDuplicates);
+            //BlockRandomizer grasses = new BlockRandomizer("grass", CommonUtils.grassBlockDuplicates);
             BlockRandomizer unlitGrasses = new BlockRandomizer("loadingGrass", CommonUtils.grassBlockDuplicates);
             //Block player = Factory.Get<Block>("player");
             Block dirt = Factory.Get<Block>("dirt");

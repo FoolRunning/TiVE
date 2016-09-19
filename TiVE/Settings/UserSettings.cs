@@ -7,17 +7,49 @@ using System.Xml;
 using ProdigalSoftware.TiVE.Core.Backend;
 using ProdigalSoftware.TiVE.RenderSystem.Lighting;
 using ProdigalSoftware.TiVE.Starter;
-using ProdigalSoftware.TiVE.VoxelMeshSystem;
 
 namespace ProdigalSoftware.TiVE.Settings
 {
+    /// <summary>
+    /// User setting for the voxel detail distance
+    /// </summary>
+    internal enum VoxelDetailLevelDistance
+    {
+        Closest = 0,
+        Close = 1,
+        Mid = 2,
+        Far = 3,
+        Furthest = 4
+    }
+
+    /// <summary>
+    /// User setting for the shadow detail level
+    /// </summary>
+    internal enum ShadowDetailLevel
+    {
+        Off = 255,
+        Low = 3,
+        Med = 2,
+        High = 1,
+        Ultra = 0
+    }
+
+    internal enum ShadowAccuracyType : byte
+    {
+        Fast = 0,
+        Perfect = 1
+    }
+
+    internal delegate void SettingsChangedHandler(string settingName, Setting newValue);
+
     internal sealed class UserSettings
     {
-        public event Action<string, Setting> SettingChanged;
+        public event SettingsChangedHandler SettingChanged;
 
         public const string FullScreenModeKey = "fullScreenMode";
         public const string LightingTypeKey = "lightingType";
-        public const string ShadowDistanceKey = "shadowDistance";
+        public const string ShadowDetailKey = "shadowDetail";
+        public const string ShadowAccuracyKey = "shadowAccuracy";
         //public const string PreLoadLightingKey = "preLoadLighting";
         public const string LightCullingTypeKey = "lightCullType";
         public const string CubifyVoxelsKey = "cubifyVoxels";
@@ -28,7 +60,6 @@ namespace ProdigalSoftware.TiVE.Settings
         public const string ChunkCreationThreadsKey = "chunkCreationThreads";
         public const string UseThreadedParticlesKey = "useThreadedParticles";
         public const string DisplayResolutionKey = "resolution";
-        public const string UpdateFPSKey = "updateFPS";
 
         private const string UserSettingsFileName = "UserSettings.xml";
 
@@ -45,7 +76,7 @@ namespace ProdigalSoftware.TiVE.Settings
 
             UserSettingOption[] availableSettings = TiVEController.Backend.AvailableDisplaySettings.Distinct()
                 .OrderBy(d => d.Width * d.Height).ThenBy(d => d.RefreshRate)
-                .Select(d => new UserSettingOption(string.Format("{0}x{1} - {2}Hz", d.Width, d.Height, d.RefreshRate), new ResolutionSetting(d))).ToArray();
+                .Select(d => new UserSettingOption($"{d.Width}x{d.Height} - {d.RefreshRate}Hz", new ResolutionSetting(d))).ToArray();
             settingOptions.Add(new UserSettingOptions(DisplayResolutionKey, "Resolution", UserOptionTab.Display, 
                 availableSettings[availableSettings.Length - 1].Value, availableSettings));
 
@@ -68,15 +99,19 @@ namespace ProdigalSoftware.TiVE.Settings
                 new UserSettingOption("Far", new EnumSetting<VoxelDetailLevelDistance>(VoxelDetailLevelDistance.Far)),
                 new UserSettingOption("Furthest", new EnumSetting<VoxelDetailLevelDistance>(VoxelDetailLevelDistance.Furthest))));
 
-            settingOptions.Add(new UserSettingOptions(ShadowDistanceKey, "Shadow distance", UserOptionTab.Display,
-                new EnumSetting<ShadowDistance>(ShadowDistance.Mid),
-                new UserSettingOption("None", new EnumSetting<ShadowDistance>(ShadowDistance.None)),
-                new UserSettingOption("Closest", new EnumSetting<ShadowDistance>(ShadowDistance.Closest)),
-                new UserSettingOption("Close", new EnumSetting<ShadowDistance>(ShadowDistance.Close)),
-                new UserSettingOption("Mid", new EnumSetting<ShadowDistance>(ShadowDistance.Mid)),
-                new UserSettingOption("Far", new EnumSetting<ShadowDistance>(ShadowDistance.Far)),
-                new UserSettingOption("Furthest", new EnumSetting<ShadowDistance>(ShadowDistance.Furthest))));
-
+            settingOptions.Add(new UserSettingOptions(ShadowDetailKey, "Shadow detail", UserOptionTab.Display,
+                new EnumSetting<ShadowDetailLevel>(ShadowDetailLevel.Med),
+                new UserSettingOption("Off", new EnumSetting<ShadowDetailLevel>(ShadowDetailLevel.Off)),
+                new UserSettingOption("Low", new EnumSetting<ShadowDetailLevel>(ShadowDetailLevel.Low)),
+                new UserSettingOption("Medium", new EnumSetting<ShadowDetailLevel>(ShadowDetailLevel.Med)),
+                new UserSettingOption("High", new EnumSetting<ShadowDetailLevel>(ShadowDetailLevel.High)),
+                new UserSettingOption("Ultra", new EnumSetting<ShadowDetailLevel>(ShadowDetailLevel.Ultra))));
+            
+            settingOptions.Add(new UserSettingOptions(ShadowAccuracyKey, "Shadow accuracy", UserOptionTab.Display,
+                new EnumSetting<ShadowAccuracyType>(ShadowAccuracyType.Fast),
+                new UserSettingOption("Fast", new EnumSetting<ShadowAccuracyType>(ShadowAccuracyType.Fast)),
+                new UserSettingOption("Perfect", new EnumSetting<ShadowAccuracyType>(ShadowAccuracyType.Perfect))));
+            
             settingOptions.Add(new UserSettingOptions(LightsPerBlockKey, "Max lights per block", UserOptionTab.Display, new IntSetting(20),
                 new UserSettingOption(new IntSetting(10)),
                 new UserSettingOption(new IntSetting(20)),
@@ -107,27 +142,22 @@ namespace ProdigalSoftware.TiVE.Settings
                 new UserSettingOption("Fast", new EnumSetting<LightCullType>(LightCullType.Fast)),
                 new UserSettingOption("For perfect shadows", new EnumSetting<LightCullType>(LightCullType.Accurate))));
 
-            settingOptions.Add(new UserSettingOptions(LightingTypeKey, "Lighting type", UserOptionTab.Advanced, new EnumSetting<LightType>(LightType.Realistic),
-                new UserSettingOption("Normal", new EnumSetting<LightType>(LightType.Realistic)),
-                new UserSettingOption("Light debug view", new EnumSetting<LightType>(LightType.Debug))));
+            settingOptions.Add(new UserSettingOptions(LightingTypeKey, "Lighting type", UserOptionTab.Advanced, new EnumSetting<LightType>(LightType.Normal),
+                new UserSettingOption("Normal", new EnumSetting<LightType>(LightType.Normal)),
+                new UserSettingOption("Light count debug view", new EnumSetting<LightType>(LightType.Debug1)),
+                new UserSettingOption("Light debug view", new EnumSetting<LightType>(LightType.Debug2))));
         }
 
-        private static string SettingsFileFolder
-        {
-            get { return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Prodigal Software", "TiVE"); }
-        }
+        private static string SettingsFileFolder => 
+            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Prodigal Software", "TiVE");
 
-        public static IEnumerable<UserSettingOptions> AllUserSettingOptions
-        {
-            get { return settingOptions; }
-        }
+        public static IEnumerable<UserSettingOptions> AllUserSettingOptions => 
+            settingOptions;
 
         public void Set(string name, Setting newValue)
         {
             settings[name] = newValue;
-            
-            if (SettingChanged != null)
-                SettingChanged(name, newValue);
+            SettingChanged?.Invoke(name, newValue);
         }
 
         public Setting Get(string name)
@@ -224,10 +254,7 @@ namespace ProdigalSoftware.TiVE.Settings
             }
         }
 
-        public IEnumerable<UserSettingOption> ValidOptions
-        {
-            get { return validOptions; }
-        }
+        public IEnumerable<UserSettingOption> ValidOptions => validOptions;
     }
 
     internal sealed class UserSettingOption

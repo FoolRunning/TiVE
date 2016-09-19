@@ -1,4 +1,5 @@
 ﻿using ProdigalSoftware.TiVEPluginFramework;
+using ProdigalSoftware.TiVEPluginFramework.Internal;
 
 namespace ProdigalSoftware.TiVE.VoxelMeshSystem
 {

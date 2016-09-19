@@ -88,6 +88,7 @@ namespace ProdigalSoftware.TiVE.ParticleSystem
 
         public void AddToArrays(Vector3i worldSize, Scene scene, Vector3us[] locationArray, Color4b[] colorArray, ref int dataIndex)
         {
+            LightProvider lightProvider = scene.GetLightProvider(false);
             bool isLit = controller.IsLit;
             for (int i = 0; i < aliveParticles; i++)
             {
@@ -107,10 +108,7 @@ namespace ProdigalSoftware.TiVE.ParticleSystem
                     if (partX >= worldSize.X || partY >= worldSize.Y || partZ >= worldSize.Z)
                         lightColor = scene.AmbientLight;
                     else
-                    {
-                        // ENHANCE: Calculate lighting at different LOD for speed
-                        lightColor = scene.GetLightProvider(ShadowType.None).GetLightAtFast(partX, partY, partZ, LODLevel.V32);
-                    }
+                        lightColor = lightProvider.GetLightAtFast(partX, partY, partZ, LODLevel.V32, LODLevel.V4);
 
                     colorArray[dataIndex] = new Color4b(
                         (byte)Math.Min(255, (int)(part.Color.R * lightColor.R)),

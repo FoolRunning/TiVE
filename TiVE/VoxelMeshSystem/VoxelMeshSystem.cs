@@ -9,35 +9,11 @@ using ProdigalSoftware.TiVE.RenderSystem.World;
 using ProdigalSoftware.TiVE.Settings;
 using ProdigalSoftware.TiVEPluginFramework;
 using ProdigalSoftware.TiVEPluginFramework.Components;
+using ProdigalSoftware.TiVEPluginFramework.Internal;
 using ProdigalSoftware.Utils;
 
 namespace ProdigalSoftware.TiVE.VoxelMeshSystem
 {
-    /// <summary>
-    /// User setting for the voxel detail distance
-    /// </summary>
-    internal enum VoxelDetailLevelDistance
-    {
-        Closest = 0,
-        Close = 1,
-        Mid = 2,
-        Far = 3,
-        Furthest = 4
-    }
-
-    /// <summary>
-    /// User setting for the voxel detail distance
-    /// </summary>
-    internal enum ShadowDistance
-    {
-        None = 0,
-        Closest = 1,
-        Close = 2,
-        Mid = 3,
-        Far = 4,
-        Furthest = 5
-    }
-
     internal sealed class VoxelMeshSystem : EngineSystem
     {
         #region Constants
@@ -95,7 +71,7 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
         public override bool Initialize()
         {
             for (int i = 0; i < TotalChunkMeshBuilders; i++)
-                meshBuilders.Add(new MeshBuilder(1000000));
+                meshBuilders.Add(new MeshBuilder(750000));
 
             int maxThreads = TiVEController.UserSettings.Get(UserSettings.ChunkCreationThreadsKey);
             for (int i = 0; i < maxThreads; i++)
@@ -137,7 +113,6 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
                 return true;
 
             VoxelDetailLevelDistance currentVoxelDetalLevelSetting = (VoxelDetailLevelDistance)(int)TiVEController.UserSettings.Get(UserSettings.DetailDistanceKey);
-            ShadowDistance currentShadowDistanceSetting = (ShadowDistance)(int)TiVEController.UserSettings.Get(UserSettings.ShadowDistanceKey);
 
             using (new PerformanceLock(entityLoadQueue))
             {
@@ -156,9 +131,8 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
                 Debug.Assert(renderData != null);
 
                 LODLevel perferedDetailLevel = GetPerferedVoxelDetailLevel(renderData, cameraData, currentVoxelDetalLevelSetting);
-                ShadowType shadowType = GetPerferedShadowType(renderData, cameraData, currentShadowDistanceSetting);
-                if (NeedToUpdateMesh(renderData, perferedDetailLevel, shadowType))
-                    ReloadEntityMesh(entity, renderData, perferedDetailLevel, shadowType);
+                if (NeedToUpdateMesh(renderData, perferedDetailLevel))
+                    ReloadEntityMesh(entity, renderData, perferedDetailLevel);
             }
 
             foreach (IEntity entity in cameraData.NewlyVisibleEntitites.Where(e => e.HasComponent<VoxelMeshComponent>()))
@@ -168,9 +142,8 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
                 EnsureVisible(entity, renderData);
 
                 LODLevel perferedDetailLevel = GetPerferedVoxelDetailLevel(renderData, cameraData, currentVoxelDetalLevelSetting);
-                ShadowType shadowType = GetPerferedShadowType(renderData, cameraData, currentShadowDistanceSetting);
-                if (NeedToUpdateMesh(renderData, perferedDetailLevel, shadowType))
-                    ReloadEntityMesh(entity, renderData, perferedDetailLevel, shadowType);
+                if (NeedToUpdateMesh(renderData, perferedDetailLevel))
+                    ReloadEntityMesh(entity, renderData, perferedDetailLevel);
             }
 
             if (currentScene.LoadingInitialChunks && entityLoadQueue.Size < 5) // Let chunks load before showing scene
@@ -180,17 +153,11 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
         }
         #endregion
 
-        private static bool NeedToUpdateMesh(VoxelMeshComponent renderData, LODLevel perferedDetailLevel, ShadowType perferedShadowType)
-        {
-            return (renderData.VoxelDetailLevelToLoad != perferedDetailLevel && renderData.VisibleVoxelDetailLevel != perferedDetailLevel) ||
-                (renderData.ShadowTypeToLoad != (byte)perferedShadowType && renderData.VisibleShadowType != (byte)perferedShadowType);
-        }
-
         #region Public methods
         public void ReloadAllEntities()
         {
             foreach (IEntity chunk in loadedEntities)
-                ReloadEntityMesh(chunk, chunk.GetComponent<VoxelMeshComponent>(), LODLevel.V4, ShadowType.None); // TODO: Reload with the correct detail level and shadow type
+                ReloadEntityMesh(chunk, chunk.GetComponent<VoxelMeshComponent>(), LODLevel.V4); // TODO: Reload with the correct detail level and shadow type
         }
         #endregion
 
@@ -231,8 +198,7 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
                 using (new PerformanceLock(meshBuilders))
                 {
                     meshBuilder = meshBuilders.Find(mb => !mb.IsLocked);
-                    if (meshBuilder != null)
-                        meshBuilder.StartNewMesh(); // Found a mesh builder - grab it quick!
+                    meshBuilder?.StartNewMesh(); // Found a mesh builder - grab it quick!
                 }
 
                 if (meshBuilder == null)
@@ -338,9 +304,7 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
                         // since we're done with it. However, we need to make sure that this chunk isn't re-loaded again later so we pretend like it was initialized.
                         meshBuilder.DropMesh();
                         chunkData.VisibleVoxelDetailLevel = chunkData.VoxelDetailLevelToLoad;
-                        chunkData.VisibleShadowType = chunkData.ShadowTypeToLoad;
                         chunkData.VoxelDetailLevelToLoad = LODLevel.NotSet;
-                        chunkData.ShadowTypeToLoad = VoxelMeshComponent.BlankShadowType;
                         return;
                     }
                     chunkData.PolygonCount = polygonCount;
@@ -354,105 +318,75 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
             int voxelStartX, int voxelStartY, int voxelStartZ, EntityLoadQueueItem queueItem, Scene scene,
             MeshBuilder meshBuilder, ref int polygonCount, ref int renderedVoxelCount)
         {
-            GameWorld gameWorld = scene.GameWorldInternal;
-            LightProvider lightProviderShadow = scene.GetLightProvider(ShadowType.Nice);
-            LightProvider lightProviderNoShadow = scene.GetLightProvider(ShadowType.None);
             LODLevel detailLevel = queueItem.DetailLevel;
+
+            int shadowDetailOffset = TiVEController.UserSettings.Get(UserSettings.ShadowDetailKey);
+            bool useShadows = (int)detailLevel + shadowDetailOffset < (int)LODLevel.NumOfLevels;
+            LightProvider lightProvider = scene.GetLightProvider(useShadows);
+            LODLevel shadowDetailLevel = (LODLevel)Math.Min((int)detailLevel + shadowDetailOffset, (int)LODLevel.V4);
+
+            GameWorld gameWorld = scene.GameWorldInternal;
             BlockLOD blockLOD = block.GetLOD(detailLevel);
 
             int maxBlockVoxel = blockLOD.VoxelAxisSize - 1;
             int bitShift = blockLOD.VoxelAxisSizeBitShift;
             int renderedVoxelSize = blockLOD.RenderedVoxelSize;
-            int maxVoxelX = (gameWorld.BlockSize.X << bitShift) - 1;
-            int maxVoxelY = (gameWorld.BlockSize.Y << bitShift) - 1;
-            int maxVoxelZ = (gameWorld.BlockSize.Z << bitShift) - 1;
+            int maxBlockX = gameWorld.BlockSize.X - 1;
+            int maxBlockY = gameWorld.BlockSize.Y - 1;
+            int maxBlockZ = gameWorld.BlockSize.Z - 1;
 
             VoxelNoiseComponent voxelNoiseComponent = block.GetComponent<VoxelNoiseComponent>();
-
-            //for (int bvz = Block.VoxelSize - 1; bvz >= 0; bvz -= voxelSize)
-            for (int bvz = 0; bvz <= maxBlockVoxel; bvz++)
+            RenderedVoxel[] renderedVoxels = blockLOD.RenderedVoxels;
+            for (int i = 0; i < renderedVoxels.Length; i++)
             {
+                RenderedVoxel renVox = renderedVoxels[i];
+                int bvx = renVox.Location.X;
+                int bvy = renVox.Location.Y;
+                int bvz = renVox.Location.Z;
+                int voxelX = (blockX << bitShift) + bvx;
+                int voxelY = (blockY << bitShift) + bvy;
                 int voxelZ = (blockZ << bitShift) + bvz;
-                byte chunkVoxelZ = (byte)((voxelZ - voxelStartZ) * renderedVoxelSize);
-                for (int bvx = 0; bvx <= maxBlockVoxel; bvx++)
+                Voxel vox = renVox.Voxel;
+                VoxelSides sides = renVox.Sides;
+                if (renVox.CheckSurroundingVoxels)
                 {
-                    int voxelX = (blockX << bitShift) + bvx;
+                    // Check to see if the back side is really visible
+                    if (bvz == 0 && blockZ > 0 && gameWorld[blockX, blockY, blockZ - 1] != Block.Empty && gameWorld.GetVoxel(voxelX, voxelY, voxelZ - 1, detailLevel) != Voxel.Empty)
+                        sides ^= VoxelSides.Back;
+
+                    // Check to see if the front side is really visible
+                    if (bvz == maxBlockVoxel && blockZ < maxBlockZ && gameWorld[blockX, blockY, blockZ + 1] != Block.Empty && gameWorld.GetVoxel(voxelX, voxelY, voxelZ + 1, detailLevel) != Voxel.Empty)
+                        sides ^= VoxelSides.Front;
+
+                    // Check to see if the left side is really visible
+                    if (bvx == 0 && blockX > 0 && gameWorld[blockX - 1, blockY, blockZ] != Block.Empty && gameWorld.GetVoxel(voxelX - 1, voxelY, voxelZ, detailLevel) != Voxel.Empty)
+                        sides ^= VoxelSides.Left;
+
+                    // Check to see if the right side is really visible
+                    if (bvx == maxBlockVoxel && blockX < maxBlockX && gameWorld[blockX + 1, blockY, blockZ] != Block.Empty && gameWorld.GetVoxel(voxelX + 1, voxelY, voxelZ, detailLevel) != Voxel.Empty)
+                        sides ^= VoxelSides.Right;
+
+                    // Check to see if the bottom side is really visible
+                    if (bvy == 0 && blockY > 0 && gameWorld[blockX, blockY - 1, blockZ] != Block.Empty && gameWorld.GetVoxel(voxelX, voxelY - 1, voxelZ, detailLevel) != Voxel.Empty)
+                        sides ^= VoxelSides.Bottom;
+
+                    // Check to see if the top side is really visible
+                    if (bvy == maxBlockVoxel && blockY < maxBlockY && gameWorld[blockX, blockY + 1, blockZ] != Block.Empty && gameWorld.GetVoxel(voxelX, voxelY + 1, voxelZ, detailLevel) != Voxel.Empty)
+                        sides ^= VoxelSides.Top;
+                }
+                
+                if (sides != VoxelSides.None)
+                {
+                    if (voxelNoiseComponent != null)
+                        vox = voxelNoiseComponent.Adjust(vox);
+
                     byte chunkVoxelX = (byte)((voxelX - voxelStartX) * renderedVoxelSize);
-                    for (int bvy = 0; bvy <= maxBlockVoxel; bvy++)
-                    {
-                        Voxel vox = blockLOD.VoxelAt(bvx, bvy, bvz);
-                        if (vox == Voxel.Empty)
-                            continue;
-
-                        int voxelY = (blockY << bitShift) + bvy;
-
-                        VoxelSides sides = VoxelSides.None;
-
-                        // Check to see if the back side is visible
-                        if (bvz > 0)
-                        {
-                            if (blockLOD.VoxelAt(bvx, bvy, bvz - 1) == Voxel.Empty)
-                                sides |= VoxelSides.Back;
-                        }
-                        else if (voxelZ > 0 && gameWorld.GetVoxel(voxelX, voxelY, voxelZ - 1, detailLevel) == Voxel.Empty)
-                            sides |= VoxelSides.Back;
-
-                        // Check to see if the front side is visible
-                        if (bvz < maxBlockVoxel)
-                        {
-                            if (blockLOD.VoxelAt(bvx, bvy, bvz + 1) == Voxel.Empty)
-                                sides |= VoxelSides.Front;
-                        }
-                        else if (voxelZ < maxVoxelZ && gameWorld.GetVoxel(voxelX, voxelY, voxelZ + 1, detailLevel) == Voxel.Empty)
-                            sides |= VoxelSides.Front;
-
-                        // Check to see if the left side is visible
-                        if (bvx > 0)
-                        {
-                            if (blockLOD.VoxelAt(bvx - 1, bvy, bvz) == Voxel.Empty)
-                                sides |= VoxelSides.Left;
-                        }
-                        else if (voxelX > 0 && gameWorld.GetVoxel(voxelX - 1, voxelY, voxelZ, detailLevel) == Voxel.Empty)
-                            sides |= VoxelSides.Left;
-
-                        // Check to see if the right side is visible
-                        if (bvx < maxBlockVoxel)
-                        {
-                            if (blockLOD.VoxelAt(bvx + 1, bvy, bvz) == Voxel.Empty)
-                                sides |= VoxelSides.Right;
-                        }
-                        else if (voxelX < maxVoxelX && gameWorld.GetVoxel(voxelX + 1, voxelY, voxelZ, detailLevel) == Voxel.Empty)
-                            sides |= VoxelSides.Right;
-
-                        // Check to see if the bottom side is visible
-                        if (bvy > 0)
-                        {
-                            if (blockLOD.VoxelAt(bvx, bvy - 1, bvz) == Voxel.Empty)
-                                sides |= VoxelSides.Bottom;
-                        }
-                        else if (voxelY > 0 && gameWorld.GetVoxel(voxelX, voxelY - 1, voxelZ, detailLevel) == Voxel.Empty)
-                            sides |= VoxelSides.Bottom;
-
-                        // Check to see if the top side is visible
-                        if (bvy < maxBlockVoxel)
-                        {
-                            if (blockLOD.VoxelAt(bvx, bvy + 1, bvz) == Voxel.Empty)
-                                sides |= VoxelSides.Top;
-                        }
-                        else if (voxelY < maxVoxelY && gameWorld.GetVoxel(voxelX, voxelY + 1, voxelZ, detailLevel) == Voxel.Empty)
-                            sides |= VoxelSides.Top;
-
-                        if (sides != VoxelSides.None)
-                        {
-                            if (voxelNoiseComponent != null)
-                                vox = voxelNoiseComponent.Adjust(vox);
-
-                            LightProvider lightProvider = vox.AllowLightPassthrough ? lightProviderNoShadow : lightProviderShadow;
-                            polygonCount += meshBuilder.AddVoxel(sides, chunkVoxelX, (byte)((voxelY - voxelStartY) * renderedVoxelSize), chunkVoxelZ,
-                                vox.IgnoreLighting ? (Color4b)vox : lightProvider.GetFinalColor(vox, voxelX, voxelY, voxelZ, detailLevel, blockX, blockY, blockZ, sides));
-                            renderedVoxelCount++;
-                        }
-                    }
+                    byte chunkVoxelY = (byte)((voxelY - voxelStartY) * renderedVoxelSize);
+                    byte chunkVoxelZ = (byte)((voxelZ - voxelStartZ) * renderedVoxelSize);
+                    
+                    polygonCount += meshBuilder.AddVoxel(sides, chunkVoxelX, chunkVoxelY, chunkVoxelZ,
+                        vox.IgnoreLighting ? (Color4b)vox : lightProvider.GetFinalColor(vox, voxelX, voxelY, voxelZ, detailLevel, shadowDetailLevel, blockX, blockY, blockZ, sides));
+                    renderedVoxelCount++;
                 }
             }
         }
@@ -495,50 +429,24 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
             }
             return LODLevel.V4;
         }
-
-        /// <summary>
-        /// Given the specified render data and camera data determine the wanted voxel detail level given the specified user detail setting
-        /// </summary>
-        private static ShadowType GetPerferedShadowType(VoxelMeshComponent renderData, CameraComponent cameraData,
-            ShadowDistance currentShadowDistanceSetting)
+        
+        private static bool NeedToUpdateMesh(VoxelMeshComponent renderData, LODLevel perferedDetailLevel)
         {
-            if (currentShadowDistanceSetting == ShadowDistance.None)
-                return ShadowType.None;
-
-            // TODO: Make the renderdata location be the center of the renderdata instead of the corner
-            float distX = renderData.Location.X - cameraData.Location.X;
-            float distY = renderData.Location.Y - cameraData.Location.Y;
-            float distZ = renderData.Location.Z - cameraData.Location.Z;
-
-            float dist = (float)Math.Sqrt(distX * distX + distY * distY + distZ * distZ);
-            float shadowDistance;
-            switch (currentShadowDistanceSetting)
-            {
-                case ShadowDistance.Closest: shadowDistance = DistClosest; break;
-                case ShadowDistance.Close: shadowDistance = DistClose; break;
-                case ShadowDistance.Mid: shadowDistance = DistMid; break;
-                case ShadowDistance.Far: shadowDistance = DistFar; break;
-                default: shadowDistance = DistFurthest; break;
-            }
-
-            return dist <= shadowDistance ? ShadowType.Nice : ShadowType.None;
+            return renderData.VoxelDetailLevelToLoad != perferedDetailLevel && renderData.VisibleVoxelDetailLevel != perferedDetailLevel;
         }
 
-        private void ReloadEntityMesh(IEntity entity, VoxelMeshComponent renderData, LODLevel voxelDetailLevel, ShadowType shadowType)
+        private void ReloadEntityMesh(IEntity entity, VoxelMeshComponent renderData, LODLevel voxelDetailLevel)
         {
             if (entity == null)
-                throw new ArgumentNullException("entity");
+                throw new ArgumentNullException(nameof(entity));
 
             Debug.Assert(loadedEntities.Contains(entity));
 
             using (new PerformanceLock(renderData.SyncLock))
-            {
                 renderData.VoxelDetailLevelToLoad = voxelDetailLevel;
-                renderData.ShadowTypeToLoad = (byte)shadowType;
-            }
 
             using (new PerformanceLock(entityLoadQueue))
-                entityLoadQueue.Enqueue(new EntityLoadQueueItem(entity, voxelDetailLevel, shadowType));
+                entityLoadQueue.Enqueue(new EntityLoadQueueItem(entity, voxelDetailLevel));
         }
 
         private void EnsureVisible(IEntity entity, VoxelMeshComponent renderData)

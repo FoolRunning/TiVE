@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Runtime.CompilerServices;
 using JetBrains.Annotations;
+using ProdigalSoftware.TiVEPluginFramework.Internal;
 
 namespace ProdigalSoftware.TiVEPluginFramework
 {
@@ -25,6 +27,7 @@ namespace ProdigalSoftware.TiVEPluginFramework
         private const byte SerializedFileVersion = 1;
 
         protected readonly Voxel[] voxels;
+        private volatile RenderedVoxel[] renderedVoxels;
         #endregion
 
         #region Constructors
@@ -61,14 +64,25 @@ namespace ProdigalSoftware.TiVEPluginFramework
         //    get { return (1 << VoxelAxisSizeBitShift) - 1; }
         //}
 
-        public int RenderedVoxelSize
-        {
-            get { return BlockLOD32.VoxelSize / VoxelAxisSize; }
-        }
+        public int RenderedVoxelSize => 
+            BlockLOD32.VoxelSize / VoxelAxisSize;
 
-        internal Voxel[] VoxelsArray
+        internal Voxel[] VoxelsArray => voxels;
+
+        internal RenderedVoxel[] RenderedVoxels
         {
-            get { return voxels; }
+            get
+            {
+                RenderedVoxel[] voxelsRendered = renderedVoxels;
+                if (voxelsRendered != null)
+                    return voxelsRendered;
+                lock (voxels)
+                {
+                    if (renderedVoxels == null)
+                        renderedVoxels = CalculateRenderedVoxels();
+                }
+                return renderedVoxels;
+            }
         }
         #endregion
 
@@ -126,6 +140,54 @@ namespace ProdigalSoftware.TiVEPluginFramework
                 voxels[i].SaveTo(writer);
         }
         #endregion
+
+        #region Private helper methods
+        private RenderedVoxel[] CalculateRenderedVoxels()
+        {
+            // ENHANCE: Make this more memory efficient
+            List<RenderedVoxel> renderedVoxelsList = new List<RenderedVoxel>(5000);
+            int maxBlockVoxel = VoxelAxisSize - 1;
+            for (int bvz = 0; bvz <= maxBlockVoxel; bvz++)
+            {
+                for (int bvx = 0; bvx <= maxBlockVoxel; bvx++)
+                {
+                    for (int bvy = 0; bvy <= maxBlockVoxel; bvy++)
+                    {
+                        Voxel vox = VoxelAt(bvx, bvy, bvz);
+                        if (vox == Voxel.Empty)
+                            continue;
+
+                        VoxelSides sides = VoxelSides.None;
+
+                        if (bvz == 0 || VoxelAt(bvx, bvy, bvz - 1) == Voxel.Empty)
+                            sides |= VoxelSides.Back;
+
+                        if (bvz == maxBlockVoxel || VoxelAt(bvx, bvy, bvz + 1) == Voxel.Empty)
+                            sides |= VoxelSides.Front;
+
+                        if (bvx == 0 || VoxelAt(bvx - 1, bvy, bvz) == Voxel.Empty)
+                            sides |= VoxelSides.Left;
+
+                        if (bvx == maxBlockVoxel || VoxelAt(bvx + 1, bvy, bvz) == Voxel.Empty)
+                            sides |= VoxelSides.Right;
+
+                        if (bvy == 0 || VoxelAt(bvx, bvy - 1, bvz) == Voxel.Empty)
+                            sides |= VoxelSides.Bottom;
+
+                        if (bvy == maxBlockVoxel || VoxelAt(bvx, bvy + 1, bvz) == Voxel.Empty)
+                            sides |= VoxelSides.Top;
+
+                        if (sides != VoxelSides.None)
+                        {
+                            bool checkSurrounding = (bvz == 0 || bvz == maxBlockVoxel || bvx == 0 || bvx == maxBlockVoxel || bvy == 0 || bvy == maxBlockVoxel);
+                            renderedVoxelsList.Add(new RenderedVoxel(vox, new Vector3b((byte)bvx, (byte)bvy, (byte)bvz), sides, checkSurrounding));
+                        }
+                    }
+                }
+            }
+            return renderedVoxelsList.ToArray();
+        }
+        #endregion
     }
 
     #region BlockLOD32 class
@@ -157,15 +219,11 @@ namespace ProdigalSoftware.TiVEPluginFramework
         #endregion
 
         #region Implementation of BlockLOD
-        public override int VoxelAxisSize
-        {
-            get { return VoxelSize; }
-        }
+        public override int VoxelAxisSize => 
+            VoxelSize;
 
-        public override int VoxelAxisSizeBitShift
-        {
-            get { return VoxelSizeBitShift; }
-        }
+        public override int VoxelAxisSizeBitShift => 
+            VoxelSizeBitShift;
 
         public override Voxel VoxelAt(int x, int y, int z)
         {
@@ -241,15 +299,11 @@ namespace ProdigalSoftware.TiVEPluginFramework
         #endregion
 
         #region Implementation of BlockLOD
-        public override int VoxelAxisSize
-        {
-            get { return VoxelSize; }
-        }
+        public override int VoxelAxisSize => 
+            VoxelSize;
 
-        public override int VoxelAxisSizeBitShift
-        {
-            get { return VoxelSizeBitShift; }
-        }
+        public override int VoxelAxisSizeBitShift => 
+            VoxelSizeBitShift;
 
         public override Voxel VoxelAt(int x, int y, int z)
         {
@@ -306,15 +360,11 @@ namespace ProdigalSoftware.TiVEPluginFramework
         #endregion
 
         #region Implementation of BlockLOD
-        public override int VoxelAxisSize
-        {
-            get { return VoxelSize; }
-        }
+        public override int VoxelAxisSize => 
+            VoxelSize;
 
-        public override int VoxelAxisSizeBitShift
-        {
-            get { return VoxelSizeBitShift; }
-        }
+        public override int VoxelAxisSizeBitShift => 
+            VoxelSizeBitShift;
 
         public override Voxel VoxelAt(int x, int y, int z)
         {
@@ -371,15 +421,11 @@ namespace ProdigalSoftware.TiVEPluginFramework
         #endregion
 
         #region Implementation of BlockLOD
-        public override int VoxelAxisSize
-        {
-            get { return VoxelSize; }
-        }
+        public override int VoxelAxisSize => 
+            VoxelSize;
 
-        public override int VoxelAxisSizeBitShift
-        {
-            get { return VoxelSizeBitShift; }
-        }
+        public override int VoxelAxisSizeBitShift => 
+            VoxelSizeBitShift;
 
         public override Voxel VoxelAt(int x, int y, int z)
         {

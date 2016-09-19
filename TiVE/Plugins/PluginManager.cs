@@ -110,7 +110,7 @@ namespace ProdigalSoftware.TiVE.Plugins
                 errorMessages = new List<string>();
                 errorMessages.AddRange(results.Errors.Cast<CompilerError>()
                     .Where(error => !error.IsWarning)
-                    .Select(error => string.Format("   {0},{1}: {2}", error.Line, error.Column, error.ErrorText)));
+                    .Select(error => $"   {error.Line},{error.Column}: {error.ErrorText}"));
                 return null;
             }
 

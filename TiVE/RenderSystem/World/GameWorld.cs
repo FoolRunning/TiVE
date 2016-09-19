@@ -20,11 +20,14 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
 
         private readonly Vector3i voxelSize32;
         private readonly Vector3i blockSize;
+        private readonly int blockSizeX;
+        private readonly int blockSizeY;
+        private readonly int blockSizeZ;
+
         private readonly ushort[] gameWorldBlocks;
         //private readonly BlockState[] blockStates;
         private readonly Dictionary<string, ushort> blockNameToId = new Dictionary<string, ushort>(1000);
 
-        //private bool[] blockVoxelsEmptyForLighting;
         private Block[] blockIdToBlock = new Block[2000];
         private bool[] blockLightPassThrough;
         private int blockIdCount = 1;
@@ -64,6 +67,9 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
             LightingModelType = LightingModelType.Realistic;
 
             blockSize = new Vector3i(blockSizeX, blockSizeY, blockSizeZ);
+            this.blockSizeX = blockSizeX;
+            this.blockSizeY = blockSizeY;
+            this.blockSizeZ = blockSizeZ;
             voxelSize32 = new Vector3i(blockSizeX * BlockLOD32.VoxelSize, blockSizeY * BlockLOD32.VoxelSize, blockSizeZ * BlockLOD32.VoxelSize);
             //blockStates = new BlockState[blockSizeX * blockSizeY * blockSizeZ];
             gameWorldBlocks = new ushort[blockSizeX * blockSizeY * blockSizeZ];
@@ -215,6 +221,23 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
                 case LODLevel.V16: return NoVoxelInLineHelper16(x, y, z, endX, endY, endZ);
                 case LODLevel.V8: return NoVoxelInLineHelper8(x, y, z, endX, endY, endZ);
                 case LODLevel.V4: return NoVoxelInLineHelper4(x, y, z, endX, endY, endZ);
+                default: throw new ArgumentException("detailLevel invalid: " + detailLevel);
+            }
+        }
+
+        /// <summary>
+        /// Taken from ftp://ftp.isc.org/pub/usenet/comp.sources.unix/volume26/line3d originally created by Bob Pendelton
+        /// Modified with optimizations for TiVE.
+        /// </summary>
+        /// <remarks>Very performance-critical method</remarks>
+        internal bool NoVoxelInLineFast(int x, int y, int z, int endX, int endY, int endZ, LODLevel detailLevel)
+        {
+            switch (detailLevel)
+            {
+                case LODLevel.V32: return NoVoxelInLineFastHelper32(x, y, z, endX, endY, endZ);
+                case LODLevel.V16: return NoVoxelInLineFastHelper16(x, y, z, endX, endY, endZ);
+                case LODLevel.V8: return NoVoxelInLineFastHelper8(x, y, z, endX, endY, endZ);
+                case LODLevel.V4: return NoVoxelInLineFastHelper4(x, y, z, endX, endY, endZ);
                 default: throw new ArgumentException("detailLevel invalid: " + detailLevel);
             }
         }
@@ -452,9 +475,6 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
             int blockX = x >> BlockLOD32.VoxelSizeBitShift;
             int blockY = y >> BlockLOD32.VoxelSizeBitShift;
             int blockZ = z >> BlockLOD32.VoxelSizeBitShift;
-            int blockVoxelX = x & BlockLOD32.MagicModulusNumber;
-            int blockVoxelY = y & BlockLOD32.MagicModulusNumber;
-            int blockVoxelZ = z & BlockLOD32.MagicModulusNumber;
 
             Vector3i blockSizeLocal = blockSize;
             ushort[] blocksLocal = gameWorldBlocks;
@@ -467,14 +487,12 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
                     {
                         x = x + stepX;
                         tMaxX = tMaxX + tStepX;
-                        blockVoxelX = x & BlockLOD32.MagicModulusNumber;
                         blockX = x >> BlockLOD32.VoxelSizeBitShift;
                     }
                     else
                     {
                         z = z + stepZ;
                         tMaxZ = tMaxZ + tStepZ;
-                        blockVoxelZ = z & BlockLOD32.MagicModulusNumber;
                         blockZ = z >> BlockLOD32.VoxelSizeBitShift;
                     }
                 }
@@ -482,14 +500,12 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
                 {
                     y = y + stepY;
                     tMaxY = tMaxY + tStepY;
-                    blockVoxelY = y & BlockLOD32.MagicModulusNumber;
                     blockY = y >> BlockLOD32.VoxelSizeBitShift;
                 }
                 else
                 {
                     z = z + stepZ;
                     tMaxZ = tMaxZ + tStepZ;
-                    blockVoxelZ = z & BlockLOD32.MagicModulusNumber;
                     blockZ = z >> BlockLOD32.VoxelSizeBitShift;
                 }
 
@@ -497,15 +513,14 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
                     return true;
 
                 ushort blockId = blocksLocal[blockSizeLocal.GetArrayOffset(blockX, blockY, blockZ)];
-                if (blockId != 0)
+                if (blockId != 0 && 
+                    !blockIdToBlockLocal[blockId].LOD32[x & BlockLOD32.MagicModulusNumber, y & BlockLOD32.MagicModulusNumber, z & BlockLOD32.MagicModulusNumber].AllowLightPassthrough)
                 {
-                    BlockLOD32 blockLOD = blockIdToBlockLocal[blockId].LOD32;
-                    if (!blockLOD[blockVoxelX, blockVoxelY, blockVoxelZ].AllowLightPassthrough)
-                        return false;
+                    return false;
                 }
             }
         }
-
+        
         /// <summary>
         /// Voxel transversal algorithm taken from: http://www.cse.chalmers.se/edu/year/2011/course/TDA361_Computer_Graphics/grid.pdf
         /// Modified with optimizations for TiVE.
@@ -532,9 +547,6 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
             int blockX = x >> BlockLOD16.VoxelSizeBitShift;
             int blockY = y >> BlockLOD16.VoxelSizeBitShift;
             int blockZ = z >> BlockLOD16.VoxelSizeBitShift;
-            int blockVoxelX = x & BlockLOD16.MagicModulusNumber;
-            int blockVoxelY = y & BlockLOD16.MagicModulusNumber;
-            int blockVoxelZ = z & BlockLOD16.MagicModulusNumber;
             
             Vector3i blockSizeLocal = blockSize;
             ushort[] blocksLocal = gameWorldBlocks;
@@ -547,14 +559,12 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
                     {
                         x = x + stepX;
                         tMaxX = tMaxX + tStepX;
-                        blockVoxelX = x & BlockLOD16.MagicModulusNumber;
                         blockX = x >> BlockLOD16.VoxelSizeBitShift;
                     }
                     else
                     {
                         z = z + stepZ;
                         tMaxZ = tMaxZ + tStepZ;
-                        blockVoxelZ = z & BlockLOD16.MagicModulusNumber;
                         blockZ = z >> BlockLOD16.VoxelSizeBitShift;
                     }
                 }
@@ -562,14 +572,12 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
                 {
                     y = y + stepY;
                     tMaxY = tMaxY + tStepY;
-                    blockVoxelY = y & BlockLOD16.MagicModulusNumber;
                     blockY = y >> BlockLOD16.VoxelSizeBitShift;
                 }
                 else
                 {
                     z = z + stepZ;
                     tMaxZ = tMaxZ + tStepZ;
-                    blockVoxelZ = z & BlockLOD16.MagicModulusNumber;
                     blockZ = z >> BlockLOD16.VoxelSizeBitShift;
                 }
 
@@ -577,11 +585,10 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
                     return true;
 
                 ushort blockId = blocksLocal[blockSizeLocal.GetArrayOffset(blockX, blockY, blockZ)];
-                if (blockId != 0)
+                if (blockId != 0 && 
+                    !blockIdToBlockLocal[blockId].LOD16[x & BlockLOD16.MagicModulusNumber, y & BlockLOD16.MagicModulusNumber, z & BlockLOD16.MagicModulusNumber].AllowLightPassthrough)
                 {
-                    BlockLOD16 blockLOD = blockIdToBlockLocal[blockId].LOD16;
-                    if (!blockLOD[blockVoxelX, blockVoxelY, blockVoxelZ].AllowLightPassthrough)
-                        return false;
+                    return false;
                 }
             }
         }
@@ -612,9 +619,6 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
             int blockX = x >> BlockLOD8.VoxelSizeBitShift;
             int blockY = y >> BlockLOD8.VoxelSizeBitShift;
             int blockZ = z >> BlockLOD8.VoxelSizeBitShift;
-            int blockVoxelX = x & BlockLOD8.MagicModulusNumber;
-            int blockVoxelY = y & BlockLOD8.MagicModulusNumber;
-            int blockVoxelZ = z & BlockLOD8.MagicModulusNumber;
             
             Vector3i blockSizeLocal = blockSize;
             ushort[] blocksLocal = gameWorldBlocks;
@@ -627,14 +631,12 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
                     {
                         x = x + stepX;
                         tMaxX = tMaxX + tStepX;
-                        blockVoxelX = x & BlockLOD8.MagicModulusNumber;
                         blockX = x >> BlockLOD8.VoxelSizeBitShift;
                     }
                     else
                     {
                         z = z + stepZ;
                         tMaxZ = tMaxZ + tStepZ;
-                        blockVoxelZ = z & BlockLOD8.MagicModulusNumber;
                         blockZ = z >> BlockLOD8.VoxelSizeBitShift;
                     }
                 }
@@ -642,14 +644,12 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
                 {
                     y = y + stepY;
                     tMaxY = tMaxY + tStepY;
-                    blockVoxelY = y & BlockLOD8.MagicModulusNumber;
                     blockY = y >> BlockLOD8.VoxelSizeBitShift;
                 }
                 else
                 {
                     z = z + stepZ;
                     tMaxZ = tMaxZ + tStepZ;
-                    blockVoxelZ = z & BlockLOD8.MagicModulusNumber;
                     blockZ = z >> BlockLOD8.VoxelSizeBitShift;
                 }
 
@@ -657,11 +657,10 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
                     return true;
 
                 ushort blockId = blocksLocal[blockSizeLocal.GetArrayOffset(blockX, blockY, blockZ)];
-                if (blockId != 0)
+                if (blockId != 0 && 
+                    !blockIdToBlockLocal[blockId].LOD8[x & BlockLOD8.MagicModulusNumber, y & BlockLOD8.MagicModulusNumber, z & BlockLOD8.MagicModulusNumber].AllowLightPassthrough)
                 {
-                    BlockLOD8 blockLOD = blockIdToBlockLocal[blockId].LOD8;
-                    if (!blockLOD[blockVoxelX, blockVoxelY, blockVoxelZ].AllowLightPassthrough)
-                        return false;
+                    return false;
                 }
             }
         }
@@ -692,9 +691,6 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
             int blockX = x >> BlockLOD4.VoxelSizeBitShift;
             int blockY = y >> BlockLOD4.VoxelSizeBitShift;
             int blockZ = z >> BlockLOD4.VoxelSizeBitShift;
-            int blockVoxelX = x & BlockLOD4.MagicModulusNumber;
-            int blockVoxelY = y & BlockLOD4.MagicModulusNumber;
-            int blockVoxelZ = z & BlockLOD4.MagicModulusNumber;
             
             Vector3i blockSizeLocal = blockSize;
             ushort[] blocksLocal = gameWorldBlocks;
@@ -707,14 +703,12 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
                     {
                         x = x + stepX;
                         tMaxX = tMaxX + tStepX;
-                        blockVoxelX = x & BlockLOD4.MagicModulusNumber;
                         blockX = x >> BlockLOD4.VoxelSizeBitShift;
                     }
                     else
                     {
                         z = z + stepZ;
                         tMaxZ = tMaxZ + tStepZ;
-                        blockVoxelZ = z & BlockLOD4.MagicModulusNumber;
                         blockZ = z >> BlockLOD4.VoxelSizeBitShift;
                     }
                 }
@@ -722,14 +716,12 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
                 {
                     y = y + stepY;
                     tMaxY = tMaxY + tStepY;
-                    blockVoxelY = y & BlockLOD4.MagicModulusNumber;
                     blockY = y >> BlockLOD4.VoxelSizeBitShift;
                 }
                 else
                 {
                     z = z + stepZ;
                     tMaxZ = tMaxZ + tStepZ;
-                    blockVoxelZ = z & BlockLOD4.MagicModulusNumber;
                     blockZ = z >> BlockLOD4.VoxelSizeBitShift;
                 }
 
@@ -737,11 +729,584 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
                     return true;
 
                 ushort blockId = blocksLocal[blockSizeLocal.GetArrayOffset(blockX, blockY, blockZ)];
-                if (blockId != 0)
+                if (blockId != 0 && 
+                    !blockIdToBlockLocal[blockId].LOD4[x & BlockLOD4.MagicModulusNumber, y & BlockLOD4.MagicModulusNumber, z & BlockLOD4.MagicModulusNumber].AllowLightPassthrough)
                 {
-                    BlockLOD4 blockLOD = blockIdToBlockLocal[blockId].LOD4;
-                    if (!blockLOD[blockVoxelX, blockVoxelY, blockVoxelZ].AllowLightPassthrough)
+                    return false;
+                }
+            }
+        }
+        #endregion
+
+        #region NoVoxelInLineFast performance implementations
+        /// <summary>
+        /// Taken from ftp://ftp.isc.org/pub/usenet/comp.sources.unix/volume26/line3d originally created by Bob Pendelton
+        /// Modified with optimizations for TiVE.
+        /// </summary>
+        /// <remarks>Very performance-critical method</remarks>
+        private bool NoVoxelInLineFastHelper32(int x, int y, int z, int x2, int y2, int z2)
+        {
+            if (x == x2 && y == y2 && z == z2)
+                return true;
+
+            int dx = x2 - x;
+            int dy = y2 - y;
+            int dz = z2 - z;
+
+            int ax = TiVEUtils.FastAbs(dx) << 1;
+            int ay = TiVEUtils.FastAbs(dy) << 1;
+            int az = TiVEUtils.FastAbs(dz) << 1;
+
+            int sx = TiVEUtils.FastSign(dx);
+            int sy = TiVEUtils.FastSign(dy);
+            int sz = TiVEUtils.FastSign(dz);
+
+            int blockX = x >> BlockLOD32.VoxelSizeBitShift;
+            int blockY = y >> BlockLOD32.VoxelSizeBitShift;
+            int blockZ = z >> BlockLOD32.VoxelSizeBitShift;
+
+            ushort[] blocksLocal = gameWorldBlocks;
+            Vector3i blockSizeLocal = blockSize;
+            Block[] blockIdToBlockLocal = blockIdToBlock;
+            int xd, yd, zd;
+            if (ax >= Math.Max(ay, az))            /* x dominant */
+            {
+                yd = ay - (ax >> 1);
+                zd = az - (ax >> 1);
+                for (; ; )
+                {
+                    if (yd >= 0)
+                    {
+                        y += sy;
+                        yd -= ax;
+                        blockY = y >> BlockLOD32.VoxelSizeBitShift;
+                    }
+
+                    if (zd >= 0)
+                    {
+                        z += sz;
+                        zd -= ax;
+                        blockZ = z >> BlockLOD32.VoxelSizeBitShift;
+                    }
+
+                    x += sx;
+                    blockX = x >> BlockLOD32.VoxelSizeBitShift;
+
+                    yd += ay;
+                    zd += az;
+
+                    if (x == x2)
+                        return true;
+
+                    ushort blockId = blocksLocal[blockSizeLocal.GetArrayOffset(blockX, blockY, blockZ)];
+                    if (blockId != 0 &&
+                        !blockIdToBlockLocal[blockId].LOD32[x & BlockLOD32.MagicModulusNumber, y & BlockLOD32.MagicModulusNumber, z & BlockLOD32.MagicModulusNumber].AllowLightPassthrough)
+                    {
                         return false;
+                    }
+                }
+            }
+
+            if (ay >= Math.Max(ax, az))            /* y dominant */
+            {
+                xd = ax - (ay >> 1);
+                zd = az - (ay >> 1);
+                for (; ; )
+                {
+                    if (xd >= 0)
+                    {
+                        x += sx;
+                        xd -= ay;
+                        blockX = x >> BlockLOD32.VoxelSizeBitShift;
+                    }
+
+                    if (zd >= 0)
+                    {
+                        z += sz;
+                        zd -= ay;
+                        blockZ = z >> BlockLOD32.VoxelSizeBitShift;
+                    }
+
+                    y += sy;
+                    blockY = y >> BlockLOD32.VoxelSizeBitShift;
+
+                    xd += ax;
+                    zd += az;
+
+                    if (y == y2)
+                        return true;
+
+                    ushort blockId = blocksLocal[blockSizeLocal.GetArrayOffset(blockX, blockY, blockZ)];
+                    if (blockId != 0 &&
+                        !blockIdToBlockLocal[blockId].LOD32[x & BlockLOD32.MagicModulusNumber, y & BlockLOD32.MagicModulusNumber, z & BlockLOD32.MagicModulusNumber].AllowLightPassthrough)
+                    {
+                        return false;
+                    }
+                }
+            }
+
+            /* z dominant */
+            xd = ax - (az >> 1);
+            yd = ay - (az >> 1);
+            for (; ; )
+            {
+                if (xd >= 0)
+                {
+                    x += sx;
+                    xd -= az;
+                    blockX = x >> BlockLOD32.VoxelSizeBitShift;
+                }
+
+                if (yd >= 0)
+                {
+                    y += sy;
+                    yd -= az;
+                    blockY = y >> BlockLOD32.VoxelSizeBitShift;
+                }
+
+                z += sz;
+                blockZ = z >> BlockLOD32.VoxelSizeBitShift;
+
+                xd += ax;
+                yd += ay;
+
+                if (z == z2)
+                    return true;
+
+                ushort blockId = blocksLocal[blockSizeLocal.GetArrayOffset(blockX, blockY, blockZ)];
+                if (blockId != 0 &&
+                    !blockIdToBlockLocal[blockId].LOD32[x & BlockLOD32.MagicModulusNumber, y & BlockLOD32.MagicModulusNumber, z & BlockLOD32.MagicModulusNumber].AllowLightPassthrough)
+                {
+                    return false;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Taken from ftp://ftp.isc.org/pub/usenet/comp.sources.unix/volume26/line3d originally created by Bob Pendelton
+        /// Modified with optimizations for TiVE.
+        /// </summary>
+        /// <remarks>Very performance-critical method</remarks>
+        private bool NoVoxelInLineFastHelper16(int x, int y, int z, int x2, int y2, int z2)
+        {
+            if (x == x2 && y == y2 && z == z2)
+                return true;
+
+            int dx = x2 - x;
+            int dy = y2 - y;
+            int dz = z2 - z;
+
+            int ax = TiVEUtils.FastAbs(dx) << 1;
+            int ay = TiVEUtils.FastAbs(dy) << 1;
+            int az = TiVEUtils.FastAbs(dz) << 1;
+
+            int sx = TiVEUtils.FastSign(dx);
+            int sy = TiVEUtils.FastSign(dy);
+            int sz = TiVEUtils.FastSign(dz);
+
+            int blockX = x >> BlockLOD16.VoxelSizeBitShift;
+            int blockY = y >> BlockLOD16.VoxelSizeBitShift;
+            int blockZ = z >> BlockLOD16.VoxelSizeBitShift;
+
+            ushort[] blocksLocal = gameWorldBlocks;
+            Vector3i blockSizeLocal = blockSize;
+            Block[] blockIdToBlockLocal = blockIdToBlock;
+            int xd, yd, zd;
+            if (ax >= Math.Max(ay, az))            /* x dominant */
+            {
+                yd = ay - (ax >> 1);
+                zd = az - (ax >> 1);
+                for (; ; )
+                {
+                    if (yd >= 0)
+                    {
+                        y += sy;
+                        yd -= ax;
+                        blockY = y >> BlockLOD16.VoxelSizeBitShift;
+                    }
+
+                    if (zd >= 0)
+                    {
+                        z += sz;
+                        zd -= ax;
+                        blockZ = z >> BlockLOD16.VoxelSizeBitShift;
+                    }
+
+                    x += sx;
+                    blockX = x >> BlockLOD16.VoxelSizeBitShift;
+
+                    yd += ay;
+                    zd += az;
+
+                    if (x == x2)
+                        return true;
+
+                    ushort blockId = blocksLocal[blockSizeLocal.GetArrayOffset(blockX, blockY, blockZ)];
+                    if (blockId != 0 &&
+                        !blockIdToBlockLocal[blockId].LOD16[x & BlockLOD16.MagicModulusNumber, y & BlockLOD16.MagicModulusNumber, z & BlockLOD16.MagicModulusNumber].AllowLightPassthrough)
+                    {
+                        return false;
+                    }
+                }
+            }
+
+            if (ay >= Math.Max(ax, az))            /* y dominant */
+            {
+                xd = ax - (ay >> 1);
+                zd = az - (ay >> 1);
+                for (; ; )
+                {
+                    if (xd >= 0)
+                    {
+                        x += sx;
+                        xd -= ay;
+                        blockX = x >> BlockLOD16.VoxelSizeBitShift;
+                    }
+
+                    if (zd >= 0)
+                    {
+                        z += sz;
+                        zd -= ay;
+                        blockZ = z >> BlockLOD16.VoxelSizeBitShift;
+                    }
+
+                    y += sy;
+                    blockY = y >> BlockLOD16.VoxelSizeBitShift;
+
+                    xd += ax;
+                    zd += az;
+
+                    if (y == y2)
+                        return true;
+
+                    ushort blockId = blocksLocal[blockSizeLocal.GetArrayOffset(blockX, blockY, blockZ)];
+                    if (blockId != 0 &&
+                        !blockIdToBlockLocal[blockId].LOD16[x & BlockLOD16.MagicModulusNumber, y & BlockLOD16.MagicModulusNumber, z & BlockLOD16.MagicModulusNumber].AllowLightPassthrough)
+                    {
+                        return false;
+                    }
+                }
+            }
+
+            /* z dominant */
+            xd = ax - (az >> 1);
+            yd = ay - (az >> 1);
+            for (; ; )
+            {
+                if (xd >= 0)
+                {
+                    x += sx;
+                    xd -= az;
+                    blockX = x >> BlockLOD16.VoxelSizeBitShift;
+                }
+
+                if (yd >= 0)
+                {
+                    y += sy;
+                    yd -= az;
+                    blockY = y >> BlockLOD16.VoxelSizeBitShift;
+                }
+
+                z += sz;
+                blockZ = z >> BlockLOD16.VoxelSizeBitShift;
+
+                xd += ax;
+                yd += ay;
+
+                if (z == z2)
+                    return true;
+
+                ushort blockId = blocksLocal[blockSizeLocal.GetArrayOffset(blockX, blockY, blockZ)];
+                if (blockId != 0 &&
+                    !blockIdToBlockLocal[blockId].LOD16[x & BlockLOD16.MagicModulusNumber, y & BlockLOD16.MagicModulusNumber, z & BlockLOD16.MagicModulusNumber].AllowLightPassthrough)
+                {
+                    return false;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Taken from ftp://ftp.isc.org/pub/usenet/comp.sources.unix/volume26/line3d originally created by Bob Pendelton
+        /// Modified with optimizations for TiVE.
+        /// </summary>
+        /// <remarks>Very performance-critical method</remarks>
+        private bool NoVoxelInLineFastHelper8(int x, int y, int z, int x2, int y2, int z2)
+        {
+            if (x == x2 && y == y2 && z == z2)
+                return true;
+
+            int dx = x2 - x;
+            int dy = y2 - y;
+            int dz = z2 - z;
+
+            int ax = TiVEUtils.FastAbs(dx) << 1;
+            int ay = TiVEUtils.FastAbs(dy) << 1;
+            int az = TiVEUtils.FastAbs(dz) << 1;
+
+            int sx = TiVEUtils.FastSign(dx);
+            int sy = TiVEUtils.FastSign(dy);
+            int sz = TiVEUtils.FastSign(dz);
+
+            int blockX = x >> BlockLOD8.VoxelSizeBitShift;
+            int blockY = y >> BlockLOD8.VoxelSizeBitShift;
+            int blockZ = z >> BlockLOD8.VoxelSizeBitShift;
+
+            ushort[] blocksLocal = gameWorldBlocks;
+            Vector3i blockSizeLocal = blockSize;
+            Block[] blockIdToBlockLocal = blockIdToBlock;
+            int xd, yd, zd;
+            if (ax >= Math.Max(ay, az))            /* x dominant */
+            {
+                yd = ay - (ax >> 1);
+                zd = az - (ax >> 1);
+                for (; ; )
+                {
+                    if (yd >= 0)
+                    {
+                        y += sy;
+                        yd -= ax;
+                        blockY = y >> BlockLOD8.VoxelSizeBitShift;
+                    }
+
+                    if (zd >= 0)
+                    {
+                        z += sz;
+                        zd -= ax;
+                        blockZ = z >> BlockLOD8.VoxelSizeBitShift;
+                    }
+
+                    x += sx;
+                    blockX = x >> BlockLOD8.VoxelSizeBitShift;
+
+                    yd += ay;
+                    zd += az;
+
+                    if (x == x2)
+                        return true;
+
+                    ushort blockId = blocksLocal[blockSizeLocal.GetArrayOffset(blockX, blockY, blockZ)];
+                    if (blockId != 0 &&
+                        !blockIdToBlockLocal[blockId].LOD8[x & BlockLOD8.MagicModulusNumber, y & BlockLOD8.MagicModulusNumber, z & BlockLOD8.MagicModulusNumber].AllowLightPassthrough)
+                    {
+                        return false;
+                    }
+                }
+            }
+
+            if (ay >= Math.Max(ax, az))            /* y dominant */
+            {
+                xd = ax - (ay >> 1);
+                zd = az - (ay >> 1);
+                for (; ; )
+                {
+                    if (xd >= 0)
+                    {
+                        x += sx;
+                        xd -= ay;
+                        blockX = x >> BlockLOD8.VoxelSizeBitShift;
+                    }
+
+                    if (zd >= 0)
+                    {
+                        z += sz;
+                        zd -= ay;
+                        blockZ = z >> BlockLOD8.VoxelSizeBitShift;
+                    }
+
+                    y += sy;
+                    blockY = y >> BlockLOD8.VoxelSizeBitShift;
+
+                    xd += ax;
+                    zd += az;
+
+                    if (y == y2)
+                        return true;
+
+                    ushort blockId = blocksLocal[blockSizeLocal.GetArrayOffset(blockX, blockY, blockZ)];
+                    if (blockId != 0 &&
+                        !blockIdToBlockLocal[blockId].LOD8[x & BlockLOD8.MagicModulusNumber, y & BlockLOD8.MagicModulusNumber, z & BlockLOD8.MagicModulusNumber].AllowLightPassthrough)
+                    {
+                        return false;
+                    }
+                }
+            }
+
+            /* z dominant */
+            xd = ax - (az >> 1);
+            yd = ay - (az >> 1);
+            for (; ; )
+            {
+                if (xd >= 0)
+                {
+                    x += sx;
+                    xd -= az;
+                    blockX = x >> BlockLOD8.VoxelSizeBitShift;
+                }
+
+                if (yd >= 0)
+                {
+                    y += sy;
+                    yd -= az;
+                    blockY = y >> BlockLOD8.VoxelSizeBitShift;
+                }
+
+                z += sz;
+                blockZ = z >> BlockLOD8.VoxelSizeBitShift;
+
+                xd += ax;
+                yd += ay;
+
+                if (z == z2)
+                    return true;
+
+                ushort blockId = blocksLocal[blockSizeLocal.GetArrayOffset(blockX, blockY, blockZ)];
+                if (blockId != 0 &&
+                    !blockIdToBlockLocal[blockId].LOD8[x & BlockLOD8.MagicModulusNumber, y & BlockLOD8.MagicModulusNumber, z & BlockLOD8.MagicModulusNumber].AllowLightPassthrough)
+                {
+                    return false;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Taken from ftp://ftp.isc.org/pub/usenet/comp.sources.unix/volume26/line3d originally created by Bob Pendelton
+        /// Modified with optimizations for TiVE.
+        /// </summary>
+        /// <remarks>Very performance-critical method</remarks>
+        private bool NoVoxelInLineFastHelper4(int x, int y, int z, int x2, int y2, int z2)
+        {
+            if (x == x2 && y == y2 && z == z2)
+                return true;
+
+            int dx = x2 - x;
+            int dy = y2 - y;
+            int dz = z2 - z;
+
+            int ax = TiVEUtils.FastAbs(dx) << 1;
+            int ay = TiVEUtils.FastAbs(dy) << 1;
+            int az = TiVEUtils.FastAbs(dz) << 1;
+
+            int sx = TiVEUtils.FastSign(dx);
+            int sy = TiVEUtils.FastSign(dy);
+            int sz = TiVEUtils.FastSign(dz);
+
+            int blockX = x >> BlockLOD4.VoxelSizeBitShift;
+            int blockY = y >> BlockLOD4.VoxelSizeBitShift;
+            int blockZ = z >> BlockLOD4.VoxelSizeBitShift;
+
+            ushort[] blocksLocal = gameWorldBlocks;
+            Vector3i blockSizeLocal = blockSize;
+            Block[] blockIdToBlockLocal = blockIdToBlock;
+            int xd, yd, zd;
+            if (ax >= Math.Max(ay, az))            /* x dominant */
+            {
+                yd = ay - (ax >> 1);
+                zd = az - (ax >> 1);
+                for (; ; )
+                {
+                    if (yd >= 0)
+                    {
+                        y += sy;
+                        yd -= ax;
+                        blockY = y >> BlockLOD4.VoxelSizeBitShift;
+                    }
+
+                    if (zd >= 0)
+                    {
+                        z += sz;
+                        zd -= ax;
+                        blockZ = z >> BlockLOD4.VoxelSizeBitShift;
+                    }
+
+                    x += sx;
+                    blockX = x >> BlockLOD4.VoxelSizeBitShift;
+
+                    yd += ay;
+                    zd += az;
+
+                    if (x == x2)
+                        return true;
+
+                    ushort blockId = blocksLocal[blockSizeLocal.GetArrayOffset(blockX, blockY, blockZ)];
+                    if (blockId != 0 &&
+                        !blockIdToBlockLocal[blockId].LOD4[x & BlockLOD4.MagicModulusNumber, y & BlockLOD4.MagicModulusNumber, z & BlockLOD4.MagicModulusNumber].AllowLightPassthrough)
+                    {
+                        return false;
+                    }
+                }
+            }
+
+            if (ay >= Math.Max(ax, az))            /* y dominant */
+            {
+                xd = ax - (ay >> 1);
+                zd = az - (ay >> 1);
+                for (; ; )
+                {
+                    if (xd >= 0)
+                    {
+                        x += sx;
+                        xd -= ay;
+                        blockX = x >> BlockLOD4.VoxelSizeBitShift;
+                    }
+
+                    if (zd >= 0)
+                    {
+                        z += sz;
+                        zd -= ay;
+                        blockZ = z >> BlockLOD4.VoxelSizeBitShift;
+                    }
+
+                    y += sy;
+                    blockY = y >> BlockLOD4.VoxelSizeBitShift;
+
+                    xd += ax;
+                    zd += az;
+
+                    if (y == y2)
+                        return true;
+
+                    ushort blockId = blocksLocal[blockSizeLocal.GetArrayOffset(blockX, blockY, blockZ)];
+                    if (blockId != 0 &&
+                        !blockIdToBlockLocal[blockId].LOD4[x & BlockLOD4.MagicModulusNumber, y & BlockLOD4.MagicModulusNumber, z & BlockLOD4.MagicModulusNumber].AllowLightPassthrough)
+                    {
+                        return false;
+                    }
+                }
+            }
+
+            /* z dominant */
+            xd = ax - (az >> 1);
+            yd = ay - (az >> 1);
+            for (; ; )
+            {
+                if (xd >= 0)
+                {
+                    x += sx;
+                    xd -= az;
+                    blockX = x >> BlockLOD4.VoxelSizeBitShift;
+                }
+
+                if (yd >= 0)
+                {
+                    y += sy;
+                    yd -= az;
+                    blockY = y >> BlockLOD4.VoxelSizeBitShift;
+                }
+
+                z += sz;
+                blockZ = z >> BlockLOD4.VoxelSizeBitShift;
+
+                xd += ax;
+                yd += ay;
+
+                if (z == z2)
+                    return true;
+
+                ushort blockId = blocksLocal[blockSizeLocal.GetArrayOffset(blockX, blockY, blockZ)];
+                if (blockId != 0 &&
+                    !blockIdToBlockLocal[blockId].LOD4[x & BlockLOD4.MagicModulusNumber, y & BlockLOD4.MagicModulusNumber, z & BlockLOD4.MagicModulusNumber].AllowLightPassthrough)
+                {
+                    return false;
                 }
             }
         }

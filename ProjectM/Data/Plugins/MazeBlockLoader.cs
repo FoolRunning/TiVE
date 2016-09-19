@@ -22,11 +22,15 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
         private const byte bc = BlockLOD32.VoxelSize / 2;
         private const int mv = BlockLOD32.VoxelSize - 1;
         private const int ImperfectionIterations = BlockLOD32.VoxelSize > 16 ? 100 : 25;
-        private const bool ForFantasy = false;
-        private const int LightDist = ForFantasy ? 17 : 28;
-        private const float LightBright = ForFantasy ? 0.5f : 1.0f;
-        private const float LightMid = ForFantasy ? 0.38f : 0.76f;
-        private const float LightDim = ForFantasy ? 0.17f : 0.34f;
+        private const bool ForFantasy = true;
+        //private const int LightDist = ForFantasy ? 17 : 28;
+        //private const float LightBright = ForFantasy ? 0.5f : 1.0f;
+        //private const float LightMid = ForFantasy ? 0.38f : 0.76f;
+        //private const float LightDim = ForFantasy ? 0.17f : 0.34f;
+        private const int LightDist = ForFantasy ? 17 : 34;
+        private const float LightBright = 1.0f;
+        private const float LightMid = 0.76f;
+        private const float LightDim = 0.34f;
         private const float ObjBright = 1.0f;
         private const float ObjMid = 0.76f;
         private const float ObjDim = 0.34f;
@@ -55,22 +59,29 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
                 case "fountain": return CreateFountain();
                 case "roomLight":
                     return CreateBlockInfo(name, BlockLOD32.VoxelSize / 2 - 1, new Color4f(1.0f, 1.0f, 1.0f, 1.0f), 1.0f, null,
-                        new LightComponent(blockCenterVector, new Color3f(ForFantasy ? 0.6f : 0.8f, ForFantasy ? 0.6f : 0.8f, ForFantasy ? 0.6f : 0.8f), ForFantasy ? 25 : 45), colorVariation: 0.0f);
+                        new LightComponent(blockCenterVector, new Color3f(ForFantasy ? 0.6f : 0.8f, ForFantasy ? 0.6f : 0.8f, ForFantasy ? 0.6f : 0.8f), ForFantasy ? 35 : 60), colorVariation: 0.0f);
                 case "redLight":
                     return CreateBlockInfo(name, BlockLOD32.VoxelSize / 5.0f, new Color4f(ObjBright, ObjDim, ObjDim, 1.0f), 1.0f, null,
-                        new LightComponent(new Vector3b(bc, bc, bc), new Color3f(LightBright, LightDim, LightDim), ForFantasy ? 5 : 7), colorVariation: 0.0f);
+                        new LightComponent(new Vector3b(bc, bc, bc), new Color3f(LightBright, LightDim, LightDim), ForFantasy ? 5 : 10), colorVariation: 0.0f);
                 case "smallLight":
                     return CreateBlockInfo(name, BlockLOD32.VoxelSize / 16.0f, new Color4f(ObjDim, ObjDim, ObjBright, 1.0f), 1.0f, null,
-                        new LightComponent(new Vector3b(bc, bc, bc), new Color3f(LightDim, LightDim, LightBright), ForFantasy ? 12 : 18), colorVariation: 0.0f);
+                        new LightComponent(new Vector3b(bc, bc, bc), new Color3f(LightDim, LightDim, LightBright), ForFantasy ? 12 : 24), colorVariation: 0.0f);
                 case "hoverLightBlue":
                     return CreateBlockInfo(name, BlockLOD32.VoxelSize / 4.0f, new Color4f(ObjDim, ObjDim, ObjBright, 1.0f), 1.0f, null,
-                        new LightComponent(new Vector3b(bc, bc, bc), new Color3f(LightDim, LightDim, LightBright), ForFantasy ? 16 : 24), colorVariation: 0.0f);
+                        new LightComponent(new Vector3b(bc, bc, bc), new Color3f(LightDim, LightDim, LightBright), ForFantasy ? 16 : 32), colorVariation: 0.0f);
+                case "fountainLight":
+                    return CreateBlockInfo(name, BlockLOD32.VoxelSize / 8.0f, new Color4f(ObjDim, ObjDim, ObjBright, 1.0f), 1.0f, null,
+                        new LightComponent(new Vector3b(bc, bc, bc), new Color3f(LightDim, LightDim, LightBright), ForFantasy ? 20 : 40), colorVariation: 0.0f);
                 case "loadingLight":
                     return CreateBlockInfo(name, BlockLOD32.VoxelSize / 5.0f, new Color4f(1.0f, 1.0f, 1.0f, 1.0f), 1.0f, null,
-                        new LightComponent(blockCenterVector, new Color3f(0.5f, 0.5f, 0.5f), 80), colorVariation: 0.0f);
+                        new LightComponent(blockCenterVector, new Color3f(0.5f, 0.5f, 0.5f), 60), colorVariation: 0.0f);
                 case "treeLight":
                     return CreateBlockInfo(name, BlockLOD32.VoxelSize / 8.0f, new Color4f(ObjBright, ObjBright, ObjBright, 1.0f), 1.0f, null,
-                        new LightComponent(new Vector3b(bc, bc, bc), new Color3f(LightBright, LightBright, LightBright), ForFantasy ? 15 : 25), colorVariation: 0.0f);
+                        new LightComponent(new Vector3b(bc, bc, bc), new Color3f(LightBright, LightBright, LightBright), ForFantasy ? 20 : 40), colorVariation: 0.0f);
+                case "dummy":
+                    Block dummy = new Block("dummy");
+                    dummy.AddComponent(new LightPassthroughComponent());
+                    return dummy;
 
                 default: return null;
             }
@@ -113,8 +124,6 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
 
         private static Block CreateLava()
         {
-            //return CreateRoundedBlockInfo("lava", new Voxel(255, 255, 255, 255, VoxelSettings.AllowLightPassthrough | VoxelSettings.SkipVoxelNormalCalc), 1.0f, 0,
-            //    new LightComponent(new Vector3b(bc, bc, bc), new Color3f(0.4f, 0.05f, 0.03f), 4), 0.1f);
             Block lavaBlock = new Block("lava");
             for (int z = 0; z < BlockLOD32.VoxelSize; z++)
             {
@@ -130,13 +139,6 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
             lavaBlock.AddComponent(new LightPassthroughComponent());
             lavaBlock.GenerateLODLevels();
             return lavaBlock;
-        }
-
-        private static Block CreateLeaves(string name, int num)
-        {
-            Block leaves = CreateRoundedBlockInfo(name, new Voxel(13, 200, 23, 255, VoxelSettings.SkipVoxelNormalCalc), 0.05f, num, null, 0.3f);
-            leaves.AddComponent(new LightPassthroughComponent());
-            return leaves;
         }
 
         private static Block CreateLight(string name, int num)
@@ -163,11 +165,77 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
             }
         }
 
+        private static Block CreateLeaves(string name, int num)
+        {
+            Voxel leavesVoxel = new Voxel(13, 200, 23);
+            Block leaves = new Block(name);
+            leaves.AddComponent(new VoxelNoiseComponent(0.1f));
+            const int leafSizeLong = 5;
+            const int leafSizeShort = 3;
+            const int leafSizeThickness = 2;
+
+            for (int i = 0; i < ImperfectionIterations / 2; i++)
+            {
+                int dir = random.Next(6);
+                int xSize, ySize, zSize;
+                switch (dir)
+                {
+                    case 0:
+                        xSize = leafSizeLong;
+                        ySize = leafSizeShort;
+                        zSize = leafSizeThickness;
+                        break;
+                    case 1:
+                        xSize = leafSizeLong;
+                        ySize = leafSizeThickness;
+                        zSize = leafSizeShort;
+                        break;
+                    case 2:
+                        xSize = leafSizeShort;
+                        ySize = leafSizeLong;
+                        zSize = leafSizeThickness;
+                        break;
+                    case 3:
+                        xSize = leafSizeShort;
+                        ySize = leafSizeThickness;
+                        zSize = leafSizeLong;
+                        break;
+                    case 4:
+                        xSize = leafSizeThickness;
+                        ySize = leafSizeLong;
+                        zSize = leafSizeShort;
+                        break;
+                    default:
+                        xSize = leafSizeThickness;
+                        ySize = leafSizeShort;
+                        zSize = leafSizeLong;
+                        break;
+                }
+                int x = random.Next(BlockLOD32.VoxelSize - xSize + 1);
+                int y = random.Next(BlockLOD32.VoxelSize - ySize + 1);
+                int z = random.Next(BlockLOD32.VoxelSize - zSize + 1);
+                for (int zOff = 0; zOff < zSize; zOff++)
+                {
+                    for (int xOff = 0; xOff < xSize; xOff++)
+                    {
+                        for (int yOff = 0; yOff < ySize; yOff++)
+                            leaves.LOD32[x + xOff, y + yOff, z + zOff] = leavesVoxel;
+                    }
+                }
+            }
+
+            CommonUtils.MakeBlockRound(leaves, num);
+
+            leaves.AddComponent(new LightPassthroughComponent());
+            leaves.GenerateLODLevels();
+            return leaves;
+        }
+
         private static Block CreateGrass(string name)
         {
             const int lightDist = ForFantasy ? 2 : 4;
             Block grass = new Block(name);
-            grass.AddComponent(new VoxelNoiseComponent(0.4f));
+            grass.AddComponent(new VoxelNoiseComponent(0.2f));
             grass.AddComponent(new LightPassthroughComponent());
             bool putFlowerInBlock = false;
             bool allowLight = !name.StartsWith("loading", StringComparison.Ordinal);
@@ -278,13 +346,14 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
             const float divisor = BlockLOD32.VoxelSize * 10.4f;
             for (int z = 0; z < BlockLOD32.VoxelSize; z++)
             {
+                Voxel grassVoxel = new Voxel((byte)(44 + z / 2), (byte)(150 + z), (byte)(32 + z / 3), 255, VoxelSettings.SkipVoxelNormalCalc);
                 for (int x = 0; x < BlockLOD32.VoxelSize; x++)
                 {
                     for (int y = 0; y < BlockLOD32.VoxelSize; y++)
                     {
                         if (random.NextFloat() < 0.3f - z / divisor && (z == 0 || GrassVoxelUnder(grass, x, y, z)))
                         {
-                            grass.LOD32[x, y, z] = new Voxel(55, 180, 40, 255, VoxelSettings.SkipVoxelNormalCalc);
+                            grass.LOD32[x, y, z] = grassVoxel;
                             if (z == BlockLOD32.VoxelSize - 1 && random.NextFloat() < 0.2f &&
                                 x > 1 && x < BlockLOD32.VoxelSize - 2 && y > 1 && y < BlockLOD32.VoxelSize - 2 && !putFlowerInBlock)
                             {
@@ -721,9 +790,6 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
 
         private static Block CreateRoundedBlockInfo(string name, Voxel voxel, float voxelDensity, int sides, LightComponent light = null, float colorVariation = 0.2f)
         {
-            const float mid = BlockLOD32.VoxelSize / 2.0f - 0.5f;
-            const float sphereSize = BlockLOD32.VoxelSize / 2.0f;
-
             Block block = new Block(name);
             if (colorVariation > 0.0f)
                 block.AddComponent(new VoxelNoiseComponent(colorVariation, mortarColor));
@@ -740,57 +806,13 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
                 {
                     for (int z = 0; z < BlockLOD32.VoxelSize; z++)
                     {
-                        if (((sides & Top) != 0 && (sides & Front) != 0 && y - (int)mid > BlockLOD32.VoxelSize - z) ||   // rounded Top-Front
-                            ((sides & Front) != 0 && (sides & Bottom) != 0 && y + (int)mid < z) ||                  // rounded Front-Bottom
-                            ((sides & Bottom) != 0 && (sides & Back) != 0 && y + (int)mid < BlockLOD32.VoxelSize - z) || // rounded Bottom-Back
-                            ((sides & Back) != 0 && (sides & Top) != 0 && y - (int)mid > z))                        // rounded Back-Top
-                        {
-                            // Cylinder around the x-axis
-                            float dist = (y - mid) * (y - mid) + (z - mid) * (z - mid);
-                            if (dist > sphereSize * sphereSize)
-                                continue;
-                        }
-
-                        if (((sides & Right) != 0 && (sides & Front) != 0 && x - (int)mid > BlockLOD32.VoxelSize - z) || // rounded Right-Front
-                            ((sides & Front) != 0 && (sides & Left) != 0 && x + (int)mid < z) ||                    // rounded Front-Left
-                            ((sides & Left) != 0 && (sides & Back) != 0 && x + (int)mid < BlockLOD32.VoxelSize - z) ||   // rounded Left-Back
-                            ((sides & Back) != 0 && (sides & Right) != 0 && x - (int)mid > z))                      // rounded Back-Right
-                        {
-                            // Cylinder around the y-axis
-                            float dist = (x - mid) * (x - mid) + (z - mid) * (z - mid);
-                            if (dist > sphereSize * sphereSize)
-                                continue;
-                        }
-
-                        if (((sides & Right) != 0 && (sides & Top) != 0 && x - (int)mid > BlockLOD32.VoxelSize - y) ||   // rounded Right-Top
-                            ((sides & Top) != 0 && (sides & Left) != 0 && x + (int)mid < y) ||                      // rounded Top-Left
-                            ((sides & Left) != 0 && (sides & Bottom) != 0 && x + (int)mid < BlockLOD32.VoxelSize - y) || // rounded Left-Bottom
-                            ((sides & Bottom) != 0 && (sides & Right) != 0 && x - (int)mid > y))                    // rounded Bottom-Right
-                        {
-                            // Cylinder around the z-axis
-                            float dist = (x - mid) * (x - mid) + (y - mid) * (y - mid);
-                            if (dist > sphereSize * sphereSize)
-                                continue;
-                        }
-
-                        if ((((sides & Top) != 0 && (sides & Bottom) != 0 && (sides & Left) != 0 && x < mid) || // rounded Left
-                            ((sides & Top) != 0 && (sides & Bottom) != 0 && (sides & Right) != 0 && x > mid) || // rounded Right
-                            ((sides & Top) != 0 && (sides & Right) != 0 && (sides & Left) != 0 && y > mid) ||   // rounded Top
-                            ((sides & Bottom) != 0 && (sides & Right) != 0 && (sides & Left) != 0 && y < mid))  // rounded Bottom
-                            && (((sides & Front) != 0 && z > mid) || ((sides & Back) != 0 && z < mid)))         // on the front or back
-                        {
-                            // rounded front or back
-                            float dist = (x - mid) * (x - mid) + (y - mid) * (y - mid) + (z - mid) * (z - mid);
-                            if (dist > sphereSize * sphereSize)
-                                continue;
-                        }
-
                         if (random.NextFloat() < voxelDensity)
                             block.LOD32[x, y, z] = voxel;
                     }
                 }
             }
 
+            CommonUtils.MakeBlockRound(block, sides);
             block.GenerateLODLevels();
             return block;
         }
