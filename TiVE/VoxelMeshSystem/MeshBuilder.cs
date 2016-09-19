@@ -7,19 +7,6 @@ using ProdigalSoftware.Utils;
 
 namespace ProdigalSoftware.TiVE.VoxelMeshSystem
 {
-    [Flags]
-    internal enum VoxelSides
-    {
-        None = 0,
-        Top = 1 << 0,
-        Left = 1 << 1,
-        Right = 1 << 2,
-        Bottom = 1 << 3,
-        Front = 1 << 4,
-        Back = 1 << 5,
-        All = Top | Left | Right | Bottom | Front | Back,
-    }
-
     internal sealed class MeshBuilder : IMeshBuilder
     {
         private readonly Vector4b[] locationData;

@@ -7,6 +7,7 @@ using MoonSharp.Interpreter.Interop;
 using ProdigalSoftware.TiVE.RenderSystem;
 using ProdigalSoftware.TiVE.RenderSystem.Lighting;
 using ProdigalSoftware.TiVE.RenderSystem.World;
+using ProdigalSoftware.TiVE.Settings;
 using ProdigalSoftware.TiVEPluginFramework;
 using ProdigalSoftware.TiVEPluginFramework.Components;
 //#define DEBUG_NODES
@@ -21,8 +22,16 @@ namespace ProdigalSoftware.TiVE.Core
         private const int InitialChunkListSize = 20000;
 
         private readonly Dictionary<Type, List<IEntity>> entityComponentTypeMap = new Dictionary<Type, List<IEntity>>(30);
-        private readonly LightProvider[] lightProviders = new LightProvider[3];
+        private LightProvider lightProviderNoShadow;
+        private LightProvider lightProviderShadow;
+        private bool useShadows;
         #endregion
+
+        public Scene()
+        {
+            useShadows = (ShadowDetailLevel)(int)TiVEController.UserSettings.Get(UserSettings.ShadowDetailKey) != ShadowDetailLevel.Off;
+            TiVEController.UserSettings.SettingChanged += UserSettings_SettingChanged;
+        }
 
         #region Properties
         internal GameWorld GameWorldInternal { get; private set; }
@@ -32,6 +41,9 @@ namespace ProdigalSoftware.TiVE.Core
         internal GameWorldLightData LightData { get; private set; }
 
         internal RootRenderNode RenderNode { get; private set; }
+
+        internal LightProvider LightProvider => 
+            GetLightProvider(useShadows);
         #endregion
 
         #region Implementation of IScene
@@ -44,10 +56,8 @@ namespace ProdigalSoftware.TiVE.Core
 #endif
         }
 
-        public IGameWorld GameWorld 
-        {
-            get { return GameWorldInternal; }
-        }
+        public IGameWorld GameWorld => 
+            GameWorldInternal;
 
         public Color3f AmbientLight { get; set; }
 
@@ -98,15 +108,15 @@ namespace ProdigalSoftware.TiVE.Core
         #endregion
 
         #region Internal methods
-        internal LightProvider GetLightProvider(ShadowType shadowType)
+        internal LightProvider GetLightProvider(bool withShadows)
         {
-            return lightProviders[(int)shadowType];
+            return withShadows ? lightProviderShadow : lightProviderNoShadow;
         }
 
         internal void SetGameWorld(GameWorld newGameWorld)
         {
             if (newGameWorld == null)
-                throw new ArgumentNullException("newGameWorld");
+                throw new ArgumentNullException(nameof(newGameWorld));
 
             newGameWorld.Initialize();
 
@@ -114,13 +124,20 @@ namespace ProdigalSoftware.TiVE.Core
             RenderNode = new RootRenderNode(newGameWorld, this);
 
             // Must be done after setting the game world
-            lightProviders[(int)ShadowType.None] = LightProvider.Create(this, ShadowType.None);
-            lightProviders[(int)ShadowType.Fast] = LightProvider.Create(this, ShadowType.Fast);
-            lightProviders[(int)ShadowType.Nice] = LightProvider.Create(this, ShadowType.Nice);
+            lightProviderShadow = LightProvider.Create(this, true);
+            lightProviderNoShadow = LightProvider.Create(this, false);
 
             // Calculate static lighting
             LightData = new GameWorldLightData(this);
             LightData.Calculate();
+        }
+        #endregion
+
+        #region Event handlers
+        private void UserSettings_SettingChanged(string settingName, Setting newValue)
+        {
+            if (settingName == UserSettings.ShadowDetailKey)
+                useShadows = (ShadowDetailLevel)(int)newValue != ShadowDetailLevel.Off;
         }
         #endregion
 
@@ -137,7 +154,7 @@ namespace ProdigalSoftware.TiVE.Core
                         ParticleComponent particleData = block.GetComponent<ParticleComponent>();
                         if (particleData != null)
                         {
-                            IEntity entity = CreateNewEntity(string.Format("BlockParticles({0}, {1}, {2})", x, y, z));
+                            IEntity entity = CreateNewEntity($"BlockParticles({x}, {y}, {z})");
                             entity.AddComponent(new ParticleComponent(particleData.ControllerName,
                                 new Vector3i(x * BlockLOD32.VoxelSize + particleData.Location.X,
                                     y * BlockLOD32.VoxelSize + particleData.Location.Y,
@@ -203,20 +220,16 @@ namespace ProdigalSoftware.TiVE.Core
             }
 
             #region Implementation of IEntity
-            public string Name
-            {
-                get { return name; }
-            }
+            public string Name => 
+                name;
 
-            public IEnumerable<IComponent> Components
-            {
-                get { return components; }
-            }
+            public IEnumerable<IComponent> Components => 
+                components;
 
             public void AddComponent(IComponent component)
             {
                 if (component == null)
-                    throw new ArgumentNullException("component");
+                    throw new ArgumentNullException(nameof(component));
 
                 if (components == null)
                     components = new IComponent[1];
@@ -268,7 +281,7 @@ namespace ProdigalSoftware.TiVE.Core
             [MoonSharpVisible(false)]
             public override string ToString()
             {
-                int componentCount = components != null ? components.Length : 0;
+                int componentCount = components?.Length ?? 0;
                 return name + " (" + componentCount + " components)";
             }
         }

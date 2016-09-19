@@ -142,12 +142,10 @@ namespace ProdigalSoftware.TiVE.RenderSystem
                 VoxelMeshComponent renderData = entity.GetComponent<VoxelMeshComponent>();
                 using (new PerformanceLock(renderData.SyncLock))
                 {
-                    if (renderData.MeshBuilder != null)
-                        renderData.MeshBuilder.DropMesh();
+                    renderData.MeshBuilder?.DropMesh();
                     renderData.MeshBuilder = null;
                     renderData.Visible = false;
                     renderData.VoxelDetailLevelToLoad = LODLevel.NotSet;
-                    renderData.ShadowTypeToLoad = VoxelMeshComponent.BlankShadowType;
                 }
 
                 loadedEntities.Remove(entity);
@@ -168,8 +166,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem
                     IMeshBuilder meshBuilder = renderData.MeshBuilder;
                     if (meshBuilder != null)
                     {
-                        if (renderData.MeshData != null)
-                            ((IVertexDataCollection)renderData.MeshData).Dispose();
+                        ((IVertexDataCollection)renderData.MeshData)?.Dispose();
 
                         if (renderData.PolygonCount == 0)
                             renderData.MeshData = null;
@@ -183,9 +180,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem
                         renderData.MeshBuilder = null;
                         
                         renderData.VisibleVoxelDetailLevel = renderData.VoxelDetailLevelToLoad;
-                        renderData.VisibleShadowType = renderData.ShadowTypeToLoad;
                         renderData.VoxelDetailLevelToLoad = LODLevel.NotSet;
-                        renderData.ShadowTypeToLoad = VoxelMeshComponent.BlankShadowType;
                     }
                 }
             }
@@ -210,8 +205,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem
             VoxelMeshComponent renderData = entity.GetComponent<VoxelMeshComponent>();
             using (new PerformanceLock(renderData.SyncLock))
             {
-                if (renderData.MeshData != null)
-                    ((IVertexDataCollection)renderData.MeshData).Dispose();
+                ((IVertexDataCollection)renderData.MeshData)?.Dispose();
 
                 if (renderData.MeshBuilder != null && dropMesh)
                     renderData.MeshBuilder.DropMesh();
@@ -220,9 +214,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem
                 renderData.MeshBuilder = null;
                 renderData.Visible = false;
                 renderData.VisibleVoxelDetailLevel = LODLevel.NotSet;
-                renderData.VisibleShadowType = VoxelMeshComponent.BlankShadowType;
                 renderData.VoxelDetailLevelToLoad = LODLevel.NotSet;
-                renderData.ShadowTypeToLoad = VoxelMeshComponent.BlankShadowType;
                 renderData.PolygonCount = 0;
                 renderData.VoxelCount = 0;
                 renderData.RenderedVoxelCount = 0;

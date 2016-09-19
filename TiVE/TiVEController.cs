@@ -93,6 +93,7 @@ namespace ProdigalSoftware.TiVE
                 //DoBlockLineTest();
                 //DoFastVoxelRayCastTest();
                 DoVoxelRayCastTest();
+                DoVoxelRayCastFastTest();
             });
             initialLoadThread.IsBackground = true;
             initialLoadThread.Name = "InitialLoad";
@@ -115,7 +116,7 @@ namespace ProdigalSoftware.TiVE
                 for (int z = 0; z < 100; z++)
                 {
                     for (int y = 0; y < 100; y++)
-                        gameWorld[x, y, z] = (x + y + z % 2 == 0) ? block : Block.Empty;
+                        gameWorld[x, y, z] = (x + y + z % 3 == 0) ? block : Block.Empty;
                 }
             }
 
@@ -146,34 +147,45 @@ namespace ProdigalSoftware.TiVE
             }
         }
 
-        //private static void DoFastVoxelRayCastTest()
-        //{
-        //    GameWorld gameWorld = new GameWorld(100, 100, 100);
-        //    Block block = new Block("dummy");
-        //    for (int x = 0; x < 100; x++)
-        //    {
-        //        for (int z = 0; z < 100; z++)
-        //        {
-        //            for (int y = 0; y < 100; y++)
-        //                gameWorld[x, y, z] = (x + y + z % 2 == 0) ? block : Block.Empty;
-        //        }
-        //    }
+        private static void DoVoxelRayCastFastTest()
+        {
+            GameWorld gameWorld = new GameWorld(100, 100, 100);
+            Block block = new Block("dummy");
+            for (int x = 0; x < 100; x++)
+            {
+                for (int z = 0; z < 100; z++)
+                {
+                    for (int y = 0; y < 100; y++)
+                        gameWorld[x, y, z] = (x + y + z % 3 == 0) ? block : Block.Empty;
+                }
+            }
 
-        //    gameWorld.Initialize();
-        //    int center = gameWorld.VoxelSize.X / 2;
+            gameWorld.Initialize();
 
-        //    long totalMs = 0;
-        //    Stopwatch sw = new Stopwatch();
-        //    for (int t = 0; t < 20; t++)
-        //    {
-        //        sw.Restart();
-        //        for (int i = 0; i < 10000; i++)
-        //            gameWorld.NoVoxelInLineFast(center, center, center, i % center + 200, i % center + 200, i % center + 200);
-        //        sw.Stop();
-        //        totalMs += sw.ElapsedMilliseconds;
-        //    }
-        //    Messages.Println(string.Format("10,000 fast ray casts took average of {0}ms", totalMs / 20.0f), Color.Chocolate);
-        //}
+            for (int level = (int)LODLevel.V32; level <= (int)LODLevel.V4; level++)
+            {
+                LODLevel detailLevel = (LODLevel)level;
+                long totalMs = 0;
+                Stopwatch sw = new Stopwatch();
+                int center = gameWorld.VoxelSize32.X / LODUtils.AdjustForDetailLevelTo32(2, detailLevel);
+                int offSet = LODUtils.AdjustForDetailLevelFrom32(200, detailLevel);
+                int minMs = int.MaxValue;
+                int maxMs = 0;
+                for (int t = 0; t < 10; t++)
+                {
+                    sw.Restart();
+                    for (int i = 0; i < 10000; i++)
+                        gameWorld.NoVoxelInLineFast(center, center, center, i % center + offSet, i % center + offSet, i % center + offSet, detailLevel);
+                    sw.Stop();
+                    totalMs += sw.ElapsedMilliseconds;
+                    if (sw.ElapsedMilliseconds < minMs)
+                        minMs = (int)sw.ElapsedMilliseconds;
+                    if (sw.ElapsedMilliseconds > maxMs)
+                        maxMs = (int)sw.ElapsedMilliseconds;
+                }
+                Messages.Println(string.Format("10,000 fast ray casts at detail {0} took average of {1}ms ({2}-{3})", detailLevel, totalMs / 10.0f, minMs, maxMs), Color.Chocolate);
+            }
+        }
 
         //private static void DoBlockLineTest()
         //{

@@ -2,6 +2,7 @@
 using ProdigalSoftware.TiVE.Core.Backend;
 using ProdigalSoftware.TiVE.VoxelMeshSystem;
 using ProdigalSoftware.TiVEPluginFramework;
+using ProdigalSoftware.TiVEPluginFramework.Internal;
 
 namespace ProdigalSoftware.TiVE.RenderSystem
 {

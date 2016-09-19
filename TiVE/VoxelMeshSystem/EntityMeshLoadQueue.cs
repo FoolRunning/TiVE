@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using ProdigalSoftware.TiVE.RenderSystem.Lighting;
 using ProdigalSoftware.TiVEPluginFramework;
 using ProdigalSoftware.TiVEPluginFramework.Components;
 
@@ -12,15 +11,11 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
         private readonly QueueItemDistanceComparer entityComparer = new QueueItemDistanceComparer();
         private readonly List<EntityLoadQueueItem> entities = new List<EntityLoadQueueItem>(5000);
 
-        public bool IsEmpty
-        {
-            get { return entities.Count == 0; }
-        }
+        public bool IsEmpty => 
+            entities.Count == 0;
 
-        public int Size
-        {
-            get { return entities.Count; }
-        }
+        public int Size => 
+            entities.Count;
 
         public void Enqueue(EntityLoadQueueItem item)
         {
@@ -40,7 +35,7 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
 
         public void Remove(IEntity item)
         {
-            EntityLoadQueueItem queueItem = new EntityLoadQueueItem(item, 0, ShadowType.None);
+            EntityLoadQueueItem queueItem = new EntityLoadQueueItem(item, 0);
             int existingItemIndex = FindRealIndex(queueItem);
             //if (existingItemIndex >= 0 && entities[existingItemIndex].Entity != item)
             //    Console.WriteLine("Probably removed the wrong item :(");
@@ -148,17 +143,14 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
         #endregion
     }
 
+    #region EntityLoadQueueItem
     internal sealed class EntityLoadQueueItem
     {
         public readonly IEntity Entity;
         public readonly Vector3i EntityLocation;
-        /// <summary>
-        /// 3 bits = detail level
-        /// 2 bits = shadow type
-        /// </summary>
-        private readonly byte meshCreationInfo;
+        public readonly LODLevel DetailLevel;
 
-        public EntityLoadQueueItem(IEntity entity, LODLevel detailLevel, ShadowType shadowType)
+        public EntityLoadQueueItem(IEntity entity, LODLevel detailLevel)
         {
             if (detailLevel == LODLevel.NotSet || detailLevel == LODLevel.NumOfLevels)
                 throw new ArgumentException("detailLevel not valid: " + detailLevel);
@@ -168,18 +160,8 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
             VoxelMeshComponent meshData = entity.GetComponent<VoxelMeshComponent>();
             Debug.Assert(meshData != null);
             EntityLocation = new Vector3i((int)meshData.Location.X, (int)meshData.Location.Y, (int)meshData.Location.Z);
-
-            meshCreationInfo = (byte)(((int)detailLevel & 0x7) | ((int)shadowType << 3) & 0x18);
-        }
-
-        public LODLevel DetailLevel
-        {
-            get { return (LODLevel)(meshCreationInfo & 0x7); }
-        }
-
-        public ShadowType ShadowType
-        {
-            get { return (ShadowType)((meshCreationInfo & 0x18) >> 3); }
+            DetailLevel = detailLevel;
         }
     }
+    #endregion
 }

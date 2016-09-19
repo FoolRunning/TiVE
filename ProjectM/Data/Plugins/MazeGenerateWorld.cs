@@ -692,6 +692,9 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
             Block smallLight = Factory.Get<Block>("smallLight");
             Block redLight = Factory.Get<Block>("redLight");
             Block treeLight = Factory.Get<Block>("treeLight");
+            Block hoverLightBlue = Factory.Get<Block>("hoverLightBlue");
+            Block fountainLight = Factory.Get<Block>("fountainLight");
+            Block dummy = Factory.Get<Block>("dummy");
             //Block smallLightHover = blockList["smallLightHover"];
             Block fire = Factory.Get<Block>("fire");
             Block lava = Factory.Get<Block>("lava");
@@ -787,9 +790,12 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
                     {
                         gameWorld[x, y, 3] = wood;
                         if (x % 3 == 1 && y % 3 == 1)
+                        {
                             gameWorld[x, y, 4] = fountain;
+                            gameWorld[x, y, 7] = fountainLight;
+                        }
                         if ((x % 3 == 0 || x % 3 == 2) && (y % 3 == 0 || y % 3 == 2))
-                            gameWorld[x, y, 4] = smallLight;
+                            gameWorld[x, y, 4] = dummy;
                     }
                     else if (itemId == ItemIdFire)
                     {
@@ -882,7 +888,7 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
                         if (lightId == LightIdRoomLight)
                             gameWorld[x, y, 10] = Factory.Get<Block>("roomLight");
                         else if (lightId == LightIdSmallLight)
-                            gameWorld[x, y, 8] = Factory.Get<Block>("hoverLightBlue");
+                            gameWorld[x, y, 8] = hoverLightBlue;
                         else
                         {
                             // For maze lights, move the light near to the maze walls so it's not in the middle of the path
