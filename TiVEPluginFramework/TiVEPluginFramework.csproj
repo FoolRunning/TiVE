@@ -98,6 +98,7 @@
     <Compile Include="Components\SpriteComponent.cs" />
     <Compile Include="Components\ScriptComponent.cs" />
     <Compile Include="Components\VoxelMeshComponent.cs" />
+    <Compile Include="Generators\ISpriteGenerator.cs" />
     <Compile Include="Internal\RenderedVoxel.cs" />
     <Compile Include="LODUtils.cs" />
     <Compile Include="Vector4b.cs" />
@@ -122,7 +123,7 @@
     <Compile Include="Plane.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RandomGenerator.cs" />
-    <Compile Include="SpriteAnimation.cs" />
+    <Compile Include="AnimationSet.cs" />
     <Compile Include="TiVEException.cs" />
     <Compile Include="TiVESerializer.cs" />
     <Compile Include="TiVEUtils.cs" />

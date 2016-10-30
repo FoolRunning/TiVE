@@ -175,7 +175,7 @@ namespace ProdigalSoftware.TiVEPluginFramework
         {
             get
             {
-                return 1.0f / MathHelper.InverseSqrtFast(X * X + Y * Y + Z * Z);
+                return MathUtils.FastSqrt(X * X + Y * Y + Z * Z);
             }
         }
 
@@ -234,7 +234,7 @@ namespace ProdigalSoftware.TiVEPluginFramework
         /// </summary>
         public void NormalizeFast()
         {
-            float scale = MathHelper.InverseSqrtFast(X * X + Y * Y + Z * Z);
+            float scale = MathUtils.InverseSqrtFast(X * X + Y * Y + Z * Z);
             X *= scale;
             Y *= scale;
             Z *= scale;
@@ -281,19 +281,6 @@ namespace ProdigalSoftware.TiVEPluginFramework
         #endregion
 
         #region Add
-
-        /// <summary>
-        /// Adds two vectors.
-        /// </summary>
-        /// <param name="a">Left operand.</param>
-        /// <param name="b">Right operand.</param>
-        /// <returns>Result of operation.</returns>
-        public static Vector3f Add(Vector3f a, Vector3f b)
-        {
-            Add(ref a, ref b, out a);
-            return a;
-        }
-
         /// <summary>
         /// Adds two vectors.
         /// </summary>
@@ -308,19 +295,6 @@ namespace ProdigalSoftware.TiVEPluginFramework
         #endregion
 
         #region Subtract
-
-        /// <summary>
-        /// Subtract one Vector from another
-        /// </summary>
-        /// <param name="a">First operand</param>
-        /// <param name="b">Second operand</param>
-        /// <returns>Result of subtraction</returns>
-        public static Vector3f Subtract(Vector3f a, Vector3f b)
-        {
-            Subtract(ref a, ref b, out a);
-            return a;
-        }
-
         /// <summary>
         /// Subtract one Vector from another
         /// </summary>
@@ -335,19 +309,6 @@ namespace ProdigalSoftware.TiVEPluginFramework
         #endregion
 
         #region Multiply
-
-        /// <summary>
-        /// Multiplies a vector by a scalar.
-        /// </summary>
-        /// <param name="vector">Left operand.</param>
-        /// <param name="scale">Right operand.</param>
-        /// <returns>Result of the operation.</returns>
-        public static Vector3f Multiply(Vector3f vector, float scale)
-        {
-            Multiply(ref vector, scale, out vector);
-            return vector;
-        }
-
         /// <summary>
         /// Multiplies a vector by a scalar.
         /// </summary>
@@ -358,19 +319,7 @@ namespace ProdigalSoftware.TiVEPluginFramework
         {
             result = new Vector3f(vector.X * scale, vector.Y * scale, vector.Z * scale);
         }
-
-        /// <summary>
-        /// Multiplies a vector by the components a vector (scale).
-        /// </summary>
-        /// <param name="vector">Left operand.</param>
-        /// <param name="scale">Right operand.</param>
-        /// <returns>Result of the operation.</returns>
-        public static Vector3f Multiply(Vector3f vector, Vector3f scale)
-        {
-            Multiply(ref vector, ref scale, out vector);
-            return vector;
-        }
-
+        
         /// <summary>
         /// Multiplies a vector by the components of a vector (scale).
         /// </summary>
@@ -385,19 +334,6 @@ namespace ProdigalSoftware.TiVEPluginFramework
         #endregion
 
         #region Divide
-
-        /// <summary>
-        /// Divides a vector by a scalar.
-        /// </summary>
-        /// <param name="vector">Left operand.</param>
-        /// <param name="scale">Right operand.</param>
-        /// <returns>Result of the operation.</returns>
-        public static Vector3f Divide(Vector3f vector, float scale)
-        {
-            Divide(ref vector, scale, out vector);
-            return vector;
-        }
-
         /// <summary>
         /// Divides a vector by a scalar.
         /// </summary>
@@ -408,19 +344,7 @@ namespace ProdigalSoftware.TiVEPluginFramework
         {
             Multiply(ref vector, 1 / scale, out result);
         }
-
-        /// <summary>
-        /// Divides a vector by the components of a vector (scale).
-        /// </summary>
-        /// <param name="vector">Left operand.</param>
-        /// <param name="scale">Right operand.</param>
-        /// <returns>Result of the operation.</returns>
-        public static Vector3f Divide(Vector3f vector, Vector3f scale)
-        {
-            Divide(ref vector, ref scale, out vector);
-            return vector;
-        }
-
+        
         /// <summary>
         /// Divide a vector by the components of a vector (scale).
         /// </summary>
@@ -435,21 +359,6 @@ namespace ProdigalSoftware.TiVEPluginFramework
         #endregion
 
         #region ComponentMin
-
-        /// <summary>
-        /// Calculate the component-wise minimum of two vectors
-        /// </summary>
-        /// <param name="a">First operand</param>
-        /// <param name="b">Second operand</param>
-        /// <returns>The component-wise minimum</returns>
-        public static Vector3f ComponentMin(Vector3f a, Vector3f b)
-        {
-            a.X = a.X < b.X ? a.X : b.X;
-            a.Y = a.Y < b.Y ? a.Y : b.Y;
-            a.Z = a.Z < b.Z ? a.Z : b.Z;
-            return a;
-        }
-
         /// <summary>
         /// Calculate the component-wise minimum of two vectors
         /// </summary>
@@ -466,21 +375,6 @@ namespace ProdigalSoftware.TiVEPluginFramework
         #endregion
 
         #region ComponentMax
-
-        /// <summary>
-        /// Calculate the component-wise maximum of two vectors
-        /// </summary>
-        /// <param name="a">First operand</param>
-        /// <param name="b">Second operand</param>
-        /// <returns>The component-wise maximum</returns>
-        public static Vector3f ComponentMax(Vector3f a, Vector3f b)
-        {
-            a.X = a.X > b.X ? a.X : b.X;
-            a.Y = a.Y > b.Y ? a.Y : b.Y;
-            a.Z = a.Z > b.Z ? a.Z : b.Z;
-            return a;
-        }
-
         /// <summary>
         /// Calculate the component-wise maximum of two vectors
         /// </summary>
@@ -504,7 +398,7 @@ namespace ProdigalSoftware.TiVEPluginFramework
         /// <param name="left">Left operand</param>
         /// <param name="right">Right operand</param>
         /// <returns>The minimum Vector3f</returns>
-        public static Vector3f Min(Vector3f left, Vector3f right)
+        public static Vector3f Min(ref Vector3f left, ref Vector3f right)
         {
             return left.LengthSquared < right.LengthSquared ? left : right;
         }
@@ -519,7 +413,7 @@ namespace ProdigalSoftware.TiVEPluginFramework
         /// <param name="left">Left operand</param>
         /// <param name="right">Right operand</param>
         /// <returns>The minimum Vector3f</returns>
-        public static Vector3f Max(Vector3f left, Vector3f right)
+        public static Vector3f Max(ref Vector3f left, ref Vector3f right)
         {
             return left.LengthSquared >= right.LengthSquared ? left : right;
         }
@@ -560,21 +454,6 @@ namespace ProdigalSoftware.TiVEPluginFramework
         #endregion
 
         #region Normalize
-
-        /// <summary>
-        /// Scale a vector to unit length
-        /// </summary>
-        /// <param name="vec">The input vector</param>
-        /// <returns>The normalized vector</returns>
-        public static Vector3f Normalize(Vector3f vec)
-        {
-            float scale = 1.0f / vec.Length;
-            vec.X *= scale;
-            vec.Y *= scale;
-            vec.Z *= scale;
-            return vec;
-        }
-
         /// <summary>
         /// Scale a vector to unit length
         /// </summary>
@@ -591,21 +470,6 @@ namespace ProdigalSoftware.TiVEPluginFramework
         #endregion
 
         #region NormalizeFast
-
-        /// <summary>
-        /// Scale a vector to approximately unit length
-        /// </summary>
-        /// <param name="vec">The input vector</param>
-        /// <returns>The normalized vector</returns>
-        public static Vector3f NormalizeFast(Vector3f vec)
-        {
-            float scale = MathHelper.InverseSqrtFast(vec.X * vec.X + vec.Y * vec.Y + vec.Z * vec.Z);
-            vec.X *= scale;
-            vec.Y *= scale;
-            vec.Z *= scale;
-            return vec;
-        }
-
         /// <summary>
         /// Scale a vector to approximately unit length
         /// </summary>
@@ -613,7 +477,7 @@ namespace ProdigalSoftware.TiVEPluginFramework
         /// <param name="result">The normalized vector</param>
         public static void NormalizeFast(ref Vector3f vec, out Vector3f result)
         {
-            float scale = MathHelper.InverseSqrtFast(vec.X * vec.X + vec.Y * vec.Y + vec.Z * vec.Z);
+            float scale = MathUtils.InverseSqrtFast(vec.X * vec.X + vec.Y * vec.Y + vec.Z * vec.Z);
             result.X = vec.X * scale;
             result.Y = vec.Y * scale;
             result.Z = vec.Z * scale;
@@ -622,18 +486,6 @@ namespace ProdigalSoftware.TiVEPluginFramework
         #endregion
 
         #region Dot
-
-        /// <summary>
-        /// Calculate the dot (scalar) product of two vectors
-        /// </summary>
-        /// <param name="left">First operand</param>
-        /// <param name="right">Second operand</param>
-        /// <returns>The dot product of the two inputs</returns>
-        public static float Dot(Vector3f left, Vector3f right)
-        {
-            return left.X * right.X + left.Y * right.Y + left.Z * right.Z;
-        }
-
         /// <summary>
         /// Calculate the dot (scalar) product of two vectors
         /// </summary>
@@ -647,20 +499,6 @@ namespace ProdigalSoftware.TiVEPluginFramework
         #endregion
 
         #region Cross
-
-        /// <summary>
-        /// Caclulate the cross (vector) product of two vectors
-        /// </summary>
-        /// <param name="left">First operand</param>
-        /// <param name="right">Second operand</param>
-        /// <returns>The cross product of the two inputs</returns>
-        public static Vector3f Cross(Vector3f left, Vector3f right)
-        {
-            Vector3f result;
-            Cross(ref left, ref right, out result);
-            return result;
-        }
-
         /// <summary>
         /// Caclulate the cross (vector) product of two vectors
         /// </summary>
@@ -678,22 +516,6 @@ namespace ProdigalSoftware.TiVEPluginFramework
         #endregion
 
         #region Lerp
-
-        /// <summary>
-        /// Returns a new Vector that is the linear blend of the 2 given Vectors
-        /// </summary>
-        /// <param name="a">First input vector</param>
-        /// <param name="b">Second input vector</param>
-        /// <param name="blend">The blend factor. a when blend=0, b when blend=1.</param>
-        /// <returns>a when blend=0, b when blend=1, and a linear combination otherwise</returns>
-        public static Vector3f Lerp(Vector3f a, Vector3f b, float blend)
-        {
-            a.X = blend * (b.X - a.X) + a.X;
-            a.Y = blend * (b.Y - a.Y) + a.Y;
-            a.Z = blend * (b.Z - a.Z) + a.Z;
-            return a;
-        }
-
         /// <summary>
         /// Returns a new Vector that is the linear blend of the 2 given Vectors
         /// </summary>
@@ -711,21 +533,6 @@ namespace ProdigalSoftware.TiVEPluginFramework
         #endregion
 
         #region Barycentric
-
-        /// <summary>
-        /// Interpolate 3 Vectors using Barycentric coordinates
-        /// </summary>
-        /// <param name="a">First input Vector</param>
-        /// <param name="b">Second input Vector</param>
-        /// <param name="c">Third input Vector</param>
-        /// <param name="u">First Barycentric Coordinate</param>
-        /// <param name="v">Second Barycentric Coordinate</param>
-        /// <returns>a when u=v=0, b when u=1,v=0, c when u=0,v=1, and a linear combination of a,b,c otherwise</returns>
-        public static Vector3f BaryCentric(Vector3f a, Vector3f b, Vector3f c, float u, float v)
-        {
-            return a + u * (b - a) + v * (c - a);
-        }
-
         /// <summary>Interpolate 3 Vectors using Barycentric coordinates</summary>
         /// <param name="a">First input Vector.</param>
         /// <param name="b">Second input Vector.</param>
@@ -751,22 +558,7 @@ namespace ProdigalSoftware.TiVEPluginFramework
         #endregion
 
         #region Transform
-
-        /// <summary>Transform a direction vector by the given Matrix
-        /// Assumes the matrix has a bottom row of (0,0,0,1), that is the translation part is ignored.
-        /// </summary>
-        /// <param name="vec">The vector to transform</param>
-        /// <param name="mat">The desired transformation</param>
-        /// <returns>The transformed vector</returns>
-        public static Vector3f TransformVector(Vector3f vec, Matrix4f mat)
-        {
-            Vector3f v;
-            v.X = Dot(vec, new Vector3f(mat.Column0));
-            v.Y = Dot(vec, new Vector3f(mat.Column1));
-            v.Z = Dot(vec, new Vector3f(mat.Column2));
-            return v;
-        }
-
+        
         /// <summary>Transform a direction vector by the given Matrix
         /// Assumes the matrix has a bottom row of (0,0,0,1), that is the translation part is ignored.
         /// </summary>
@@ -779,21 +571,7 @@ namespace ProdigalSoftware.TiVEPluginFramework
             result.Y = vec.X * mat.Row0Y + vec.Y * mat.Row1Y + vec.Z * mat.Row2Y;
             result.Z = vec.X * mat.Row0Z + vec.Y * mat.Row1Z + vec.Z * mat.Row2Z;
         }
-
-        /// <summary>Transform a Normal by the given Matrix</summary>
-        /// <remarks>
-        /// This calculates the inverse of the given matrix, use TransformNormalInverse if you
-        /// already have the inverse to avoid this extra calculation
-        /// </remarks>
-        /// <param name="norm">The normal to transform</param>
-        /// <param name="mat">The desired transformation</param>
-        /// <returns>The transformed normal</returns>
-        public static Vector3f TransformNormal(Vector3f norm, Matrix4f mat)
-        {
-            mat.Invert();
-            return TransformNormalInverse(norm, mat);
-        }
-
+        
         /// <summary>Transform a Normal by the given Matrix</summary>
         /// <remarks>
         /// This calculates the inverse of the given matrix, use TransformNormalInverse if you
@@ -804,27 +582,11 @@ namespace ProdigalSoftware.TiVEPluginFramework
         /// <param name="result">The transformed normal</param>
         public static void TransformNormal(ref Vector3f norm, ref Matrix4f mat, out Vector3f result)
         {
-            Matrix4f Inverse = Matrix4f.Invert(mat);
-            TransformNormalInverse(ref norm, ref Inverse, out result);
+            Matrix4f inverse;
+            Matrix4f.Invert(ref mat, out inverse);
+            TransformNormalInverse(ref norm, ref inverse, out result);
         }
-
-        /// <summary>Transform a Normal by the (transpose of the) given Matrix</summary>
-        /// <remarks>
-        /// This version doesn't calculate the inverse matrix.
-        /// Use this version if you already have the inverse of the desired transform to hand
-        /// </remarks>
-        /// <param name="norm">The normal to transform</param>
-        /// <param name="invMat">The inverse of the desired transformation</param>
-        /// <returns>The transformed normal</returns>
-        public static Vector3f TransformNormalInverse(Vector3f norm, Matrix4f invMat)
-        {
-            Vector3f n;
-            n.X = Dot(norm, new Vector3f(invMat.Row0X, invMat.Row0Y, invMat.Row0Z));
-            n.Y = Dot(norm, new Vector3f(invMat.Row1X, invMat.Row1Y, invMat.Row1Z));
-            n.Z = Dot(norm, new Vector3f(invMat.Row2X, invMat.Row2Y, invMat.Row2Z));
-            return n;
-        }
-
+        
         /// <summary>Transform a Normal by the (transpose of the) given Matrix</summary>
         /// <remarks>
         /// This version doesn't calculate the inverse matrix.
@@ -839,20 +601,7 @@ namespace ProdigalSoftware.TiVEPluginFramework
             result.Y = norm.X * invMat.Row1X + norm.Y * invMat.Row1Y + norm.Z * invMat.Row1Z;
             result.Z = norm.X * invMat.Row2X + norm.Y * invMat.Row2Y + norm.Z * invMat.Row2Z;
         }
-
-        /// <summary>Transform a Position by the given Matrix</summary>
-        /// <param name="pos">The position to transform</param>
-        /// <param name="mat">The desired transformation</param>
-        /// <returns>The transformed position</returns>
-        public static Vector3f TransformPosition(Vector3f pos, Matrix4f mat)
-        {
-            Vector3f p;
-            p.X = Dot(pos, new Vector3f(mat.Column0)) + mat.Row3X;
-            p.Y = Dot(pos, new Vector3f(mat.Column1)) + mat.Row3Y;
-            p.Z = Dot(pos, new Vector3f(mat.Column2)) + mat.Row3Z;
-            return p;
-        }
-
+        
         /// <summary>Transform a Position by the given Matrix</summary>
         /// <param name="pos">The position to transform</param>
         /// <param name="mat">The desired transformation</param>
@@ -863,18 +612,7 @@ namespace ProdigalSoftware.TiVEPluginFramework
             result.Y = pos.X * mat.Row0Y + pos.Y * mat.Row1Y + pos.Z * mat.Row2Y + mat.Row3Y;
             result.Z = pos.X * mat.Row0Z + pos.Y * mat.Row1Z + pos.Z * mat.Row2Z + mat.Row3Z;
         }
-
-        /// <summary>Transform a Vector by the given Matrix</summary>
-        /// <param name="vec">The vector to transform</param>
-        /// <param name="mat">The desired transformation</param>
-        /// <returns>The transformed vector</returns>
-        public static Vector3f Transform(Vector3f vec, Matrix4f mat)
-        {
-            Vector3f result;
-            Transform(ref vec, ref mat, out result);
-            return result;
-        }
-
+        
         /// <summary>Transform a Vector by the given Matrix</summary>
         /// <param name="vec">The vector to transform</param>
         /// <param name="mat">The desired transformation</param>
@@ -885,18 +623,7 @@ namespace ProdigalSoftware.TiVEPluginFramework
             Vector4f.Transform(ref v4, ref mat, out v4);
             result = v4.Xyz;
         }
-
-        /// <summary>Transform a Vector3f by the given Matrix, and project the resulting Vector4f back to a Vector3f</summary>
-        /// <param name="vec">The vector to transform</param>
-        /// <param name="mat">The desired transformation</param>
-        /// <returns>The transformed vector</returns>
-        public static Vector3f TransformPerspective(Vector3f vec, Matrix4f mat)
-        {
-            Vector3f result;
-            TransformPerspective(ref vec, ref mat, out result);
-            return result;
-        }
-
+        
         /// <summary>Transform a Vector3f by the given Matrix, and project the resulting Vector4f back to a Vector3f</summary>
         /// <param name="vec">The vector to transform</param>
         /// <param name="mat">The desired transformation</param>

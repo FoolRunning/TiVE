@@ -29,7 +29,7 @@ namespace ProdigalSoftware.TiVE
 
         static TiVEController()
         {
-            for (int i = 0; i < 50; i++)
+            for (int i = 0; i < 30; i++)
             {
                 long startTime = Stopwatch.GetTimestamp();
                 Thread.Sleep(1);
@@ -91,9 +91,8 @@ namespace ProdigalSoftware.TiVE
                 //TestIntStructAccess();
                 //TestRandomSpeed();
                 //DoBlockLineTest();
-                //DoFastVoxelRayCastTest();
-                DoVoxelRayCastTest();
-                DoVoxelRayCastFastTest();
+                //DoSqrtSpeedTests();
+                DoRayCastTests();
             });
             initialLoadThread.IsBackground = true;
             initialLoadThread.Name = "InitialLoad";
@@ -107,6 +106,12 @@ namespace ProdigalSoftware.TiVE
         }
 
         #region Ray cast speed tests
+        private static void DoRayCastTests()
+        {
+            DoVoxelRayCastTest();
+            //DoVoxelRayCastFastTest();
+        }
+
         private static void DoVoxelRayCastTest()
         {
             GameWorld gameWorld = new GameWorld(100, 100, 100);
@@ -122,9 +127,9 @@ namespace ProdigalSoftware.TiVE
 
             gameWorld.Initialize();
 
-            for (int level = (int)LODLevel.V32; level <= (int)LODLevel.V4; level++)
+            //for (int level = (int)LODLevel.V32; level <= (int)LODLevel.V4; level++)
             {
-                LODLevel detailLevel = (LODLevel)level;
+                LODLevel detailLevel = LODLevel.V32; // (LODLevel)level;
                 long totalMs = 0;
                 Stopwatch sw = new Stopwatch();
                 int center = gameWorld.VoxelSize32.X / LODUtils.AdjustForDetailLevelTo32(2, detailLevel);
@@ -143,49 +148,49 @@ namespace ProdigalSoftware.TiVE
                     if (sw.ElapsedMilliseconds > maxMs)
                         maxMs = (int)sw.ElapsedMilliseconds;
                 }
-                Messages.Println(string.Format("10,000 ray casts at detail {0} took average of {1}ms ({2}-{3})", detailLevel, totalMs / 10.0f, minMs, maxMs), Color.Chocolate);
+                Messages.Println($"10,000 ray casts at detail {detailLevel} took average of {totalMs / 10.0f}ms ({minMs}-{maxMs})", Color.Chocolate);
             }
         }
 
-        private static void DoVoxelRayCastFastTest()
-        {
-            GameWorld gameWorld = new GameWorld(100, 100, 100);
-            Block block = new Block("dummy");
-            for (int x = 0; x < 100; x++)
-            {
-                for (int z = 0; z < 100; z++)
-                {
-                    for (int y = 0; y < 100; y++)
-                        gameWorld[x, y, z] = (x + y + z % 3 == 0) ? block : Block.Empty;
-                }
-            }
+        //private static void DoVoxelRayCastFastTest()
+        //{
+        //    GameWorld gameWorld = new GameWorld(100, 100, 100);
+        //    Block block = new Block("dummy");
+        //    for (int x = 0; x < 100; x++)
+        //    {
+        //        for (int z = 0; z < 100; z++)
+        //        {
+        //            for (int y = 0; y < 100; y++)
+        //                gameWorld[x, y, z] = (x + y + z % 3 == 0) ? block : Block.Empty;
+        //        }
+        //    }
 
-            gameWorld.Initialize();
+        //    gameWorld.Initialize();
 
-            for (int level = (int)LODLevel.V32; level <= (int)LODLevel.V4; level++)
-            {
-                LODLevel detailLevel = (LODLevel)level;
-                long totalMs = 0;
-                Stopwatch sw = new Stopwatch();
-                int center = gameWorld.VoxelSize32.X / LODUtils.AdjustForDetailLevelTo32(2, detailLevel);
-                int offSet = LODUtils.AdjustForDetailLevelFrom32(200, detailLevel);
-                int minMs = int.MaxValue;
-                int maxMs = 0;
-                for (int t = 0; t < 10; t++)
-                {
-                    sw.Restart();
-                    for (int i = 0; i < 10000; i++)
-                        gameWorld.NoVoxelInLineFast(center, center, center, i % center + offSet, i % center + offSet, i % center + offSet, detailLevel);
-                    sw.Stop();
-                    totalMs += sw.ElapsedMilliseconds;
-                    if (sw.ElapsedMilliseconds < minMs)
-                        minMs = (int)sw.ElapsedMilliseconds;
-                    if (sw.ElapsedMilliseconds > maxMs)
-                        maxMs = (int)sw.ElapsedMilliseconds;
-                }
-                Messages.Println(string.Format("10,000 fast ray casts at detail {0} took average of {1}ms ({2}-{3})", detailLevel, totalMs / 10.0f, minMs, maxMs), Color.Chocolate);
-            }
-        }
+        //    //for (int level = (int)LODLevel.V32; level <= (int)LODLevel.V4; level++)
+        //    {
+        //        LODLevel detailLevel = LODLevel.V32; // (LODLevel)level;
+        //        long totalMs = 0;
+        //        Stopwatch sw = new Stopwatch();
+        //        int center = gameWorld.VoxelSize32.X / LODUtils.AdjustForDetailLevelTo32(2, detailLevel);
+        //        int offSet = LODUtils.AdjustForDetailLevelFrom32(200, detailLevel);
+        //        int minMs = int.MaxValue;
+        //        int maxMs = 0;
+        //        for (int t = 0; t < 10; t++)
+        //        {
+        //            sw.Restart();
+        //            for (int i = 0; i < 10000; i++)
+        //                gameWorld.NoVoxelInLineFast(center, center, center, i % center + offSet, i % center + offSet, i % center + offSet, detailLevel);
+        //            sw.Stop();
+        //            totalMs += sw.ElapsedMilliseconds;
+        //            if (sw.ElapsedMilliseconds < minMs)
+        //                minMs = (int)sw.ElapsedMilliseconds;
+        //            if (sw.ElapsedMilliseconds > maxMs)
+        //                maxMs = (int)sw.ElapsedMilliseconds;
+        //        }
+        //        Messages.Println($"10,000 fast ray casts at detail {detailLevel} took average of {totalMs / 10.0f}ms ({minMs}-{maxMs})", Color.Chocolate);
+        //    }
+        //}
 
         //private static void DoBlockLineTest()
         //{
@@ -214,10 +219,10 @@ namespace ProdigalSoftware.TiVE
         //        sw.Stop();
         //        totalMs += sw.ElapsedMilliseconds;
         //    }
-        //    Messages.Println(string.Format("10,000 block lines took average of {0}ms", totalMs / 20.0f), Color.Chocolate);
+        //    Messages.Println($"10,000 block lines took average of {totalMs / 20.0f}ms", Color.Chocolate);
         //}
         #endregion
-
+        
         #region Random number generator speed tests
         //private static void TestRandomSpeed()
         //{
@@ -249,8 +254,8 @@ namespace ProdigalSoftware.TiVE
         //    Messages.Println(string.Format("100M TiVE random numbers took {0}ms", sw.ElapsedTicks * 1000.0f / Stopwatch.Frequency), Color.Chocolate);
         //}
         #endregion
-
-        #region Struct with int vs. int speed
+        
+        #region Struct with int vs. int speed tests
         //private static void TestIntStructAccess()
         //{
         //    Console.WriteLine();
@@ -318,7 +323,69 @@ namespace ProdigalSoftware.TiVE
         //    }
         //}
         #endregion
+        
+        #region FastSqrt vs. Math.Sqrt speed tests
+        //private static void DoSqrtSpeedTests()
+        //{
+        //    DoFastSqrtTest();
+        //    DoMathSqrtTest();
+        //}
 
+        //private static void DoFastSqrtTest()
+        //{
+        //    float[] values = new float[2000000];
+        //    RandomGenerator random = new RandomGenerator();
+        //    for (int i = 0; i < values.Length; i++)
+        //        values[i] = random.NextFloat();
 
+        //    long totalMs = 0;
+        //    Stopwatch sw = new Stopwatch();
+        //    int minMs = int.MaxValue;
+        //    int maxMs = 0;
+        //    for (int t = 0; t < 20; t++)
+        //    {
+        //        float value = 0.0f;
+        //        sw.Restart();
+        //        for (int i = 0; i < values.Length; i++)
+        //            value = MathUtils.FastSqrt(values[i]);
+        //        sw.Stop();
+        //        Console.WriteLine(value + " - " + Math.Sqrt(values[values.Length - 1]));
+        //        totalMs += sw.ElapsedMilliseconds;
+        //        if (sw.ElapsedMilliseconds < minMs)
+        //            minMs = (int)sw.ElapsedMilliseconds;
+        //        if (sw.ElapsedMilliseconds > maxMs)
+        //            maxMs = (int)sw.ElapsedMilliseconds;
+        //    }
+        //    Messages.Println($"{values.Length} FastSqrt took average of {totalMs / 20.0f}ms ({minMs}-{maxMs})", Color.Chocolate);
+        //}
+
+        //private static void DoMathSqrtTest()
+        //{
+        //    float[] values = new float[2000000];
+        //    RandomGenerator random = new RandomGenerator();
+        //    for (int i = 0; i < values.Length; i++)
+        //        values[i] = random.NextFloat();
+
+        //    long totalMs = 0;
+        //    Stopwatch sw = new Stopwatch();
+        //    int minMs = int.MaxValue;
+        //    int maxMs = 0;
+        //    for (int t = 0; t < 20; t++)
+        //    {
+        //        float value = 0.0f;
+        //        sw.Restart();
+        //        for (int i = 0; i < values.Length; i++)
+        //            value = (float)Math.Sqrt(values[i]);
+        //        sw.Stop();
+        //        Console.WriteLine(value);
+        //        totalMs += sw.ElapsedMilliseconds;
+        //        if (sw.ElapsedMilliseconds < minMs)
+        //            minMs = (int)sw.ElapsedMilliseconds;
+        //        if (sw.ElapsedMilliseconds > maxMs)
+        //            maxMs = (int)sw.ElapsedMilliseconds;
+        //    }
+        //    Messages.Println($"{values.Length} MathSqrt took average of {totalMs / 20.0f}ms ({minMs}-{maxMs})", Color.Chocolate);
+        //}
+        #endregion
     }
 }

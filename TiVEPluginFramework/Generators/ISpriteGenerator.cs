@@ -4,9 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ProdigalSoftware.TiVEPluginFramework
+namespace ProdigalSoftware.TiVEPluginFramework.Generators
 {
-    public sealed class SpriteAnimation
+    public interface ISpriteGenerator
     {
+        //public 
     }
 }

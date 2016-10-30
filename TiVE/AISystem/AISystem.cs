@@ -30,7 +30,7 @@ namespace ProdigalSoftware.TiVE.AISystem
             
         }
 
-        protected override bool UpdateInternal(int ticksSinceLastUpdate, float timeBlendFactor, Scene currentScene)
+        protected override bool UpdateInternal(int ticksSinceLastUpdate, Scene currentScene)
         {
             return true;
         }

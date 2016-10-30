@@ -26,7 +26,7 @@ namespace ProdigalSoftware.TiVE.ParticleSystem
         private readonly List<IEntity> systemsToDelete = new List<IEntity>();
 
         private readonly Dictionary<string, ParticleEmitterCollection> particleSystemCollections = new Dictionary<string, ParticleEmitterCollection>();
-        private readonly IParticleControllerGenerator controllerGenerator;
+        private readonly IParticleControllerGenerator[] controllerGenerators;
         private readonly ShaderManager shaderManager = new ShaderManager();
         private Vector3i cameraLocation;
         private Scene loadedScene;
@@ -35,7 +35,7 @@ namespace ProdigalSoftware.TiVE.ParticleSystem
 
         public ParticleSystem() : base("Particles")
         {
-            controllerGenerator = TiVEController.PluginManager.GetPluginsOfType<IParticleControllerGenerator>().FirstOrDefault();
+            controllerGenerators = TiVEController.PluginManager.GetPluginsOfType<IParticleControllerGenerator>().ToArray();
         }
 
         public override void Dispose()
@@ -70,8 +70,8 @@ namespace ProdigalSoftware.TiVE.ParticleSystem
                 particleUpdateThread.Start();
             }
             
-            if (controllerGenerator == null)
-                Messages.AddWarning("Could not find particle controller generator.");
+            if (controllerGenerators == null || controllerGenerators.Length == 0)
+                Messages.AddWarning("Could not find particle controller generators.");
             return shaderManager.Initialize();
         }
 
@@ -80,7 +80,7 @@ namespace ProdigalSoftware.TiVE.ParticleSystem
             loadedScene = newScene;
         }
 
-        protected override bool UpdateInternal(int ticksSinceLastFrame, float timeBlendFactor, Scene currentScene)
+        protected override bool UpdateInternal(int ticksSinceLastFrame, Scene currentScene)
         {
             Debug.Assert(loadedScene == currentScene);
 
@@ -181,17 +181,23 @@ namespace ProdigalSoftware.TiVE.ParticleSystem
             ParticleEmitterCollection collection;
             using (new PerformanceLock(particleSystemCollections))
             {
-                if (!particleSystemCollections.TryGetValue(controllerName, out collection) && controllerGenerator != null)
+                if (!particleSystemCollections.TryGetValue(controllerName, out collection) && controllerGenerators != null)
                 {
-                    ParticleController controller = controllerGenerator.CreateController(controllerName);
+                    ParticleController controller = null;
+                    for (int i = 0; i < controllerGenerators.Length; i++)
+                    {
+                        controller = controllerGenerators[i].CreateController(controllerName);
+                        if (controller != null)
+                            break;
+                    }
+
                     if (controller == null)
                         Messages.AddWarning("Could not find particle controller for " + controllerName);
                     else
                         particleSystemCollections[controllerName] = collection = new ParticleEmitterCollection(controller);
                 }
             }
-            if (collection != null)
-                collection.Add(entity, particleData);
+            collection?.Add(entity, particleData);
         }
 
         private void RemoveParticleSystem(IEntity entity, ParticleComponent particleData)
@@ -200,8 +206,7 @@ namespace ProdigalSoftware.TiVE.ParticleSystem
             using (new PerformanceLock(particleSystemCollections))
                 particleSystemCollections.TryGetValue(particleData.ControllerName, out collection);
 
-            if (collection != null)
-                collection.Remove(entity);
+            collection?.Remove(entity);
         }
 
         private void UpdateEntities(float timeSinceLastUpdate)
@@ -213,9 +218,9 @@ namespace ProdigalSoftware.TiVE.ParticleSystem
             Scene currentScene = loadedScene;
             if (currentScene != null)
             {
-                Vector3i worldSize = currentScene.GameWorld != null ? currentScene.GameWorld.VoxelSize32 : new Vector3i();
+                Vector3i worldSize = currentScene.GameWorld?.VoxelSize32 ?? new Vector3i();
                 for (int i = 0; i < updateList.Count; i++)
-                    updateList[i].UpdateAll(worldSize, cameraLocation, currentScene, timeSinceLastUpdate);
+                    updateList[i].UpdateAll(ref worldSize, ref cameraLocation, currentScene, timeSinceLastUpdate);
             }
         }
 

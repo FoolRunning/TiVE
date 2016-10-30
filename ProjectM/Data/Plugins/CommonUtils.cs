@@ -28,14 +28,7 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
         public const int stoneBackBlockDuplicates = 10;
         public const int grassBlockDuplicates = 200;
         public const int leavesBlockDuplicates = 5;
-
-        private const int Front = 1;
-        private const int Back = 2;
-        private const int Left = 4;
-        private const int Right = 8;
-        private const int Top = 16;
-        private const int Bottom = 32;
-
+        
         private static readonly Regex blockNameRegex = new Regex(@"(?<part>[^\d]+)(?<num>\d+)?(?:_(?<other>\d+))?", RegexOptions.Compiled);
 
         public static bool ParseBlockName(string blockName, out string part, out int num, out string other)
@@ -55,7 +48,7 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
             return true;
         }
 
-        public static void MakeBlockRound(Block block, int sides)
+        public static void MakeBlockRound(Block block, CubeSides sides)
         {
             const float mid = BlockLOD32.VoxelSize / 2.0f - 0.5f;
             const float sphereSize = BlockLOD32.VoxelSize / 2.0f;
@@ -66,10 +59,10 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
                 {
                     for (int z = 0; z < BlockLOD32.VoxelSize; z++)
                     {
-                        if (((sides & Top) != 0 && (sides & Front) != 0 && y - (int)mid > BlockLOD32.VoxelSize - z) ||   // rounded Top-Front
-                            ((sides & Front) != 0 && (sides & Bottom) != 0 && y + (int)mid < z) ||                  // rounded Front-Bottom
-                            ((sides & Bottom) != 0 && (sides & Back) != 0 && y + (int)mid < BlockLOD32.VoxelSize - z) || // rounded Bottom-Back
-                            ((sides & Back) != 0 && (sides & Top) != 0 && y - (int)mid > z))                        // rounded Back-Top
+                        if (((sides & CubeSides.Top) != 0 && (sides & CubeSides.Front) != 0 && y - (int)mid > BlockLOD32.VoxelSize - z) ||   // rounded Top-Front
+                            ((sides & CubeSides.Front) != 0 && (sides & CubeSides.Bottom) != 0 && y + (int)mid < z) ||                  // rounded Front-Bottom
+                            ((sides & CubeSides.Bottom) != 0 && (sides & CubeSides.Back) != 0 && y + (int)mid < BlockLOD32.VoxelSize - z) || // rounded Bottom-Back
+                            ((sides & CubeSides.Back) != 0 && (sides & CubeSides.Top) != 0 && y - (int)mid > z))                        // rounded Back-Top
                         {
                             // Cylinder around the x-axis
                             float dist = (y - mid) * (y - mid) + (z - mid) * (z - mid);
@@ -77,10 +70,10 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
                                 block.LOD32[x, y, z] = Voxel.Empty;
                         }
 
-                        if (((sides & Right) != 0 && (sides & Front) != 0 && x - (int)mid > BlockLOD32.VoxelSize - z) || // rounded Right-Front
-                            ((sides & Front) != 0 && (sides & Left) != 0 && x + (int)mid < z) ||                    // rounded Front-Left
-                            ((sides & Left) != 0 && (sides & Back) != 0 && x + (int)mid < BlockLOD32.VoxelSize - z) ||   // rounded Left-Back
-                            ((sides & Back) != 0 && (sides & Right) != 0 && x - (int)mid > z))                      // rounded Back-Right
+                        if (((sides & CubeSides.Right) != 0 && (sides & CubeSides.Front) != 0 && x - (int)mid > BlockLOD32.VoxelSize - z) || // rounded Right-Front
+                            ((sides & CubeSides.Front) != 0 && (sides & CubeSides.Left) != 0 && x + (int)mid < z) ||                    // rounded Front-Left
+                            ((sides & CubeSides.Left) != 0 && (sides & CubeSides.Back) != 0 && x + (int)mid < BlockLOD32.VoxelSize - z) ||   // rounded Left-Back
+                            ((sides & CubeSides.Back) != 0 && (sides & CubeSides.Right) != 0 && x - (int)mid > z))                      // rounded Back-Right
                         {
                             // Cylinder around the y-axis
                             float dist = (x - mid) * (x - mid) + (z - mid) * (z - mid);
@@ -88,10 +81,10 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
                                 block.LOD32[x, y, z] = Voxel.Empty;
                         }
 
-                        if (((sides & Right) != 0 && (sides & Top) != 0 && x - (int)mid > BlockLOD32.VoxelSize - y) ||   // rounded Right-Top
-                            ((sides & Top) != 0 && (sides & Left) != 0 && x + (int)mid < y) ||                      // rounded Top-Left
-                            ((sides & Left) != 0 && (sides & Bottom) != 0 && x + (int)mid < BlockLOD32.VoxelSize - y) || // rounded Left-Bottom
-                            ((sides & Bottom) != 0 && (sides & Right) != 0 && x - (int)mid > y))                    // rounded Bottom-Right
+                        if (((sides & CubeSides.Right) != 0 && (sides & CubeSides.Top) != 0 && x - (int)mid > BlockLOD32.VoxelSize - y) ||   // rounded Right-Top
+                            ((sides & CubeSides.Top) != 0 && (sides & CubeSides.Left) != 0 && x + (int)mid < y) ||                      // rounded Top-Left
+                            ((sides & CubeSides.Left) != 0 && (sides & CubeSides.Bottom) != 0 && x + (int)mid < BlockLOD32.VoxelSize - y) || // rounded Left-Bottom
+                            ((sides & CubeSides.Bottom) != 0 && (sides & CubeSides.Right) != 0 && x - (int)mid > y))                    // rounded Bottom-Right
                         {
                             // Cylinder around the z-axis
                             float dist = (x - mid) * (x - mid) + (y - mid) * (y - mid);
@@ -99,11 +92,11 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
                                 block.LOD32[x, y, z] = Voxel.Empty;
                         }
 
-                        if ((((sides & Top) != 0 && (sides & Bottom) != 0 && (sides & Left) != 0 && x < mid) || // rounded Left
-                            ((sides & Top) != 0 && (sides & Bottom) != 0 && (sides & Right) != 0 && x > mid) || // rounded Right
-                            ((sides & Top) != 0 && (sides & Right) != 0 && (sides & Left) != 0 && y > mid) ||   // rounded Top
-                            ((sides & Bottom) != 0 && (sides & Right) != 0 && (sides & Left) != 0 && y < mid))  // rounded Bottom
-                            && (((sides & Front) != 0 && z > mid) || ((sides & Back) != 0 && z < mid)))         // on the front or back
+                        if ((((sides & CubeSides.Top) != 0 && (sides & CubeSides.Bottom) != 0 && (sides & CubeSides.Left) != 0 && x < mid) || // rounded Left
+                            ((sides & CubeSides.Top) != 0 && (sides & CubeSides.Bottom) != 0 && (sides & CubeSides.Right) != 0 && x > mid) || // rounded Right
+                            ((sides & CubeSides.Top) != 0 && (sides & CubeSides.Right) != 0 && (sides & CubeSides.Left) != 0 && y > mid) ||   // rounded Top
+                            ((sides & CubeSides.Bottom) != 0 && (sides & CubeSides.Right) != 0 && (sides & CubeSides.Left) != 0 && y < mid))  // rounded Bottom
+                            && (((sides & CubeSides.Front) != 0 && z > mid) || ((sides & CubeSides.Back) != 0 && z < mid)))         // on the front or back
                         {
                             // rounded front or back
                             float dist = (x - mid) * (x - mid) + (y - mid) * (y - mid) + (z - mid) * (z - mid);
@@ -146,7 +139,7 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
             }
             if (!forLoadingWorld)
             {
-                for (int i = 0; i < 6; i++)
+                for (int i = 0; i < 7; i++)
                     blocksToConsiderEmpty.Add(Factory.Get<Block>("light" + i));
             }
 
@@ -175,19 +168,19 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
                         if (block == Block.Empty || !blocksToSmooth.Contains(block))
                             continue;
 
-                        int sides = 0;
+                        CubeSides sides = CubeSides.None;
                         if (z == gameWorld.BlockSize.Z - 1 || blocksToConsiderEmpty.Contains(gameWorld[x, y, z + 1]))
-                            sides |= Front;
+                            sides |= CubeSides.Front;
                         if (z == 0 || blocksToConsiderEmpty.Contains(gameWorld[x, y, z - 1]))
-                            sides |= Back;
+                            sides |= CubeSides.Back;
                         if (x == 0 || blocksToConsiderEmpty.Contains(gameWorld[x - 1, y, z]))
-                            sides |= Left;
+                            sides |= CubeSides.Left;
                         if (x == gameWorld.BlockSize.X - 1 || blocksToConsiderEmpty.Contains(gameWorld[x + 1, y, z]))
-                            sides |= Right;
+                            sides |= CubeSides.Right;
                         if (y == gameWorld.BlockSize.Y - 1 || blocksToConsiderEmpty.Contains(gameWorld[x, y + 1, z]))
-                            sides |= Top;
+                            sides |= CubeSides.Top;
                         if (y == 0 || blocksToConsiderEmpty.Contains(gameWorld[x, y - 1, z]))
-                            sides |= Bottom;
+                            sides |= CubeSides.Bottom;
 
                         string blockNamePart;
                         int num;
@@ -195,13 +188,13 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
                         ParseBlockName(block.Name, out blockNamePart, out num, out other);
 
                         if (blockNamePart == "stoneBrick")
-                            gameWorld[x, y, z] = stoneRandomizers[sides].NextBlock();
+                            gameWorld[x, y, z] = stoneRandomizers[(int)sides].NextBlock();
                         else if (blockNamePart == "leaves")
-                            gameWorld[x, y, z] = leavesRandomizers[sides].NextBlock();
+                            gameWorld[x, y, z] = leavesRandomizers[(int)sides].NextBlock();
                         else if (blockNamePart == "back")
-                            gameWorld[x, y, z] = backRandomizers[sides].NextBlock();
+                            gameWorld[x, y, z] = backRandomizers[(int)sides].NextBlock();
                         else
-                            gameWorld[x, y, z] = Factory.Get<Block>(blockNamePart + sides);
+                            gameWorld[x, y, z] = Factory.Get<Block>(blockNamePart + (int)sides);
                     }
                 }
             }

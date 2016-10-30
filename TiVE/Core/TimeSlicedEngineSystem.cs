@@ -3,7 +3,7 @@
     /// <summary>
     /// Base class for engine systems that need to update at regular intervals (i.e. framerate independent).
     /// </summary>
-    internal abstract class TimeSlicedEngineSystem : EngineSystemBase
+    internal abstract class TimeSlicedEngineSystem : EngineSystem
     {
         protected TimeSlicedEngineSystem(string debuggingName) : base(debuggingName)
         {

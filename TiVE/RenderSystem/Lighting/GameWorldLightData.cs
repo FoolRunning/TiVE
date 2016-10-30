@@ -82,7 +82,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
 
             sw.Stop();
             Messages.AddDoneText();
-            Messages.AddDebug(string.Format("Lighting for {0} lights took {1}ms", lightInfos.Count - 1, sw.ElapsedMilliseconds));
+            Messages.AddDebug($"Lighting for {lightInfos.Count - 1} lights took {sw.ElapsedMilliseconds}ms");
 
             //if (!TiVEController.UserSettings.Get(UserSettings.PreLoadLightingKey))
             //    return;
@@ -189,7 +189,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
             int chunkBlockX = worldBlockX % ChunkComponent.BlockSize;
             int chunkBlockY = worldBlockY % ChunkComponent.BlockSize;
             int chunkBlockZ = worldBlockZ % ChunkComponent.BlockSize;
-            return chunkLights != null ? chunkLights[GetBlockLightOffset(chunkBlockX, chunkBlockY, chunkBlockZ)] : null;
+            return chunkLights?[GetBlockLightOffset(chunkBlockX, chunkBlockY, chunkBlockZ)];
         }
 
         public void RemoveLightsForChunk(ChunkComponent chunkData)
@@ -237,21 +237,21 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
             return thread;
         }
 
-        private Thread StartLightPreLoadThread(string threadName, List<ChunkComponent> allChunks, int startIndex, int endIndex)
-        {
-            Thread thread = new Thread(() =>
-            {
-                endIndex = Math.Min(endIndex, allChunks.Count);
-                for (int i = startIndex; i < endIndex; i++)
-                    CacheLightsInBlocksForChunk(allChunks[i].ChunkLoc.X, allChunks[i].ChunkLoc.Y, allChunks[i].ChunkLoc.Z);
-            });
+        //private Thread StartLightPreLoadThread(string threadName, List<ChunkComponent> allChunks, int startIndex, int endIndex)
+        //{
+        //    Thread thread = new Thread(() =>
+        //    {
+        //        endIndex = Math.Min(endIndex, allChunks.Count);
+        //        for (int i = startIndex; i < endIndex; i++)
+        //            CacheLightsInBlocksForChunk(allChunks[i].ChunkLoc.X, allChunks[i].ChunkLoc.Y, allChunks[i].ChunkLoc.Z);
+        //    });
 
-            thread.Name = threadName;
-            thread.IsBackground = true;
-            thread.Priority = ThreadPriority.Normal;
-            thread.Start();
-            return thread;
-        }
+        //    thread.Name = threadName;
+        //    thread.IsBackground = true;
+        //    thread.Priority = ThreadPriority.Normal;
+        //    thread.Start();
+        //    return thread;
+        //}
 
         private void FillChunksWithLight(LightComponent light, List<LightInfo> lightInfos, int blockX, int blockY, int blockZ)
         {

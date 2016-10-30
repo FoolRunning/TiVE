@@ -30,7 +30,7 @@ function initialize(entity)
     --    --end
     --end
 
-    camera.FieldOfView = math.rad(70)
+    camera.FieldOfView = math.rad(75)
     camera.FarDistance = BlockSize * 50
     camera.UpVector = vector(0, 0, 1)
 end
@@ -43,11 +43,11 @@ function update(entity, timeSinceLastFrame)
         stopRunning()
     end
 
-    local speed = BlockSize / 24
+    local speed = BlockSize * timeSinceLastFrame * 2.5
     if (keyPressed(Keys.LShift)) then --Speed up
-        speed = speed * 3
+        speed = speed * 2
     elseif (keyPressed(Keys.LControl)) then --Slow down
-        speed = speed / 10
+        speed = speed / 5
     end
 
     local mouseLoc = mouseLocation()
@@ -78,9 +78,9 @@ function update(entity, timeSinceLastFrame)
     end
 
     if (keyPressed(Keys.KeypadPlus)) then --Zoom in
-        camLoc.Z = math.max(camLoc.Z - 1, 2 * BlockSize)
+        camLoc.Z = camLoc.Z - speed
     elseif (keyPressed(Keys.KeypadMinus)) then --Zoom out
-        camLoc.Z = math.min(camLoc.Z + 1, 50 * BlockSize)
+        camLoc.Z = camLoc.Z + speed
     end
 
     if (voxelAt(camLoc.X, camLoc.Y, camLoc.Z) == EmptyVoxel) then

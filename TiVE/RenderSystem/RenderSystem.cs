@@ -59,7 +59,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem
             initializeForNewScene = true;
         }
 
-        protected override bool UpdateInternal(int ticksSinceLastFrame, float timeBlendFactor, Scene currentScene)
+        protected override bool UpdateInternal(int ticksSinceLastFrame, Scene currentScene)
         {
             ticksSinceLastStatUpdate += ticksSinceLastFrame;
             if (ticksSinceLastStatUpdate > timeBetweenTimingUpdates)
@@ -224,7 +224,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem
             //if (chunkData != null)
             //    loadedScene.LightProvider.RemoveLightsForChunk(chunkData);
         }
-
+        
         private void RenderVoxelMesh(VoxelMeshComponent renderData, IVertexDataCollection meshData, LODLevel detailLevel, CameraComponent cameraData)
         {
             if (detailLevel == LODLevel.NotSet || detailLevel == LODLevel.NumOfLevels)
@@ -235,7 +235,9 @@ namespace ProdigalSoftware.TiVE.RenderSystem
             ShaderProgram shader = shaderManager.GetShaderProgram(ShaderProgram.GetShaderName(false));
             shader.Bind();
 
-            Matrix4f translationMatrix = Matrix4f.CreateTranslation((int)renderData.Location.X, (int)renderData.Location.Y, (int)renderData.Location.Z);
+            //Matrix4f translationMatrix = Matrix4f.CreateTranslation((int)renderData.Location.X, (int)renderData.Location.Y, (int)renderData.Location.Z);
+            Matrix4f translationMatrix;
+            Matrix4f.CreateTranslation((int)renderData.Location.X, (int)renderData.Location.Y, (int)renderData.Location.Z, out translationMatrix);
 
             Matrix4f viewProjectionModelMatrix;
             Matrix4f.Mult(ref translationMatrix, ref cameraData.ViewProjectionMatrix, out viewProjectionModelMatrix);

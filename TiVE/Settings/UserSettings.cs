@@ -33,13 +33,7 @@ namespace ProdigalSoftware.TiVE.Settings
         High = 1,
         Ultra = 0
     }
-
-    internal enum ShadowAccuracyType : byte
-    {
-        Fast = 0,
-        Perfect = 1
-    }
-
+    
     internal delegate void SettingsChangedHandler(string settingName, Setting newValue);
 
     internal sealed class UserSettings
@@ -49,12 +43,12 @@ namespace ProdigalSoftware.TiVE.Settings
         public const string FullScreenModeKey = "fullScreenMode";
         public const string LightingTypeKey = "lightingType";
         public const string ShadowDetailKey = "shadowDetail";
-        public const string ShadowAccuracyKey = "shadowAccuracy";
         //public const string PreLoadLightingKey = "preLoadLighting";
         public const string LightCullingTypeKey = "lightCullType";
         public const string CubifyVoxelsKey = "cubifyVoxels";
         public const string EnableVSyncKey = "enbaleVSync";
         public const string LightsPerBlockKey = "lightsPerBlock";
+        public const string ShadowsPerBlockKey = "shadowsPerBlock";
         public const string AntiAliasAmountKey = "antiAliasAmount";
         public const string DetailDistanceKey = "detailDistance";
         public const string ChunkCreationThreadsKey = "chunkCreationThreads";
@@ -107,15 +101,18 @@ namespace ProdigalSoftware.TiVE.Settings
                 new UserSettingOption("High", new EnumSetting<ShadowDetailLevel>(ShadowDetailLevel.High)),
                 new UserSettingOption("Ultra", new EnumSetting<ShadowDetailLevel>(ShadowDetailLevel.Ultra))));
             
-            settingOptions.Add(new UserSettingOptions(ShadowAccuracyKey, "Shadow accuracy", UserOptionTab.Display,
-                new EnumSetting<ShadowAccuracyType>(ShadowAccuracyType.Fast),
-                new UserSettingOption("Fast", new EnumSetting<ShadowAccuracyType>(ShadowAccuracyType.Fast)),
-                new UserSettingOption("Perfect", new EnumSetting<ShadowAccuracyType>(ShadowAccuracyType.Perfect))));
-            
-            settingOptions.Add(new UserSettingOptions(LightsPerBlockKey, "Max lights per block", UserOptionTab.Display, new IntSetting(20),
+            settingOptions.Add(new UserSettingOptions(LightsPerBlockKey, "Max lights per block", UserOptionTab.Display, new IntSetting(10),
+                new UserSettingOption(new IntSetting(5)),
                 new UserSettingOption(new IntSetting(10)),
-                new UserSettingOption(new IntSetting(20)),
-                new UserSettingOption(new IntSetting(30))));
+                new UserSettingOption(new IntSetting(15)),
+                new UserSettingOption(new IntSetting(20))));
+
+            settingOptions.Add(new UserSettingOptions(ShadowsPerBlockKey, "Max shadows per block", UserOptionTab.Display, new IntSetting(5),
+                new UserSettingOption(new IntSetting(2)),
+                new UserSettingOption(new IntSetting(3)),
+                new UserSettingOption(new IntSetting(5)),
+                new UserSettingOption(new IntSetting(10)),
+                new UserSettingOption(new IntSetting(20))));
 
             settingOptions.Add(new UserSettingOptions(CubifyVoxelsKey, "Cubify voxels", UserOptionTab.Display, new BoolSetting(false),
                 new UserSettingOption("False", new BoolSetting(false)),

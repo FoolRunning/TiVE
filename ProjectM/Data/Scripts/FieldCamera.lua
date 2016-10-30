@@ -43,11 +43,11 @@ function update(entity, timeSinceLastFrame)
         stopRunning()
     end
 
-    local speed = BlockSize / 24
+    local speed = BlockSize * timeSinceLastFrame * 2.5
     if (keyPressed(Keys.LShift)) then --Speed up
-        speed = speed * 3
+        speed = speed * 2
     elseif (keyPressed(Keys.LControl)) then --Slow down
-        speed = speed / 10
+        speed = speed / 5
     end
 
     local mouseLoc = mouseLocation()

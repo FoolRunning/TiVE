@@ -100,7 +100,7 @@ namespace ProdigalSoftware.TiVE.SoundSystem
             //SayText("System is up and running. Can you understand me?", new SpeechParameters("dfki-obadiah-hsmm"));
         }
 
-        protected override bool UpdateInternal(int ticksSinceLastUpdate, float timeBlendFactor, Scene currentScene)
+        protected override bool UpdateInternal(int ticksSinceLastUpdate, Scene currentScene)
         {
             soundEngine.UpdateSystem();
 

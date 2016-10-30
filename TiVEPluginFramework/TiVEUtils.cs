@@ -30,7 +30,9 @@ namespace ProdigalSoftware.TiVEPluginFramework
         {
             for (int i = 0; i < cameraData.FrustrumPlanes.Length; i++)
             {
-                if (cameraData.FrustrumPlanes[i].DistanceFromPoint(box.GetPositivePoint(cameraData.FrustrumPlanes[i].PlaneNormal)) < 0)
+                Vector3f positivePoint;
+                box.GetPositivePoint(ref cameraData.FrustrumPlanes[i].PlaneNormal, out positivePoint);
+                if (cameraData.FrustrumPlanes[i].DistanceFromPoint(ref positivePoint) < 0)
                     return false;
             }
             return true;

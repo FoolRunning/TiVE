@@ -210,7 +210,7 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
                 {
                     // Couldn't continue with current road so find a good place for another one
                     if (!searchingForNewCell && cell != MazeCellLocation.None)
-                        dungeonMap[cell.X, cell.Y].LightId = random.Next(5) + 1;
+                        dungeonMap[cell.X, cell.Y].LightId = random.Next(7) + 1;
 
                     //lightId = (lightId + 1) % 6;
                     searchingForNewCell = true;
@@ -242,7 +242,7 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
                     // Found a place for a new cell so continue adding cells to the current maze path
                     searchingForNewCell = false;
                     if (dir != lastDir && lastDir != Direction.None)
-                        dungeonMap[cell.X, cell.Y].LightId = random.Next(5) + 1;
+                        dungeonMap[cell.X, cell.Y].LightId = random.Next(7) + 1;
 
                     switch (dir)
                     {
@@ -502,7 +502,7 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
                             surroundingAreaCount++;
 
                         if (surroundingAreaCount <= 1)
-                            dungeonMap[x, y].LightId = random.Next(5) + 1;
+                            dungeonMap[x, y].LightId = random.Next(7) + 1;
                     }
                 }
             }
@@ -690,6 +690,7 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
             Block leaves = Factory.Get<Block>("leaves0_0");
             Block fountain = Factory.Get<Block>("fountain");
             Block smallLight = Factory.Get<Block>("smallLight");
+            Block roomLight = Factory.Get<Block>("roomLight");
             Block redLight = Factory.Get<Block>("redLight");
             Block treeLight = Factory.Get<Block>("treeLight");
             Block hoverLightBlue = Factory.Get<Block>("hoverLightBlue");
@@ -698,6 +699,11 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
             //Block smallLightHover = blockList["smallLightHover"];
             Block fire = Factory.Get<Block>("fire");
             Block lava = Factory.Get<Block>("lava");
+            Block lavaUnlit = Factory.Get<Block>("lavaUnlit");
+            Block[] mazeLights = new Block[7];
+            for (int i = 0; i < mazeLights.Length; i++)
+                mazeLights[i] = Factory.Get<Block>("light" + i);
+
             HashSet<int> roomIds = new HashSet<int>();
             for (int i = 1; i < mazeStartAreaId; i++)
                 roomIds.Add(i);
@@ -805,7 +811,11 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
                     }
                     else if (itemId == ItemIdLava)
                     {
-                        gameWorld[x, y, 0] = lava;
+                        if (random.Next(100) < 25)
+                            gameWorld[x, y, 0] = lava;
+                        else
+                            gameWorld[x, y, 0] = lavaUnlit;
+
                         gameWorld[x, y, 1] = Block.Empty;
                         gameWorld[x, y, 2] = Block.Empty;
                         if (x % 3 == 1 || y % 3 == 1)
@@ -886,7 +896,7 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
                     {
                         // Light
                         if (lightId == LightIdRoomLight)
-                            gameWorld[x, y, 10] = Factory.Get<Block>("roomLight");
+                            gameWorld[x, y, 10] = roomLight;
                         else if (lightId == LightIdSmallLight)
                             gameWorld[x, y, 8] = hoverLightBlue;
                         else
@@ -909,7 +919,8 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
                             int height = 4;
                             if (lightLocX == x && lightLocY == y)
                                 height = 7;
-                            gameWorld[lightLocX, lightLocY, height] = Factory.Get<Block>("light" + (lightId - 1));
+
+                            gameWorld[lightLocX, lightLocY, height] = mazeLights[lightId - 1];
                         }
                     }
                 }

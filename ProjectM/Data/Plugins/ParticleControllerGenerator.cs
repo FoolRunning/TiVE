@@ -90,7 +90,7 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
         #region FireUpdater class
         private class FireUpdater : ParticleController
         {
-            private const float FlameDeacceleration = 35.0f;
+            private const float FlameDeacceleration = 65.0f;
             private const float AliveTime = 1.0f;
 
             private static readonly Color4b[] colorList = new Color4b[256];
@@ -107,7 +107,7 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
             }
 
             public FireUpdater()
-                : base(400, 300, TransparencyType.Additive, false)
+                : base(250, 200, TransparencyType.Additive, false)
             {
             }
 
@@ -116,9 +116,22 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
             {
                 get
                 {
-                    VoxelSprite sprite = new VoxelSprite(1, 1, 1);
-                    sprite[0, 0, 0] = Voxel.White;
-                    return sprite;
+                    VoxelSprite particleVoxels = new VoxelSprite(5, 5, 5);
+                    const int mid = 5 / 2;
+
+                    for (int z = 0; z < 5; z++)
+                    {
+                        for (int x = 0; x < 5; x++)
+                        {
+                            for (int y = 0; y < 5; y++)
+                            {
+                                int dist = (x - mid) * (x - mid) + (y - mid) * (y - mid) + (z - mid) * (z - mid);
+                                if (dist <= 4)
+                                    particleVoxels[x, y, z] = Voxel.White;
+                            }
+                        }
+                    }
+                    return particleVoxels;
                 }
             }
 
@@ -155,9 +168,9 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
             public override void InitializeNew(Particle particle, Vector3i systemLocation)
             {
                 float angle = Random.NextFloat() * 2.0f * 3.141592f;
-                float totalVel = Random.NextFloat() * 6.0f + 10.0f;
+                float totalVel = Random.NextFloat() * 12.0f + 20.0f;
                 particle.VelX = (float)Math.Cos(angle) * totalVel;
-                particle.VelZ = Random.NextFloat() * 11.0f + 8.0f;
+                particle.VelZ = Random.NextFloat() * 20.0f + 10.0f;
                 particle.VelY = (float)Math.Sin(angle) * totalVel;
 
                 particle.X = systemLocation.X;

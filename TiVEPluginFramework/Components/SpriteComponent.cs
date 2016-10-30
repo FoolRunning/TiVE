@@ -15,7 +15,7 @@ namespace ProdigalSoftware.TiVEPluginFramework.Components
         private const byte SerializedFileVersion = 1;
 
         [UsedImplicitly] public BoundingBox BoundingBox;
-        [UsedImplicitly] public readonly List<SpriteAnimation> Animations = new List<SpriteAnimation>();
+        [UsedImplicitly] public readonly List<AnimationSet> Animations = new List<AnimationSet>();
 
         public SpriteComponent(BinaryReader reader)
         {

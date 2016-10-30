@@ -36,7 +36,7 @@ namespace ProdigalSoftware.TiVE.ParticleSystem
                 particles[i].Time = 0.0f;
         }
 
-        public void UpdateInternal(Vector3i cameraLocation, float timeSinceLastUpdate)
+        public void UpdateInternal(ref Vector3i cameraLocation, float timeSinceLastUpdate)
         {
             numOfParticlesNeeded += controller.ParticlesPerSecond * timeSinceLastUpdate;
             int newParticleCount = Math.Min((int)numOfParticlesNeeded, particles.Length - aliveParticles);
@@ -86,9 +86,9 @@ namespace ProdigalSoftware.TiVE.ParticleSystem
             }
         }
 
-        public void AddToArrays(Vector3i worldSize, Scene scene, Vector3us[] locationArray, Color4b[] colorArray, ref int dataIndex)
+        public void AddToArrays(ref Vector3i worldSize, Scene scene, Vector3us[] locationArray, Color4b[] colorArray, ref int dataIndex)
         {
-            LightProvider lightProvider = scene.GetLightProvider(false);
+            LightProvider lightProvider = scene.LightProvider;
             bool isLit = controller.IsLit;
             for (int i = 0; i < aliveParticles; i++)
             {

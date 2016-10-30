@@ -1,12 +1,13 @@
 ﻿using System;
 using ProdigalSoftware.TiVEPluginFramework;
+using ProdigalSoftware.Utils;
 
 namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
 {
     internal abstract class LightingModel
     {
-        private const float MinRealisticLightPercent = 0.03f;
-        private const float ShadowLightDistMinFactor = 5.0f;
+        private const float MinRealisticLightPercent = 0.015f;
+        private const float ShadowLightDistMinFactor = 4.9f;
 
         private static readonly LightingModel realistic = new RealisticLightingModel();
         private static readonly LightingModel brightRealistic = new BrightRealisticLightingModel();
@@ -145,7 +146,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
 
             public override float GetLightPercentage(float distSquared, float cachedLightCalc)
             {
-                float att = Math.Max(0.0f, 1.0f - (float)Math.Sqrt(distSquared) * cachedLightCalc);
+                float att = Math.Max(0.0f, 1.0f - MathUtils.FastSqrt(distSquared) * cachedLightCalc);
                 return att * att;
             }
         }

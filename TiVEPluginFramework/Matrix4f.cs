@@ -292,31 +292,6 @@ namespace ProdigalSoftware.TiVEPluginFramework
         #endregion
 
         #region Instance
-
-        #region public void Invert()
-
-        /// <summary>
-        /// Converts this instance into its inverse.
-        /// </summary>
-        public void Invert()
-        {
-            this = Invert(this);
-        }
-
-        #endregion
-
-        #region public void Transpose()
-
-        /// <summary>
-        /// Converts this instance into its transpose.
-        /// </summary>
-        public void Transpose()
-        {
-            this = Transpose(this);
-        }
-
-        #endregion
-
         /// <summary>
         /// Returns a normalised copy of this instance.
         /// </summary>
@@ -361,7 +336,7 @@ namespace ProdigalSoftware.TiVEPluginFramework
         {
             Matrix4f m = this;
             if (m.Determinant != 0)
-                m.Invert();
+                Invert(ref m, out m);
             return m;
         }
 
@@ -591,6 +566,25 @@ namespace ProdigalSoftware.TiVEPluginFramework
         /// <summary>
         /// Creates a translation matrix.
         /// </summary>
+        /// <param name="scale"></param>
+        /// <param name="x">X translation.</param>
+        /// <param name="y">Y translation.</param>
+        /// <param name="z">Z translation.</param>
+        /// <param name="result">The resulting Matrix4f instance.</param>
+        public static void CreateScaledTranslation(float scale, float x, float y, float z, out Matrix4f result)
+        {
+            result = Identity;
+            result.Row0X = scale;
+            result.Row1Y = scale;
+            result.Row2Z = scale;
+            result.Row3X = x * scale;
+            result.Row3Y = y * scale;
+            result.Row3Z = z * scale;
+        }
+
+        /// <summary>
+        /// Creates a translation matrix.
+        /// </summary>
         /// <param name="x">X translation.</param>
         /// <param name="y">Y translation.</param>
         /// <param name="z">Z translation.</param>
@@ -615,75 +609,9 @@ namespace ProdigalSoftware.TiVEPluginFramework
             result.Row3Y = vector.Y;
             result.Row3Z = vector.Z;
         }
-
-        /// <summary>
-        /// Creates a translation matrix.
-        /// </summary>
-        /// <param name="x">X translation.</param>
-        /// <param name="y">Y translation.</param>
-        /// <param name="z">Z translation.</param>
-        /// <returns>The resulting Matrix4f instance.</returns>
-        public static Matrix4f CreateTranslation(float x, float y, float z)
-        {
-            Matrix4f result;
-            CreateTranslation(x, y, z, out result);
-            return result;
-        }
-
-        /// <summary>
-        /// Creates a translation matrix.
-        /// </summary>
-        /// <param name="vector">The translation vector.</param>
-        /// <returns>The resulting Matrix4f instance.</returns>
-        public static Matrix4f CreateTranslation(Vector3f vector)
-        {
-            Matrix4f result;
-            CreateTranslation(vector.X, vector.Y, vector.Z, out result);
-            return result;
-        }
-
         #endregion
 
         #region CreateScale
-
-        /// <summary>
-        /// Creates a scale matrix.
-        /// </summary>
-        /// <param name="scale">Single scale factor for the x, y, and z axes.</param>
-        /// <returns>A scale matrix.</returns>
-        public static Matrix4f CreateScale(float scale)
-        {
-            Matrix4f result;
-            CreateScale(scale, out result);
-            return result;
-        }
-
-        /// <summary>
-        /// Creates a scale matrix.
-        /// </summary>
-        /// <param name="scale">Scale factors for the x, y, and z axes.</param>
-        /// <returns>A scale matrix.</returns>
-        public static Matrix4f CreateScale(Vector3f scale)
-        {
-            Matrix4f result;
-            CreateScale(ref scale, out result);
-            return result;
-        }
-
-        /// <summary>
-        /// Creates a scale matrix.
-        /// </summary>
-        /// <param name="x">Scale factor for the x axis.</param>
-        /// <param name="y">Scale factor for the y axis.</param>
-        /// <param name="z">Scale factor for the z axis.</param>
-        /// <returns>A scale matrix.</returns>
-        public static Matrix4f CreateScale(float x, float y, float z)
-        {
-            Matrix4f result;
-            CreateScale(x, y, z, out result);
-            return result;
-        }
-
         /// <summary>
         /// Creates a scale matrix.
         /// </summary>
@@ -741,22 +669,6 @@ namespace ProdigalSoftware.TiVEPluginFramework
         {
             CreateOrthographicOffCenter(-width / 2, width / 2, -height / 2, height / 2, zNear, zFar, out result);
         }
-
-        /// <summary>
-        /// Creates an orthographic projection matrix.
-        /// </summary>
-        /// <param name="width">The width of the projection volume.</param>
-        /// <param name="height">The height of the projection volume.</param>
-        /// <param name="zNear">The near edge of the projection volume.</param>
-        /// <param name="zFar">The far edge of the projection volume.</param>
-        /// <rereturns>The resulting Matrix4f instance.</rereturns>
-        public static Matrix4f CreateOrthographic(float width, float height, float zNear, float zFar)
-        {
-            Matrix4f result;
-            CreateOrthographicOffCenter(-width / 2, width / 2, -height / 2, height / 2, zNear, zFar, out result);
-            return result;
-        }
-
         #endregion
 
         #region CreateOrthographicOffCenter
@@ -787,24 +699,6 @@ namespace ProdigalSoftware.TiVEPluginFramework
             result.Row3Y = -(top + bottom) * invTB;
             result.Row3Z = -(zFar + zNear) * invFN;
         }
-
-        /// <summary>
-        /// Creates an orthographic projection matrix.
-        /// </summary>
-        /// <param name="left">The left edge of the projection volume.</param>
-        /// <param name="right">The right edge of the projection volume.</param>
-        /// <param name="bottom">The bottom edge of the projection volume.</param>
-        /// <param name="top">The top edge of the projection volume.</param>
-        /// <param name="zNear">The near edge of the projection volume.</param>
-        /// <param name="zFar">The far edge of the projection volume.</param>
-        /// <returns>The resulting Matrix4f instance.</returns>
-        public static Matrix4f CreateOrthographicOffCenter(float left, float right, float bottom, float top, float zNear, float zFar)
-        {
-            Matrix4f result;
-            CreateOrthographicOffCenter(left, right, bottom, top, zNear, zFar, out result);
-            return result;
-        }
-
         #endregion
 
         #region CreatePerspectiveFieldOfView
@@ -845,32 +739,6 @@ namespace ProdigalSoftware.TiVEPluginFramework
 
             CreatePerspectiveOffCenter(xMin, xMax, yMin, yMax, zNear, zFar, out result);
         }
-
-        /// <summary>
-        /// Creates a perspective projection matrix.
-        /// </summary>
-        /// <param name="fovy">Angle of the field of view in the y direction (in radians)</param>
-        /// <param name="aspect">Aspect ratio of the view (width / height)</param>
-        /// <param name="zNear">Distance to the near clip plane</param>
-        /// <param name="zFar">Distance to the far clip plane</param>
-        /// <returns>A projection matrix that transforms camera space to raster space</returns>
-        /// <exception cref="System.ArgumentOutOfRangeException">
-        /// Thrown under the following conditions:
-        /// <list type="bullet">
-        /// <item>fovy is zero, less than zero or larger than Math.PI</item>
-        /// <item>aspect is negative or zero</item>
-        /// <item>zNear is negative or zero</item>
-        /// <item>zFar is negative or zero</item>
-        /// <item>zNear is larger than zFar</item>
-        /// </list>
-        /// </exception>
-        public static Matrix4f CreatePerspectiveFieldOfView(float fovy, float aspect, float zNear, float zFar)
-        {
-            Matrix4f result;
-            CreatePerspectiveFieldOfView(fovy, aspect, zNear, zFar, out result);
-            return result;
-        }
-
         #endregion
 
         #region CreatePerspectiveOffCenter
@@ -926,50 +794,9 @@ namespace ProdigalSoftware.TiVEPluginFramework
             result.Row3Z = d;
             result.Row3W = 0;
         }
-
-        /// <summary>
-        /// Creates an perspective projection matrix.
-        /// </summary>
-        /// <param name="left">Left edge of the view frustum</param>
-        /// <param name="right">Right edge of the view frustum</param>
-        /// <param name="bottom">Bottom edge of the view frustum</param>
-        /// <param name="top">Top edge of the view frustum</param>
-        /// <param name="zNear">Distance to the near clip plane</param>
-        /// <param name="zFar">Distance to the far clip plane</param>
-        /// <returns>A projection matrix that transforms camera space to raster space</returns>
-        /// <exception cref="System.ArgumentOutOfRangeException">
-        /// Thrown under the following conditions:
-        /// <list type="bullet">
-        /// <item>zNear is negative or zero</item>
-        /// <item>zFar is negative or zero</item>
-        /// <item>zNear is larger than zFar</item>
-        /// </list>
-        /// </exception>
-        public static Matrix4f CreatePerspectiveOffCenter(float left, float right, float bottom, float top, float zNear, float zFar)
-        {
-            Matrix4f result;
-            CreatePerspectiveOffCenter(left, right, bottom, top, zNear, zFar, out result);
-            return result;
-        }
-
         #endregion
 
         #region Camera Helper Functions
-
-        /// <summary>
-        /// Build a world space to camera space matrix
-        /// </summary>
-        /// <param name="eye">Eye (camera) position in world space</param>
-        /// <param name="target">Target position in world space</param>
-        /// <param name="up">Up vector in world space (should not be parallel to the camera direction, that is target - eye)</param>
-        /// <returns>A Matrix4f that transforms world space to camera space</returns>
-        public static Matrix4f LookAt(Vector3f eye, Vector3f target, Vector3f up)
-        {
-            Matrix4f result;
-            LookAt(eye, target, up, out result);
-            return result;
-        }
-
         /// <summary>
         /// Build a world space to camera space matrix
         /// </summary>
@@ -978,11 +805,21 @@ namespace ProdigalSoftware.TiVEPluginFramework
         /// <param name="up">Up vector in world space (should not be parallel to the camera direction, that is target - eye)</param>
         /// <param name="result">A matrix that transforms world space to camera space matrix</param>
         /// <returns>A Matrix4f that transforms world space to camera space</returns>
-        public static void LookAt(Vector3f eye, Vector3f target, Vector3f up, out Matrix4f result)
+        public static void LookAt(ref Vector3f eye, ref Vector3f target, ref Vector3f up, out Matrix4f result)
         {
-            Vector3f z = Vector3f.Normalize(eye - target);
-            Vector3f x = Vector3f.Normalize(Vector3f.Cross(up, z));
-            Vector3f y = Vector3f.Normalize(Vector3f.Cross(z, x));
+            Vector3f targetEye = eye - target;
+            Vector3f z;
+            Vector3f.Normalize(ref targetEye, out z);
+
+            Vector3f crossUpZ;
+            Vector3f.Cross(ref up, ref z, out crossUpZ);
+            Vector3f x;
+            Vector3f.Normalize(ref crossUpZ, out x);
+
+            Vector3f crossZX;
+            Vector3f.Cross(ref z, ref x, out crossZX);
+            Vector3f y;
+            Vector3f.Normalize(ref crossZX, out y);
 
             result.Row0X = x.X;
             result.Row0Y = y.X;
@@ -1001,42 +838,9 @@ namespace ProdigalSoftware.TiVEPluginFramework
             result.Row3Z = -((z.X * eye.X) + (z.Y * eye.Y) + (z.Z * eye.Z));
             result.Row3W = 1;
         }
-
-        /// <summary>
-        /// Build a world space to camera space matrix
-        /// </summary>
-        /// <param name="eyeX">Eye (camera) position in world space</param>
-        /// <param name="eyeY">Eye (camera) position in world space</param>
-        /// <param name="eyeZ">Eye (camera) position in world space</param>
-        /// <param name="targetX">Target position in world space</param>
-        /// <param name="targetY">Target position in world space</param>
-        /// <param name="targetZ">Target position in world space</param>
-        /// <param name="upX">Up vector in world space (should not be parallel to the camera direction, that is target - eye)</param>
-        /// <param name="upY">Up vector in world space (should not be parallel to the camera direction, that is target - eye)</param>
-        /// <param name="upZ">Up vector in world space (should not be parallel to the camera direction, that is target - eye)</param>
-        /// <returns>A Matrix4f that transforms world space to camera space</returns>
-        public static Matrix4f LookAt(float eyeX, float eyeY, float eyeZ, float targetX, float targetY, float targetZ, float upX, float upY, float upZ)
-        {
-            return LookAt(new Vector3f(eyeX, eyeY, eyeZ), new Vector3f(targetX, targetY, targetZ), new Vector3f(upX, upY, upZ));
-        }
-
         #endregion
 
         #region Add Functions
-
-        /// <summary>
-        /// Adds two instances.
-        /// </summary>
-        /// <param name="left">The left operand of the addition.</param>
-        /// <param name="right">The right operand of the addition.</param>
-        /// <returns>A new instance that is the result of the addition.</returns>
-        public static Matrix4f Add(Matrix4f left, Matrix4f right)
-        {
-            Matrix4f result;
-            Add(ref left, ref right, out result);
-            return result;
-        }
-
         /// <summary>
         /// Adds two instances.
         /// </summary>
@@ -1069,20 +873,6 @@ namespace ProdigalSoftware.TiVEPluginFramework
         #endregion
 
         #region Subtract Functions
-
-        /// <summary>
-        /// Subtracts one instance from another.
-        /// </summary>
-        /// <param name="left">The left operand of the subraction.</param>
-        /// <param name="right">The right operand of the subraction.</param>
-        /// <returns>A new instance that is the result of the subraction.</returns>
-        public static Matrix4f Subtract(Matrix4f left, Matrix4f right)
-        {
-            Matrix4f result;
-            Subtract(ref left, ref right, out result);
-            return result;
-        }
-
         /// <summary>
         /// Subtracts one instance from another.
         /// </summary>
@@ -1115,20 +905,6 @@ namespace ProdigalSoftware.TiVEPluginFramework
         #endregion
 
         #region Multiply Functions
-
-        /// <summary>
-        /// Multiplies two instances.
-        /// </summary>
-        /// <param name="left">The left operand of the multiplication.</param>
-        /// <param name="right">The right operand of the multiplication.</param>
-        /// <returns>A new instance that is the result of the multiplication.</returns>
-        public static Matrix4f Mult(Matrix4f left, Matrix4f right)
-        {
-            Matrix4f result;
-            Mult(ref left, ref right, out result);
-            return result;
-        }
-
         /// <summary>
         /// Multiplies two instances.
         /// </summary>
@@ -1163,20 +939,7 @@ namespace ProdigalSoftware.TiVEPluginFramework
             result.Row3Z = (((lM41 * rM13) + (lM42 * rM23)) + (lM43 * rM33)) + (lM44 * rM43);
             result.Row3W = (((lM41 * rM14) + (lM42 * rM24)) + (lM43 * rM34)) + (lM44 * rM44);
         }
-
-        /// <summary>
-        /// Multiplies an instance by a scalar.
-        /// </summary>
-        /// <param name="left">The left operand of the multiplication.</param>
-        /// <param name="right">The right operand of the multiplication.</param>
-        /// <returns>A new instance that is the result of the multiplication</returns>
-        public static Matrix4f Mult(Matrix4f left, float right)
-        {
-            Matrix4f result;
-            Mult(ref left, right, out result);
-            return result;
-        }
-
+        
         /// <summary>
         /// Multiplies an instance by a scalar.
         /// </summary>
@@ -1330,37 +1093,9 @@ namespace ProdigalSoftware.TiVEPluginFramework
             result.Row3Z = inverse[3, 2];
             result.Row3W = inverse[3, 3];
         }
-
-        /// <summary>
-        /// Calculate the inverse of the given matrix
-        /// </summary>
-        /// <param name="mat">The matrix to invert</param>
-        /// <returns>The inverse of the given matrix if it has one, or the input if it is singular</returns>
-        /// <exception cref="InvalidOperationException">Thrown if the Matrix4f is singular.</exception>
-        public static Matrix4f Invert(Matrix4f mat)
-        {
-            Matrix4f result;
-            Invert(ref mat, out result);
-            return result;
-        }
-
         #endregion
 
         #region Transpose
-
-        /// <summary>
-        /// Calculate the transpose of the given matrix
-        /// </summary>
-        /// <param name="mat">The matrix to transpose</param>
-        /// <returns>The transpose of the given matrix</returns>
-        public static Matrix4f Transpose(Matrix4f mat)
-        {
-            Matrix4f result;
-            Transpose(ref mat, out result);
-            return result;
-        }
-
-
         /// <summary>
         /// Calculate the transpose of the given matrix
         /// </summary>
@@ -1403,7 +1138,9 @@ namespace ProdigalSoftware.TiVEPluginFramework
         /// <returns>A new Matrix4f which holds the result of the multiplication</returns>
         public static Matrix4f operator *(Matrix4f left, Matrix4f right)
         {
-            return Mult(left, right);
+            Matrix4f result;
+            Mult(ref left, ref right, out result);
+            return result;
         }
 
         /// <summary>
@@ -1414,7 +1151,9 @@ namespace ProdigalSoftware.TiVEPluginFramework
         /// <returns>A new Matrix4f which holds the result of the multiplication</returns>
         public static Matrix4f operator *(Matrix4f left, float right)
         {
-            return Mult(left, right);
+            Matrix4f result;
+            Mult(ref left, right, out result);
+            return result;
         }
 
         /// <summary>
@@ -1425,7 +1164,9 @@ namespace ProdigalSoftware.TiVEPluginFramework
         /// <returns>A new Matrix4f which holds the result of the addition</returns>
         public static Matrix4f operator +(Matrix4f left, Matrix4f right)
         {
-            return Add(left, right);
+            Matrix4f result;
+            Add(ref left, ref right, out result);
+            return result;
         }
 
         /// <summary>
@@ -1436,7 +1177,9 @@ namespace ProdigalSoftware.TiVEPluginFramework
         /// <returns>A new Matrix4f which holds the result of the subtraction</returns>
         public static Matrix4f operator -(Matrix4f left, Matrix4f right)
         {
-            return Subtract(left, right);
+            Matrix4f result;
+            Subtract(ref left, ref right, out result);
+            return result;
         }
 
         /// <summary>

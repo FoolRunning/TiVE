@@ -61,7 +61,7 @@ namespace TiVETests.Core
             {
             }
 
-            protected override bool UpdateInternal(int ticksSinceLastUpdate, float timeBlendFactor, Scene currentScene)
+            protected override bool UpdateInternal(int ticksSinceLastUpdate, Scene currentScene)
             {
                 UpdateCount++;
                 TotalTicks += ticksSinceLastUpdate;

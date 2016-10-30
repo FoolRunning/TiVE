@@ -71,10 +71,7 @@ namespace ProdigalSoftware.TiVE.ParticleSystem
         public void Dispose()
         {
             voxelInstanceLocationData.Dispose();
-
-            if (instances != null)
-                instances.Dispose();
-
+            instances?.Dispose();
             particleSystems.Clear();
             particleSystemIndex.Clear();
         }
@@ -139,7 +136,7 @@ namespace ProdigalSoftware.TiVE.ParticleSystem
         /// <summary>
         /// Updates all particle systems in this collection
         /// </summary>
-        public void UpdateAll(Vector3i worldSize, Vector3i cameraLocation, Scene scene, float timeSinceLastFrame)
+        public void UpdateAll(ref Vector3i worldSize, ref Vector3i cameraLocation, Scene scene, float timeSinceLastFrame)
         {
             updateList.Clear();
             using (new PerformanceLock(particleSystems))
@@ -157,9 +154,9 @@ namespace ProdigalSoftware.TiVE.ParticleSystem
                 ParticleEmitter system = updateList[i];
                 if (system.InUse)
                 {
-                    system.UpdateInternal(cameraLocation, timeSinceLastFrame);
+                    system.UpdateInternal(ref cameraLocation, timeSinceLastFrame);
                     lock (syncObj)
-                        system.AddToArrays(worldSize, scene, locations, colors, ref dataIndex);
+                        system.AddToArrays(ref worldSize, scene, locations, colors, ref dataIndex);
                 }
             }
 

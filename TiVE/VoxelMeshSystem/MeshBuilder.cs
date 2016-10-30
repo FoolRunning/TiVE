@@ -42,7 +42,7 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
         #endregion
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int AddVoxel(VoxelSides sides, byte x, byte y, byte z, Color4b color)
+        public int AddVoxel(CubeSides sides, byte x, byte y, byte z, Color4b color)
         {
             locationData[vertexCount] = new Vector4b(x, y, z, (byte)sides);
             colorData[vertexCount++] = color;
