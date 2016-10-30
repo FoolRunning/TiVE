@@ -17,7 +17,7 @@ namespace ProdigalSoftware.TiVE.ScriptSystem
     /// <summary>
     /// Engine system for handling entities that contain a script component
     /// </summary>
-    internal sealed class ScriptSystem : TimeSlicedEngineSystem
+    internal sealed class ScriptSystem : EngineSystem
     {
         private const string ScriptsDirName = "Scripts";
         private const string ScriptFileExtension = ".lua";
@@ -81,12 +81,12 @@ namespace ProdigalSoftware.TiVE.ScriptSystem
         {
         }
 
-        protected override bool UpdateInternal(float timeSinceLastUpdate, Scene newCurrentScene)
+        protected override bool UpdateInternal(int ticksSinceLastUpdate, Scene newCurrentScene)
         {
             currentScene = newCurrentScene;
             keyboard.Update();
 
-            DynValue tsluValue = DynValue.NewNumber(timeSinceLastUpdate);
+            DynValue tsluValue = DynValue.NewNumber(ticksSinceLastUpdate / (float)Stopwatch.Frequency);
 
             foreach (IEntity entity in currentScene.GetEntitiesWithComponent<ScriptComponent>())
             {

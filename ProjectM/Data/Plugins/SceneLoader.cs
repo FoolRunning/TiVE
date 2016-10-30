@@ -20,9 +20,18 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
                 entity.AddComponent(new CameraComponent());
                 entity.AddComponent(new ScriptComponent("LoadingCamera"));
             }
+            else if (sceneName == "2DTest")
+            {
+                scene = Factory.New<IScene>();
+                scene.SetGameWorld("2DTest");
+                IEntity entity = scene.CreateNewEntity("Camera");
+                entity.AddComponent(new CameraComponent());
+                entity.AddComponent(new ScriptComponent("2DCamera"));
+            }
             else if (sceneName == "Maze")
             {
                 scene = Factory.New<IScene>();
+                scene.AmbientLight = new Color3f(0.05f, 0.05f, 0.04f);
                 scene.SetGameWorld("Maze");
                 IEntity entity = scene.CreateNewEntity("Camera");
                 entity.AddComponent(new CameraComponent());
@@ -31,6 +40,7 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
             else if (sceneName == "Field")
             {
                 scene = Factory.New<IScene>();
+                scene.AmbientLight = new Color3f(0.05f, 0.05f, 0.04f);
                 scene.SetGameWorld("Field");
                 IEntity entity = scene.CreateNewEntity("Camera");
                 entity.AddComponent(new CameraComponent());

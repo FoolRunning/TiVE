@@ -7,9 +7,22 @@ using ProdigalSoftware.TiVEPluginFramework.Internal;
 
 namespace ProdigalSoftware.TiVEPluginFramework
 {
+    [Flags]
+    public enum CubeSides : byte
+    {
+        None = 0,
+        Top = 1 << 0,
+        Left = 1 << 1,
+        Right = 1 << 2,
+        Bottom = 1 << 3,
+        Front = 1 << 4,
+        Back = 1 << 5,
+        All = Top | Left | Right | Bottom | Front | Back,
+    }
+    
     #region LODLevel enum
     [PublicAPI]
-    public enum LODLevel : byte
+    public enum LODLevel
     {
         V32 = 0,
         V16 = 1,
@@ -157,27 +170,27 @@ namespace ProdigalSoftware.TiVEPluginFramework
                         if (vox == Voxel.Empty)
                             continue;
 
-                        VoxelSides sides = VoxelSides.None;
+                        CubeSides sides = CubeSides.None;
 
                         if (bvz == 0 || VoxelAt(bvx, bvy, bvz - 1) == Voxel.Empty)
-                            sides |= VoxelSides.Back;
+                            sides |= CubeSides.Back;
 
                         if (bvz == maxBlockVoxel || VoxelAt(bvx, bvy, bvz + 1) == Voxel.Empty)
-                            sides |= VoxelSides.Front;
+                            sides |= CubeSides.Front;
 
                         if (bvx == 0 || VoxelAt(bvx - 1, bvy, bvz) == Voxel.Empty)
-                            sides |= VoxelSides.Left;
+                            sides |= CubeSides.Left;
 
                         if (bvx == maxBlockVoxel || VoxelAt(bvx + 1, bvy, bvz) == Voxel.Empty)
-                            sides |= VoxelSides.Right;
+                            sides |= CubeSides.Right;
 
                         if (bvy == 0 || VoxelAt(bvx, bvy - 1, bvz) == Voxel.Empty)
-                            sides |= VoxelSides.Bottom;
+                            sides |= CubeSides.Bottom;
 
                         if (bvy == maxBlockVoxel || VoxelAt(bvx, bvy + 1, bvz) == Voxel.Empty)
-                            sides |= VoxelSides.Top;
+                            sides |= CubeSides.Top;
 
-                        if (sides != VoxelSides.None)
+                        if (sides != CubeSides.None)
                         {
                             bool checkSurrounding = (bvz == 0 || bvz == maxBlockVoxel || bvx == 0 || bvx == maxBlockVoxel || bvy == 0 || bvy == maxBlockVoxel);
                             renderedVoxelsList.Add(new RenderedVoxel(vox, new Vector3b((byte)bvx, (byte)bvy, (byte)bvz), sides, checkSurrounding));
@@ -266,7 +279,7 @@ namespace ProdigalSoftware.TiVEPluginFramework
         private static int GetArrayOffset(int x, int y, int z)
         {
             MiscUtils.CheckConstraints(x, y, z, VoxelSize);
-            return (((z * VoxelSize) + x) * VoxelSize) + y; // y-axis major for speed
+            return (((z << VoxelSizeBitShift) + x) << VoxelSizeBitShift) + y; // y-axis major for speed
         }
         #endregion
     }
@@ -327,7 +340,7 @@ namespace ProdigalSoftware.TiVEPluginFramework
         private static int GetArrayOffset(int x, int y, int z)
         {
             MiscUtils.CheckConstraints(x, y, z, VoxelSize);
-            return (((z * VoxelSize) + x) * VoxelSize) + y; // y-axis major for speed
+            return (((z << VoxelSizeBitShift) + x) << VoxelSizeBitShift) + y; // y-axis major for speed
         }
         #endregion
     }
@@ -388,7 +401,7 @@ namespace ProdigalSoftware.TiVEPluginFramework
         private static int GetArrayOffset(int x, int y, int z)
         {
             MiscUtils.CheckConstraints(x, y, z, VoxelSize);
-            return (((z * VoxelSize) + x) * VoxelSize) + y; // y-axis major for speed
+            return (((z << VoxelSizeBitShift) + x) << VoxelSizeBitShift) + y; // y-axis major for speed
         }
         #endregion
     }
@@ -449,7 +462,7 @@ namespace ProdigalSoftware.TiVEPluginFramework
         private static int GetArrayOffset(int x, int y, int z)
         {
             MiscUtils.CheckConstraints(x, y, z, VoxelSize);
-            return (((z * VoxelSize) + x) * VoxelSize) + y; // y-axis major for speed
+            return (((z << VoxelSizeBitShift) + x) << VoxelSizeBitShift) + y; // y-axis major for speed
         }
         #endregion
     }

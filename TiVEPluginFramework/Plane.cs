@@ -21,12 +21,12 @@ namespace ProdigalSoftware.TiVEPluginFramework
         public Plane(Vector3f newPlaneNormal, Vector3f newPlanePoint)
         {
             PlaneNormal = newPlaneNormal;
-            PlaneD = -Vector3f.Dot(newPlaneNormal, newPlanePoint);
+            PlaneD = -Vector3f.Dot(ref newPlaneNormal, ref newPlanePoint);
         }
 
-        public float DistanceFromPoint(Vector3f point)
+        public float DistanceFromPoint(ref Vector3f point)
         {
-            return Vector3f.Dot(PlaneNormal, point) + PlaneD;
+            return Vector3f.Dot(ref PlaneNormal, ref point) + PlaneD;
         }
 
         #region Implementation of ITiVESerializable

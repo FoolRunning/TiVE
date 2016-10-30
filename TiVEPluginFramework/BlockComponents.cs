@@ -13,24 +13,24 @@ namespace ProdigalSoftware.TiVEPluginFramework
         public static readonly Guid ID = new Guid("67767135-A2B9-4FF6-A39E-CFE6F052CD6D");
 
         internal readonly Vector3b Location;
-        internal readonly ushort LightBlockDist;
+        internal readonly byte LightBlockDist;
         internal readonly Color3f Color;
 
         public LightComponent(BinaryReader reader)
         {
-            LightBlockDist = reader.ReadUInt16();
+            LightBlockDist = reader.ReadByte();
             Location = new Vector3b(reader);
             Color = new Color3f(reader);
         }
 
-        public LightComponent(Vector3b location, Color3f color, int lightBlockDist)
+        public LightComponent(Vector3b location, Color3f color, int lightBlockDist, bool castsShadows = true)
         {
-            if (lightBlockDist < 0 || lightBlockDist > ushort.MaxValue)
-                throw new ArgumentOutOfRangeException("lightBlockDist", "block distance must be between 0 and 65535");
+            if (lightBlockDist < 0 || lightBlockDist > byte.MaxValue)
+                throw new ArgumentOutOfRangeException(nameof(lightBlockDist), "block distance must be between 0 and 255");
 
             Location = location;
             Color = color;
-            LightBlockDist = (ushort)lightBlockDist;
+            LightBlockDist = (byte)lightBlockDist;
         }
 
         public void SaveTo(BinaryWriter writer)

@@ -106,7 +106,7 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
             newScene.LoadingInitialChunks = true;
         }
 
-        protected override bool UpdateInternal(int ticksSinceLastUpdate, float timeBlendFactor, Scene currentScene)
+        protected override bool UpdateInternal(int ticksSinceLastUpdate, Scene currentScene)
         {
             CameraComponent cameraData = currentScene.FindCamera();
             if (cameraData == null)
@@ -347,35 +347,35 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
                 int voxelY = (blockY << bitShift) + bvy;
                 int voxelZ = (blockZ << bitShift) + bvz;
                 Voxel vox = renVox.Voxel;
-                VoxelSides sides = renVox.Sides;
+                CubeSides sides = renVox.Sides;
                 if (renVox.CheckSurroundingVoxels)
                 {
                     // Check to see if the back side is really visible
                     if (bvz == 0 && blockZ > 0 && gameWorld[blockX, blockY, blockZ - 1] != Block.Empty && gameWorld.GetVoxel(voxelX, voxelY, voxelZ - 1, detailLevel) != Voxel.Empty)
-                        sides ^= VoxelSides.Back;
+                        sides ^= CubeSides.Back;
 
                     // Check to see if the front side is really visible
                     if (bvz == maxBlockVoxel && blockZ < maxBlockZ && gameWorld[blockX, blockY, blockZ + 1] != Block.Empty && gameWorld.GetVoxel(voxelX, voxelY, voxelZ + 1, detailLevel) != Voxel.Empty)
-                        sides ^= VoxelSides.Front;
+                        sides ^= CubeSides.Front;
 
                     // Check to see if the left side is really visible
                     if (bvx == 0 && blockX > 0 && gameWorld[blockX - 1, blockY, blockZ] != Block.Empty && gameWorld.GetVoxel(voxelX - 1, voxelY, voxelZ, detailLevel) != Voxel.Empty)
-                        sides ^= VoxelSides.Left;
+                        sides ^= CubeSides.Left;
 
                     // Check to see if the right side is really visible
                     if (bvx == maxBlockVoxel && blockX < maxBlockX && gameWorld[blockX + 1, blockY, blockZ] != Block.Empty && gameWorld.GetVoxel(voxelX + 1, voxelY, voxelZ, detailLevel) != Voxel.Empty)
-                        sides ^= VoxelSides.Right;
+                        sides ^= CubeSides.Right;
 
                     // Check to see if the bottom side is really visible
                     if (bvy == 0 && blockY > 0 && gameWorld[blockX, blockY - 1, blockZ] != Block.Empty && gameWorld.GetVoxel(voxelX, voxelY - 1, voxelZ, detailLevel) != Voxel.Empty)
-                        sides ^= VoxelSides.Bottom;
+                        sides ^= CubeSides.Bottom;
 
                     // Check to see if the top side is really visible
                     if (bvy == maxBlockVoxel && blockY < maxBlockY && gameWorld[blockX, blockY + 1, blockZ] != Block.Empty && gameWorld.GetVoxel(voxelX, voxelY + 1, voxelZ, detailLevel) != Voxel.Empty)
-                        sides ^= VoxelSides.Top;
+                        sides ^= CubeSides.Top;
                 }
                 
-                if (sides != VoxelSides.None)
+                if (sides != CubeSides.None)
                 {
                     if (voxelNoiseComponent != null)
                         vox = voxelNoiseComponent.Adjust(vox);
@@ -383,8 +383,8 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
                     byte chunkVoxelX = (byte)((voxelX - voxelStartX) * renderedVoxelSize);
                     byte chunkVoxelY = (byte)((voxelY - voxelStartY) * renderedVoxelSize);
                     byte chunkVoxelZ = (byte)((voxelZ - voxelStartZ) * renderedVoxelSize);
-                    
-                    polygonCount += meshBuilder.AddVoxel(sides, chunkVoxelX, chunkVoxelY, chunkVoxelZ,
+
+                    polygonCount += meshBuilder.AddVoxel(sides, chunkVoxelX, chunkVoxelY, chunkVoxelZ, 
                         vox.IgnoreLighting ? (Color4b)vox : lightProvider.GetFinalColor(vox, voxelX, voxelY, voxelZ, detailLevel, shadowDetailLevel, blockX, blockY, blockZ, sides));
                     renderedVoxelCount++;
                 }
@@ -410,7 +410,7 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
             float distY = renderData.Location.Y - cameraData.Location.Y;
             float distZ = renderData.Location.Z - cameraData.Location.Z;
 
-            float dist = (float)Math.Sqrt(distX * distX + distY * distY + distZ * distZ);
+            float dist = MathUtils.FastSqrt(distX * distX + distY * distY + distZ * distZ);
             float distancePerLevel;
             switch (currentVoxelDetalLevelSetting)
             {

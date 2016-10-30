@@ -9,13 +9,13 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
     internal sealed class LightInfo
     {
         /// <summary>The voxel location of the light on the x-axis</summary>
-        public readonly ushort VoxelLocX;      // 2 bytes
+        public readonly ushort VoxelLocX;       // 2 bytes
         /// <summary>The voxel location of the light on the y-axis</summary>
-        public readonly ushort VoxelLocY;      // 2 bytes
+        public readonly ushort VoxelLocY;       // 2 bytes
         /// <summary>The voxel location of the light on the z-axis</summary>
-        public readonly ushort VoxelLocZ;      // 2 bytes
-        /// <summary>Color of the light when at full brightness</summary>
-        public Color3f LightColor;    // 12 bytes
+        public readonly ushort VoxelLocZ;       // 2 bytes
+        /// <summary>Light information</summary>
+        public readonly Color3f LightColor;     // 12 bytes
 
         /// <summary>Cached lighting calculation needed by the current light model</summary>
         private readonly float cachedLightCalc; // 4 bytes

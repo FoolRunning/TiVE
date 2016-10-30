@@ -12,25 +12,18 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
         private static readonly RandomGenerator random = new RandomGenerator();
         private static readonly Voxel mortarColor = new Voxel(100, 100, 100);
         private static readonly Vector3b blockCenterVector = new Vector3b(bc, bc, bc);
-
-        private const int Front = 1;
-        private const int Back = 2;
-        private const int Left = 4;
-        private const int Right = 8;
-        private const int Top = 16;
-        private const int Bottom = 32;
+        
         private const byte bc = BlockLOD32.VoxelSize / 2;
         private const int mv = BlockLOD32.VoxelSize - 1;
         private const int ImperfectionIterations = BlockLOD32.VoxelSize > 16 ? 100 : 25;
-        private const bool ForFantasy = true;
-        //private const int LightDist = ForFantasy ? 17 : 28;
-        //private const float LightBright = ForFantasy ? 0.5f : 1.0f;
-        //private const float LightMid = ForFantasy ? 0.38f : 0.76f;
-        //private const float LightDim = ForFantasy ? 0.17f : 0.34f;
-        private const int LightDist = ForFantasy ? 17 : 34;
-        private const float LightBright = 1.0f;
-        private const float LightMid = 0.76f;
-        private const float LightDim = 0.34f;
+        private const bool ForFantasy = false;
+        private const float LightBright = ForFantasy ? 0.5f : 0.8f;
+        private const float LightMid = ForFantasy ? 0.38f : 0.6f;
+        private const float LightDim = ForFantasy ? 0.17f : 0.27f;
+        private const int LightDist = ForFantasy ? 17 : 25;
+        //private const float LightBright = 1.0f;
+        //private const float LightMid = 0.76f;
+        //private const float LightDim = 0.34f;
         private const float ObjBright = 1.0f;
         private const float ObjMid = 0.76f;
         private const float ObjDim = 0.34f;
@@ -46,12 +39,13 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
             {
                 case "fire": return CreateFire();
                 case "dirt": return CreateBlockInfo("dirt", 0, new Color4f(0.6f, 0.45f, 0.25f, 1.0f), 1.0f, colorVariation: 0.4f);
-                case "wood": return CreateRoundedBlockInfo(name, new Voxel(213, 128, 43), 1.0f, num);
-                case "leaves": return CreateLeaves(name, num);
-                case "lava": return CreateLava();
-                case "back": return CreateBackStone(name, num);
-                case "stoneBrick": return CreateStone(num, other);
-                case "light": return CreateLight(part, num);
+                case "wood": return CreateRoundedBlockInfo(name, new Voxel(213, 128, 43), 1.0f, (CubeSides)num);
+                case "leaves": return CreateLeaves(name, (CubeSides)num);
+                case "lava": return CreateLava(name, true);
+                case "lavaUnlit": return CreateLava(name, false);
+                case "back": return CreateBackStone(name, (CubeSides)num);
+                case "stoneBrick": return CreateStone(name, (CubeSides)num);
+                case "light": return CreateLight(name, num);
                 case "grass": return CreateGrass(name);
                 case "loadingGrass": return CreateGrass(name);
                 case "player": return new Block("player"); // Placeholder for the player starting location
@@ -59,25 +53,25 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
                 case "fountain": return CreateFountain();
                 case "roomLight":
                     return CreateBlockInfo(name, BlockLOD32.VoxelSize / 2 - 1, new Color4f(1.0f, 1.0f, 1.0f, 1.0f), 1.0f, null,
-                        new LightComponent(blockCenterVector, new Color3f(ForFantasy ? 0.6f : 0.8f, ForFantasy ? 0.6f : 0.8f, ForFantasy ? 0.6f : 0.8f), ForFantasy ? 35 : 60), colorVariation: 0.0f);
+                        new LightComponent(blockCenterVector, new Color3f(ForFantasy ? 0.5f : 0.8f, ForFantasy ? 0.5f : 0.8f, ForFantasy ? 0.5f : 0.8f), ForFantasy ? 35 : 56), colorVariation: 0.0f);
                 case "redLight":
                     return CreateBlockInfo(name, BlockLOD32.VoxelSize / 5.0f, new Color4f(ObjBright, ObjDim, ObjDim, 1.0f), 1.0f, null,
-                        new LightComponent(new Vector3b(bc, bc, bc), new Color3f(LightBright, LightDim, LightDim), ForFantasy ? 5 : 10), colorVariation: 0.0f);
+                        new LightComponent(new Vector3b(bc, bc, bc), new Color3f(LightBright, LightDim, LightDim), ForFantasy ? 5 : 7), colorVariation: 0.0f);
                 case "smallLight":
                     return CreateBlockInfo(name, BlockLOD32.VoxelSize / 16.0f, new Color4f(ObjDim, ObjDim, ObjBright, 1.0f), 1.0f, null,
-                        new LightComponent(new Vector3b(bc, bc, bc), new Color3f(LightDim, LightDim, LightBright), ForFantasy ? 12 : 24), colorVariation: 0.0f);
+                        new LightComponent(new Vector3b(bc, bc, bc), new Color3f(LightDim, LightDim, LightBright), ForFantasy ? 12 : 19), colorVariation: 0.0f);
                 case "hoverLightBlue":
                     return CreateBlockInfo(name, BlockLOD32.VoxelSize / 4.0f, new Color4f(ObjDim, ObjDim, ObjBright, 1.0f), 1.0f, null,
-                        new LightComponent(new Vector3b(bc, bc, bc), new Color3f(LightDim, LightDim, LightBright), ForFantasy ? 16 : 32), colorVariation: 0.0f);
+                        new LightComponent(new Vector3b(bc, bc, bc), new Color3f(LightDim, LightDim, LightBright), ForFantasy ? 16 : 26), colorVariation: 0.0f);
                 case "fountainLight":
                     return CreateBlockInfo(name, BlockLOD32.VoxelSize / 8.0f, new Color4f(ObjDim, ObjDim, ObjBright, 1.0f), 1.0f, null,
-                        new LightComponent(new Vector3b(bc, bc, bc), new Color3f(LightDim, LightDim, LightBright), ForFantasy ? 20 : 40), colorVariation: 0.0f);
+                        new LightComponent(new Vector3b(bc, bc, bc), new Color3f(0.25f, 0.25f, 0.7f), ForFantasy ? 20 : 30), colorVariation: 0.0f);
                 case "loadingLight":
                     return CreateBlockInfo(name, BlockLOD32.VoxelSize / 5.0f, new Color4f(1.0f, 1.0f, 1.0f, 1.0f), 1.0f, null,
-                        new LightComponent(blockCenterVector, new Color3f(0.5f, 0.5f, 0.5f), 60), colorVariation: 0.0f);
+                        new LightComponent(blockCenterVector, new Color3f(0.5f, 0.5f, 0.5f), 90), colorVariation: 0.0f);
                 case "treeLight":
                     return CreateBlockInfo(name, BlockLOD32.VoxelSize / 8.0f, new Color4f(ObjBright, ObjBright, ObjBright, 1.0f), 1.0f, null,
-                        new LightComponent(new Vector3b(bc, bc, bc), new Color3f(LightBright, LightBright, LightBright), ForFantasy ? 20 : 40), colorVariation: 0.0f);
+                        new LightComponent(new Vector3b(bc, bc, bc), new Color3f(LightBright, LightBright, LightBright), ForFantasy ? 20 : 30), colorVariation: 0.0f);
                 case "dummy":
                     Block dummy = new Block("dummy");
                     dummy.AddComponent(new LightPassthroughComponent());
@@ -93,7 +87,7 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
             fireBlock.AddComponent(new ParticleComponent("Fire", new Vector3i(bc, bc, 1)));
             fireBlock.AddComponent(new LightPassthroughComponent());
             fireBlock.AddComponent(new LightComponent(new Vector3b(bc, bc, bc),
-                new Color3f(ForFantasy ? 0.7f : 1.0f, ForFantasy ? 0.55f : 0.8f, ForFantasy ? 0.4f : 0.6f), ForFantasy ? 12 : 18));
+                new Color3f(ForFantasy ? 0.6f : 1.0f, ForFantasy ? 0.45f : 0.8f, ForFantasy ? 0.35f : 0.6f), ForFantasy ? 15 : 20));
             return fireBlock;
         }
 
@@ -122,18 +116,19 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
             return fountainBlock;
         }
 
-        private static Block CreateLava()
+        private static Block CreateLava(string name, bool isLit)
         {
-            Block lavaBlock = new Block("lava");
+            Block lavaBlock = new Block(name);
             for (int z = 0; z < BlockLOD32.VoxelSize; z++)
             {
                 for (int x = 0; x < BlockLOD32.VoxelSize; x++)
                 {
                     for (int y = 0; y < BlockLOD32.VoxelSize; y++)
-                        lavaBlock.LOD32[x, y, z] = new Voxel(230, 32, 18, 255, VoxelSettings.IgnoreLighting | VoxelSettings.AllowLightPassthrough);
+                        lavaBlock.LOD32[x, y, z] = new Voxel(230, 32, 18, 255, VoxelSettings.SkipVoxelNormalCalc | VoxelSettings.AllowLightPassthrough);
                 }
             }
-            lavaBlock.AddComponent(new LightComponent(new Vector3b(bc, bc, bc), new Color3f(0.4f, 0.02f, 0.01f), ForFantasy ? 4 : 6));
+            if (isLit)
+                lavaBlock.AddComponent(new LightComponent(new Vector3b(bc, bc, bc), new Color3f(0.7f, 0.06f, 0.03f), ForFantasy ? 4 : 6, false));
             lavaBlock.AddComponent(new ParticleComponent("Lava", new Vector3i(0, 0, BlockLOD32.VoxelSize - 1)));
             lavaBlock.AddComponent(new VoxelNoiseComponent(0.3f));
             lavaBlock.AddComponent(new LightPassthroughComponent());
@@ -165,7 +160,7 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
             }
         }
 
-        private static Block CreateLeaves(string name, int num)
+        private static Block CreateLeaves(string name, CubeSides sides)
         {
             Voxel leavesVoxel = new Voxel(13, 200, 23);
             Block leaves = new Block(name);
@@ -224,7 +219,7 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
                 }
             }
 
-            CommonUtils.MakeBlockRound(leaves, num);
+            CommonUtils.MakeBlockRound(leaves, sides);
 
             leaves.AddComponent(new LightPassthroughComponent());
             leaves.GenerateLODLevels();
@@ -412,11 +407,11 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
             return grass;
         }
 
-        private static Block CreateBackStone(string name, int num)
+        private static Block CreateBackStone(string name, CubeSides sides)
         {
-            Block back = CreateRoundedBlockInfo(name, new Voxel(200, 200, 200), 1.0f, num, null, 0.05f);
+            Block back = CreateRoundedBlockInfo(name, new Voxel(200, 200, 200), 1.0f, sides, null, 0.05f);
 
-            if ((num & Bottom) != 0)
+            if ((sides & CubeSides.Bottom) != 0)
             {
                 for (int h = 0; h < ImperfectionIterations; h++)
                 {
@@ -432,7 +427,7 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
                         back.LOD8[x / 4, 0, z / 4] = Voxel.Empty;
                 }
             }
-            if ((num & Top) != 0)
+            if ((sides & CubeSides.Top) != 0)
             {
                 for (int h = 0; h < ImperfectionIterations; h++)
                 {
@@ -448,7 +443,7 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
                         back.LOD8[x / 4, BlockLOD8.VoxelSize - 1, z / 4] = Voxel.Empty;
                 }
             }
-            if ((num & Left) != 0)
+            if ((sides & CubeSides.Left) != 0)
             {
                 for (int h = 0; h < ImperfectionIterations; h++)
                 {
@@ -464,7 +459,7 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
                         back.LOD8[0, y / 4, z / 4] = Voxel.Empty;
                 }
             }
-            if ((num & Right) != 0)
+            if ((sides & CubeSides.Right) != 0)
             {
                 for (int h = 0; h < ImperfectionIterations; h++)
                 {
@@ -480,7 +475,7 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
                         back.LOD8[BlockLOD8.VoxelSize - 1, y / 4, z / 4] = Voxel.Empty;
                 }
             }
-            if ((num & Front) != 0)
+            if ((sides & CubeSides.Front) != 0)
             {
                 for (int h = 0; h < ImperfectionIterations; h++)
                 {
@@ -496,7 +491,7 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
                         back.LOD8[x / 4, y / 4, BlockLOD8.VoxelSize - 1] = Voxel.Empty;
                 }
             }
-            if ((num & Back) != 0)
+            if ((sides & CubeSides.Back) != 0)
             {
                 for (int h = 0; h < ImperfectionIterations; h++)
                 {
@@ -517,12 +512,12 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
             return back;
         }
 
-        private static Block CreateStone(int num, string other)
+        private static Block CreateStone(string name, CubeSides sides)
         {
-            Block stone = CreateRoundedBlockInfo("stoneBrick" + num + "_" + other, new Voxel(229, 229, 229), 1.0f, num, null, 0.1f);
+            Block stone = CreateRoundedBlockInfo(name, new Voxel(229, 229, 229), 1.0f, sides, null, 0.1f);
             for (int x = 0; x <= mv; x++)
             {
-                if ((num & Bottom) != 0)
+                if ((sides & CubeSides.Bottom) != 0)
                 {
                     stone.LOD32[x, 0, 0] = Voxel.Empty;
                     stone.LOD32[x, 0, bc] = Voxel.Empty;
@@ -543,7 +538,7 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
                     }
                 }
 
-                if ((num & Top) != 0)
+                if ((sides & CubeSides.Top) != 0)
                 {
                     stone.LOD32[x, mv, 0] = Voxel.Empty;
                     stone.LOD32[x, mv, bc] = Voxel.Empty;
@@ -566,7 +561,7 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
             }
             for (int y = 0; y <= mv; y++)
             {
-                if ((num & Left) != 0)
+                if ((sides & CubeSides.Left) != 0)
                 {
                     stone.LOD32[0, y, 0] = Voxel.Empty;
                     stone.LOD32[0, y, bc] = Voxel.Empty;
@@ -587,7 +582,7 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
                     }
                 }
 
-                if ((num & Right) != 0)
+                if ((sides & CubeSides.Right) != 0)
                 {
                     stone.LOD32[mv, y, 0] = Voxel.Empty;
                     stone.LOD32[mv, y, bc] = Voxel.Empty;
@@ -619,7 +614,7 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
             }
             for (int z = 0; z < bc; z++)
             {
-                if ((num & Bottom) != 0)
+                if ((sides & CubeSides.Bottom) != 0)
                 {
                     stone.LOD32[bc - 4, 0, z] = Voxel.Empty;
                     stone.LOD32[bc + 4, 0, z + bc] = Voxel.Empty;
@@ -640,7 +635,7 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
                     }
                 }
 
-                if ((num & Top) != 0)
+                if ((sides & CubeSides.Top) != 0)
                 {
                     stone.LOD32[bc - 4, mv, z] = Voxel.Empty;
                     stone.LOD32[bc + 4, mv, z + bc] = Voxel.Empty;
@@ -661,7 +656,7 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
                     }
                 }
 
-                if ((num & Left) != 0)
+                if ((sides & CubeSides.Left) != 0)
                 {
                     stone.LOD32[0, bc - 4, z] = Voxel.Empty;
                     stone.LOD32[0, bc + 4, z + bc] = Voxel.Empty;
@@ -682,7 +677,7 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
                     }
                 }
 
-                if ((num & Right) != 0)
+                if ((sides & CubeSides.Right) != 0)
                 {
                     stone.LOD32[mv, bc - 4, z] = Voxel.Empty;
                     stone.LOD32[mv, bc + 4, z + bc] = Voxel.Empty;
@@ -706,41 +701,41 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
                 for (int n = 0; n <= mv; n++)
                 {
                     ReplaceVoxel(stone, bc - 4, n, z, mortarColor);
-                    if (z < bc - 1 || (num & Front) == 0)
+                    if (z < bc - 1 || (sides & CubeSides.Front) == 0)
                         ReplaceVoxel(stone, bc + 4, n, z + bc, mortarColor);
 
                     ReplaceVoxel(stone, n, bc - 4, z, mortarColor);
-                    if (z < bc - 1 || (num & Front) == 0)
+                    if (z < bc - 1 || (sides & CubeSides.Front) == 0)
                         ReplaceVoxel(stone, n, bc + 4, z + bc, mortarColor);
                 }
             }
 
-            if ((num & Bottom) != 0)
+            if ((sides & CubeSides.Bottom) != 0)
             {
                 for (int h = 0; h < ImperfectionIterations * 2; h++)
                     stone.LOD32[random.Next(BlockLOD32.VoxelSize), 0, random.Next(BlockLOD32.VoxelSize)] = Voxel.Empty;
             }
-            if ((num & Top) != 0)
+            if ((sides & CubeSides.Top) != 0)
             {
                 for (int h = 0; h < ImperfectionIterations * 2; h++)
                     stone.LOD32[random.Next(BlockLOD32.VoxelSize), BlockLOD32.VoxelSize - 1, random.Next(BlockLOD32.VoxelSize)] = Voxel.Empty;
             }
-            if ((num & Left) != 0)
+            if ((sides & CubeSides.Left) != 0)
             {
                 for (int h = 0; h < ImperfectionIterations * 2; h++)
                     stone.LOD32[0, random.Next(BlockLOD32.VoxelSize), random.Next(BlockLOD32.VoxelSize)] = Voxel.Empty;
             }
-            if ((num & Right) != 0)
+            if ((sides & CubeSides.Right) != 0)
             {
                 for (int h = 0; h < ImperfectionIterations * 2; h++)
                     stone.LOD32[BlockLOD32.VoxelSize - 1, random.Next(BlockLOD32.VoxelSize), random.Next(BlockLOD32.VoxelSize)] = Voxel.Empty;
             }
-            if ((num & Front) != 0)
+            if ((sides & CubeSides.Front) != 0)
             {
                 for (int h = 0; h < ImperfectionIterations * 2; h++)
                     stone.LOD32[random.Next(BlockLOD32.VoxelSize), random.Next(BlockLOD32.VoxelSize), BlockLOD32.VoxelSize - 1] = Voxel.Empty;
             }
-            if ((num & Back) != 0)
+            if ((sides & CubeSides.Back) != 0)
             {
                 for (int h = 0; h < ImperfectionIterations * 2; h++)
                     stone.LOD32[random.Next(BlockLOD32.VoxelSize), random.Next(BlockLOD32.VoxelSize), 0] = Voxel.Empty;
@@ -788,7 +783,7 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
             return countUnder == 1;
         }
 
-        private static Block CreateRoundedBlockInfo(string name, Voxel voxel, float voxelDensity, int sides, LightComponent light = null, float colorVariation = 0.2f)
+        private static Block CreateRoundedBlockInfo(string name, Voxel voxel, float voxelDensity, CubeSides sides, LightComponent light = null, float colorVariation = 0.2f)
         {
             Block block = new Block(name);
             if (colorVariation > 0.0f)

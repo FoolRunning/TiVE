@@ -86,21 +86,21 @@ namespace ProdigalSoftware.TiVE.RenderSystem
 
                         voxelCount++;
 
-                        VoxelSides sides = 0;
+                        CubeSides sides = 0;
                         if (z == 0 || voxels[GetBlockOffset(x, y, z - 1)] == 0)
-                            sides |= VoxelSides.Back;
+                            sides |= CubeSides.Back;
                         if (z == size.Z - 1 || voxels[GetBlockOffset(x, y, z + 1)] == 0)
-                            sides |= VoxelSides.Front;
+                            sides |= CubeSides.Front;
                         if (x == 0 || voxels[GetBlockOffset(x - 1, y, z)] == 0)
-                            sides |= VoxelSides.Left;
+                            sides |= CubeSides.Left;
                         if (x == size.X - 1 || voxels[GetBlockOffset(x + 1, y, z)] == 0)
-                            sides |= VoxelSides.Right;
+                            sides |= CubeSides.Right;
                         if (y == 0 || voxels[GetBlockOffset(x, y - 1, z)] == 0)
-                            sides |= VoxelSides.Bottom;
+                            sides |= CubeSides.Bottom;
                         if (y == size.Y - 1 || voxels[GetBlockOffset(x, y + 1, z)] == 0)
-                            sides |= VoxelSides.Top;
+                            sides |= CubeSides.Top;
 
-                        if (sides != VoxelSides.None)
+                        if (sides != CubeSides.None)
                         {
                             polygonCount += meshBuilder.AddVoxel(sides, x, y, z, (Color4b)color);
                             renderedVoxelCount++;

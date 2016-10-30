@@ -17,11 +17,11 @@ namespace ProdigalSoftware.TiVEPluginFramework
         public static void CheckConstraints(int x, int y, int z, Vector3i size)
         {
             if (x < 0 || x >= size.X)
-                throw new ArgumentOutOfRangeException("x");
+                throw new ArgumentOutOfRangeException(nameof(x));
             if (y < 0 || y >= size.Y)
-                throw new ArgumentOutOfRangeException("y");
+                throw new ArgumentOutOfRangeException(nameof(y));
             if (z < 0 || z >= size.Z)
-                throw new ArgumentOutOfRangeException("z");
+                throw new ArgumentOutOfRangeException(nameof(z));
         }
 
         /// <summary>
@@ -32,11 +32,11 @@ namespace ProdigalSoftware.TiVEPluginFramework
         public static void CheckConstraints(int x, int y, int z, int size)
         {
             if (x < 0 || x >= size)
-                throw new ArgumentOutOfRangeException("x");
+                throw new ArgumentOutOfRangeException(nameof(x));
             if (y < 0 || y >= size)
-                throw new ArgumentOutOfRangeException("y");
+                throw new ArgumentOutOfRangeException(nameof(y));
             if (z < 0 || z >= size)
-                throw new ArgumentOutOfRangeException("z");
+                throw new ArgumentOutOfRangeException(nameof(z));
         }
 
         public static int GetCountOfNonEmptyVoxels(Voxel[] voxels)
@@ -58,7 +58,7 @@ namespace ProdigalSoftware.TiVEPluginFramework
         public static int GetNearestPowerOfTwo(int value, out int bitShifts)
         {
             if (value <= 0 || value > MaxPowerOfTwo)
-                throw new ArgumentOutOfRangeException("value", "value must be greater than 0 and less than or equal to 2^30");
+                throw new ArgumentOutOfRangeException(nameof(value), "value must be greater than 0 and less than or equal to 2^30");
 
             int pow2Value = 1;
             bitShifts = 0;

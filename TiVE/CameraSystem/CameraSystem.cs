@@ -37,7 +37,7 @@ namespace ProdigalSoftware.TiVE.CameraSystem
             visibleEntities.Clear();
         }
 
-        protected override bool UpdateInternal(int ticksSinceLastUpdate, float timeBlendFactor, Scene currentScene)
+        protected override bool UpdateInternal(int ticksSinceLastUpdate, Scene currentScene)
         {
             CameraComponent cameraData;
             try
@@ -59,7 +59,7 @@ namespace ProdigalSoftware.TiVE.CameraSystem
             float aspectRatio = cameraData.AspectRatio;
             if (aspectRatio == 0.0f)
                 aspectRatio = TiVEController.Engine.WindowClientBounds.Width / (float)TiVEController.Engine.WindowClientBounds.Height;
-
+            
             UpdateFrustrum(cameraData, aspectRatio);
 
             Matrix4f projectionMatrix;
@@ -67,13 +67,8 @@ namespace ProdigalSoftware.TiVE.CameraSystem
 
             // Calculate the view matrix
             Matrix4f viewMatrix;
-            Vector3f blendedLocation = cameraData.Location * timeBlendFactor + cameraData.PrevLocation * (1.0f - timeBlendFactor);
-            Vector3f blendedLookAtLocation = cameraData.LookAtLocation * timeBlendFactor + cameraData.PrevLookAtLocation * (1.0f - timeBlendFactor);
-            Matrix4f.LookAt(blendedLocation, blendedLookAtLocation, cameraData.UpVector, out viewMatrix);
-
-            cameraData.PrevLocation = cameraData.Location;
-            cameraData.PrevLookAtLocation = cameraData.LookAtLocation;
-
+            Matrix4f.LookAt(ref cameraData.Location, ref cameraData.LookAtLocation, ref cameraData.UpVector, out viewMatrix);
+            
             // Create and cache the view projection matrix
             Matrix4f.Mult(ref viewMatrix, ref projectionMatrix, out cameraData.ViewProjectionMatrix);
 
@@ -109,12 +104,14 @@ namespace ProdigalSoftware.TiVE.CameraSystem
         {
             float nearHeight = CameraComponent.NearDist * (float)Math.Tan(cameraData.FieldOfView * 0.5f);
             float nearWidth = nearHeight * aspectRatio;
-
+            
             Vector3f zAxis = cameraData.Location - cameraData.LookAtLocation;
             zAxis.Normalize();
-            Vector3f xAxis = Vector3f.Cross(cameraData.UpVector, zAxis);
+            Vector3f xAxis;
+            Vector3f.Cross(ref cameraData.UpVector, ref zAxis, out xAxis);
             xAxis.Normalize();
-            Vector3f yAxis = Vector3f.Cross(zAxis, xAxis);
+            Vector3f yAxis;
+            Vector3f.Cross(ref zAxis, ref xAxis, out yAxis);
 
             Vector3f nearCenter = cameraData.Location - zAxis * CameraComponent.NearDist;
             Vector3f farCenter = cameraData.Location - zAxis * cameraData.FarDistance;
@@ -125,19 +122,24 @@ namespace ProdigalSoftware.TiVE.CameraSystem
 
             Vector3f normal = (nearCenter + yAxis * nearHeight) - cameraData.Location;
             normal.Normalize();
-            cameraData.FrustrumPlanes[CameraComponent.TopFrustrum] = new Plane(Vector3f.Cross(normal, xAxis), nearCenter + yAxis * nearHeight);
+            Vector3f temp;
+            Vector3f.Cross(ref normal, ref xAxis, out temp);
+            cameraData.FrustrumPlanes[CameraComponent.TopFrustrum] = new Plane(temp, nearCenter + yAxis * nearHeight);
 
             normal = (nearCenter - yAxis * nearHeight) - cameraData.Location;
             normal.Normalize();
-            cameraData.FrustrumPlanes[CameraComponent.BottomFrustrum] = new Plane(Vector3f.Cross(xAxis, normal), nearCenter - yAxis * nearHeight);
+            Vector3f.Cross(ref xAxis, ref normal, out temp);
+            cameraData.FrustrumPlanes[CameraComponent.BottomFrustrum] = new Plane(temp, nearCenter - yAxis * nearHeight);
 
             normal = (nearCenter - xAxis * nearWidth) - cameraData.Location;
             normal.Normalize();
-            cameraData.FrustrumPlanes[CameraComponent.LeftFrustrum] = new Plane(Vector3f.Cross(normal, yAxis), nearCenter - xAxis * nearWidth);
+            Vector3f.Cross(ref normal, ref yAxis, out temp);
+            cameraData.FrustrumPlanes[CameraComponent.LeftFrustrum] = new Plane(temp, nearCenter - xAxis * nearWidth);
 
             normal = (nearCenter + xAxis * nearWidth) - cameraData.Location;
             normal.Normalize();
-            cameraData.FrustrumPlanes[CameraComponent.RightFrustrum] = new Plane(Vector3f.Cross(yAxis, normal), nearCenter + xAxis * nearWidth);
+            Vector3f.Cross(ref yAxis, ref normal, out temp);
+            cameraData.FrustrumPlanes[CameraComponent.RightFrustrum] = new Plane(temp, nearCenter + xAxis * nearWidth);
         }
 
         /// <summary>

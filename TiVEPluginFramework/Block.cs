@@ -11,15 +11,15 @@ namespace ProdigalSoftware.TiVEPluginFramework
         #region Member variables/constants
         public static readonly Guid ID = new Guid("105FC0BF-E194-46BC-8ED8-61942721CC7F");
 
-        public readonly BlockLOD32 LOD32;
-        public readonly BlockLOD16 LOD16;
-        public readonly BlockLOD8 LOD8;
-        public readonly BlockLOD4 LOD4;
-
         private const byte SerializedFileVersion = 1;
 
         public static readonly Block Empty = new Block("3ptEe");
         public static readonly Block Missing = new Block("M1s51Ng");
+
+        public readonly BlockLOD32 LOD32;
+        public readonly BlockLOD16 LOD16;
+        public readonly BlockLOD8 LOD8;
+        public readonly BlockLOD4 LOD4;
 
         private readonly List<IBlockComponent> components = new List<IBlockComponent>();
         private readonly string name;
@@ -28,11 +28,12 @@ namespace ProdigalSoftware.TiVEPluginFramework
         #region Constructors
         static Block()
         {
-            for (int level = 1; level < (int)LODLevel.NumOfLevels; level++)
+            Voxel missingVoxel = new Voxel(255, 0, 0, 255, VoxelSettings.IgnoreLighting);
+            for (int level = (int)LODLevel.V32; level < (int)LODLevel.NumOfLevels; level++)
             {
                 BlockLOD voxelsLOD = Missing.GetLOD((LODLevel)level);
                 for (int i = 0; i < voxelsLOD.VoxelsArray.Length; i++)
-                    voxelsLOD.VoxelsArray[i] = new Voxel(255, 0, 0, 255, VoxelSettings.IgnoreLighting);
+                    voxelsLOD.VoxelsArray[i] = missingVoxel;
             }
         }
 
@@ -228,6 +229,7 @@ namespace ProdigalSoftware.TiVEPluginFramework
         }
         #endregion
 
+        #region Private helper methods
         private static Voxel GetLODVoxel(BlockLOD sourceLOD, int bvx, int bvy, int bvz, int voxelSize)
         {
             int voxelsFound = 0;
@@ -266,5 +268,6 @@ namespace ProdigalSoftware.TiVEPluginFramework
                 return Voxel.Empty;
             return new Voxel((byte)(totalR / voxelsFound), (byte)(totalG / voxelsFound), (byte)(totalB / voxelsFound), (byte)(totalA / voxelsFound), settings);
         }
+        #endregion
     }
 }

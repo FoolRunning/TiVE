@@ -37,7 +37,7 @@ namespace ProdigalSoftware.TiVE.GUISystem
             desktop.Controls.Add(label);
         }
 
-        protected override bool UpdateInternal(int ticksSinceLastUpdate, float timeBlendFactor, Scene currentScene)
+        protected override bool UpdateInternal(int ticksSinceLastUpdate, Scene currentScene)
         {
             //desktop.Size = new Point(100, 100);
             desktop.Update();

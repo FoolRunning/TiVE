@@ -22,15 +22,8 @@ namespace ProdigalSoftware.TiVEPluginFramework
             this.maxPoint = maxPoint;
         }
 
-        public Vector3f MinPoint
-        {
-            get { return minPoint; }
-        }
-
-        public Vector3f MaxPoint
-        {
-            get { return maxPoint; }
-        }
+        public Vector3f MinPoint => minPoint;
+        public Vector3f MaxPoint => maxPoint;
 
         #region Implementation of ITiVESerializable
         public void SaveTo(BinaryWriter writer)
@@ -47,30 +40,26 @@ namespace ProdigalSoftware.TiVEPluginFramework
                 minPoint.Z <= other.maxPoint.Z && maxPoint.Z >= other.minPoint.Z;
         }
 
-        internal Vector3f GetPositivePoint(Vector3f planeNormal)
+        internal void GetPositivePoint(ref Vector3f planeNormal, out Vector3f result)
         {
-            Vector3f posPoint = minPoint; // Make copy
+            result = minPoint; // Make copy
             if (planeNormal.X >= 0)
-                posPoint.X = maxPoint.X;
+                result.X = maxPoint.X;
             if (planeNormal.Y >= 0)
-                posPoint.Y = maxPoint.Y;
+                result.Y = maxPoint.Y;
             if (planeNormal.Z >= 0)
-                posPoint.Z = maxPoint.Z;
-
-            return posPoint;
+                result.Z = maxPoint.Z;
         }
 
-        internal Vector3f GetNegativePoint(Vector3f planeNormal)
+        internal void GetNegativePoint(Vector3f planeNormal, out Vector3f result)
         {
-            Vector3f posPoint = maxPoint; // Make copy
+            result = maxPoint; // Make copy
             if (planeNormal.X >= 0)
-                posPoint.X = minPoint.X;
+                result.X = minPoint.X;
             if (planeNormal.Y >= 0)
-                posPoint.Y = minPoint.Y;
+                result.Y = minPoint.Y;
             if (planeNormal.Z >= 0)
-                posPoint.Z = minPoint.Z;
-
-            return posPoint;
+                result.Z = minPoint.Z;
         }
     }
 }

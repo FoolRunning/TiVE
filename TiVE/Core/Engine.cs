@@ -14,8 +14,7 @@ namespace ProdigalSoftware.TiVE.Core
     {
         private readonly int maxTicksPerUpdate = (int)(Stopwatch.Frequency / 2);
 
-        private readonly List<EngineSystemBase> systems = new List<EngineSystemBase>();
-        private readonly float timePerUpdate;
+        private readonly List<EngineSystem> systems = new List<EngineSystem>();
         private readonly int ticksPerUpdate;
         private readonly object syncLock = new object();
         private int ticksSinceLastUpdate;
@@ -34,12 +33,11 @@ namespace ProdigalSoftware.TiVE.Core
                 throw new ArgumentException("updatesPerSecond must be greater then zero");
 
             ticksPerUpdate = (int)(Stopwatch.Frequency / updatesPerSecond);
-            timePerUpdate = 1.0f / updatesPerSecond;
         }
 
         public Rectangle WindowClientBounds { get; private set; }
 
-        public void AddSystem(EngineSystemBase system)
+        public void AddSystem(EngineSystem system)
         {
             systems.Add(system);
         }
@@ -137,24 +135,13 @@ namespace ProdigalSoftware.TiVE.Core
             int slicedUpdateCount = ticksSinceLastUpdate / ticksPerUpdate;
             ticksSinceLastUpdate -= slicedUpdateCount * ticksPerUpdate;
 
-            float timeBlendFactor = ticksSinceLastUpdate / (float)ticksPerUpdate;
             lock (syncLock) // Don't let the scene change while updating
             {
                 for (int sys = 0; sys < systems.Count; sys++)
                 {
-                    systems[sys].UpdateTiming(ticksSinceLastFrame);
-
                     try
                     {
-                        TimeSlicedEngineSystem slicedSystem = systems[sys] as TimeSlicedEngineSystem;
-                        bool keepRunning = true;
-                        if (slicedSystem == null)
-                            keepRunning = ((EngineSystem)systems[sys]).Update(ticksSinceLastFrame, timeBlendFactor, currentScene);
-                        else
-                        {
-                            for (int i = 0; i < slicedUpdateCount; i++)
-                                keepRunning = slicedSystem.Update(timePerUpdate, currentScene);
-                        }
+                        bool keepRunning = systems[sys].Update(ticksSinceLastFrame, currentScene);
                         if (!keepRunning)
                             continueMainLoop = false;
                     }
@@ -222,14 +209,14 @@ namespace ProdigalSoftware.TiVE.Core
 
         private void SetScene(Scene newScene)
         {
-            foreach (EngineSystemBase system in systems)
+            foreach (EngineSystem system in systems)
                 system.PrepareForScene(currentSceneName);
 
             lock (syncLock)
             {
                 Scene previousScene = currentScene;
 
-                foreach (EngineSystemBase system in systems)
+                foreach (EngineSystem system in systems)
                     system.ChangeScene(previousScene, newScene);
 
                 if (previousScene != null)

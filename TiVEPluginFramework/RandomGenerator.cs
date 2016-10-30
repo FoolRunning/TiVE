@@ -132,9 +132,9 @@ namespace ProdigalSoftware.TiVEPluginFramework
             // Right shift by 11 bits
             y = y ^ y >> 11;
             // Shift y left by 7 and take the bitwise and of 2636928640
-            y = y ^ y << 7 & 2636928640;
+            y = y ^ y << 7 & 0x9D2C5680;
             // Shift y left by 15 and take the bitwise and of y and 4022730752
-            y = y ^ y << 15 & 4022730752;
+            y = y ^ y << 15 & 0xEFC60000;
             // Right shift by 18 bits
             return y ^ y >> 18;
         }

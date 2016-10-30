@@ -8,15 +8,74 @@ namespace ProdigalSoftware.TiVEPluginFramework
     {
         public static int AdjustForDetailLevelFrom32(int val, LODLevel toDetailLevel)
         {
-            return val >> (BlockLOD32.VoxelSizeBitShift - BlockLOD.GetVoxelSizeBitShift(toDetailLevel));
+            switch (toDetailLevel)
+            {
+                case LODLevel.V32: return val;
+                case LODLevel.V16: return val >> BlockLOD32.VoxelSizeBitShift - BlockLOD16.VoxelSizeBitShift;
+                case LODLevel.V8: return val >> BlockLOD32.VoxelSizeBitShift - BlockLOD8.VoxelSizeBitShift;
+                case LODLevel.V4: return val >> BlockLOD32.VoxelSizeBitShift - BlockLOD4.VoxelSizeBitShift;
+                default: throw new ArgumentException("detailLevel invalid: " + toDetailLevel);
+            }
+        }
+
+        public static int AdjustForDetailLevelTo32(int val, LODLevel fromDetailLevel)
+        {
+            switch (fromDetailLevel)
+            {
+                case LODLevel.V32: return val;
+                case LODLevel.V16: return val << BlockLOD32.VoxelSizeBitShift - BlockLOD16.VoxelSizeBitShift;
+                case LODLevel.V8: return val << BlockLOD32.VoxelSizeBitShift - BlockLOD8.VoxelSizeBitShift;
+                case LODLevel.V4: return val << BlockLOD32.VoxelSizeBitShift - BlockLOD4.VoxelSizeBitShift;
+                default: throw new ArgumentException("detailLevel invalid: " + fromDetailLevel);
+            }
         }
 
         public static void AdjustLocationForDetailLevelFrom32(ref int x, ref int y, ref int z, LODLevel toDetailLevel)
         {
-            int bitShift = BlockLOD32.VoxelSizeBitShift - BlockLOD.GetVoxelSizeBitShift(toDetailLevel);
-            x = x >> bitShift;
-            y = y >> bitShift;
-            z = z >> bitShift;
+            switch (toDetailLevel)
+            {
+                case LODLevel.V32: break;
+                case LODLevel.V16:
+                    x = x >> BlockLOD32.VoxelSizeBitShift - BlockLOD16.VoxelSizeBitShift;
+                    y = y >> BlockLOD32.VoxelSizeBitShift - BlockLOD16.VoxelSizeBitShift;
+                    z = z >> BlockLOD32.VoxelSizeBitShift - BlockLOD16.VoxelSizeBitShift;
+                    break;
+                case LODLevel.V8:
+                    x = x >> BlockLOD32.VoxelSizeBitShift - BlockLOD8.VoxelSizeBitShift;
+                    y = y >> BlockLOD32.VoxelSizeBitShift - BlockLOD8.VoxelSizeBitShift;
+                    z = z >> BlockLOD32.VoxelSizeBitShift - BlockLOD8.VoxelSizeBitShift;
+                    break;
+                case LODLevel.V4:
+                    x = x >> BlockLOD32.VoxelSizeBitShift - BlockLOD4.VoxelSizeBitShift;
+                    y = y >> BlockLOD32.VoxelSizeBitShift - BlockLOD4.VoxelSizeBitShift;
+                    z = z >> BlockLOD32.VoxelSizeBitShift - BlockLOD4.VoxelSizeBitShift;
+                    break;
+                default: throw new ArgumentException("detailLevel invalid: " + toDetailLevel);
+            }
+        }
+
+        public static void AdjustLocationForDetailLevelTo32(ref int x, ref int y, ref int z, LODLevel fromDetailLevel)
+        {
+            switch (fromDetailLevel)
+            {
+                case LODLevel.V32: break;
+                case LODLevel.V16:
+                    x = x << BlockLOD32.VoxelSizeBitShift - BlockLOD16.VoxelSizeBitShift;
+                    y = y << BlockLOD32.VoxelSizeBitShift - BlockLOD16.VoxelSizeBitShift;
+                    z = z << BlockLOD32.VoxelSizeBitShift - BlockLOD16.VoxelSizeBitShift;
+                    break;
+                case LODLevel.V8:
+                    x = x << BlockLOD32.VoxelSizeBitShift - BlockLOD8.VoxelSizeBitShift;
+                    y = y << BlockLOD32.VoxelSizeBitShift - BlockLOD8.VoxelSizeBitShift;
+                    z = z << BlockLOD32.VoxelSizeBitShift - BlockLOD8.VoxelSizeBitShift;
+                    break;
+                case LODLevel.V4:
+                    x = x << BlockLOD32.VoxelSizeBitShift - BlockLOD4.VoxelSizeBitShift;
+                    y = y << BlockLOD32.VoxelSizeBitShift - BlockLOD4.VoxelSizeBitShift;
+                    z = z << BlockLOD32.VoxelSizeBitShift - BlockLOD4.VoxelSizeBitShift;
+                    break;
+                default: throw new ArgumentException("detailLevel invalid: " + fromDetailLevel);
+            }
         }
 
         public static Vector3i AdjustLocationForDetailLevelFrom32(Vector3i loc, LODLevel toDetailLevel)
@@ -32,19 +91,6 @@ namespace ProdigalSoftware.TiVEPluginFramework
         //    y = (ushort)(y >> bitShift);
         //    z = (ushort)(z >> bitShift);
         //}
-
-        public static int AdjustForDetailLevelTo32(int val, LODLevel fromDetailLevel)
-        {
-            return val << (BlockLOD32.VoxelSizeBitShift - BlockLOD.GetVoxelSizeBitShift(fromDetailLevel));
-        }
-
-        public static void AdjustLocationForDetailLevelTo32(ref int x, ref int y, ref int z, LODLevel fromDetailLevel)
-        {
-            int bitShift = BlockLOD32.VoxelSizeBitShift - BlockLOD.GetVoxelSizeBitShift(fromDetailLevel);
-            x = x << bitShift;
-            y = y << bitShift;
-            z = z << bitShift;
-        }
 
         public static Vector3i AdjustLocationForDetailLevelTo32(Vector3i loc, LODLevel fromDetailLevel)
         {

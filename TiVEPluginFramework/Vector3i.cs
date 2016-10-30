@@ -42,7 +42,7 @@ namespace ProdigalSoftware.TiVEPluginFramework
 
         public override string ToString()
         {
-            return string.Format("Vector3i({0},{1},{2})", X, Y, Z);
+            return $"Vector3i({X},{Y},{Z})";
         }
 
         public void SaveTo(BinaryWriter writer)
