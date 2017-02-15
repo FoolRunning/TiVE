@@ -37,12 +37,12 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
             const int worldSizeX = 75;
             const int worldSizeY = 50;
             IGameWorld gameWorld = Factory.NewGameWorld(worldSizeX, worldSizeY, 8);
-            gameWorld.LightingModelType = LightingModelType.Realistic;
+            gameWorld.LightingModelType = LightingModelType.Fantasy3;
 
             BlockRandomizer grasses = new BlockRandomizer("loadingGrass", CommonUtils.grassBlockDuplicates);
             Block dirt = Factory.Get<Block>("dirt");
             Block stoneBack = Factory.Get<Block>("backStone");
-            Block stone = Factory.Get<Block>("stoneBrick0_0");
+            Block stone = Factory.Get<Block>("back0_0");
             Block light = Factory.Get<Block>("loadingLight");
             for (int x = 0; x < worldSizeX; x++)
             {

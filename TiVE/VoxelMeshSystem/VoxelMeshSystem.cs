@@ -320,7 +320,7 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
         {
             LODLevel detailLevel = queueItem.DetailLevel;
 
-            int shadowDetailOffset = TiVEController.UserSettings.Get(UserSettings.ShadowDetailKey);
+            int shadowDetailOffset = TiVEController.UserSettings.Get(UserSettings.WorldShadowDetailKey);
             bool useShadows = (int)detailLevel + shadowDetailOffset < (int)LODLevel.NumOfLevels;
             LightProvider lightProvider = scene.GetLightProvider(useShadows);
             LODLevel shadowDetailLevel = (LODLevel)Math.Min((int)detailLevel + shadowDetailOffset, (int)LODLevel.V4);
@@ -421,11 +421,11 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
                 default: distancePerLevel = DistFurthest; break;
             }
 
-            for (byte level = (byte)LODLevel.V32; level < (byte)LODLevel.NumOfLevels; level++)
+            for (int level = (int)LODLevel.V32; level < (int)LODLevel.NumOfLevels; level++)
             {
                 if (dist <= distancePerLevel)
                     return (LODLevel)level;
-                dist -= distancePerLevel;// *(level + 1);
+                dist -= distancePerLevel;
             }
             return LODLevel.V4;
         }

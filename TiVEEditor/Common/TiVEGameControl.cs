@@ -41,7 +41,7 @@ namespace ProdigalSoftware.TiVEEditor.Common
             scene.GameWorldInternal;
 
         public LightProvider LightProvider => 
-            scene.LightProvider;
+            scene.WorldLightProvider;
 
         public CameraComponent Camera
         {
@@ -63,7 +63,7 @@ namespace ProdigalSoftware.TiVEEditor.Common
             Debug.Fail("implement me!");
             //renderer.GameWorld.Initialize(renderer.BlockList);
             //if (refreshStaticLighting)
-            //    renderer.LightProvider.Calculate(renderer.BlockList, true);
+            //    renderer.WorldLightProvider.Calculate(renderer.BlockList, true);
             //renderer.RefreshLevel();
         }
 

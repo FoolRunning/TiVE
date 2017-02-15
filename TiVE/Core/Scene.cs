@@ -24,12 +24,14 @@ namespace ProdigalSoftware.TiVE.Core
         private readonly Dictionary<Type, List<IEntity>> entityComponentTypeMap = new Dictionary<Type, List<IEntity>>(30);
         private LightProvider lightProviderNoShadow;
         private LightProvider lightProviderShadow;
-        private bool useShadows;
+        private bool useShadowsGameWorld;
+        private bool useShadowsParticles;
         #endregion
 
         public Scene()
         {
-            useShadows = (ShadowDetailLevel)(int)TiVEController.UserSettings.Get(UserSettings.ShadowDetailKey) != ShadowDetailLevel.Off;
+            useShadowsGameWorld = (ShadowDetailLevel)(int)TiVEController.UserSettings.Get(UserSettings.WorldShadowDetailKey) != ShadowDetailLevel.Off;
+            useShadowsParticles = (ShadowDetailLevel)(int)TiVEController.UserSettings.Get(UserSettings.ParticleShadowDetailKey) != ShadowDetailLevel.Off;
             TiVEController.UserSettings.SettingChanged += UserSettings_SettingChanged;
         }
 
@@ -42,8 +44,9 @@ namespace ProdigalSoftware.TiVE.Core
 
         internal RootRenderNode RenderNode { get; private set; }
 
-        internal LightProvider LightProvider => 
-            GetLightProvider(useShadows);
+        internal LightProvider WorldLightProvider => GetLightProvider(useShadowsGameWorld);
+
+        internal LightProvider ParticlesLightProvider => GetLightProvider(useShadowsParticles);
         #endregion
 
         #region Implementation of IScene
@@ -136,8 +139,10 @@ namespace ProdigalSoftware.TiVE.Core
         #region Event handlers
         private void UserSettings_SettingChanged(string settingName, Setting newValue)
         {
-            if (settingName == UserSettings.ShadowDetailKey)
-                useShadows = (ShadowDetailLevel)(int)newValue != ShadowDetailLevel.Off;
+            if (settingName == UserSettings.WorldShadowDetailKey)
+                useShadowsGameWorld = (ShadowDetailLevel)(int)newValue != ShadowDetailLevel.Off;
+            else if (settingName == UserSettings.ParticleShadowDetailKey)
+                useShadowsParticles = (ShadowDetailLevel)(int)newValue != ShadowDetailLevel.Off;
         }
         #endregion
 

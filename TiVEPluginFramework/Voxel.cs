@@ -43,7 +43,11 @@ namespace ProdigalSoftware.TiVEPluginFramework
             value = reader.ReadUInt32();
         }
 
-        public Voxel(float r, float g, float b, float a = 1.0f, VoxelSettings settings = VoxelSettings.None) : 
+        public Voxel(float r, float g, float b, VoxelSettings settings = VoxelSettings.None) : this(r, g, b, 1.0f, settings)
+        {
+        }
+
+        public Voxel(float r, float g, float b, float a, VoxelSettings settings = VoxelSettings.None) : 
             this((byte)Math.Max(0, Math.Min(255, (int)(r * 255))),
             (byte)Math.Max(0, Math.Min(255, (int)(g * 255))),
             (byte)Math.Max(0, Math.Min(255, (int)(b * 255))),
@@ -51,7 +55,11 @@ namespace ProdigalSoftware.TiVEPluginFramework
         {
         }
 
-        public Voxel(byte r, byte g, byte b, byte a = byte.MaxValue, VoxelSettings settings = VoxelSettings.None)
+        public Voxel(byte r, byte g, byte b, VoxelSettings settings = VoxelSettings.None) : this(r, g, b, 255, settings)
+        {
+        }
+
+        public Voxel(byte r, byte g, byte b, byte a, VoxelSettings settings = VoxelSettings.None)
         {
             value = (uint)(r << 24 | g << 16 | b << 8 | (a & 0xF0) | (byte)settings);
         }

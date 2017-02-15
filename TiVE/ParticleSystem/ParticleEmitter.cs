@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using ProdigalSoftware.TiVE.Core;
 using ProdigalSoftware.TiVE.RenderSystem.Lighting;
+using ProdigalSoftware.TiVE.Settings;
 using ProdigalSoftware.TiVEPluginFramework;
 
 namespace ProdigalSoftware.TiVE.ParticleSystem
@@ -26,14 +27,18 @@ namespace ProdigalSoftware.TiVE.ParticleSystem
                 particles[i] = new Particle();
         }
 
-        public Vector3i Location { get; set; }
-        
+        public Vector3i Location { get; private set; }
+
         public bool InUse { get; set; }
 
-        public void Reset()
+        public void Reset(Vector3i newLocation)
         {
             for (int i = 0; i < particles.Length; i++)
                 particles[i].Time = 0.0f;
+
+            Location = newLocation;
+            numOfParticlesNeeded = 0;
+            aliveParticles = 0;
         }
 
         public void UpdateInternal(ref Vector3i cameraLocation, float timeSinceLastUpdate)
@@ -42,19 +47,19 @@ namespace ProdigalSoftware.TiVE.ParticleSystem
             int newParticleCount = Math.Min((int)numOfParticlesNeeded, particles.Length - aliveParticles);
             numOfParticlesNeeded -= newParticleCount;
 
-            Vector3i location = Location;
+            Vector3i loc = Location;
             for (int i = 0; i < aliveParticles; i++)
             {
                 Particle part = particles[i];
                 if (part.Time > 0.0f)
                 {
                     // Normal case - particle is still alive, so just update it
-                    controller.Update(part, timeSinceLastUpdate, location);
+                    controller.Update(part, timeSinceLastUpdate, loc);
                 }
                 else if (newParticleCount > 0)
                 {
                     // Particle died, but we need new particles so just re-initialize this one
-                    controller.InitializeNew(part, location);
+                    controller.InitializeNew(part, loc);
                     newParticleCount--;
                 }
                 else
@@ -67,7 +72,7 @@ namespace ProdigalSoftware.TiVE.ParticleSystem
                     part = lastAlive;
                     aliveParticles--;
                     // Just replaced current dead particle with an alive one. Need to update it.
-                    controller.Update(part, timeSinceLastUpdate, location);
+                    controller.Update(part, timeSinceLastUpdate, loc);
                 }
             }
 
@@ -75,7 +80,7 @@ namespace ProdigalSoftware.TiVE.ParticleSystem
             for (int i = 0; i < newParticleCount; i++)
             {
                 Particle part = particles[aliveParticles];
-                controller.InitializeNew(part, location);
+                controller.InitializeNew(part, loc);
                 aliveParticles++;
             }
 
@@ -86,9 +91,9 @@ namespace ProdigalSoftware.TiVE.ParticleSystem
             }
         }
 
-        public void AddToArrays(ref Vector3i worldSize, Scene scene, Vector3us[] locationArray, Color4b[] colorArray, ref int dataIndex)
+        public void AddToArrays(ref Vector3i worldSize, ShadowDetailLevel shadowDetail, Scene scene, Vector3us[] locationArray, Color4b[] colorArray, ref int dataIndex)
         {
-            LightProvider lightProvider = scene.LightProvider;
+            LightProvider lightProvider = scene.GetLightProvider(shadowDetail != ShadowDetailLevel.Off);
             bool isLit = controller.IsLit;
             for (int i = 0; i < aliveParticles; i++)
             {
@@ -108,7 +113,7 @@ namespace ProdigalSoftware.TiVE.ParticleSystem
                     if (partX >= worldSize.X || partY >= worldSize.Y || partZ >= worldSize.Z)
                         lightColor = scene.AmbientLight;
                     else
-                        lightColor = lightProvider.GetLightAtFast(partX, partY, partZ, LODLevel.V32, LODLevel.V4);
+                        lightColor = lightProvider.GetLightAtFast(partX, partY, partZ, LODLevel.V32, (LODLevel)shadowDetail);
 
                     colorArray[dataIndex] = new Color4b(
                         (byte)Math.Min(255, (int)(part.Color.R * lightColor.R)),

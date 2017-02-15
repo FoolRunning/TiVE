@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using ProdigalSoftware.TiVE.Core;
 using ProdigalSoftware.TiVE.Core.Backend;
 using ProdigalSoftware.TiVE.RenderSystem;
+using ProdigalSoftware.TiVE.Settings;
 using ProdigalSoftware.TiVE.VoxelMeshSystem;
 using ProdigalSoftware.TiVEPluginFramework;
 using ProdigalSoftware.TiVEPluginFramework.Components;
@@ -112,8 +113,7 @@ namespace ProdigalSoftware.TiVE.ParticleSystem
                     }
                 }
 
-                particleSystems[availableIndex].Reset();
-                particleSystems[availableIndex].Location = particleData.Location;
+                particleSystems[availableIndex].Reset(particleData.Location);
                 particleSystems[availableIndex].InUse = true;
                 particleSystemIndex[entity] = availableIndex;
             }
@@ -138,6 +138,8 @@ namespace ProdigalSoftware.TiVE.ParticleSystem
         /// </summary>
         public void UpdateAll(ref Vector3i worldSize, ref Vector3i cameraLocation, Scene scene, float timeSinceLastFrame)
         {
+            ShadowDetailLevel shadowDetail = (ShadowDetailLevel)(int)TiVEController.UserSettings.Get(UserSettings.ParticleShadowDetailKey);
+
             updateList.Clear();
             using (new PerformanceLock(particleSystems))
                 updateList.AddRange(particleSystems); // Make copy to not lock during the updating
@@ -156,7 +158,7 @@ namespace ProdigalSoftware.TiVE.ParticleSystem
                 {
                     system.UpdateInternal(ref cameraLocation, timeSinceLastFrame);
                     lock (syncObj)
-                        system.AddToArrays(ref worldSize, scene, locations, colors, ref dataIndex);
+                        system.AddToArrays(ref worldSize, shadowDetail, scene, locations, colors, ref dataIndex);
                 }
             }
 

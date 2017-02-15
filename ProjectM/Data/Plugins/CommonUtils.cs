@@ -6,19 +6,25 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
 {
     public sealed class BlockRandomizer
     {
-        private readonly Block[] blocks;
         private readonly RandomGenerator random = new RandomGenerator();
+        private readonly string[] blockNames;
+        private readonly Block[] blocks;
 
         public BlockRandomizer(string blockname, int blockCount)
         {
+            blockNames = new string[blockCount];
             blocks = new Block[blockCount];
-            for (int i = 0; i < blocks.Length; i++)
-                blocks[i] = Factory.Get<Block>(blockname + i);
+            for (int i = 0; i < blockNames.Length; i++)
+                blockNames[i] = blockname + i;
         }
 
         public Block NextBlock()
         {
-            return blocks[random.Next(blocks.Length)];
+            int blockIndex = random.Next(blockNames.Length);
+            Block block = blocks[blockIndex];
+            if (block == null)
+                blocks[blockIndex] = block = Factory.Get<Block>(blockNames[blockIndex]);
+            return block;
         }
     }
 
@@ -111,51 +117,52 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
         public static void SmoothGameWorldForMazeBlocks(IGameWorld gameWorld, bool forLoadingWorld)
         {
             List<BlockRandomizer> stoneRandomizers = new List<BlockRandomizer>();
+            List<BlockRandomizer> bumpyDirtRandomizers = new List<BlockRandomizer>();
             List<BlockRandomizer> backRandomizers = new List<BlockRandomizer>();
             List<BlockRandomizer> leavesRandomizers = new List<BlockRandomizer>();
             for (int i = 0; i < 64; i++)
             {
-                stoneRandomizers.Add(new BlockRandomizer("stoneBrick" + i + "_", stoneBlockDuplicates));
+                backRandomizers.Add(new BlockRandomizer("back" + i + "_", stoneBackBlockDuplicates));
                 if (!forLoadingWorld)
                 {
-                    backRandomizers.Add(new BlockRandomizer("back" + i + "_", stoneBackBlockDuplicates));
+                    stoneRandomizers.Add(new BlockRandomizer("stoneBrick" + i + "_", stoneBlockDuplicates));
+                    bumpyDirtRandomizers.Add(new BlockRandomizer("bumpyDirt" + i + "_", stoneBackBlockDuplicates));
                     leavesRandomizers.Add(new BlockRandomizer("leaves" + i + "_", leavesBlockDuplicates));
                 }
             }
-
-            HashSet<Block> blocksToConsiderEmpty = new HashSet<Block>();
-            blocksToConsiderEmpty.Add(Block.Empty);
-            if (!forLoadingWorld)
-            {
-                blocksToConsiderEmpty.Add(Factory.Get<Block>("fire"));
-                blocksToConsiderEmpty.Add(Factory.Get<Block>("redLight"));
-                blocksToConsiderEmpty.Add(Factory.Get<Block>("treeLight"));
-            }
+            HashSet<string> grassBlocks = new HashSet<string>();
             for (int i = 0; i < grassBlockDuplicates; i++)
             {
-                if (!forLoadingWorld)
-                    blocksToConsiderEmpty.Add(Factory.Get<Block>("grass" + i));
-                blocksToConsiderEmpty.Add(Factory.Get<Block>("loadingGrass" + i));
-            }
-            if (!forLoadingWorld)
-            {
-                for (int i = 0; i < 7; i++)
-                    blocksToConsiderEmpty.Add(Factory.Get<Block>("light" + i));
+                grassBlocks.Add("grass" + i);
+                grassBlocks.Add("loadingGrass" + i);
             }
 
-            HashSet<Block> blocksToSmooth = new HashSet<Block>();
+            HashSet<string> blocksToConsiderEmpty = new HashSet<string>();
+            blocksToConsiderEmpty.Add(Block.Empty.Name);
+            blocksToConsiderEmpty.Add("fire");
+            blocksToConsiderEmpty.Add("redLight");
+            blocksToConsiderEmpty.Add("treeLight");
+            blocksToConsiderEmpty.Add("fountain");
+            for (int i = 0; i < grassBlockDuplicates; i++)
+            {
+                blocksToConsiderEmpty.Add("grass" + i);
+                blocksToConsiderEmpty.Add("loadingGrass" + i);
+            }
+            for (int i = 0; i < 7; i++)
+                blocksToConsiderEmpty.Add("light" + i);
+
+            HashSet<string> blocksToSmooth = new HashSet<string>();
             for (int i = 0; i < 64; i++)
             {
+                for (int q = 0; q < stoneBackBlockDuplicates; q++)
+                    blocksToSmooth.Add("back" + i + "_" + q);
                 for (int q = 0; q < stoneBlockDuplicates; q++)
-                    blocksToSmooth.Add(Factory.Get<Block>("stoneBrick" + i + "_" + q));
-                if (!forLoadingWorld)
-                {
-                    for (int q = 0; q < stoneBackBlockDuplicates; q++)
-                        blocksToSmooth.Add(Factory.Get<Block>("back" + i + "_" + q));
-                    for (int q = 0; q < leavesBlockDuplicates; q++)
-                        blocksToSmooth.Add(Factory.Get<Block>("leaves" + i + "_" + q));
-                    blocksToSmooth.Add(Factory.Get<Block>("wood" + i));
-                }
+                    blocksToSmooth.Add("stoneBrick" + i + "_" + q);
+                for (int q = 0; q < stoneBackBlockDuplicates; q++)
+                    blocksToSmooth.Add("bumpyDirt" + i + "_" + q);
+                for (int q = 0; q < leavesBlockDuplicates; q++)
+                    blocksToSmooth.Add("leaves" + i + "_" + q);
+                blocksToSmooth.Add("wood" + i);
             }
 
             for (int z = 0; z < gameWorld.BlockSize.Z; z++)
@@ -165,21 +172,21 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
                     for (int y = 0; y < gameWorld.BlockSize.Y; y++)
                     {
                         Block block = gameWorld[x, y, z];
-                        if (block == Block.Empty || !blocksToSmooth.Contains(block))
+                        if (block == Block.Empty || !blocksToSmooth.Contains(block.Name))
                             continue;
 
                         CubeSides sides = CubeSides.None;
-                        if (z == gameWorld.BlockSize.Z - 1 || blocksToConsiderEmpty.Contains(gameWorld[x, y, z + 1]))
+                        if (z == gameWorld.BlockSize.Z - 1 || (blocksToConsiderEmpty.Contains(gameWorld[x, y, z + 1].Name) && !grassBlocks.Contains(gameWorld[x, y, z + 1].Name)))
                             sides |= CubeSides.Front;
-                        if (z == 0 || blocksToConsiderEmpty.Contains(gameWorld[x, y, z - 1]))
+                        if (z == 0 || blocksToConsiderEmpty.Contains(gameWorld[x, y, z - 1].Name))
                             sides |= CubeSides.Back;
-                        if (x == 0 || blocksToConsiderEmpty.Contains(gameWorld[x - 1, y, z]))
+                        if (x == 0 || blocksToConsiderEmpty.Contains(gameWorld[x - 1, y, z].Name))
                             sides |= CubeSides.Left;
-                        if (x == gameWorld.BlockSize.X - 1 || blocksToConsiderEmpty.Contains(gameWorld[x + 1, y, z]))
+                        if (x == gameWorld.BlockSize.X - 1 || blocksToConsiderEmpty.Contains(gameWorld[x + 1, y, z].Name))
                             sides |= CubeSides.Right;
-                        if (y == gameWorld.BlockSize.Y - 1 || blocksToConsiderEmpty.Contains(gameWorld[x, y + 1, z]))
+                        if (y == gameWorld.BlockSize.Y - 1 || blocksToConsiderEmpty.Contains(gameWorld[x, y + 1, z].Name))
                             sides |= CubeSides.Top;
-                        if (y == 0 || blocksToConsiderEmpty.Contains(gameWorld[x, y - 1, z]))
+                        if (y == 0 || blocksToConsiderEmpty.Contains(gameWorld[x, y - 1, z].Name))
                             sides |= CubeSides.Bottom;
 
                         string blockNamePart;
@@ -193,6 +200,8 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
                             gameWorld[x, y, z] = leavesRandomizers[(int)sides].NextBlock();
                         else if (blockNamePart == "back")
                             gameWorld[x, y, z] = backRandomizers[(int)sides].NextBlock();
+                        else if (blockNamePart == "bumpyDirt")
+                            gameWorld[x, y, z] = bumpyDirtRandomizers[(int)sides].NextBlock();
                         else
                             gameWorld[x, y, z] = Factory.Get<Block>(blockNamePart + (int)sides);
                     }

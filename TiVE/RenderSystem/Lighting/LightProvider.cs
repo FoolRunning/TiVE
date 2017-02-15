@@ -39,9 +39,9 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
         {
             LightType lightType = (LightType)(int)TiVEController.UserSettings.Get(UserSettings.LightingTypeKey);
             if (lightType == LightType.Debug1)
-                return new Debug1LightProvider(scene);
+                return new DebugLightCountProvider(scene);
             if (lightType == LightType.Debug2)
-                return new Debug2LightProvider(scene);
+                return new DebugLightCoverageProvider(scene);
             return withShadows ? new WithShadowsLightProvider(scene) : (LightProvider)new NoShadowsLightProvider(scene);
         }
         #endregion
@@ -70,11 +70,6 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
         }
         #endregion
 
-        private static byte RestrainToByte(float value)
-        {
-            return value > 255.0f ? (byte)255 : (byte)value;
-        }
-
         #region Private helper methods
         private static Vector3f GetVoxelNormal(CubeSides visibleSides)
         {
@@ -99,10 +94,15 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
             vector.NormalizeFast();
             return vector;
         }
+
+        private static byte RestrainToByte(float value)
+        {
+            return value > 255.0f ? (byte)255 : (byte)value;
+        }
         #endregion
 
-        #region Debug1LightProvider class
-        private sealed class Debug1LightProvider : LightProvider
+        #region DebugLightCountProvider class
+        private sealed class DebugLightCountProvider : LightProvider
         {
             private static readonly Color3f[] lightCountColors = 
             {
@@ -127,10 +127,9 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
                 new Color3f(1.0f, 0.8f, 1.0f),
                 new Color3f(1.0f, 0.9f, 1.0f),
                 new Color3f(1.0f, 1.0f, 1.0f) // 20
-
             };
 
-            public Debug1LightProvider(Scene scene) : base(scene)
+            public DebugLightCountProvider(Scene scene) : base(scene)
             {
             }
 
@@ -169,10 +168,10 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
         }
         #endregion
 
-        #region Debug2LightProvider class
-        private sealed class Debug2LightProvider : LightProvider
+        #region DebugLightProvider class
+        private sealed class DebugLightCoverageProvider : LightProvider
         {
-            public Debug2LightProvider(Scene scene) : base(scene)
+            public DebugLightCoverageProvider(Scene scene) : base(scene)
             {
             }
 
@@ -473,8 +472,6 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
                         int lyShadow = lightInfo.VoxelLocY >> shadowBitShift;
                         int lzShadow = lightInfo.VoxelLocZ >> shadowBitShift;
 
-                        Vector3f surfaceToLight = new Vector3f(lx - voxelX, ly - voxelY, lz - voxelZ);
-                        float brightness = MathHelper.Clamp(Vector3f.Dot(ref voxelNormal, ref surfaceToLight) / surfaceToLight.LengthFast, 0.0f, 1.0f);
                         if (i >= maxShadowCount || 
                             (availableMinusX && lx <= voxelX && gameWorld.NoVoxelInLine(voxelShadowX - 1, voxelShadowY, voxelShadowZ, lxShadow, lyShadow, lzShadow, shadowDetailLevel)) ||
                             (availableMinusY && ly <= voxelY && gameWorld.NoVoxelInLine(voxelShadowX, voxelShadowY - 1, voxelShadowZ, lxShadow, lyShadow, lzShadow, shadowDetailLevel)) ||
@@ -483,6 +480,8 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
                             (availablePlusY && ly >= voxelY && gameWorld.NoVoxelInLine(voxelShadowX, voxelShadowY + 1, voxelShadowZ, lxShadow, lyShadow, lzShadow, shadowDetailLevel)) ||
                             (availablePlusZ && lz >= voxelZ && gameWorld.NoVoxelInLine(voxelShadowX, voxelShadowY, voxelShadowZ + 1, lxShadow, lyShadow, lzShadow, shadowDetailLevel)))
                         {
+                            Vector3f surfaceToLight = new Vector3f(lx - voxelX, ly - voxelY, lz - voxelZ);
+                            float brightness = MathHelper.Clamp(Vector3f.Dot(ref voxelNormal, ref surfaceToLight) / surfaceToLight.LengthFast, 0.0f, 1.0f);
                             color += lightInfo.LightColor * (brightness * lightInfo.GetLightPercentageDiffuse(voxelX32, voxelY32, voxelZ32, lightingModel) +
                                 lightInfo.GetLightPercentageAmbient(voxelX32, voxelY32, voxelZ32, lightingModel));
                         }
