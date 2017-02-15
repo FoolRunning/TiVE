@@ -222,7 +222,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem
 
             //ChunkComponent chunkData = entity.GetComponent<ChunkComponent>();
             //if (chunkData != null)
-            //    loadedScene.LightProvider.RemoveLightsForChunk(chunkData);
+            //    loadedScene.WorldLightProvider.RemoveLightsForChunk(chunkData);
         }
         
         private void RenderVoxelMesh(VoxelMeshComponent renderData, IVertexDataCollection meshData, LODLevel detailLevel, CameraComponent cameraData)

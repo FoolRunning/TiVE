@@ -6,8 +6,8 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
 {
     internal abstract class LightingModel
     {
-        private const float MinRealisticLightPercent = 0.015f;
-        private const float ShadowLightDistMinFactor = 4.9f;
+        public const float ShadowLightDistMinFactor = 0.3f;
+        private const float MinRealisticLightPercent = 0.01f;
 
         private static readonly LightingModel realistic = new RealisticLightingModel();
         private static readonly LightingModel brightRealistic = new BrightRealisticLightingModel();
@@ -50,7 +50,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
 
             public override float GetCacheLightCalculationForAmbient(LightComponent light)
             {
-                float dist = (light.LightBlockDist * BlockLOD32.VoxelSize) / ShadowLightDistMinFactor;
+                float dist = light.LightBlockDist * BlockLOD32.VoxelSize * ShadowLightDistMinFactor;
                 return 1.0f / (dist * dist * MinRealisticLightPercent); // Light attentuation
             }
 
@@ -72,7 +72,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
 
             public override float GetCacheLightCalculationForAmbient(LightComponent light)
             {
-                float dist = (light.LightBlockDist * BlockLOD32.VoxelSize) / ShadowLightDistMinFactor;
+                float dist = light.LightBlockDist * BlockLOD32.VoxelSize * ShadowLightDistMinFactor;
                 return 1.0f / (dist * dist * dist * dist * MinRealisticLightPercent); // Light attentuation
             }
 
@@ -94,7 +94,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
 
             public override float GetCacheLightCalculationForAmbient(LightComponent light)
             {
-                float dist = (light.LightBlockDist * BlockLOD32.VoxelSize) / ShadowLightDistMinFactor;
+                float dist = light.LightBlockDist * BlockLOD32.VoxelSize * ShadowLightDistMinFactor;
                 return 1.0f / (dist * dist); // One over max light distance squared
             }
 
@@ -117,7 +117,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
 
             public override float GetCacheLightCalculationForAmbient(LightComponent light)
             {
-                float dist = (light.LightBlockDist * BlockLOD32.VoxelSize) / ShadowLightDistMinFactor;
+                float dist = light.LightBlockDist * BlockLOD32.VoxelSize * ShadowLightDistMinFactor;
                 return 1.0f / (dist * dist); // One over max light distance squared
             }
 
@@ -140,7 +140,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
 
             public override float GetCacheLightCalculationForAmbient(LightComponent light)
             {
-                float dist = (light.LightBlockDist * BlockLOD32.VoxelSize) / ShadowLightDistMinFactor;
+                float dist = light.LightBlockDist * BlockLOD32.VoxelSize * ShadowLightDistMinFactor;
                 return 1.0f / dist; // One over max light distance
             }
 

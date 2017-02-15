@@ -27,6 +27,7 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
                 IEntity entity = scene.CreateNewEntity("Camera");
                 entity.AddComponent(new CameraComponent());
                 entity.AddComponent(new ScriptComponent("2DCamera"));
+                //scene.AmbientLight = new Color3f(0.3f, 0.3f, 0.2f);
             }
             else if (sceneName == "Maze")
             {

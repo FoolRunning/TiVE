@@ -7,6 +7,7 @@ using System.Xml;
 using ProdigalSoftware.TiVE.Core.Backend;
 using ProdigalSoftware.TiVE.RenderSystem.Lighting;
 using ProdigalSoftware.TiVE.Starter;
+using ProdigalSoftware.TiVEPluginFramework;
 
 namespace ProdigalSoftware.TiVE.Settings
 {
@@ -28,10 +29,10 @@ namespace ProdigalSoftware.TiVE.Settings
     internal enum ShadowDetailLevel
     {
         Off = 255,
-        Low = 3,
-        Med = 2,
-        High = 1,
-        Ultra = 0
+        Low = LODLevel.V4,
+        Med = LODLevel.V8,
+        High = LODLevel.V16,
+        Ultra = LODLevel.V32
     }
     
     internal delegate void SettingsChangedHandler(string settingName, Setting newValue);
@@ -42,7 +43,8 @@ namespace ProdigalSoftware.TiVE.Settings
 
         public const string FullScreenModeKey = "fullScreenMode";
         public const string LightingTypeKey = "lightingType";
-        public const string ShadowDetailKey = "shadowDetail";
+        public const string WorldShadowDetailKey = "worldShadowDetail";
+        public const string ParticleShadowDetailKey = "particleShadowDetail";
         //public const string PreLoadLightingKey = "preLoadLighting";
         public const string LightCullingTypeKey = "lightCullType";
         public const string CubifyVoxelsKey = "cubifyVoxels";
@@ -93,14 +95,22 @@ namespace ProdigalSoftware.TiVE.Settings
                 new UserSettingOption("Far", new EnumSetting<VoxelDetailLevelDistance>(VoxelDetailLevelDistance.Far)),
                 new UserSettingOption("Furthest", new EnumSetting<VoxelDetailLevelDistance>(VoxelDetailLevelDistance.Furthest))));
 
-            settingOptions.Add(new UserSettingOptions(ShadowDetailKey, "Shadow detail", UserOptionTab.Display,
+            settingOptions.Add(new UserSettingOptions(WorldShadowDetailKey, "World shadow detail", UserOptionTab.Display,
+                new EnumSetting<ShadowDetailLevel>(ShadowDetailLevel.High),
+                new UserSettingOption("Off", new EnumSetting<ShadowDetailLevel>(ShadowDetailLevel.Off)),
+                new UserSettingOption("Low", new EnumSetting<ShadowDetailLevel>(ShadowDetailLevel.Low)),
+                new UserSettingOption("Medium", new EnumSetting<ShadowDetailLevel>(ShadowDetailLevel.Med)),
+                new UserSettingOption("High", new EnumSetting<ShadowDetailLevel>(ShadowDetailLevel.High)),
+                new UserSettingOption("Ultra", new EnumSetting<ShadowDetailLevel>(ShadowDetailLevel.Ultra))));
+
+            settingOptions.Add(new UserSettingOptions(ParticleShadowDetailKey, "Particle shadow detail", UserOptionTab.Display,
                 new EnumSetting<ShadowDetailLevel>(ShadowDetailLevel.Med),
                 new UserSettingOption("Off", new EnumSetting<ShadowDetailLevel>(ShadowDetailLevel.Off)),
                 new UserSettingOption("Low", new EnumSetting<ShadowDetailLevel>(ShadowDetailLevel.Low)),
                 new UserSettingOption("Medium", new EnumSetting<ShadowDetailLevel>(ShadowDetailLevel.Med)),
                 new UserSettingOption("High", new EnumSetting<ShadowDetailLevel>(ShadowDetailLevel.High)),
                 new UserSettingOption("Ultra", new EnumSetting<ShadowDetailLevel>(ShadowDetailLevel.Ultra))));
-            
+
             settingOptions.Add(new UserSettingOptions(LightsPerBlockKey, "Max lights per block", UserOptionTab.Display, new IntSetting(10),
                 new UserSettingOption(new IntSetting(5)),
                 new UserSettingOption(new IntSetting(10)),

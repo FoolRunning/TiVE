@@ -36,7 +36,7 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
             //IGameWorld gameWorld = Factory.NewGameWorld(1110, 1110, 120); // x-axis and y-axis must be divisible by 3
             IGameWorld gameWorld = Factory.NewGameWorld(300, 300, 16); // x-axis and y-axis must be divisible by 3
             //IGameWorld gameWorld = Factory.NewGameWorld(111, 111, 12); // x-axis and y-axis must be divisible by 3
-            gameWorld.LightingModelType = LightingModelType.Realistic;
+            gameWorld.LightingModelType = LightingModelType.Fantasy3;
 
             MazeCell[,] dungeonMap = new MazeCell[gameWorld.BlockSize.X / 3, gameWorld.BlockSize.Y / 3];
             //List<Vector3i> rooms = CreateRandomRooms(random.Next(50) + 160, 3, 15, 3, 15).ToList();

@@ -30,8 +30,6 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
         private readonly LightingModel lightingModel;
         private readonly ChunkLights[] chunkLightInfo;
         private Vector3i chunkSize;
-        //private volatile int totalComplete;
-        //private volatile int lastPercentComplete;
         #endregion
 
         #region Constructor
@@ -65,7 +63,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
             for (int i = 0; i < chunkLightInfo.Length; i++)
                 chunkLightInfo[i] = new ChunkLights(100);
 
-            const int numThreads = 1; // Environment.ProcessorCount > 3 ? 2 : 1;
+            const int numThreads = 2; // Environment.ProcessorCount > 3 ? 2 : 1;
             Thread[] threads = new Thread[numThreads];
             List<LightInfo> lightInfos = new List<LightInfo>(20000);
             lightInfos.Add(null);
@@ -75,8 +73,8 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
             foreach (Thread thread in threads)
                 thread.Join();
 
-            //for (int i = 0; i < chunkLightInfo.Length; i++)
-            //    chunkLightInfo[i].LightsAffectingChunks.TrimExcess();
+            for (int i = 0; i < chunkLightInfo.Length; i++)
+                chunkLightInfo[i].LightsAffectingChunks.TrimExcess();
 
             LightList = lightInfos.ToArray();
 
@@ -133,6 +131,9 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
                 int lbx = lightInfo.BlockX;
                 int lby = lightInfo.BlockY;
                 int lbz = lightInfo.BlockZ;
+                int ambientDist = (int)Math.Ceiling(lightInfo.BlockDist * LightingModel.ShadowLightDistMinFactor);
+                ambientDist *= ambientDist; // square result so we can compare to the squared value
+
                 for (int bz = startZ; bz < endZ; bz++)
                 {
                     int vz = (bz << BlockLOD32.VoxelSizeBitShift) + HalfBlockVoxelSize;
@@ -144,7 +145,12 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
                             if ((lightCullType == LightCullType.Fast && CullLightFast(lbx, lby, lbz, bx, by, bz)) ||
                                 (lightCullType == LightCullType.Accurate && CullLightAccurate(lbx, lby, lbz, bx, by, bz)))
                             {
-                                continue; // The light won't actually hit the block
+                                int distX = lbx - bx;
+                                int distY = lby - by;
+                                int distZ = lbz - bz;
+                                int dist = distX * distX + distY * distY + distZ * distZ;
+                                if (dist >= ambientDist)
+                                    continue; // The light won't actually hit the block
                             }
 
                             int vy = (by << BlockLOD32.VoxelSizeBitShift) + HalfBlockVoxelSize;
@@ -204,19 +210,11 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
             Thread thread = new Thread(() =>
             {
                 GameWorld gameWorld = scene.GameWorldInternal;
-                //int sizeX = gameWorld.BlockSize.X;
                 int sizeY = gameWorld.BlockSize.Y;
                 int sizeZ = gameWorld.BlockSize.Z;
 
                 for (int x = startX; x < endX; x++)
                 {
-                    //int percentComplete = totalComplete * 100 / (sizeX - 1);
-                    //if (percentComplete != lastPercentComplete)
-                    //{
-                    //    Console.WriteLine("Calculating lighting: {0}%", percentComplete);
-                    //    lastPercentComplete = percentComplete;
-                    //}
-
                     for (int z = 0; z < sizeZ; z++)
                     {
                         for (int y = 0; y < sizeY; y++)
@@ -226,7 +224,6 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
                                 FillChunksWithLight(light, lightInfos, x, y, z);
                         }
                     }
-                    //totalComplete++;
                 }
             });
 

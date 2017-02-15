@@ -4,20 +4,21 @@ using ProdigalSoftware.TiVEPluginFramework.Generators;
 
 namespace ProdigalSoftware.ProjectM.Data.Plugins
 {
-    public class ParticleControllerGenerator : IParticleControllerGenerator
+    public class Test2DParticleControllerGenerator : IParticleControllerGenerator
     {
         #region Implementation of IParticleControllerGenerator
         public ParticleController CreateController(string name)
         {
-            switch (name)
-            {
-                case "Snow": return new SnowUpdater();
-                case "Fire": return new FireUpdater();
-                case "Lava": return new LavaUpdater();
-                case "Fountain": return new FountainUpdater();
-                case "LightBugs": return new LightBugsUpdater();
-                default: return null;
-            }
+            //switch (name)
+            //{
+            //    case "Snow": return new SnowUpdater();
+            //    case "Fire": return new FireUpdater();
+            //    case "Lava": return new LavaUpdater();
+            //    case "Fountain": return new FountainUpdater();
+            //    case "LightBugs": return new LightBugsUpdater();
+            //    default: return null;
+            //}
+            return null;
         }
         #endregion
         
@@ -27,8 +28,7 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
             private const float SnowDeacceleration = 21.0f;
             private const float AliveTime = 30.0f;
 
-            public SnowUpdater()
-                : base(1, 100, TransparencyType.None, true)
+            public SnowUpdater() : base(1, 100, TransparencyType.None, true)
             {
             }
 
@@ -106,8 +106,7 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
                 }
             }
 
-            public FireUpdater()
-                : base(250, 200, TransparencyType.Additive, false)
+            public FireUpdater() : base(250, 200, TransparencyType.Additive, false)
             {
             }
 
@@ -139,19 +138,14 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
             {
                 ApplyVelocity(particle, timeSinceLastFrame);
 
-                particle.VelZ += 10.0f * timeSinceLastFrame;
                 if (particle.X > systemLocation.X)
                     particle.VelX -= FlameDeacceleration * timeSinceLastFrame;
                 if (particle.X < systemLocation.X)
                     particle.VelX += FlameDeacceleration * timeSinceLastFrame;
-                if (particle.Y > systemLocation.Y)
-                    particle.VelY -= FlameDeacceleration * timeSinceLastFrame;
-                if (particle.Y < systemLocation.Y)
-                    particle.VelY += FlameDeacceleration * timeSinceLastFrame;
-                //if (particle.Z > systemZ)
-                //    particle.VelZ -= FlameDeacceleration * timeSinceLastFrame;
-                //if (particle.Z < systemZ)
-                //    particle.VelZ += FlameDeacceleration * timeSinceLastFrame;
+                if (particle.Z > systemLocation.Z)
+                    particle.VelZ -= FlameDeacceleration * timeSinceLastFrame;
+                if (particle.Z < systemLocation.Z)
+                    particle.VelZ += FlameDeacceleration * timeSinceLastFrame;
 
                 //float totalTime = (float)Math.Pow(particleAliveTime, 5);
                 //part.size = 1.0f - (float)Math.pow(part.aliveTime, 5) / totalTime;
@@ -171,8 +165,8 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
                 float angle = Random.NextFloat() * 2.0f * 3.141592f;
                 float totalVel = Random.NextFloat() * 12.0f + 20.0f;
                 particle.VelX = (float)Math.Cos(angle) * totalVel;
-                particle.VelZ = Random.NextFloat() * 17.0f + 8.0f;
-                particle.VelY = (float)Math.Sin(angle) * totalVel;
+                particle.VelZ = (float)Math.Sin(angle) * totalVel;
+                particle.VelY = Random.NextFloat() * 20.0f + 10.0f;
 
                 particle.X = systemLocation.X;
                 particle.Y = systemLocation.Y;
@@ -188,7 +182,7 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
         #region FountainUpdater class
         private class FountainUpdater : ParticleController
         {
-            private const float AliveTime = 1.3f;
+            private const float AliveTime = 2.0f;
 
             private static readonly Color4b[] colorList = new Color4b[256];
 
@@ -198,7 +192,7 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
                     colorList[i] = new Color4b((byte)(55 - (int)((255 - i) / 5.0f)), (byte)(150 - (int)((255 - i) / 2.0f)), 255, (byte)(100 - i / 4));
             }
 
-            public FountainUpdater() : base(300, 200, TransparencyType.Realistic, true)
+            public FountainUpdater() : base(300, 100, TransparencyType.Realistic, true)
             {
             }
 
@@ -228,7 +222,7 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
 
             public override void Update(Particle particle, float timeSinceLastFrame, Vector3i systemLocation)
             {
-                particle.VelZ -= 400.0f * timeSinceLastFrame;
+                particle.VelY -= 200.0f * timeSinceLastFrame;
                 ApplyVelocity(particle, timeSinceLastFrame);
                 particle.Time -= timeSinceLastFrame;
 
@@ -243,10 +237,10 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
             public override void InitializeNew(Particle particle, Vector3i systemLocation)
             {
                 float angle = Random.NextFloat() * 2.0f * 3.141592f;
-                float totalVel = Random.NextFloat() * 20.0f + 4.0f;
+                float totalVel = Random.NextFloat() * 10.0f + 3.0f;
                 particle.VelX = (float)Math.Cos(angle) * totalVel;
-                particle.VelZ = Random.NextFloat() * 30.0f + 260.0f;
-                particle.VelY = (float)Math.Sin(angle) * totalVel;
+                particle.VelZ = (float)Math.Sin(angle) * totalVel;
+                particle.VelY = Random.NextFloat() * 30.0f + 180.0f;
 
                 particle.X = systemLocation.X - 2;
                 particle.Y = systemLocation.Y - 2;
@@ -307,8 +301,8 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
             public override void Update(Particle particle, float timeSinceLastFrame, Vector3i systemLocation)
             {
                 ApplyVelocity(particle, timeSinceLastFrame);
-                if (particle.Z > systemLocation.Z - SpriteMid + 1)
-                    particle.VelZ = 0.0f;
+                if (particle.Y > systemLocation.Y - SpriteMid + 1)
+                    particle.VelY = 0.0f;
 
                 particle.Time -= timeSinceLastFrame;
 
@@ -322,11 +316,11 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
 
             public override void InitializeNew(Particle particle, Vector3i systemLocation)
             {
-                particle.VelZ = SpriteSize * 0.8f;
+                particle.VelY = SpriteSize * 0.8f;
 
                 particle.X = systemLocation.X + Random.Next(BlockLOD32.VoxelSize + SpriteMid) - SpriteMid + 1;
-                particle.Y = systemLocation.Y + Random.Next(BlockLOD32.VoxelSize + SpriteMid) - SpriteMid + 1;
-                particle.Z = systemLocation.Z - SpriteSize - 2;
+                particle.Y = systemLocation.Y - SpriteSize - 2;
+                particle.Z = systemLocation.Z + Random.Next(BlockLOD32.VoxelSize + SpriteMid) - SpriteMid + 1;
 
                 particle.Color = colorList[0];
                 particle.Time = Random.NextFloat() * AliveTime / 2.0f + AliveTime / 2.0f;
@@ -371,23 +365,7 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
                     particle.VelZ += BugDeacceleration * timeSinceLastFrame;
 
                 ApplyVelocity(particle, timeSinceLastFrame);
-                particle.Time -= timeSinceLastFrame;
-                if (particle.Time < 0.97f)
-                {
-                    if (Random.Next(100) < 98) // 2% chance to take a longer frame
-                    {
-                        byte intensity;
-                        switch (particle.Color.R)
-                        {
-                            case 50: intensity = 100; break;
-                            case 150: intensity = 101; break;
-                            case 101: intensity = 50; break;
-                            default: intensity = 150; break; // case 100
-                        }
-                        particle.Color = new Color4b(intensity, intensity, intensity, 200);
-                    }
-                    particle.Time += 0.03f;
-                }
+                particle.Color = CreateColor();
             }
 
             public override void InitializeNew(Particle particle, Vector3i systemLocation)
@@ -400,18 +378,16 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
                 particle.Y = Random.NextFloat() * 20.0f + systemLocation.Y - 10.0f;
                 particle.Z = Random.NextFloat() * 20.0f + systemLocation.Z - 10.0f;
 
-                byte intensity;
-                switch (Random.Next(4))
-                {
-                    case 0: intensity = 50; break;
-                    case 1: intensity = 100; break;
-                    case 2: intensity = 101; break;
-                    default: intensity = 150; break;
-                }
-                particle.Color = new Color4b(intensity, intensity, intensity, 200);
+                particle.Color = CreateColor();
                 particle.Time = 1.0f;
             }
             #endregion
+
+            private static Color4b CreateColor()
+            {
+                byte intensity = (byte)(50 + Random.Next(100));
+                return new Color4b(intensity, intensity, intensity, 200);
+            }
         }
         #endregion
     }
