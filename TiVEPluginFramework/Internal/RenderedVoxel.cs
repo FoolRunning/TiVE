@@ -1,22 +1,24 @@
 ﻿namespace ProdigalSoftware.TiVEPluginFramework.Internal
 {
-    internal sealed class RenderedVoxel
+    internal struct RenderedVoxel
     {
         internal readonly Voxel Voxel;
-        internal readonly Vector3b Location;
-        private readonly byte data;
+        private readonly int data;
 
-        public RenderedVoxel(Voxel voxel, Vector3b location, CubeSides sides, bool checkSurroundingVoxels)
+        public RenderedVoxel(Voxel voxel, int x, int y, int z, CubeSides sides, bool checkSurroundingVoxels)
         {
             Voxel = voxel;
-            Location = location;
-            data = (byte)(((byte)sides & 0x3F) | (checkSurroundingVoxels ? 0x40 : 0x00));
+            data = (x & 0xFF) << 24 | (y & 0xFF) << 16 | (z & 0xFF) << 8 | ((byte)sides & 0x3F) | (checkSurroundingVoxels ? 0x40 : 0x00);
         }
 
-        public CubeSides Sides => 
-            (CubeSides)(data & 0x3F);
+        public int X => (data >> 24) & 0xFF;
 
-        public bool CheckSurroundingVoxels => 
-            data >= 0x40;
+        public int Y => (data >> 16) & 0xFF;
+
+        public int Z => (data >> 8) & 0xFF;
+
+        public CubeSides Sides => (CubeSides)(data & 0x3F);
+
+        public bool CheckSurroundingVoxels => data >= 0x40;
     }
 }
