@@ -347,13 +347,6 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
             public WithShadowsLightProvider(Scene scene) : base(scene)
             {
                 shadowsPerBlock = TiVEController.UserSettings.Get(UserSettings.ShadowsPerBlockKey);
-                TiVEController.UserSettings.SettingChanged += UserSettings_SettingChanged;
-            }
-
-            private void UserSettings_SettingChanged(string settingName, Setting newValue)
-            {
-                if (settingName == UserSettings.ShadowsPerBlockKey)
-                    shadowsPerBlock = newValue;
             }
 
             public override Color3f GetLightAtFast(int voxelX, int voxelY, int voxelZ, LODLevel detailLevel, LODLevel shadowDetailLevel)

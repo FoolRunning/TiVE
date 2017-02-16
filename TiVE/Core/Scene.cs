@@ -57,6 +57,7 @@ namespace ProdigalSoftware.TiVE.Core
             if (RenderNode != null)
                 RenderNode.Dispose();
 #endif
+            TiVEController.UserSettings.SettingChanged -= UserSettings_SettingChanged;
         }
 
         public IGameWorld GameWorld => 

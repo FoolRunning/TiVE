@@ -20,7 +20,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem
     internal sealed class RenderSystem : EngineSystem
     {
         #region Constants
-        private const int DeletedItemCacheSize = 10000;
+        private const int DeletedItemCacheSize = 2000;
         private static readonly int timeBetweenTimingUpdates = (int)(Stopwatch.Frequency / 2); // 1/2 second
         #endregion
 

@@ -340,9 +340,9 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
             for (int i = 0; i < renderedVoxels.Length; i++)
             {
                 RenderedVoxel renVox = renderedVoxels[i];
-                int bvx = renVox.Location.X;
-                int bvy = renVox.Location.Y;
-                int bvz = renVox.Location.Z;
+                int bvx = renVox.X;
+                int bvy = renVox.Y;
+                int bvz = renVox.Z;
                 int voxelX = (blockX << bitShift) + bvx;
                 int voxelY = (blockY << bitShift) + bvy;
                 int voxelZ = (blockZ << bitShift) + bvz;

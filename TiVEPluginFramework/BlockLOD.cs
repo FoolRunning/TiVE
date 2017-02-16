@@ -77,8 +77,7 @@ namespace ProdigalSoftware.TiVEPluginFramework
         //    get { return (1 << VoxelAxisSizeBitShift) - 1; }
         //}
 
-        public int RenderedVoxelSize => 
-            BlockLOD32.VoxelSize / VoxelAxisSize;
+        public int RenderedVoxelSize => BlockLOD32.VoxelSize / VoxelAxisSize;
 
         internal Voxel[] VoxelsArray => voxels;
 
@@ -89,12 +88,13 @@ namespace ProdigalSoftware.TiVEPluginFramework
                 RenderedVoxel[] voxelsRendered = renderedVoxels;
                 if (voxelsRendered != null)
                     return voxelsRendered;
+
                 lock (voxels)
                 {
                     if (renderedVoxels == null)
-                        renderedVoxels = CalculateRenderedVoxels();
+                        renderedVoxels = voxelsRendered = CalculateRenderedVoxels();
                 }
-                return renderedVoxels;
+                return voxelsRendered;
             }
         }
         #endregion
@@ -193,7 +193,7 @@ namespace ProdigalSoftware.TiVEPluginFramework
                         if (sides != CubeSides.None)
                         {
                             bool checkSurrounding = (bvz == 0 || bvz == maxBlockVoxel || bvx == 0 || bvx == maxBlockVoxel || bvy == 0 || bvy == maxBlockVoxel);
-                            renderedVoxelsList.Add(new RenderedVoxel(vox, new Vector3b((byte)bvx, (byte)bvy, (byte)bvz), sides, checkSurrounding));
+                            renderedVoxelsList.Add(new RenderedVoxel(vox, bvx, bvy, bvz, sides, checkSurrounding));
                         }
                     }
                 }
