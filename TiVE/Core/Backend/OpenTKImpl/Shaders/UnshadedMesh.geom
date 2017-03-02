@@ -1,7 +1,7 @@
 ﻿#version 150 core
 
 layout (points) in;
-layout (triangle_strip, max_vertices=24) out;
+layout (triangle_strip, max_vertices=12) out;
 
 uniform mat4 matrix_ModelViewProjection;
 uniform vec3 cameraLoc;
@@ -27,6 +27,10 @@ void main()
     vec4 v6 = matrix_ModelViewProjection * vec4(x2   , pos.y, pos.z, 1);
     vec4 v7 = matrix_ModelViewProjection * vec4(x2   , pos.y, z2   , 1);
     vec4 v8 = matrix_ModelViewProjection * vec4(pos.x, pos.y, z2   , 1);
+    
+    // apply gamma correction
+    //float gamma = 2.2;
+    //fragment_color = vec4(pow(colorPass[0].rgb, vec3(1.0 / gamma)), colorPass[0].a);
     
     fragment_color = colorPass[0];
 

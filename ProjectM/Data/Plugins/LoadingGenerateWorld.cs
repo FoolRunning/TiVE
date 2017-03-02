@@ -37,7 +37,7 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
             const int worldSizeX = 75;
             const int worldSizeY = 50;
             IGameWorld gameWorld = Factory.NewGameWorld(worldSizeX, worldSizeY, 8);
-            gameWorld.LightingModelType = LightingModelType.Fantasy3;
+            gameWorld.LightingModelType = LightingModelType.Realistic;
 
             BlockRandomizer grasses = new BlockRandomizer("loadingGrass", CommonUtils.grassBlockDuplicates);
             Block dirt = Factory.Get<Block>("dirt");
@@ -52,6 +52,14 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
                     gameWorld[x, y, 1] = grasses.NextBlock();
                 }
             }
+            //for (int color = 0; color < 256; color += 8)
+            //    gameWorld[color / 8 + 21, 20, 1] = Factory.Get<Block>("linear" + color);
+            gameWorld[25, 20, 1] = Factory.Get<Block>("linear8");
+            gameWorld[26, 20, 1] = Factory.Get<Block>("linear16");
+            gameWorld[27, 20, 1] = Factory.Get<Block>("linear32");
+            gameWorld[28, 20, 1] = Factory.Get<Block>("linear64");
+            gameWorld[29, 20, 1] = Factory.Get<Block>("linear128");
+            gameWorld[30, 20, 1] = Factory.Get<Block>("linear255");
 
             const int offsetX = 13;
             const int offsetY = 15;

@@ -5,11 +5,10 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
 {
     internal static class VoxelMeshUtils
     {
-        public static void GenerateMesh(VoxelSprite sprite, MeshBuilder meshBuilder, out int voxelCount, out int renderedVoxelCount, out int polygonCount)
+        public static void GenerateMesh(VoxelSprite sprite, MeshBuilder meshBuilder, out int voxelCount, out int renderedVoxelCount)
         {
             voxelCount = 0;
             renderedVoxelCount = 0;
-            polygonCount = 0;
 
             meshBuilder.StartNewMesh();
             int xSize = sprite.Size.X;
@@ -43,7 +42,7 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
 
                         if (sides != CubeSides.None)
                         {
-                            polygonCount += meshBuilder.AddVoxel(sides, x, y, z, (Color4b)vox);
+                            meshBuilder.AddVoxel(sides, x, y, z, (Color4b)vox);
                             renderedVoxelCount++;
                         }
                     }

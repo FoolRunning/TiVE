@@ -48,6 +48,7 @@ namespace ProdigalSoftware.TiVE.Core.Backend.OpenTKImpl
             GL.Enable(EnableCap.CullFace);
             GL.CullFace(CullFaceMode.Back);
             GL.FrontFace(FrontFaceDirection.Cw);
+            //GL.Enable(EnableCap.FramebufferSrgb);
 
             SetBlendMode(BlendMode.Realistic);
 

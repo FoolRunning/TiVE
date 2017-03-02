@@ -18,10 +18,10 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
         private const int mv = BlockLOD32.VoxelSize - 1;
         private const int ImperfectionIterations = BlockLOD32.VoxelSize > 16 ? 100 : 25;
         private const bool ForFantasy = true;
-        private const float LightBright = ForFantasy ? 0.8f : 0.8f;
-        private const float LightMid = ForFantasy ? 0.6f : 0.6f;
-        private const float LightDim = ForFantasy ? 0.27f : 0.27f;
-        private const int LightDist = ForFantasy ? 17 : 25;
+        private const float LightBright = ForFantasy ? 0.8f : 1.0f;
+        private const float LightMid = ForFantasy ? 0.6f : 0.76f;
+        private const float LightDim = ForFantasy ? 0.27f : 0.34f;
+        private const int LightDist = ForFantasy ? 17 : 20;
         //private const float LightBright = 1.0f;
         //private const float LightMid = 0.76f;
         //private const float LightDim = 0.34f;
@@ -38,6 +38,7 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
 
             switch (part)
             {
+                case "linear": return CreateRoundedBlockInfo(name, new Voxel((byte)num, (byte)num, (byte)num, VoxelSettings.IgnoreLighting), 1.0f, CubeSides.Front, null, 0);
                 case "fire": return CreateFire();
                 case "dirt": return CreateBlockInfo("dirt", 0, new Color4f(0.6f, 0.45f, 0.25f, 1.0f), 1.0f, colorVariation: 0.4f);
                 case "bumpyDirt": return CreateRoundedBumpyBlock(name, (CubeSides)num, new Voxel(0.6f, 0.45f, 0.25f), 0.4f);
@@ -45,7 +46,7 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
                 case "leaves": return CreateLeaves(name, (CubeSides)num);
                 case "lava": return CreateLava(name, true);
                 case "lavaUnlit": return CreateLava(name, false);
-                case "back": return CreateRoundedBumpyBlock(name, (CubeSides)num, new Voxel(200, 200, 200));
+                case "back": return CreateRoundedBumpyBlock(name, (CubeSides)num, new Voxel(200, 200, 200), 0.3f);
                 case "stoneBrick": return CreateStone(name, (CubeSides)num);
                 case "light": return CreateLight(name, num);
                 case "grass": return CreateGrass(name);
@@ -71,7 +72,7 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
                         new LightComponent(new Vector3b(bc, bc, bc), new Color3f(0.25f, 0.25f, 0.7f), ForFantasy ? 20 : 30), colorVariation: 0.0f);
                 case "loadingLight":
                     return CreateBlockInfo(name, BlockLOD32.VoxelSize / 5.0f, new Color4f(1.0f, 1.0f, 1.0f, 1.0f), 1.0f, null,
-                        new LightComponent(blockCenterVector, new Color3f(0.6f, 0.6f, 0.6f), 50), colorVariation: 0.0f);
+                        new LightComponent(blockCenterVector, new Color3f(1.0f, 1.0f, 1.0f), 80), colorVariation: 0.0f);
                 case "treeLight":
                     return CreateBlockInfo(name, BlockLOD32.VoxelSize / 8.0f, new Color4f(ObjBright, ObjBright, ObjBright, 1.0f), 1.0f, null,
                         new LightComponent(new Vector3b(bc, bc, bc), new Color3f(LightBright, LightBright, LightBright), ForFantasy ? 20 : 30), colorVariation: 0.0f);
@@ -517,7 +518,7 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
 
         private static Block CreateStone(string name, CubeSides sides)
         {
-            Block stone = CreateRoundedBlockInfo(name, new Voxel(229, 229, 229), 1.0f, sides, null, 0.1f);
+            Block stone = CreateRoundedBlockInfo(name, new Voxel(229, 229, 229), 1.0f, sides, null, 0.3f);
             for (int x = 0; x <= mv; x++)
             {
                 if ((sides & CubeSides.Bottom) != 0)

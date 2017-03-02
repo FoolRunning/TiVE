@@ -2,7 +2,6 @@
 using ProdigalSoftware.TiVE.Core.Backend;
 using ProdigalSoftware.TiVE.VoxelMeshSystem;
 using ProdigalSoftware.TiVEPluginFramework;
-using ProdigalSoftware.TiVEPluginFramework.Internal;
 
 namespace ProdigalSoftware.TiVE.RenderSystem
 {
@@ -13,7 +12,6 @@ namespace ProdigalSoftware.TiVE.RenderSystem
         protected readonly Voxel[] voxels;
 
         private readonly Vector3i size;
-        private int polygonCount;
         private int voxelCount;
         private int renderedVoxelCount;
         private IVertexDataCollection mesh;
@@ -64,14 +62,13 @@ namespace ProdigalSoftware.TiVE.RenderSystem
             
             TiVEController.Backend.Draw(PrimitiveType.Triangles, mesh);
 
-            return new RenderStatistics(1, polygonCount, voxelCount, renderedVoxelCount);
+            return new RenderStatistics(1, voxelCount, renderedVoxelCount);
         }
 
         private IVertexDataCollection CreateVoxelMesh()
         {
             voxelCount = 0;
             renderedVoxelCount = 0;
-            polygonCount = 0;
 
             meshBuilder.StartNewMesh();
             for (byte z = 0; z < size.Z; z++)
@@ -102,7 +99,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem
 
                         if (sides != CubeSides.None)
                         {
-                            polygonCount += meshBuilder.AddVoxel(sides, x, y, z, (Color4b)color);
+                            meshBuilder.AddVoxel(sides, x, y, z, (Color4b)color);
                             renderedVoxelCount++;
                         }
                     }

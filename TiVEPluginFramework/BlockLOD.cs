@@ -92,9 +92,9 @@ namespace ProdigalSoftware.TiVEPluginFramework
                 lock (voxels)
                 {
                     if (renderedVoxels == null)
-                        renderedVoxels = voxelsRendered = CalculateRenderedVoxels();
+                        renderedVoxels = CalculateRenderedVoxels();
                 }
-                return voxelsRendered;
+                return renderedVoxels;
             }
         }
         #endregion
