@@ -264,7 +264,6 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
 
             int voxelCount = 0;
             int renderedVoxelCount = 0;
-            int polygonCount = 0;
             for (int blockZ = blockEndZ - 1; blockZ >= blockStartZ; blockZ--)
             {
                 if (!chunkData.Visible)
@@ -281,7 +280,7 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
                         voxelCount += block.TotalVoxels;
 
                         CreateMeshForBlockInChunk(block, blockX, blockY, blockZ, voxelStartX, voxelStartY, voxelStartZ, queueItem, scene,
-                            meshBuilder, ref polygonCount, ref renderedVoxelCount);
+                            meshBuilder, ref renderedVoxelCount);
                     }
                 }
             }
@@ -296,7 +295,7 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
                 }
                 else
                 {
-                    if (polygonCount > 0)
+                    if (renderedVoxelCount > 0)
                         chunkData.MeshBuilder = meshBuilder;
                     else
                     {
@@ -307,7 +306,6 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
                         chunkData.VoxelDetailLevelToLoad = LODLevel.NotSet;
                         return;
                     }
-                    chunkData.PolygonCount = polygonCount;
                     chunkData.VoxelCount = voxelCount;
                     chunkData.RenderedVoxelCount = renderedVoxelCount;
                 }
@@ -316,7 +314,7 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
 
         private static void CreateMeshForBlockInChunk(Block block, int blockX, int blockY, int blockZ,
             int voxelStartX, int voxelStartY, int voxelStartZ, EntityLoadQueueItem queueItem, Scene scene,
-            MeshBuilder meshBuilder, ref int polygonCount, ref int renderedVoxelCount)
+            MeshBuilder meshBuilder, ref int renderedVoxelCount)
         {
             LODLevel detailLevel = queueItem.DetailLevel;
 
@@ -384,7 +382,7 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
                     byte chunkVoxelY = (byte)((voxelY - voxelStartY) * renderedVoxelSize);
                     byte chunkVoxelZ = (byte)((voxelZ - voxelStartZ) * renderedVoxelSize);
 
-                    polygonCount += meshBuilder.AddVoxel(sides, chunkVoxelX, chunkVoxelY, chunkVoxelZ, 
+                    meshBuilder.AddVoxel(sides, chunkVoxelX, chunkVoxelY, chunkVoxelZ, 
                         vox.IgnoreLighting ? (Color4b)vox : lightProvider.GetFinalColor(vox, voxelX, voxelY, voxelZ, detailLevel, shadowDetailLevel, blockX, blockY, blockZ, sides));
                     renderedVoxelCount++;
                 }
@@ -410,7 +408,8 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
             float distY = renderData.Location.Y - cameraData.Location.Y;
             float distZ = renderData.Location.Z - cameraData.Location.Z;
 
-            float dist = MathUtils.FastSqrt(distX * distX + distY * distY + distZ * distZ);
+            float distSquared = distX * distX + distY * distY + distZ * distZ;
+            float dist = MathUtils.FastSqrt(distSquared);
             float distancePerLevel;
             switch (currentVoxelDetalLevelSetting)
             {

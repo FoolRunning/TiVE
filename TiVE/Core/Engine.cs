@@ -182,16 +182,25 @@ namespace ProdigalSoftware.TiVE.Core
             currentSceneName = sceneName;
             ThreadStart loadSceneAction = () =>
             {
+                Scene scene = null;
                 foreach (ISceneGenerator generator in TiVEController.PluginManager.GetPluginsOfType<ISceneGenerator>())
                 {
-                    Scene scene = (Scene)generator.CreateScene(sceneName);
-                    if (scene == null)
-                        Messages.AddWarning("Failed to find scene: " + sceneName);
-                    else
+                    try
                     {
-                        SetScene(scene);
-                        break;
+                        scene = (Scene)generator.CreateScene(sceneName);
+                        if (scene != null)
+                            break;
                     }
+                    catch
+                    {
+                    }
+                }
+                if (scene != null)
+                    SetScene(scene);
+                else
+                {
+                    Messages.AddWarning("Failed to find scene: " + sceneName);
+                    continueMainLoop = false;
                 }
                 sceneLoadThread = null;
             };
@@ -219,8 +228,7 @@ namespace ProdigalSoftware.TiVE.Core
                 foreach (EngineSystem system in systems)
                     system.ChangeScene(previousScene, newScene);
 
-                if (previousScene != null)
-                    previousScene.Dispose();
+                previousScene?.Dispose();
                 currentScene = newScene;
             }
             Messages.AddDebug("Running scene: " + currentSceneName);

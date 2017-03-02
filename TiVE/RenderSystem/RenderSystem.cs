@@ -29,7 +29,6 @@ namespace ProdigalSoftware.TiVE.RenderSystem
         private readonly ItemCountsHelper drawCount = new ItemCountsHelper(4, false);
         private readonly ItemCountsHelper voxelCount = new ItemCountsHelper(8, false);
         private readonly ItemCountsHelper renderedVoxelCount = new ItemCountsHelper(8, false);
-        private readonly ItemCountsHelper polygonCount = new ItemCountsHelper(8, false);
         private readonly ShaderManager shaderManager = new ShaderManager();
         private readonly HashSet<IEntity> loadedEntities = new HashSet<IEntity>();
         private int ticksSinceLastStatUpdate;
@@ -68,7 +67,6 @@ namespace ProdigalSoftware.TiVE.RenderSystem
                 drawCount.UpdateDisplayedTime();
                 voxelCount.UpdateDisplayedTime();
                 renderedVoxelCount.UpdateDisplayedTime();
-                polygonCount.UpdateDisplayedTime();
                 ticksSinceLastStatUpdate -= timeBetweenTimingUpdates;
             }
 
@@ -105,7 +103,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem
                 {
                     meshData = (IVertexDataCollection)renderData.MeshData;
                     detailLevel = renderData.VisibleVoxelDetailLevel;
-                    stats += new RenderStatistics(1, renderData.PolygonCount, renderData.VoxelCount, renderData.RenderedVoxelCount);
+                    stats += new RenderStatistics(1, renderData.VoxelCount, renderData.RenderedVoxelCount);
                 }
 
                 if (meshData == null)
@@ -116,7 +114,6 @@ namespace ProdigalSoftware.TiVE.RenderSystem
 
             drawCount.PushCount(stats.DrawCount);
             voxelCount.PushCount(stats.VoxelCount);
-            polygonCount.PushCount(stats.PolygonCount);
             renderedVoxelCount.PushCount(stats.RenderedVoxelCount);
 
             return true;
@@ -168,7 +165,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem
                     {
                         ((IVertexDataCollection)renderData.MeshData)?.Dispose();
 
-                        if (renderData.PolygonCount == 0)
+                        if (renderData.RenderedVoxelCount == 0)
                             renderData.MeshData = null;
                         else
                         {
@@ -215,7 +212,6 @@ namespace ProdigalSoftware.TiVE.RenderSystem
                 renderData.Visible = false;
                 renderData.VisibleVoxelDetailLevel = LODLevel.NotSet;
                 renderData.VoxelDetailLevelToLoad = LODLevel.NotSet;
-                renderData.PolygonCount = 0;
                 renderData.VoxelCount = 0;
                 renderData.RenderedVoxelCount = 0;
             }

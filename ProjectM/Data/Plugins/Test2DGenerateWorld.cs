@@ -14,7 +14,7 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
             if (gameWorldName != "2DTest")
                 return null;
 
-            IGameWorld gameWorld = Factory.NewGameWorld(1000, 8, 1000);
+            IGameWorld gameWorld = Factory.NewGameWorld(1000, 15, 1000);
             gameWorld.LightingModelType = LightingModelType.Fantasy3;
 
             FillWorld(gameWorld);
@@ -32,16 +32,16 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
             BlockRandomizer lights = new BlockRandomizer("light", 7);
             //Block player = Factory.Get<Block>("player");
             //Block dirt = Factory.Get<Block>("dirt");
-            Block unlitDirt = Factory.Get<Block>("unlitBackDirt");
+            //Block unlitDirt = Factory.Get<Block>("unlitBackDirt");
             Block dirt = Factory.Get<Block>("bumpyDirt0_0");
-            Block stone = Factory.Get<Block>("stoneBrick0_0");
+            //Block stone = Factory.Get<Block>("stoneBrick0_0");
             Block stoneBack = Factory.Get<Block>("back0_0");
-            Block wood = Factory.Get<Block>("wood0");
-            Block leaves = Factory.Get<Block>("leaves0_0");
+            //Block wood = Factory.Get<Block>("wood0");
+            //Block leaves = Factory.Get<Block>("leaves0_0");
             Block fountain = Factory.Get<Block>("fountain");
             //Block smallLight = Factory.Get<Block>("smallLight");
             Block redLight = Factory.Get<Block>("redLight");
-            Block treeLight = Factory.Get<Block>("treeLight");
+            //Block treeLight = Factory.Get<Block>("treeLight");
             //Block smallLightHover = blockList["smallLightHover"];
             Block fire = Factory.Get<Block>("fire");
             //Block lava = Factory.Get<Block>("lava");
@@ -51,13 +51,11 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
                 for (int z = 0; z < gameWorld.BlockSize.Z; z++)
                 {
                     //gameWorld[x, 15, z] = unlitDirt;
-                    gameWorld[x, 7, z] = dirt;
-                    gameWorld[x, 6, z] = dirt;
-                    gameWorld[x, 5, z] = dirt;
-                    gameWorld[x, 4, z] = dirt;
-                    gameWorld[x, 3, z] = dirt;
-                    gameWorld[x, 2, z] = dirt;
-                    //gameWorld[x, 1, z] = dirt;
+                    for (int y = 2; y < 8; y++)
+                    {
+                        int materialNoise = (int)((Noise.GetNoise(197 + x * 0.1, -13 + y * 0.25, -497 + z * 0.11) + 1) * 500); // noise 0..1000
+                        gameWorld[x, y, z] = materialNoise < 500 ? stoneBack : dirt;
+                    }
                 }
             }
 
@@ -66,9 +64,9 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
                 for (int z = 0; z < gameWorld.BlockSize.Z; z++)
                 {
                     int caveNoise = (int)((Noise.GetNoise(x * 0.13, z * 0.12) + 1) * 500); // noise 0..1000
-                    for (int y = 2; y < 5; y++)
+                    if (caveNoise > 500)
                     {
-                        if (caveNoise > 500)
+                        for (int y = 2; y < 5; y++)
                             gameWorld[x, y, z] = Block.Empty;
                     }
                 }

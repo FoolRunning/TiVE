@@ -13,8 +13,6 @@ namespace ProdigalSoftware.TiVEPluginFramework.Components
         internal int VoxelCount;
         /// <summary>Number of voxels that make up the entity when rendered</summary>
         internal int RenderedVoxelCount;
-        /// <summary>Number of polygons that make up the entity when rendered</summary>
-        internal int PolygonCount;
         /// <summary>Mesh data for the entity for rendering</summary>
         internal IVertexDataInfo MeshData;
         /// <summary>Detail level of the mesh used to represent the voxels that make up this component</summary>

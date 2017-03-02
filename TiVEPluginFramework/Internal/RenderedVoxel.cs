@@ -1,5 +1,8 @@
 ﻿namespace ProdigalSoftware.TiVEPluginFramework.Internal
 {
+    /// <summary>
+    /// Holds information about a rendered voxel. Memory footprint is very small (8 bytes).
+    /// </summary>
     internal struct RenderedVoxel
     {
         internal readonly Voxel Voxel;

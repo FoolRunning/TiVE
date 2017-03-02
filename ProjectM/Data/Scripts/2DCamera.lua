@@ -6,7 +6,7 @@ function initialize(entity)
     local gameWorld = scene().GameWorld
     local playerBlock = block("player")
     local playerLoc = gameWorld.FindBlock(playerBlock);
-    camera.Location = vector(playerLoc.X * BlockSize + HalfBlockSize, playerLoc.Y * BlockSize + HalfBlockSize - 600, playerLoc.Z * BlockSize + HalfBlockSize)
+    camera.Location = vector(playerLoc.X * BlockSize + HalfBlockSize, playerLoc.Y * BlockSize + HalfBlockSize - 900, playerLoc.Z * BlockSize + HalfBlockSize)
 
     --local sizeX = gameWorld.BlockSize.X - 1
     --local sizeY = gameWorld.BlockSize.Y - 1
@@ -31,7 +31,7 @@ function initialize(entity)
     --end
 
     camera.FieldOfView = math.rad(40)
-    camera.FarDistance = BlockSize * 50
+    camera.FarDistance = BlockSize * 75
     camera.UpVector = vector(0, 0, 1)
 end
 

@@ -33,6 +33,7 @@ namespace ProdigalSoftware.Utils
 
         public static float FastSqrt(float val)
         {
+            // Taken from http://blog.wouldbetheologian.com/2011/11/fast-approximate-sqrt-method-in-c.html
             FloatIntUnion u;
             u.tmp = 0;
             float xhalf = 0.5f * val;

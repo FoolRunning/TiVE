@@ -1,7 +1,7 @@
 ﻿#version 150 core
 
 layout (points) in;
-layout (triangle_strip, max_vertices=24) out;
+layout (triangle_strip, max_vertices=12) out;
 
 uniform mat4 matrix_ModelViewProjection;
 uniform vec3 cameraLoc;

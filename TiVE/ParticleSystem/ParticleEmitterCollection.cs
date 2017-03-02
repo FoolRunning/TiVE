@@ -29,7 +29,6 @@ namespace ProdigalSoftware.TiVE.ParticleSystem
         private readonly ParticleController controller;
 
         private readonly IRendererData voxelInstanceLocationData;
-        private readonly int polysPerParticle;
         private readonly int voxelsPerParticle;
         private readonly int renderedVoxelsPerParticle;
 
@@ -55,7 +54,7 @@ namespace ProdigalSoftware.TiVE.ParticleSystem
 
             // Create particle voxel model to be used for each particle
             MeshBuilder voxelInstanceBuilder = new MeshBuilder(controller.ParticleSprite.VoxelCount);
-            VoxelMeshUtils.GenerateMesh(controller.ParticleSprite, voxelInstanceBuilder, out voxelsPerParticle, out renderedVoxelsPerParticle, out polysPerParticle);
+            VoxelMeshUtils.GenerateMesh(controller.ParticleSprite, voxelInstanceBuilder, out voxelsPerParticle, out renderedVoxelsPerParticle);
             voxelInstanceLocationData = voxelInstanceBuilder.GetLocationData();
 
             locations = new Vector3us[controller.MaxParticles * 5];
@@ -196,8 +195,7 @@ namespace ProdigalSoftware.TiVE.ParticleSystem
                 TiVEController.Backend.EnableDepthWriting();
             }
 
-            return new RenderStatistics(1, totalParticles * polysPerParticle,
-                totalParticles * voxelsPerParticle, totalParticles * renderedVoxelsPerParticle);
+            return new RenderStatistics(1, totalParticles * voxelsPerParticle, totalParticles * renderedVoxelsPerParticle);
         }
         #endregion
 
