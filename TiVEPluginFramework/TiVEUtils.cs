@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using JetBrains.Annotations;
 using ProdigalSoftware.TiVEPluginFramework.Components;
 
 namespace ProdigalSoftware.TiVEPluginFramework
@@ -12,15 +13,31 @@ namespace ProdigalSoftware.TiVEPluginFramework
         /// This method is not compiled into release builds.
         /// </summary>
         [Conditional("DEBUG")]
-        [JetBrains.Annotations.AssertionMethod]
-        public static void CheckConstraints(int x, int y, int z, Vector3i size)
+        [AssertionMethod]
+        public static void DebugCheckConstraints(int x, int y, int z, Vector3i size)
         {
             if (x < 0 || x >= size.X)
-                throw new ArgumentOutOfRangeException("x");
+                throw new ArgumentOutOfRangeException(nameof(x));
             if (y < 0 || y >= size.Y)
-                throw new ArgumentOutOfRangeException("y");
+                throw new ArgumentOutOfRangeException(nameof(y));
             if (z < 0 || z >= size.Z)
-                throw new ArgumentOutOfRangeException("z");
+                throw new ArgumentOutOfRangeException(nameof(z));
+        }
+
+        /// <summary>
+        /// Throws an ArgumentOutOfRangeException if the specified location is outside the bounds of the specified size.
+        /// This method is not compiled into release builds.
+        /// </summary>
+        [Conditional("DEBUG")]
+        [AssertionMethod]
+        public static void DebugCheckConstraints(int x, int y, int z, int size)
+        {
+            if (x < 0 || x >= size)
+                throw new ArgumentOutOfRangeException(nameof(x));
+            if (y < 0 || y >= size)
+                throw new ArgumentOutOfRangeException(nameof(y));
+            if (z < 0 || z >= size)
+                throw new ArgumentOutOfRangeException(nameof(z));
         }
 
         /// <summary>

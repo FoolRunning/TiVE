@@ -350,27 +350,27 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
                 {
                     // Check to see if the back side is really visible
                     if (bvz == 0 && blockZ > 0 && gameWorld[blockX, blockY, blockZ - 1] != Block.Empty && gameWorld.GetVoxel(voxelX, voxelY, voxelZ - 1, detailLevel) != Voxel.Empty)
-                        sides ^= CubeSides.Back;
+                        sides ^= CubeSides.ZMinus;
 
                     // Check to see if the front side is really visible
                     if (bvz == maxBlockVoxel && blockZ < maxBlockZ && gameWorld[blockX, blockY, blockZ + 1] != Block.Empty && gameWorld.GetVoxel(voxelX, voxelY, voxelZ + 1, detailLevel) != Voxel.Empty)
-                        sides ^= CubeSides.Front;
+                        sides ^= CubeSides.ZPlus;
 
                     // Check to see if the left side is really visible
                     if (bvx == 0 && blockX > 0 && gameWorld[blockX - 1, blockY, blockZ] != Block.Empty && gameWorld.GetVoxel(voxelX - 1, voxelY, voxelZ, detailLevel) != Voxel.Empty)
-                        sides ^= CubeSides.Left;
+                        sides ^= CubeSides.XMinus;
 
                     // Check to see if the right side is really visible
                     if (bvx == maxBlockVoxel && blockX < maxBlockX && gameWorld[blockX + 1, blockY, blockZ] != Block.Empty && gameWorld.GetVoxel(voxelX + 1, voxelY, voxelZ, detailLevel) != Voxel.Empty)
-                        sides ^= CubeSides.Right;
+                        sides ^= CubeSides.XPlus;
 
                     // Check to see if the bottom side is really visible
                     if (bvy == 0 && blockY > 0 && gameWorld[blockX, blockY - 1, blockZ] != Block.Empty && gameWorld.GetVoxel(voxelX, voxelY - 1, voxelZ, detailLevel) != Voxel.Empty)
-                        sides ^= CubeSides.Bottom;
+                        sides ^= CubeSides.YMinus;
 
                     // Check to see if the top side is really visible
                     if (bvy == maxBlockVoxel && blockY < maxBlockY && gameWorld[blockX, blockY + 1, blockZ] != Block.Empty && gameWorld.GetVoxel(voxelX, voxelY + 1, voxelZ, detailLevel) != Voxel.Empty)
-                        sides ^= CubeSides.Top;
+                        sides ^= CubeSides.YPlus;
                 }
                 
                 if (sides != CubeSides.None)

@@ -63,7 +63,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
             for (int i = 0; i < chunkLightInfo.Length; i++)
                 chunkLightInfo[i] = new ChunkLights(100);
 
-            const int numThreads = 2; // Environment.ProcessorCount > 3 ? 2 : 1;
+            int numThreads = Environment.ProcessorCount > 3 ? Environment.ProcessorCount - 1 : 1;
             Thread[] threads = new Thread[numThreads];
             List<LightInfo> lightInfos = new List<LightInfo>(20000);
             lightInfos.Add(null);
@@ -81,6 +81,16 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
             sw.Stop();
             Messages.AddDoneText();
             Messages.AddDebug($"Lighting for {lightInfos.Count - 1} lights took {sw.ElapsedMilliseconds}ms");
+
+
+            int maxLightInChunks = 0;
+            for (int i = 0; i < chunkLightInfo.Length; i++)
+            {
+                if (chunkLightInfo[i].LightsAffectingChunks.Count > maxLightInChunks)
+                    maxLightInChunks = chunkLightInfo[i].LightsAffectingChunks.Count;
+            }
+
+            Messages.AddDebug($"Max lights in chunks: {maxLightInChunks}");
 
             //if (!TiVEController.UserSettings.Get(UserSettings.PreLoadLightingKey))
             //    return;
@@ -260,6 +270,8 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
             int endZ = Math.Min(chunkSize.Z, (int)Math.Ceiling((blockZ + light.LightBlockDist + 1) / (float)ChunkComponent.BlockSize));
 
             ushort lightIndex;
+            LightInfo lightInfo = new LightInfo(blockX, blockY, blockZ, light, lightingModel.GetCacheLightCalculation(light),
+                lightingModel.GetCacheLightCalculationForAmbient(light));
             lock (lightInfos)
             {
                 if (lightInfos.Count == ushort.MaxValue - 1)
@@ -268,9 +280,11 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
                     return; // Too many lights in the world
 
                 lightIndex = (ushort)lightInfos.Count;
-                lightInfos.Add(new LightInfo(blockX, blockY, blockZ, light, lightingModel.GetCacheLightCalculation(light),
-                    lightingModel.GetCacheLightCalculationForAmbient(light)));
+                lightInfos.Add(lightInfo);
             }
+
+            int ambientDist = (int)Math.Ceiling(lightInfo.BlockDist * LightingModel.ShadowLightDistMinFactor);
+            ambientDist *= ambientDist; // square result so we can compare to the squared value
 
             for (int cz = startZ; cz < endZ; cz++)
             {
@@ -278,12 +292,41 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
                 {
                     for (int cy = startY; cy < endY; cy++)
                     {
-                        List<ushort> lightsInChunk = chunkLightInfo[chunkSize.GetArrayOffset(cx, cy, cz)].LightsAffectingChunks;
-                        lock (lightsInChunk)
-                            lightsInChunk.Add(lightIndex);
+                        if (LightHitsChunk(blockX, blockY, blockZ, cz, cx, cy, ambientDist))
+                        {
+                            List<ushort> lightsInChunk = chunkLightInfo[chunkSize.GetArrayOffset(cx, cy, cz)].LightsAffectingChunks;
+                            lock (lightsInChunk)
+                                lightsInChunk.Add(lightIndex);
+                        }
                     }
                 }
             }
+        }
+
+        private bool LightHitsChunk(int blockX, int blockY, int blockZ, int cz, int cx, int cy, int ambientDist)
+        {
+            for (int chunkBlockZ = 0; chunkBlockZ < ChunkComponent.BlockSize; chunkBlockZ++)
+            {
+                int bz = chunkBlockZ + cz * ChunkComponent.BlockSize;
+                for (int chunkBlockX = 0; chunkBlockX < ChunkComponent.BlockSize; chunkBlockX++)
+                {
+                    int bx = chunkBlockX + cx * ChunkComponent.BlockSize;
+                    for (int chunkBlockY = 0; chunkBlockY < ChunkComponent.BlockSize; chunkBlockY++)
+                    {
+                        int by = chunkBlockY + cy * ChunkComponent.BlockSize;
+                        int distX = blockX - bx;
+                        int distY = blockY - by;
+                        int distZ = blockZ - bz;
+                        int dist = distX * distX + distY * distY + distZ * distZ;
+                        if (dist <= ambientDist)
+                            return true;
+
+                        if (!CullLightFast(blockX, blockY, blockZ, bx, by, bz))
+                            return true;
+                    }
+                }
+            }
+            return false;
         }
 
         /// <summary>

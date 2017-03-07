@@ -28,17 +28,17 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
 
                         CubeSides sides = CubeSides.None;
                         if (z == 0 || sprite[x, y, z - 1] == Voxel.Empty)
-                            sides |= CubeSides.Back;
+                            sides |= CubeSides.ZMinus;
                         if (z == zSize - 1 || sprite[x, y, z + 1] == Voxel.Empty)
-                            sides |= CubeSides.Front;
+                            sides |= CubeSides.ZPlus;
                         if (x == 0 || sprite[x - 1, y, z] == Voxel.Empty)
-                            sides |= CubeSides.Left;
+                            sides |= CubeSides.XMinus;
                         if (x == xSize - 1 || sprite[x + 1, y, z] == Voxel.Empty)
-                            sides |= CubeSides.Right;
+                            sides |= CubeSides.XPlus;
                         if (y == 0 || sprite[x, y - 1, z] == Voxel.Empty)
-                            sides |= CubeSides.Bottom;
+                            sides |= CubeSides.YMinus;
                         if (y == ySize - 1 || sprite[x, y + 1, z] == Voxel.Empty)
-                            sides |= CubeSides.Top;
+                            sides |= CubeSides.YPlus;
 
                         if (sides != CubeSides.None)
                         {

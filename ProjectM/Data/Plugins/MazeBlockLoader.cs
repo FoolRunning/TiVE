@@ -38,7 +38,7 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
 
             switch (part)
             {
-                case "linear": return CreateRoundedBlockInfo(name, new Voxel((byte)num, (byte)num, (byte)num, VoxelSettings.IgnoreLighting), 1.0f, CubeSides.Front, null, 0);
+                case "linear": return CreateRoundedBlockInfo(name, new Voxel((byte)num, (byte)num, (byte)num, VoxelSettings.IgnoreLighting), 1.0f, CubeSides.ZPlus, null, 0);
                 case "fire": return CreateFire();
                 case "dirt": return CreateBlockInfo("dirt", 0, new Color4f(0.6f, 0.45f, 0.25f, 1.0f), 1.0f, colorVariation: 0.4f);
                 case "bumpyDirt": return CreateRoundedBumpyBlock(name, (CubeSides)num, new Voxel(0.6f, 0.45f, 0.25f), 0.4f);
@@ -415,7 +415,7 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
         {
             Block back = CreateRoundedBlockInfo(name, color, 1.0f, sides, null, colorVariation);
 
-            if ((sides & CubeSides.Bottom) != 0)
+            if ((sides & CubeSides.YMinus) != 0)
             {
                 for (int h = 0; h < ImperfectionIterations; h++)
                 {
@@ -431,7 +431,7 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
                         back.LOD8[x / 4, 0, z / 4] = Voxel.Empty;
                 }
             }
-            if ((sides & CubeSides.Top) != 0)
+            if ((sides & CubeSides.YPlus) != 0)
             {
                 for (int h = 0; h < ImperfectionIterations; h++)
                 {
@@ -447,7 +447,7 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
                         back.LOD8[x / 4, BlockLOD8.VoxelSize - 1, z / 4] = Voxel.Empty;
                 }
             }
-            if ((sides & CubeSides.Left) != 0)
+            if ((sides & CubeSides.XMinus) != 0)
             {
                 for (int h = 0; h < ImperfectionIterations; h++)
                 {
@@ -463,7 +463,7 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
                         back.LOD8[0, y / 4, z / 4] = Voxel.Empty;
                 }
             }
-            if ((sides & CubeSides.Right) != 0)
+            if ((sides & CubeSides.XPlus) != 0)
             {
                 for (int h = 0; h < ImperfectionIterations; h++)
                 {
@@ -479,7 +479,7 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
                         back.LOD8[BlockLOD8.VoxelSize - 1, y / 4, z / 4] = Voxel.Empty;
                 }
             }
-            if ((sides & CubeSides.Front) != 0)
+            if ((sides & CubeSides.ZPlus) != 0)
             {
                 for (int h = 0; h < ImperfectionIterations; h++)
                 {
@@ -495,7 +495,7 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
                         back.LOD8[x / 4, y / 4, BlockLOD8.VoxelSize - 1] = Voxel.Empty;
                 }
             }
-            if ((sides & CubeSides.Back) != 0)
+            if ((sides & CubeSides.ZMinus) != 0)
             {
                 for (int h = 0; h < ImperfectionIterations; h++)
                 {
@@ -521,7 +521,7 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
             Block stone = CreateRoundedBlockInfo(name, new Voxel(229, 229, 229), 1.0f, sides, null, 0.3f);
             for (int x = 0; x <= mv; x++)
             {
-                if ((sides & CubeSides.Bottom) != 0)
+                if ((sides & CubeSides.YMinus) != 0)
                 {
                     stone.LOD32[x, 0, 0] = Voxel.Empty;
                     stone.LOD32[x, 0, bc] = Voxel.Empty;
@@ -542,7 +542,7 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
                     }
                 }
 
-                if ((sides & CubeSides.Top) != 0)
+                if ((sides & CubeSides.YPlus) != 0)
                 {
                     stone.LOD32[x, mv, 0] = Voxel.Empty;
                     stone.LOD32[x, mv, bc] = Voxel.Empty;
@@ -565,7 +565,7 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
             }
             for (int y = 0; y <= mv; y++)
             {
-                if ((sides & CubeSides.Left) != 0)
+                if ((sides & CubeSides.XMinus) != 0)
                 {
                     stone.LOD32[0, y, 0] = Voxel.Empty;
                     stone.LOD32[0, y, bc] = Voxel.Empty;
@@ -586,7 +586,7 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
                     }
                 }
 
-                if ((sides & CubeSides.Right) != 0)
+                if ((sides & CubeSides.XPlus) != 0)
                 {
                     stone.LOD32[mv, y, 0] = Voxel.Empty;
                     stone.LOD32[mv, y, bc] = Voxel.Empty;
@@ -618,7 +618,7 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
             }
             for (int z = 0; z < bc; z++)
             {
-                if ((sides & CubeSides.Bottom) != 0)
+                if ((sides & CubeSides.YMinus) != 0)
                 {
                     stone.LOD32[bc - 4, 0, z] = Voxel.Empty;
                     stone.LOD32[bc + 4, 0, z + bc] = Voxel.Empty;
@@ -639,7 +639,7 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
                     }
                 }
 
-                if ((sides & CubeSides.Top) != 0)
+                if ((sides & CubeSides.YPlus) != 0)
                 {
                     stone.LOD32[bc - 4, mv, z] = Voxel.Empty;
                     stone.LOD32[bc + 4, mv, z + bc] = Voxel.Empty;
@@ -660,7 +660,7 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
                     }
                 }
 
-                if ((sides & CubeSides.Left) != 0)
+                if ((sides & CubeSides.XMinus) != 0)
                 {
                     stone.LOD32[0, bc - 4, z] = Voxel.Empty;
                     stone.LOD32[0, bc + 4, z + bc] = Voxel.Empty;
@@ -681,7 +681,7 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
                     }
                 }
 
-                if ((sides & CubeSides.Right) != 0)
+                if ((sides & CubeSides.XPlus) != 0)
                 {
                     stone.LOD32[mv, bc - 4, z] = Voxel.Empty;
                     stone.LOD32[mv, bc + 4, z + bc] = Voxel.Empty;
@@ -705,41 +705,41 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
                 for (int n = 0; n <= mv; n++)
                 {
                     ReplaceVoxel(stone, bc - 4, n, z, mortarColor);
-                    if (z < bc - 1 || (sides & CubeSides.Front) == 0)
+                    if (z < bc - 1 || (sides & CubeSides.ZPlus) == 0)
                         ReplaceVoxel(stone, bc + 4, n, z + bc, mortarColor);
 
                     ReplaceVoxel(stone, n, bc - 4, z, mortarColor);
-                    if (z < bc - 1 || (sides & CubeSides.Front) == 0)
+                    if (z < bc - 1 || (sides & CubeSides.ZPlus) == 0)
                         ReplaceVoxel(stone, n, bc + 4, z + bc, mortarColor);
                 }
             }
 
-            if ((sides & CubeSides.Bottom) != 0)
+            if ((sides & CubeSides.YMinus) != 0)
             {
                 for (int h = 0; h < ImperfectionIterations * 2; h++)
                     stone.LOD32[random.Next(BlockLOD32.VoxelSize), 0, random.Next(BlockLOD32.VoxelSize)] = Voxel.Empty;
             }
-            if ((sides & CubeSides.Top) != 0)
+            if ((sides & CubeSides.YPlus) != 0)
             {
                 for (int h = 0; h < ImperfectionIterations * 2; h++)
                     stone.LOD32[random.Next(BlockLOD32.VoxelSize), BlockLOD32.VoxelSize - 1, random.Next(BlockLOD32.VoxelSize)] = Voxel.Empty;
             }
-            if ((sides & CubeSides.Left) != 0)
+            if ((sides & CubeSides.XMinus) != 0)
             {
                 for (int h = 0; h < ImperfectionIterations * 2; h++)
                     stone.LOD32[0, random.Next(BlockLOD32.VoxelSize), random.Next(BlockLOD32.VoxelSize)] = Voxel.Empty;
             }
-            if ((sides & CubeSides.Right) != 0)
+            if ((sides & CubeSides.XPlus) != 0)
             {
                 for (int h = 0; h < ImperfectionIterations * 2; h++)
                     stone.LOD32[BlockLOD32.VoxelSize - 1, random.Next(BlockLOD32.VoxelSize), random.Next(BlockLOD32.VoxelSize)] = Voxel.Empty;
             }
-            if ((sides & CubeSides.Front) != 0)
+            if ((sides & CubeSides.ZPlus) != 0)
             {
                 for (int h = 0; h < ImperfectionIterations * 2; h++)
                     stone.LOD32[random.Next(BlockLOD32.VoxelSize), random.Next(BlockLOD32.VoxelSize), BlockLOD32.VoxelSize - 1] = Voxel.Empty;
             }
-            if ((sides & CubeSides.Back) != 0)
+            if ((sides & CubeSides.ZMinus) != 0)
             {
                 for (int h = 0; h < ImperfectionIterations * 2; h++)
                     stone.LOD32[random.Next(BlockLOD32.VoxelSize), random.Next(BlockLOD32.VoxelSize), 0] = Voxel.Empty;
