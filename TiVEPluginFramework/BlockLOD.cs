@@ -11,13 +11,13 @@ namespace ProdigalSoftware.TiVEPluginFramework
     public enum CubeSides : byte
     {
         None = 0,
-        Top = 1 << 0,
-        Left = 1 << 1,
-        Right = 1 << 2,
-        Bottom = 1 << 3,
-        Front = 1 << 4,
-        Back = 1 << 5,
-        All = Top | Left | Right | Bottom | Front | Back,
+        YPlus = 1 << 0,
+        XMinus = 1 << 1,
+        XPlus = 1 << 2,
+        YMinus = 1 << 3,
+        ZPlus = 1 << 4,
+        ZMinus = 1 << 5,
+        All = YPlus | XMinus | XPlus | YMinus | ZPlus | ZMinus,
     }
     
     #region LODLevel enum
@@ -173,22 +173,22 @@ namespace ProdigalSoftware.TiVEPluginFramework
                         CubeSides sides = CubeSides.None;
 
                         if (bvz == 0 || VoxelAt(bvx, bvy, bvz - 1) == Voxel.Empty)
-                            sides |= CubeSides.Back;
+                            sides |= CubeSides.ZMinus;
 
                         if (bvz == maxBlockVoxel || VoxelAt(bvx, bvy, bvz + 1) == Voxel.Empty)
-                            sides |= CubeSides.Front;
+                            sides |= CubeSides.ZPlus;
 
                         if (bvx == 0 || VoxelAt(bvx - 1, bvy, bvz) == Voxel.Empty)
-                            sides |= CubeSides.Left;
+                            sides |= CubeSides.XMinus;
 
                         if (bvx == maxBlockVoxel || VoxelAt(bvx + 1, bvy, bvz) == Voxel.Empty)
-                            sides |= CubeSides.Right;
+                            sides |= CubeSides.XPlus;
 
                         if (bvy == 0 || VoxelAt(bvx, bvy - 1, bvz) == Voxel.Empty)
-                            sides |= CubeSides.Bottom;
+                            sides |= CubeSides.YMinus;
 
                         if (bvy == maxBlockVoxel || VoxelAt(bvx, bvy + 1, bvz) == Voxel.Empty)
-                            sides |= CubeSides.Top;
+                            sides |= CubeSides.YPlus;
 
                         if (sides != CubeSides.None)
                         {
@@ -278,7 +278,7 @@ namespace ProdigalSoftware.TiVEPluginFramework
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static int GetArrayOffset(int x, int y, int z)
         {
-            MiscUtils.CheckConstraints(x, y, z, VoxelSize);
+            TiVEUtils.DebugCheckConstraints(x, y, z, VoxelSize);
             return (((z << VoxelSizeBitShift) + x) << VoxelSizeBitShift) + y; // y-axis major for speed
         }
         #endregion
@@ -339,7 +339,7 @@ namespace ProdigalSoftware.TiVEPluginFramework
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static int GetArrayOffset(int x, int y, int z)
         {
-            MiscUtils.CheckConstraints(x, y, z, VoxelSize);
+            TiVEUtils.DebugCheckConstraints(x, y, z, VoxelSize);
             return (((z << VoxelSizeBitShift) + x) << VoxelSizeBitShift) + y; // y-axis major for speed
         }
         #endregion
@@ -400,7 +400,7 @@ namespace ProdigalSoftware.TiVEPluginFramework
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static int GetArrayOffset(int x, int y, int z)
         {
-            MiscUtils.CheckConstraints(x, y, z, VoxelSize);
+            TiVEUtils.DebugCheckConstraints(x, y, z, VoxelSize);
             return (((z << VoxelSizeBitShift) + x) << VoxelSizeBitShift) + y; // y-axis major for speed
         }
         #endregion
@@ -461,7 +461,7 @@ namespace ProdigalSoftware.TiVEPluginFramework
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static int GetArrayOffset(int x, int y, int z)
         {
-            MiscUtils.CheckConstraints(x, y, z, VoxelSize);
+            TiVEUtils.DebugCheckConstraints(x, y, z, VoxelSize);
             return (((z << VoxelSizeBitShift) + x) << VoxelSizeBitShift) + y; // y-axis major for speed
         }
         #endregion

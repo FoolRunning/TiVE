@@ -77,18 +77,18 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
                 return Vector3f.Zero;
 
             Vector3f vector = new Vector3f();
-            if ((visibleSides & CubeSides.Left) != 0)
+            if ((visibleSides & CubeSides.XMinus) != 0)
                 vector.X -= 1.0f;
-            if ((visibleSides & CubeSides.Bottom) != 0)
+            if ((visibleSides & CubeSides.YMinus) != 0)
                 vector.Y -= 1.0f;
-            if ((visibleSides & CubeSides.Back) != 0)
+            if ((visibleSides & CubeSides.ZMinus) != 0)
                 vector.Z -= 1.0f;
 
-            if ((visibleSides & CubeSides.Right) != 0)
+            if ((visibleSides & CubeSides.XPlus) != 0)
                 vector.X += 1.0f;
-            if ((visibleSides & CubeSides.Top) != 0)
+            if ((visibleSides & CubeSides.YPlus) != 0)
                 vector.Y += 1.0f;
-            if ((visibleSides & CubeSides.Front) != 0)
+            if ((visibleSides & CubeSides.ZPlus) != 0)
                 vector.Z += 1.0f;
 
             vector.NormalizeFast();
@@ -407,12 +407,12 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
                 int voxelShadowZ = voxelZ32 >> shadowBitShift;
 
                 Vector3i shadowWorldSize = LODUtils.AdjustLocationForDetailLevelFrom32(scene.GameWorld.VoxelSize32, shadowDetailLevel);
-                bool availableMinusX = (visibleSides & CubeSides.Left) != 0 && voxelShadowX > 0;
-                bool availableMinusY = (visibleSides & CubeSides.Bottom) != 0 && voxelShadowY > 0;
-                bool availableMinusZ = (visibleSides & CubeSides.Back) != 0 && voxelShadowZ > 0;
-                bool availablePlusX = (visibleSides & CubeSides.Right) != 0 && voxelShadowX < shadowWorldSize.X - 1;
-                bool availablePlusY = (visibleSides & CubeSides.Top) != 0 && voxelShadowY < shadowWorldSize.Y - 1;
-                bool availablePlusZ = (visibleSides & CubeSides.Front) != 0 && voxelShadowZ < shadowWorldSize.Z - 1;
+                bool availableMinusX = (visibleSides & CubeSides.XMinus) != 0 && voxelShadowX > 0;
+                bool availableMinusY = (visibleSides & CubeSides.YMinus) != 0 && voxelShadowY > 0;
+                bool availableMinusZ = (visibleSides & CubeSides.ZMinus) != 0 && voxelShadowZ > 0;
+                bool availablePlusX = (visibleSides & CubeSides.XPlus) != 0 && voxelShadowX < shadowWorldSize.X - 1;
+                bool availablePlusY = (visibleSides & CubeSides.YPlus) != 0 && voxelShadowY < shadowWorldSize.Y - 1;
+                bool availablePlusZ = (visibleSides & CubeSides.ZPlus) != 0 && voxelShadowZ < shadowWorldSize.Z - 1;
 
                 // For thread-safety copy all member variables
                 Color3f color = scene.AmbientLight;

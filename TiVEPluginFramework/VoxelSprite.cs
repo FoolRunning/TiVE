@@ -43,7 +43,7 @@ namespace ProdigalSoftware.TiVEPluginFramework
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private int GetBlockOffset(int x, int y, int z)
         {
-            TiVEUtils.CheckConstraints(x, y, z, Size);
+            MiscUtils.CheckConstraints(x, y, z, Size);
             return (x * Size.Z + z) * Size.Y + y; // y-axis major for speed
         }
     }

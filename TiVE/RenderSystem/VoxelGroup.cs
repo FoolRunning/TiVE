@@ -85,17 +85,17 @@ namespace ProdigalSoftware.TiVE.RenderSystem
 
                         CubeSides sides = 0;
                         if (z == 0 || voxels[GetBlockOffset(x, y, z - 1)] == 0)
-                            sides |= CubeSides.Back;
+                            sides |= CubeSides.ZMinus;
                         if (z == size.Z - 1 || voxels[GetBlockOffset(x, y, z + 1)] == 0)
-                            sides |= CubeSides.Front;
+                            sides |= CubeSides.ZPlus;
                         if (x == 0 || voxels[GetBlockOffset(x - 1, y, z)] == 0)
-                            sides |= CubeSides.Left;
+                            sides |= CubeSides.XMinus;
                         if (x == size.X - 1 || voxels[GetBlockOffset(x + 1, y, z)] == 0)
-                            sides |= CubeSides.Right;
+                            sides |= CubeSides.XPlus;
                         if (y == 0 || voxels[GetBlockOffset(x, y - 1, z)] == 0)
-                            sides |= CubeSides.Bottom;
+                            sides |= CubeSides.YMinus;
                         if (y == size.Y - 1 || voxels[GetBlockOffset(x, y + 1, z)] == 0)
-                            sides |= CubeSides.Top;
+                            sides |= CubeSides.YPlus;
 
                         if (sides != CubeSides.None)
                         {
@@ -115,9 +115,8 @@ namespace ProdigalSoftware.TiVE.RenderSystem
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private int GetBlockOffset(int x, int y, int z)
         {
-            Vector3i voxelSize = size;
-            TiVEUtils.CheckConstraints(x, y, z, voxelSize);
-            return (x * voxelSize.Z + z) * voxelSize.Y + y; // y-axis major for speed
+            MiscUtils.CheckConstraints(x, y, z, size);
+            return (x * size.Z + z) * size.Y + y; // y-axis major for speed
         }
     }
 }

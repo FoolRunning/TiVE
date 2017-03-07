@@ -38,7 +38,7 @@ namespace ProdigalSoftware.TiVEPluginFramework
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int GetArrayOffset(int x, int y, int z)
         {
-            MiscUtils.CheckConstraints(x, y, z, this);
+            TiVEUtils.DebugCheckConstraints(x, y, z, this);
             return (x * Z + z) * Y + y; // y-axis major for speed
         }
 
