@@ -29,6 +29,7 @@ namespace ProdigalSoftware.TiVE.ParticleSystem
         private readonly ParticleController controller;
 
         private readonly IRendererData voxelInstanceLocationData;
+        private readonly IRendererData voxelInstanceNormalData;
         private readonly int voxelsPerParticle;
         private readonly int renderedVoxelsPerParticle;
 
@@ -56,6 +57,7 @@ namespace ProdigalSoftware.TiVE.ParticleSystem
             MeshBuilder voxelInstanceBuilder = new MeshBuilder(controller.ParticleSprite.VoxelCount);
             VoxelMeshUtils.GenerateMesh(controller.ParticleSprite, voxelInstanceBuilder, out voxelsPerParticle, out renderedVoxelsPerParticle);
             voxelInstanceLocationData = voxelInstanceBuilder.GetLocationData();
+            voxelInstanceNormalData = voxelInstanceBuilder.GetNormalData();
 
             locations = new Vector3us[controller.MaxParticles * 5];
             colors = new Color4b[controller.MaxParticles * 5];
@@ -71,6 +73,7 @@ namespace ProdigalSoftware.TiVE.ParticleSystem
         public void Dispose()
         {
             voxelInstanceLocationData.Dispose();
+            voxelInstanceNormalData.Dispose();
             instances?.Dispose();
             particleSystems.Clear();
             particleSystemIndex.Clear();
@@ -203,6 +206,7 @@ namespace ProdigalSoftware.TiVE.ParticleSystem
         {
             IVertexDataCollection instanceData = TiVEController.Backend.CreateVertexDataCollection();
             instanceData.AddBuffer(voxelInstanceLocationData);
+            instanceData.AddBuffer(voxelInstanceNormalData);
 
             locData = TiVEController.Backend.CreateData(locations, 0, 3, DataType.Instance, DataValueType.UShort, false, true);
             instanceData.AddBuffer(locData);

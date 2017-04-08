@@ -72,7 +72,7 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
                         new LightComponent(new Vector3b(bc, bc, bc), new Color3f(0.25f, 0.25f, 0.7f), ForFantasy ? 20 : 30), colorVariation: 0.0f);
                 case "loadingLight":
                     return CreateBlockInfo(name, BlockLOD32.VoxelSize / 5.0f, new Color4f(1.0f, 1.0f, 1.0f, 1.0f), 1.0f, null,
-                        new LightComponent(blockCenterVector, new Color3f(1.0f, 1.0f, 1.0f), 100), colorVariation: 0.0f);
+                        new LightComponent(blockCenterVector, new Color3f(1.0f, 1.0f, 1.0f), 50), colorVariation: 0.0f);
                 case "treeLight":
                     return CreateBlockInfo(name, BlockLOD32.VoxelSize / 8.0f, new Color4f(ObjBright, ObjBright, ObjBright, 1.0f), 1.0f, null,
                         new LightComponent(new Vector3b(bc, bc, bc), new Color3f(LightBright, LightBright, LightBright), ForFantasy ? 20 : 30), colorVariation: 0.0f);
@@ -143,25 +143,26 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
         private static Block CreateLight(string name, int num)
         {
             ParticleComponent bugInformation = new ParticleComponent("LightBugs", new Vector3i(bc, bc, bc));
-
-            switch (num)
-            {
-                case 0: return CreateBlockInfo(name, BlockLOD32.VoxelSize / 8.0f, new Color4f(ObjDim, ObjMid, ObjBright, 1.0f), 1.0f, bugInformation,
-                            new LightComponent(lightCenter, new Color3f(LightDim, LightMid, LightBright), LightDist), colorVariation: 0.0f);
-                case 1: return CreateBlockInfo(name, BlockLOD32.VoxelSize / 8.0f, new Color4f(ObjMid, ObjDim, ObjBright, 1.0f), 1.0f, bugInformation,
-                            new LightComponent(lightCenter, new Color3f(LightMid, LightDim, LightBright), LightDist), colorVariation: 0.0f);
-                case 2: return CreateBlockInfo(name, BlockLOD32.VoxelSize / 8.0f, new Color4f(ObjBright, ObjDim, ObjMid, 1.0f), 1.0f, bugInformation,
-                            new LightComponent(lightCenter, new Color3f(LightBright, LightDim, LightMid), LightDist), colorVariation: 0.0f);
-                case 3: return CreateBlockInfo(name, BlockLOD32.VoxelSize / 8.0f, new Color4f(ObjBright, ObjMid, ObjDim, 1.0f), 1.0f, bugInformation,
-                            new LightComponent(lightCenter, new Color3f(LightBright, LightMid, LightDim), LightDist), colorVariation: 0.0f);
-                case 4: return CreateBlockInfo(name, BlockLOD32.VoxelSize / 8.0f, new Color4f(ObjDim, ObjBright, ObjMid, 1.0f), 1.0f, bugInformation,
+            return CreateBlockInfo(name, BlockLOD32.VoxelSize / 8.0f, new Color4f(ObjDim, ObjBright, ObjMid, 1.0f), 1.0f, bugInformation,
                             new LightComponent(lightCenter, new Color3f(LightDim, LightBright, LightMid), LightDist), colorVariation: 0.0f);
-                case 5: return CreateBlockInfo(name, BlockLOD32.VoxelSize / 8.0f, new Color4f(ObjMid, ObjBright, ObjDim, 1.0f), 1.0f, bugInformation,
-                            new LightComponent(lightCenter, new Color3f(LightMid, LightBright, LightDim), LightDist), colorVariation: 0.0f);
-                case 6: return CreateBlockInfo(name, BlockLOD32.VoxelSize / 8.0f, new Color4f(ObjBright, ObjBright, ObjBright, 1.0f), 1.0f, bugInformation,
-                            new LightComponent(lightCenter, new Color3f(LightBright, LightBright, LightBright), LightDist), colorVariation: 0.0f);
-                default: return null;
-            }
+            //switch (num)
+            //{
+            //    case 0: return CreateBlockInfo(name, BlockLOD32.VoxelSize / 8.0f, new Color4f(ObjDim, ObjMid, ObjBright, 1.0f), 1.0f, bugInformation,
+            //                new LightComponent(lightCenter, new Color3f(LightDim, LightMid, LightBright), LightDist), colorVariation: 0.0f);
+            //    case 1: return CreateBlockInfo(name, BlockLOD32.VoxelSize / 8.0f, new Color4f(ObjMid, ObjDim, ObjBright, 1.0f), 1.0f, bugInformation,
+            //                new LightComponent(lightCenter, new Color3f(LightMid, LightDim, LightBright), LightDist), colorVariation: 0.0f);
+            //    case 2: return CreateBlockInfo(name, BlockLOD32.VoxelSize / 8.0f, new Color4f(ObjBright, ObjDim, ObjMid, 1.0f), 1.0f, bugInformation,
+            //                new LightComponent(lightCenter, new Color3f(LightBright, LightDim, LightMid), LightDist), colorVariation: 0.0f);
+            //    case 3: return CreateBlockInfo(name, BlockLOD32.VoxelSize / 8.0f, new Color4f(ObjBright, ObjMid, ObjDim, 1.0f), 1.0f, bugInformation,
+            //                new LightComponent(lightCenter, new Color3f(LightBright, LightMid, LightDim), LightDist), colorVariation: 0.0f);
+            //    case 4: return CreateBlockInfo(name, BlockLOD32.VoxelSize / 8.0f, new Color4f(ObjDim, ObjBright, ObjMid, 1.0f), 1.0f, bugInformation,
+            //                new LightComponent(lightCenter, new Color3f(LightDim, LightBright, LightMid), LightDist), colorVariation: 0.0f);
+            //    case 5: return CreateBlockInfo(name, BlockLOD32.VoxelSize / 8.0f, new Color4f(ObjMid, ObjBright, ObjDim, 1.0f), 1.0f, bugInformation,
+            //                new LightComponent(lightCenter, new Color3f(LightMid, LightBright, LightDim), LightDist), colorVariation: 0.0f);
+            //    case 6: return CreateBlockInfo(name, BlockLOD32.VoxelSize / 8.0f, new Color4f(ObjBright, ObjBright, ObjBright, 1.0f), 1.0f, bugInformation,
+            //                new LightComponent(lightCenter, new Color3f(LightBright, LightBright, LightBright), LightDist), colorVariation: 0.0f);
+            //    default: return null;
+            //}
         }
 
         private static Block CreateLeaves(string name, CubeSides sides)

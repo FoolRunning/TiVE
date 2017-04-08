@@ -5,8 +5,10 @@ layout (points, max_vertices=1) out;
 
 uniform mat4 matrix_ModelViewProjection;
 uniform int voxelSize;
+uniform int lightCount;
 
 flat in vec4 colorPass[];
+flat in vec4 normalPass[];
 
 flat out vec4 fragment_color;
 

@@ -10,6 +10,7 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
     {
         private readonly Vector4b[] locationData;
         private readonly Color4b[] colorData;
+        private readonly Vector3f[] normalData;
         private int vertexCount;
 
         private volatile bool locked;
@@ -18,12 +19,10 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
         {
             locationData = new Vector4b[initialItemSize];
             colorData = new Color4b[initialItemSize];
+            normalData = new Vector3f[initialItemSize];
         }
 
-        public bool IsLocked 
-        {
-            get { return locked; }
-        }
+        public bool IsLocked => locked;
 
         #region Implementation of IMeshBuilder
         public IVertexDataInfo GetMesh()
@@ -31,6 +30,7 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
             IVertexDataCollection meshData = TiVEController.Backend.CreateVertexDataCollection();
             meshData.AddBuffer(GetLocationData());
             meshData.AddBuffer(GetColorData());
+            meshData.AddBuffer(GetNormalData());
             return meshData;
         }
 
@@ -41,10 +41,11 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
         #endregion
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void AddVoxel(CubeSides sides, byte x, byte y, byte z, Color4b color)
+        public void AddVoxel(CubeSides sides, byte x, byte y, byte z, Color4b color, Vector3f normal)
         {
             locationData[vertexCount] = new Vector4b(x, y, z, (byte)sides);
-            colorData[vertexCount++] = color;
+            colorData[vertexCount] = color;
+            normalData[vertexCount++] = normal;
         }
 
         public void StartNewMesh()
@@ -59,6 +60,11 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
         public IRendererData GetColorData()
         {
             return TiVEController.Backend.CreateData(colorData, vertexCount, 4, DataType.Vertex, DataValueType.Byte, true, false);
+        }
+
+        public IRendererData GetNormalData()
+        {
+            return TiVEController.Backend.CreateData(normalData, vertexCount, 3, DataType.Vertex, DataValueType.Float, false, false);
         }
 
         //private static readonly object syncRoot = new object();

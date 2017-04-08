@@ -7,8 +7,10 @@ uniform mat4 matrix_ModelViewProjection;
 uniform vec3 cameraLoc;
 uniform vec3 modelTranslation;
 uniform int voxelSize;
+uniform int lightCount;
 
 flat in vec4 colorPass[];
+flat in vec3 normalPass[];
 
 flat out vec4 fragment_color;
 

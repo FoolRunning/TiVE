@@ -42,12 +42,36 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
 
                         if (sides != CubeSides.None)
                         {
-                            meshBuilder.AddVoxel(sides, x, y, z, (Color4b)vox);
+                            meshBuilder.AddVoxel(sides, x, y, z, (Color4b)vox, GetVoxelNormal(sides));
                             renderedVoxelCount++;
                         }
                     }
                 }
             }
+        }
+
+        public static Vector3f GetVoxelNormal(CubeSides visibleSides)
+        {
+            if (visibleSides == CubeSides.All)
+                return Vector3f.Zero;
+
+            Vector3f vector = new Vector3f();
+            if ((visibleSides & CubeSides.XMinus) != 0)
+                vector.X -= 1.0f;
+            if ((visibleSides & CubeSides.YMinus) != 0)
+                vector.Y -= 1.0f;
+            if ((visibleSides & CubeSides.ZMinus) != 0)
+                vector.Z -= 1.0f;
+
+            if ((visibleSides & CubeSides.XPlus) != 0)
+                vector.X += 1.0f;
+            if ((visibleSides & CubeSides.YPlus) != 0)
+                vector.Y += 1.0f;
+            if ((visibleSides & CubeSides.ZPlus) != 0)
+                vector.Z += 1.0f;
+
+            vector.NormalizeFast();
+            return vector;
         }
     }
 }

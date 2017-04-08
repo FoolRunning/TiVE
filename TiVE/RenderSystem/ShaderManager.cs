@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using ProdigalSoftware.TiVE.Core.Backend;
+using ProdigalSoftware.TiVE.RenderSystem.Lighting;
 using ProdigalSoftware.TiVE.Starter;
 
 namespace ProdigalSoftware.TiVE.RenderSystem
@@ -106,6 +107,14 @@ namespace ProdigalSoftware.TiVE.RenderSystem
                         case "frag": currentProgram.AddShader(GetShaderSource(value), ShaderType.Fragment); break;
                         case "attrib": currentProgram.AddAttribute(value); break;
                         case "uniform": currentProgram.AddKnownUniform(value); break;
+                        case "lightUniform":
+                            for (int i = 0; i < GameWorldLightData.MaxLightsPerChunk; i++)
+                            {
+                                currentProgram.AddKnownUniform(value + "[" + i + "].location");
+                                currentProgram.AddKnownUniform(value + "[" + i + "].color");
+                                currentProgram.AddKnownUniform(value + "[" + i + "].cachedValue");
+                            }
+                            break;
                         default: throw new ShaderDefinitionException("Unknown line: " + line);
                     }
                 }

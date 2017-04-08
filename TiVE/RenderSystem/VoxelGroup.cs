@@ -99,7 +99,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem
 
                         if (sides != CubeSides.None)
                         {
-                            meshBuilder.AddVoxel(sides, x, y, z, (Color4b)color);
+                            meshBuilder.AddVoxel(sides, x, y, z, (Color4b)color, VoxelMeshUtils.GetVoxelNormal(sides));
                             renderedVoxelCount++;
                         }
                     }

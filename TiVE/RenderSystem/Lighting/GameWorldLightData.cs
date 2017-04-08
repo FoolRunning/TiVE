@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using ProdigalSoftware.TiVE.Core;
+using ProdigalSoftware.TiVE.Core.Backend;
 using ProdigalSoftware.TiVE.RenderSystem.World;
 using ProdigalSoftware.TiVE.Settings;
 using ProdigalSoftware.TiVE.Starter;
@@ -22,13 +24,14 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
     internal sealed class GameWorldLightData
     {
         #region Constants
+        public const int MaxLightsPerChunk = 20;
         private const int HalfBlockVoxelSize = BlockLOD32.VoxelSize / 2;
         #endregion
 
         #region Member variables
         private readonly Scene scene;
         private readonly LightingModel lightingModel;
-        private readonly ChunkLights[] chunkLightInfo;
+        private readonly List<ushort>[] chunkLightInfo;
         private Vector3i chunkSize;
         #endregion
 
@@ -42,7 +45,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
                 (int)Math.Ceiling(gameWorld.BlockSize.Y / (float)ChunkComponent.BlockSize),
                 (int)Math.Ceiling(gameWorld.BlockSize.Z / (float)ChunkComponent.BlockSize));
 
-            chunkLightInfo = new ChunkLights[chunkSize.X * chunkSize.Y * chunkSize.Z];
+            chunkLightInfo = new List<ushort>[chunkSize.X * chunkSize.Y * chunkSize.Z];
 
             lightingModel = LightingModel.Get(gameWorld.LightingModelType);
         }
@@ -61,7 +64,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
             Messages.Print("Calculating block lights...");
             Stopwatch sw = Stopwatch.StartNew();
             for (int i = 0; i < chunkLightInfo.Length; i++)
-                chunkLightInfo[i] = new ChunkLights(100);
+                chunkLightInfo[i] = new List<ushort>(100);
 
             int numThreads = Environment.ProcessorCount > 3 ? Environment.ProcessorCount - 1 : 1;
             Thread[] threads = new Thread[numThreads];
@@ -74,7 +77,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
                 thread.Join();
 
             for (int i = 0; i < chunkLightInfo.Length; i++)
-                chunkLightInfo[i].LightsAffectingChunks.TrimExcess();
+                chunkLightInfo[i].TrimExcess();
 
             LightList = lightInfos.ToArray();
 
@@ -86,8 +89,8 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
             int maxLightInChunks = 0;
             for (int i = 0; i < chunkLightInfo.Length; i++)
             {
-                if (chunkLightInfo[i].LightsAffectingChunks.Count > maxLightInChunks)
-                    maxLightInChunks = chunkLightInfo[i].LightsAffectingChunks.Count;
+                if (chunkLightInfo[i].Count > maxLightInChunks)
+                    maxLightInChunks = chunkLightInfo[i].Count;
             }
 
             Messages.AddDebug($"Max lights in chunks: {maxLightInChunks}");
@@ -110,107 +113,11 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
             //Messages.AddDebug(string.Format("Pre-load lighting took {0}ms", sw.ElapsedMilliseconds));
         }
 
-        public void CacheLightsInBlocksForChunk(int chunkX, int chunkY, int chunkZ)
+        public RenderedLight[] GetLightsInChunk(int cx, int cy, int cz)
         {
-            int arrayOffset = chunkSize.GetArrayOffset(chunkX, chunkY, chunkZ);
-            if (chunkLightInfo[arrayOffset].BlockLights != null)
-                return; // Chunk data is already loaded
-
-            List<ushort> lightsAffectingChunk = chunkLightInfo[arrayOffset].LightsAffectingChunks;
-
-            int maxLightsPerBlock = TiVEController.UserSettings.Get(UserSettings.LightsPerBlockKey);
-            ushort[][] blocksLights = new ushort[ChunkComponent.BlockSize * ChunkComponent.BlockSize * ChunkComponent.BlockSize][];
-            for (int i = 0; i < blocksLights.Length; i++)
-                blocksLights[i] = new ushort[maxLightsPerBlock];
-
-            int startX = chunkX * ChunkComponent.BlockSize;
-            int startY = chunkY * ChunkComponent.BlockSize;
-            int startZ = chunkZ * ChunkComponent.BlockSize;
-            GameWorld gameWorld = scene.GameWorldInternal;
-            int sizeX = gameWorld.BlockSize.X;
-            int sizeY = gameWorld.BlockSize.Y;
-            int sizeZ = gameWorld.BlockSize.Z;
-            int endX = Math.Min(sizeX, startX + ChunkComponent.BlockSize);
-            int endY = Math.Min(sizeY, startY + ChunkComponent.BlockSize);
-            int endZ = Math.Min(sizeZ, startZ + ChunkComponent.BlockSize);
-            LightCullType lightCullType = (LightCullType)(int)TiVEController.UserSettings.Get(UserSettings.LightCullingTypeKey);
-            for (int lightIndex = 0; lightIndex < lightsAffectingChunk.Count; lightIndex++)
-            {
-                ushort lightId = lightsAffectingChunk[lightIndex];
-                LightInfo lightInfo = LightList[lightId];
-                int lbx = lightInfo.BlockX;
-                int lby = lightInfo.BlockY;
-                int lbz = lightInfo.BlockZ;
-                //int ambientDist = (int)Math.Ceiling(lightInfo.BlockDist * LightingModel.ShadowLightDistMinFactor);
-                //ambientDist *= ambientDist; // square result so we can compare to the squared value
-
-                for (int bz = startZ; bz < endZ; bz++)
-                {
-                    int vz = (bz << BlockLOD32.VoxelSizeBitShift) + HalfBlockVoxelSize;
-                    for (int bx = startX; bx < endX; bx++)
-                    {
-                        int vx = (bx << BlockLOD32.VoxelSizeBitShift) + HalfBlockVoxelSize;
-                        for (int by = startY; by < endY; by++)
-                        {
-                            if ((lightCullType == LightCullType.Fast && CullLightFast(lbx, lby, lbz, bx, by, bz)) ||
-                                (lightCullType == LightCullType.Accurate && CullLightAccurate(lbx, lby, lbz, bx, by, bz)))
-                            {
-                                //int distX = lbx - bx;
-                                //int distY = lby - by;
-                                //int distZ = lbz - bz;
-                                //int dist = distX * distX + distY * distY + distZ * distZ;
-                                //if (dist >= ambientDist)
-                                    continue; // The light won't actually hit the block
-                            }
-
-                            int vy = (by << BlockLOD32.VoxelSizeBitShift) + HalfBlockVoxelSize;
-                            ushort[] blockLights = blocksLights[GetBlockLightOffset(bx - startX, by - startY, bz - startZ)];
-
-                            // Calculate lighting information
-                            // Sort lights by highest percentage to lowest
-                            float newLightPercentage = lightInfo.GetLightPercentageDiffuse(vx, vy, vz, lightingModel);
-                            int leastLightIndex = blockLights.Length;
-                            for (int i = 0; i < blockLights.Length; i++)
-                            {
-                                if (blockLights[i] == 0 || LightList[blockLights[i]].GetLightPercentageDiffuse(vx, vy, vz, lightingModel) < newLightPercentage)
-                                {
-                                    leastLightIndex = i;
-                                    break;
-                                }
-                            }
-
-                            if (leastLightIndex < blockLights.Length)
-                            {
-                                for (int i = blockLights.Length - 1; i > leastLightIndex; i--)
-                                    blockLights[i] = blockLights[i - 1];
-
-                                blockLights[leastLightIndex] = lightId;
-                            }
-                        }
-                    }
-                }
-            }
-
-            chunkLightInfo[arrayOffset].BlockLights = blocksLights;
-        }
-
-        public ushort[] GetLightsForBlock(int worldBlockX, int worldBlockY, int worldBlockZ)
-        {
-
-            int chunkX = worldBlockX / ChunkComponent.BlockSize;
-            int chunkY = worldBlockY / ChunkComponent.BlockSize;
-            int chunkZ = worldBlockZ / ChunkComponent.BlockSize;
-            ushort[][] chunkLights = chunkLightInfo[chunkSize.GetArrayOffset(chunkX, chunkY, chunkZ)].BlockLights;
-
-            int chunkBlockX = worldBlockX % ChunkComponent.BlockSize;
-            int chunkBlockY = worldBlockY % ChunkComponent.BlockSize;
-            int chunkBlockZ = worldBlockZ % ChunkComponent.BlockSize;
-            return chunkLights?[GetBlockLightOffset(chunkBlockX, chunkBlockY, chunkBlockZ)];
-        }
-
-        public void RemoveLightsForChunk(ChunkComponent chunkData)
-        {
-            chunkLightInfo[chunkSize.GetArrayOffset(chunkData.ChunkLoc.X, chunkData.ChunkLoc.Y, chunkData.ChunkLoc.Z)].BlockLights = null;
+            // TODO: Cache this in the chunk somehow
+            List<ushort> lights = chunkLightInfo[chunkSize.GetArrayOffset(cx, cy, cz)];
+            return lights.Take(MaxLightsPerChunk).Select(l => new RenderedLight(LightList[l].Location, LightList[l].LightColor, LightList[l].CachedLightCalc)).ToArray();
         }
         #endregion
 
@@ -294,7 +201,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
                     {
                         if (LightHitsChunk(blockX, blockY, blockZ, cz, cx, cy, ambientDist))
                         {
-                            List<ushort> lightsInChunk = chunkLightInfo[chunkSize.GetArrayOffset(cx, cy, cz)].LightsAffectingChunks;
+                            List<ushort> lightsInChunk = chunkLightInfo[chunkSize.GetArrayOffset(cx, cy, cz)];
                             lock (lightsInChunk)
                                 lightsInChunk.Add(lightIndex);
                         }
@@ -391,24 +298,6 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
         private static int GetBlockLightOffset(int blockX, int blockY, int blockZ)
         {
             return (blockX * ChunkComponent.BlockSize + blockZ) * ChunkComponent.BlockSize + blockY;
-        }
-        #endregion
-
-        #region ChunkLights structure
-        /// <summary>
-        /// Holds lighting information for a single chunk
-        /// </summary>
-        private struct ChunkLights
-        {
-            public readonly List<ushort> LightsAffectingChunks;
-
-            public ushort[][] BlockLights;
-
-            public ChunkLights(int maxLightsAffectingChunk)
-            {
-                LightsAffectingChunks = new List<ushort>(maxLightsAffectingChunk);
-                BlockLights = null;
-            }
         }
         #endregion
     }
