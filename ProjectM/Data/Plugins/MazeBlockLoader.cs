@@ -16,12 +16,12 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
 
         private const byte bc = BlockLOD32.VoxelSize / 2;
         private const int mv = BlockLOD32.VoxelSize - 1;
-        private const int ImperfectionIterations = BlockLOD32.VoxelSize > 16 ? 100 : 25;
+        private const int ImperfectionIterations = BlockLOD32.VoxelSize > 16 ? 80 : 20;
         private const bool ForFantasy = true;
         private const float LightBright = ForFantasy ? 0.8f : 1.0f;
         private const float LightMid = ForFantasy ? 0.6f : 0.76f;
         private const float LightDim = ForFantasy ? 0.27f : 0.34f;
-        private const int LightDist = ForFantasy ? 17 : 20;
+        private const int LightDist = ForFantasy ? 25 : 20;
         //private const float LightBright = 1.0f;
         //private const float LightMid = 0.76f;
         //private const float LightDim = 0.34f;
@@ -72,7 +72,7 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
                         new LightComponent(new Vector3b(bc, bc, bc), new Color3f(0.25f, 0.25f, 0.7f), ForFantasy ? 20 : 30), colorVariation: 0.0f);
                 case "loadingLight":
                     return CreateBlockInfo(name, BlockLOD32.VoxelSize / 5.0f, new Color4f(1.0f, 1.0f, 1.0f, 1.0f), 1.0f, null,
-                        new LightComponent(blockCenterVector, new Color3f(1.0f, 1.0f, 1.0f), 80), colorVariation: 0.0f);
+                        new LightComponent(blockCenterVector, new Color3f(1.0f, 1.0f, 1.0f), 100), colorVariation: 0.0f);
                 case "treeLight":
                     return CreateBlockInfo(name, BlockLOD32.VoxelSize / 8.0f, new Color4f(ObjBright, ObjBright, ObjBright, 1.0f), 1.0f, null,
                         new LightComponent(new Vector3b(bc, bc, bc), new Color3f(LightBright, LightBright, LightBright), ForFantasy ? 20 : 30), colorVariation: 0.0f);
@@ -90,7 +90,7 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
             Block fireBlock = new Block("fire");
             fireBlock.AddComponent(new ParticleComponent("Fire", new Vector3i(bc, bc, 1)));
             fireBlock.AddComponent(new LightPassthroughComponent());
-            fireBlock.AddComponent(new LightComponent(new Vector3b(bc, bc, bc),
+            fireBlock.AddComponent(new LightComponent(new Vector3b(bc, bc, bc - 4),
                 new Color3f(ForFantasy ? 0.6f : 1.0f, ForFantasy ? 0.45f : 0.8f, ForFantasy ? 0.35f : 0.6f), ForFantasy ? 15 : 20));
             return fireBlock;
         }
@@ -234,178 +234,171 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
         {
             const int lightDist = ForFantasy ? 2 : 4;
             Block grass = new Block(name);
-            grass.AddComponent(new VoxelNoiseComponent(0.4f));
+            //grass.AddComponent(new VoxelNoiseComponent(0.4f));
             grass.AddComponent(new LightPassthroughComponent());
-            bool putFlowerInBlock = false;
+            //bool putFlowerInBlock = false;
             bool allowLight = !name.StartsWith("loading", StringComparison.Ordinal);
-            //const float bsmo = BlockLOD32.VoxelSize - 1;
 
-            //for (int bladeCount = 0; bladeCount < BlockLOD32.VoxelSize * 8; bladeCount++)
-            //{
-            //    float val = random.NextFloat() * bsmo;
-            //    int bladeLength = (int)Math.Round((val * val * val * val) / (bsmo * bsmo * bsmo)) + 1;
-            //    //Console.WriteLine("Blade length: " + bladeLength);
-
-            //    float vX, vY, offsetX, offsetY;
-            //    do
-            //    {
-            //        vX = random.Next(BlockLOD32.VoxelSize);
-            //        vY = random.Next(BlockLOD32.VoxelSize);
-            //        offsetX = random.NextFloat(true) * 6 - 3;
-            //        offsetY = random.NextFloat(true) * 6 - 3;
-            //    }
-            //    while (vX + offsetX < 0.0f || vX + offsetX >= BlockLOD32.VoxelSize || vY + offsetY < 0.0f || vY + offsetY >= BlockLOD32.VoxelSize);
-
-            //    for (int vZ = 0; vZ < bladeLength; vZ++)
-            //    {
-            //        grass[(int)vX, (int)vY, vZ] = new Voxel(55, 180, 40, VoxelSettings.SkipVoxelNormalCalc);
-            //        if (vZ < bladeLength - 1)
-            //        {
-            //            vX += (offsetX / BlockLOD32.VoxelSize);
-            //            vY += (offsetY / BlockLOD32.VoxelSize);
-            //        }
-            //    }
-
-            //    if (bladeLength == BlockLOD32.VoxelSize && random.NextFloat() < 0.2f && !putFlowerInBlock &&
-            //        vX >= 1 && vX <= BlockLOD32.VoxelSize - 2 && vY >= 1 && vY <= BlockLOD32.VoxelSize - 2)
-            //    {
-            //        int fX = (int)vX;
-            //        int fY = (int)vY;
-            //        int fZ = bladeLength - 1;
-            //        putFlowerInBlock = true;
-            //        bool isLit = allowLight && random.NextFloat() < 0.8;
-            //        Voxel flowerVoxel = CreateRandomFlowerVoxel(isLit);
-            //        if (isLit)
-            //        {
-            //            grass.AddComponent(new LightComponent(new Vector3b((byte)fX, (byte)fY, (byte)fZ),
-            //                new Color3f((byte)(flowerVoxel.R / 2), (byte)(flowerVoxel.G / 2), (byte)(flowerVoxel.B / 2)), lightDist));
-            //        }
-
-            //        // Make a flower
-            //        grass[fX, fY, fZ] = flowerVoxel;
-            //        grass[fX - 1, fY, fZ - 1] = flowerVoxel;
-            //        grass[fX + 1, fY, fZ - 1] = flowerVoxel;
-            //        grass[fX, fY - 1, fZ - 1] = flowerVoxel;
-            //        grass[fX, fY + 1, fZ - 1] = flowerVoxel;
-            //        if (BlockLOD32.VoxelSize > 16)
-            //        {
-            //            grass[fX - 1, fY - 1, fZ - 1] = flowerVoxel;
-            //            grass[fX - 1, fY + 1, fZ - 1] = flowerVoxel;
-            //            grass[fX + 1, fY - 1, fZ - 1] = flowerVoxel;
-            //            grass[fX + 1, fY + 1, fZ - 1] = flowerVoxel;
-
-            //            grass[fX - 1, fY, fZ] = flowerVoxel;
-            //            grass[fX + 1, fY, fZ] = flowerVoxel;
-            //            grass[fX, fY - 1, fZ] = flowerVoxel;
-            //            grass[fX, fY + 1, fZ] = flowerVoxel;
-
-            //            grass[fX - 2, fY - 1, fZ - 1] = flowerVoxel;
-            //            grass[fX - 2, fY, fZ - 1] = flowerVoxel;
-            //            grass[fX - 2, fY + 1, fZ - 1] = flowerVoxel;
-
-            //            grass[fX + 2, fY - 1, fZ - 1] = flowerVoxel;
-            //            grass[fX + 2, fY, fZ - 1] = flowerVoxel;
-            //            grass[fX + 2, fY + 1, fZ - 1] = flowerVoxel;
-
-            //            grass[fX - 1, fY - 2, fZ - 1] = flowerVoxel;
-            //            grass[fX, fY - 2, fZ - 1] = flowerVoxel;
-            //            grass[fX + 1, fY - 2, fZ - 1] = flowerVoxel;
-
-            //            grass[fX - 1, fY + 2, fZ - 1] = flowerVoxel;
-            //            grass[fX, fY + 2, fZ - 1] = flowerVoxel;
-            //            grass[fX + 1, fY + 2, fZ - 1] = flowerVoxel;
-            //        }
-            //    }
-            //    //int vX = random.Next(BlockLOD32.VoxelSize);
-            //    //int vY = random.Next(BlockLOD32.VoxelSize);
-            //    //for (int vZ = 0; vZ < bladeLength; vZ++)
-            //    //{
-            //    //    grass[vX, vY, vZ] = new Voxel(55, 180, 40, VoxelSettings.SkipVoxelNormalCalc);
-
-            //    //    bool tryAgain;
-            //    //    do
-            //    //    {
-            //    //        tryAgain = false;
-            //    //        int rnd = random.Next(5);
-            //    //        if (rnd == 0 && vX > 0)
-            //    //            vX--;
-            //    //        else if (rnd == 1 && vY > 0)
-            //    //            vY--;
-            //    //        else if (rnd == 2 && vX < BlockLOD32.VoxelSize - 1)
-            //    //            vX++;
-            //    //        else if (rnd == 3 && vY < BlockLOD32.VoxelSize - 1)
-            //    //            vY++;
-            //    //        else if (rnd != 4)
-            //    //            tryAgain = true;
-            //    //    }
-            //    //    while (tryAgain);
-
-            //    //}
-            //}
-            const float divisor = BlockLOD32.VoxelSize * 10.4f;
-            for (int z = 0; z < BlockLOD32.VoxelSize; z++)
+            const float bsmo = BlockLOD32.VoxelSize - BlockLOD32.VoxelSize / 3;
+            float vX, vY, offsetX, offsetY;
+            Voxel bladeVoxel;
+            int bladeLength;
+            for (int bladeCount = 0; bladeCount < BlockLOD32.VoxelSize * 10; bladeCount++)
             {
-                Voxel grassVoxel = new Voxel((byte)(44 + z / 2), (byte)(150 + z), (byte)(32 + z / 3), VoxelSettings.SkipVoxelNormalCalc);
-                for (int x = 0; x < BlockLOD32.VoxelSize; x++)
+                float val = random.NextFloat() * bsmo;
+                bladeLength = (int)Math.Round((val * val * val * val) / (bsmo * bsmo * bsmo)) + 1;
+                //Console.WriteLine("Blade length: " + bladeLength);
+
+                vX = random.Next(BlockLOD32.VoxelSize);
+                vY = random.Next(BlockLOD32.VoxelSize);
+                offsetX = random.NextFloat(true) * 32 - 16;
+                offsetY = random.NextFloat(true) * 32 - 16;
+                bladeVoxel = new Voxel(25, 120, 20, VoxelSettings.SkipVoxelNormalCalc).RandomizeColor(0.7f, random);
+
+                for (int vZ = 0; vZ < bladeLength; vZ++)
                 {
-                    for (int y = 0; y < BlockLOD32.VoxelSize; y++)
+                    grass.LOD32[(int)vX, (int)vY, vZ] = bladeVoxel;
+                    if (vZ < bladeLength - 1)
                     {
-                        if (random.NextFloat() < 0.3f - z / divisor && (z == 0 || GrassVoxelUnder(grass, x, y, z)))
-                        {
-                            grass.LOD32[x, y, z] = grassVoxel;
-                            if (z == BlockLOD32.VoxelSize - 1 && random.NextFloat() < 0.2f &&
-                                x > 1 && x < BlockLOD32.VoxelSize - 2 && y > 1 && y < BlockLOD32.VoxelSize - 2 && !putFlowerInBlock)
-                            {
-                                putFlowerInBlock = true;
-                                bool isLit = allowLight && random.NextFloat() < 0.8;
-                                Voxel flowerVoxel = CreateRandomFlowerVoxel(isLit);
-                                if (isLit)
-                                {
-                                    grass.AddComponent(new LightComponent(new Vector3b((byte)x, (byte)y, (byte)z),
-                                        new Color3f(ForFantasy ? (byte)(flowerVoxel.R / 2) : flowerVoxel.R, 
-                                            ForFantasy ? (byte)(flowerVoxel.G / 2) : flowerVoxel.G, 
-                                            ForFantasy ? (byte)(flowerVoxel.B / 2) : flowerVoxel.B), lightDist));
-                                }
-
-                                // Make a flower
-                                grass.LOD32[x, y, z] = flowerVoxel;
-                                grass.LOD32[x - 1, y, z - 1] = flowerVoxel;
-                                grass.LOD32[x + 1, y, z - 1] = flowerVoxel;
-                                grass.LOD32[x, y - 1, z - 1] = flowerVoxel;
-                                grass.LOD32[x, y + 1, z - 1] = flowerVoxel;
-                                if (BlockLOD32.VoxelSize > 16)
-                                {
-                                    grass.LOD32[x - 1, y - 1, z - 1] = flowerVoxel;
-                                    grass.LOD32[x - 1, y + 1, z - 1] = flowerVoxel;
-                                    grass.LOD32[x + 1, y - 1, z - 1] = flowerVoxel;
-                                    grass.LOD32[x + 1, y + 1, z - 1] = flowerVoxel;
-
-                                    grass.LOD32[x - 1, y, z] = flowerVoxel;
-                                    grass.LOD32[x + 1, y, z] = flowerVoxel;
-                                    grass.LOD32[x, y - 1, z] = flowerVoxel;
-                                    grass.LOD32[x, y + 1, z] = flowerVoxel;
-
-                                    grass.LOD32[x - 2, y - 1, z - 1] = flowerVoxel;
-                                    grass.LOD32[x - 2, y, z - 1] = flowerVoxel;
-                                    grass.LOD32[x - 2, y + 1, z - 1] = flowerVoxel;
-
-                                    grass.LOD32[x + 2, y - 1, z - 1] = flowerVoxel;
-                                    grass.LOD32[x + 2, y, z - 1] = flowerVoxel;
-                                    grass.LOD32[x + 2, y + 1, z - 1] = flowerVoxel;
-
-                                    grass.LOD32[x - 1, y - 2, z - 1] = flowerVoxel;
-                                    grass.LOD32[x, y - 2, z - 1] = flowerVoxel;
-                                    grass.LOD32[x + 1, y - 2, z - 1] = flowerVoxel;
-
-                                    grass.LOD32[x - 1, y + 2, z - 1] = flowerVoxel;
-                                    grass.LOD32[x, y + 2, z - 1] = flowerVoxel;
-                                    grass.LOD32[x + 1, y + 2, z - 1] = flowerVoxel;
-                                }
-                            }
-                        }
+                        vX += (offsetX / BlockLOD32.VoxelSize);
+                        vY += (offsetY / BlockLOD32.VoxelSize);
                     }
+                    if (vX < 0 || vX >= BlockLOD32.VoxelSize || vY < 0 || vY >= BlockLOD32.VoxelSize)
+                        break;
                 }
             }
+
+            if (random.NextFloat() < 0.3f)
+            {
+                // Add flower
+                vX = random.Next(BlockLOD32.VoxelSize - 10) + 5;
+                vY = random.Next(BlockLOD32.VoxelSize - 10) + 5;
+                offsetX = random.NextFloat(true) * 6 - 3;
+                offsetY = random.NextFloat(true) * 6 - 3;
+                bladeVoxel = new Voxel(25, 120, 20, VoxelSettings.SkipVoxelNormalCalc).RandomizeColor(0.7f, random);
+                bladeLength = BlockLOD32.VoxelSize - 8 + random.Next(6);
+                for (int vZ = 0; vZ < bladeLength; vZ++)
+                {
+                    grass.LOD32[(int)vX, (int)vY, vZ] = bladeVoxel;
+                    if (vZ < bladeLength - 1)
+                    {
+                        vX += (offsetX / BlockLOD32.VoxelSize);
+                        vY += (offsetY / BlockLOD32.VoxelSize);
+                    }
+                }
+
+                int fX = (int)vX;
+                int fY = (int)vY;
+                int fZ = bladeLength - 1;
+                bool isLit = allowLight && random.NextFloat() < 0.8;
+                Voxel flowerVoxel = CreateRandomFlowerVoxel(isLit);
+                if (isLit)
+                {
+                    grass.AddComponent(new LightComponent(new Vector3b((byte)fX, (byte)fY, (byte)fZ),
+                        new Color3f((byte)(flowerVoxel.R / 2), (byte)(flowerVoxel.G / 2), (byte)(flowerVoxel.B / 2)), lightDist));
+                }
+
+                // Make a flower
+                grass.LOD32[fX, fY, fZ] = flowerVoxel;
+                grass.LOD32[fX - 1, fY, fZ - 1] = flowerVoxel;
+                grass.LOD32[fX + 1, fY, fZ - 1] = flowerVoxel;
+                grass.LOD32[fX, fY - 1, fZ - 1] = flowerVoxel;
+                grass.LOD32[fX, fY + 1, fZ - 1] = flowerVoxel;
+                if (BlockLOD32.VoxelSize > 16)
+                {
+                    grass.LOD32[fX - 1, fY - 1, fZ - 1] = flowerVoxel;
+                    grass.LOD32[fX - 1, fY + 1, fZ - 1] = flowerVoxel;
+                    grass.LOD32[fX + 1, fY - 1, fZ - 1] = flowerVoxel;
+                    grass.LOD32[fX + 1, fY + 1, fZ - 1] = flowerVoxel;
+
+                    grass.LOD32[fX - 1, fY, fZ] = flowerVoxel;
+                    grass.LOD32[fX + 1, fY, fZ] = flowerVoxel;
+                    grass.LOD32[fX, fY - 1, fZ] = flowerVoxel;
+                    grass.LOD32[fX, fY + 1, fZ] = flowerVoxel;
+
+                    grass.LOD32[fX - 2, fY - 1, fZ - 1] = flowerVoxel;
+                    grass.LOD32[fX - 2, fY, fZ - 1] = flowerVoxel;
+                    grass.LOD32[fX - 2, fY + 1, fZ - 1] = flowerVoxel;
+
+                    grass.LOD32[fX + 2, fY - 1, fZ - 1] = flowerVoxel;
+                    grass.LOD32[fX + 2, fY, fZ - 1] = flowerVoxel;
+                    grass.LOD32[fX + 2, fY + 1, fZ - 1] = flowerVoxel;
+
+                    grass.LOD32[fX - 1, fY - 2, fZ - 1] = flowerVoxel;
+                    grass.LOD32[fX, fY - 2, fZ - 1] = flowerVoxel;
+                    grass.LOD32[fX + 1, fY - 2, fZ - 1] = flowerVoxel;
+
+                    grass.LOD32[fX - 1, fY + 2, fZ - 1] = flowerVoxel;
+                    grass.LOD32[fX, fY + 2, fZ - 1] = flowerVoxel;
+                    grass.LOD32[fX + 1, fY + 2, fZ - 1] = flowerVoxel;
+                }
+            }
+
+
+            //const float divisor = BlockLOD32.VoxelSize * 10.4f;
+            //for (int z = 0; z < BlockLOD32.VoxelSize; z++)
+            //{
+            //    Voxel grassVoxel = new Voxel((byte)(44 + z / 2), (byte)(150 + z), (byte)(32 + z / 3), VoxelSettings.SkipVoxelNormalCalc);
+            //    for (int x = 0; x < BlockLOD32.VoxelSize; x++)
+            //    {
+            //        for (int y = 0; y < BlockLOD32.VoxelSize; y++)
+            //        {
+            //            if (random.NextFloat() < 0.3f - z / divisor && (z == 0 || GrassVoxelUnder(grass, x, y, z)))
+            //            {
+            //                grass.LOD32[x, y, z] = grassVoxel;
+            //                if (z == BlockLOD32.VoxelSize - 1 && random.NextFloat() < 0.2f &&
+            //                    x > 1 && x < BlockLOD32.VoxelSize - 2 && y > 1 && y < BlockLOD32.VoxelSize - 2 && !putFlowerInBlock)
+            //                {
+            //                    putFlowerInBlock = true;
+            //                    bool isLit = allowLight && random.NextFloat() < 0.8;
+            //                    Voxel flowerVoxel = CreateRandomFlowerVoxel(isLit);
+            //                    if (isLit)
+            //                    {
+            //                        grass.AddComponent(new LightComponent(new Vector3b((byte)x, (byte)y, (byte)z),
+            //                            new Color3f(ForFantasy ? (byte)(flowerVoxel.R / 2) : flowerVoxel.R,
+            //                                ForFantasy ? (byte)(flowerVoxel.G / 2) : flowerVoxel.G,
+            //                                ForFantasy ? (byte)(flowerVoxel.B / 2) : flowerVoxel.B), lightDist));
+            //                    }
+
+            //                    // Make a flower
+            //                    grass.LOD32[x, y, z] = flowerVoxel;
+            //                    grass.LOD32[x - 1, y, z - 1] = flowerVoxel;
+            //                    grass.LOD32[x + 1, y, z - 1] = flowerVoxel;
+            //                    grass.LOD32[x, y - 1, z - 1] = flowerVoxel;
+            //                    grass.LOD32[x, y + 1, z - 1] = flowerVoxel;
+            //                    if (BlockLOD32.VoxelSize > 16)
+            //                    {
+            //                        grass.LOD32[x - 1, y - 1, z - 1] = flowerVoxel;
+            //                        grass.LOD32[x - 1, y + 1, z - 1] = flowerVoxel;
+            //                        grass.LOD32[x + 1, y - 1, z - 1] = flowerVoxel;
+            //                        grass.LOD32[x + 1, y + 1, z - 1] = flowerVoxel;
+
+            //                        grass.LOD32[x - 1, y, z] = flowerVoxel;
+            //                        grass.LOD32[x + 1, y, z] = flowerVoxel;
+            //                        grass.LOD32[x, y - 1, z] = flowerVoxel;
+            //                        grass.LOD32[x, y + 1, z] = flowerVoxel;
+
+            //                        grass.LOD32[x - 2, y - 1, z - 1] = flowerVoxel;
+            //                        grass.LOD32[x - 2, y, z - 1] = flowerVoxel;
+            //                        grass.LOD32[x - 2, y + 1, z - 1] = flowerVoxel;
+
+            //                        grass.LOD32[x + 2, y - 1, z - 1] = flowerVoxel;
+            //                        grass.LOD32[x + 2, y, z - 1] = flowerVoxel;
+            //                        grass.LOD32[x + 2, y + 1, z - 1] = flowerVoxel;
+
+            //                        grass.LOD32[x - 1, y - 2, z - 1] = flowerVoxel;
+            //                        grass.LOD32[x, y - 2, z - 1] = flowerVoxel;
+            //                        grass.LOD32[x + 1, y - 2, z - 1] = flowerVoxel;
+
+            //                        grass.LOD32[x - 1, y + 2, z - 1] = flowerVoxel;
+            //                        grass.LOD32[x, y + 2, z - 1] = flowerVoxel;
+            //                        grass.LOD32[x + 1, y + 2, z - 1] = flowerVoxel;
+            //                    }
+            //                }
+            //            }
+            //        }
+            //    }
+            //}
 
             grass.GenerateLODLevels();
             return grass;
@@ -757,18 +750,18 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
 
         private static Voxel CreateRandomFlowerVoxel(bool isLit)
         {
-            VoxelSettings settings = VoxelSettings.SkipVoxelNormalCalc | VoxelSettings.AllowLightPassthrough;
+            VoxelSettings settings = VoxelSettings.SkipVoxelNormalCalc;
             if (isLit)
-                settings |= VoxelSettings.IgnoreLighting;
-            switch (random.Next(7))
+                settings |= VoxelSettings.IgnoreLighting | VoxelSettings.AllowLightPassthrough;
+            switch (random.Next(6))
             {
-                case 1: return new Voxel(255, 0, 0, settings);
-                case 2: return new Voxel(0, 0, 255, settings);
-                case 3: return new Voxel(255, 0, 255, settings);
-                case 4: return new Voxel(255, 255, 0, settings);
-                case 5: return new Voxel(0, 255, 255, settings);
-                case 6: return new Voxel(0, 255, 0, settings);
-                default: return new Voxel(255, 255, 255, settings);
+                case 0: return new Voxel(255, 0, 0, settings);
+                case 1: return new Voxel(0, 0, 255, settings);
+                case 2: return new Voxel(255, 0, 255, settings);
+                case 3: return new Voxel(255, 255, 0, settings);
+                case 4: return new Voxel(0, 255, 255, settings);
+                default: return new Voxel(0, 255, 0, settings);
+                //default: return new Voxel(255, 255, 255, settings);
             }
         }
 
