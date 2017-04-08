@@ -141,6 +141,24 @@ namespace ProdigalSoftware.TiVE.Core.Backend.OpenTKImpl
             GlUtils.CheckGLErrors();
         }
 
+        public override void SetUniform(string name, RenderedLight[] value)
+        {
+            unsafe
+            {
+                for (int i = 0; i < value.Length; i++)
+                {
+                    fixed (float* ptr = &value[i].Location.X)
+                        GL.Uniform3(uniformLocations[name + "[" + i + "].location"], 1, ptr);
+
+                    fixed (float* ptr = &value[i].Color.R)
+                        GL.Uniform3(uniformLocations[name + "[" + i + "].color"], 1, ptr);
+
+                    GL.Uniform1(uniformLocations[name + "[" + i + "].cachedValue"], value[i].CachedValue);
+                }
+            }
+            GlUtils.CheckGLErrors();
+        }
+
         public override void SetUniform(string name, int value)
         {
             GL.Uniform1(uniformLocations[name], value);

@@ -248,7 +248,7 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
 
             GameWorld gameWorld = scene.GameWorldInternal;
 
-            scene.LightData.CacheLightsInBlocksForChunk(chunkData.ChunkLoc.X, chunkData.ChunkLoc.Y, chunkData.ChunkLoc.Z);
+            //scene.LightData.CacheLightsInBlocksForChunk(chunkData.ChunkLoc.X, chunkData.ChunkLoc.Y, chunkData.ChunkLoc.Z);
 
             int blockStartX = chunkData.ChunkBlockLoc.X;
             int blockEndX = Math.Min((chunkData.ChunkLoc.X + 1) * ChunkComponent.BlockSize, gameWorld.BlockSize.X);
@@ -317,12 +317,6 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
             MeshBuilder meshBuilder, ref int renderedVoxelCount)
         {
             LODLevel detailLevel = queueItem.DetailLevel;
-
-            int shadowDetailOffset = TiVEController.UserSettings.Get(UserSettings.WorldShadowDetailKey);
-            bool useShadows = (int)detailLevel + shadowDetailOffset < (int)LODLevel.NumOfLevels;
-            LightProvider lightProvider = scene.GetLightProvider(useShadows);
-            LODLevel shadowDetailLevel = (LODLevel)Math.Min((int)detailLevel + shadowDetailOffset, (int)LODLevel.V4);
-
             GameWorld gameWorld = scene.GameWorldInternal;
             BlockLOD blockLOD = block.GetLOD(detailLevel);
 
@@ -382,8 +376,8 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
                     byte chunkVoxelY = (byte)((voxelY - voxelStartY) * renderedVoxelSize);
                     byte chunkVoxelZ = (byte)((voxelZ - voxelStartZ) * renderedVoxelSize);
 
-                    meshBuilder.AddVoxel(sides, chunkVoxelX, chunkVoxelY, chunkVoxelZ, 
-                        vox.IgnoreLighting ? (Color4b)vox : lightProvider.GetFinalColor(vox, voxelX, voxelY, voxelZ, detailLevel, shadowDetailLevel, blockX, blockY, blockZ, sides));
+                    meshBuilder.AddVoxel(sides, chunkVoxelX, chunkVoxelY, chunkVoxelZ, (Color4b)vox, 
+                        vox.SkipVoxelNormalCalc || vox.IgnoreLighting ? Vector3f.Zero : VoxelMeshUtils.GetVoxelNormal(sides));
                     renderedVoxelCount++;
                 }
             }

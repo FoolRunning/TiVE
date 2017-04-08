@@ -103,21 +103,23 @@ namespace ProdigalSoftware.TiVE.ParticleSystem
             shader.Bind();
             shader.SetUniform("matrix_ModelViewProjection", ref cameraData.ViewProjectionMatrix);
             shader.SetUniform("voxelSize", 1);
+            shader.SetUniform("lightCount", 0);
             shader.SetUniform("cameraLoc", ref cameraData.Location);
 
             Vector3f translation = Vector3f.Zero;
             shader.SetUniform("modelTranslation", ref translation);
 
-            renderList.Clear();
-            using (new PerformanceLock(particleSystemCollections))
-                renderList.AddRange(particleSystemCollections.Values);
+            // TODO: re-enable rendering of particles with real-time lighting
+            //renderList.Clear();
+            //using (new PerformanceLock(particleSystemCollections))
+            //    renderList.AddRange(particleSystemCollections.Values);
             
-            // Sort by transparency type
-            renderList.Sort((em1, em2) => em1.TransparencyType.CompareTo(em2.TransparencyType));
+            //// Sort by transparency type
+            //renderList.Sort((em1, em2) => em1.TransparencyType.CompareTo(em2.TransparencyType));
 
-            RenderStatistics stats = new RenderStatistics();
-            for (int i = 0; i < renderList.Count; i++)
-                stats += renderList[i].Render();
+            //RenderStatistics stats = new RenderStatistics();
+            //for (int i = 0; i < renderList.Count; i++)
+            //    stats += renderList[i].Render();
 
             return true;
         }
