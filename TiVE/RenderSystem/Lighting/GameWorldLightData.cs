@@ -141,8 +141,8 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
                 int lbx = lightInfo.BlockX;
                 int lby = lightInfo.BlockY;
                 int lbz = lightInfo.BlockZ;
-                int ambientDist = (int)Math.Ceiling(lightInfo.BlockDist * LightingModel.ShadowLightDistMinFactor);
-                ambientDist *= ambientDist; // square result so we can compare to the squared value
+                //int ambientDist = (int)Math.Ceiling(lightInfo.BlockDist * LightingModel.ShadowLightDistMinFactor);
+                //ambientDist *= ambientDist; // square result so we can compare to the squared value
 
                 for (int bz = startZ; bz < endZ; bz++)
                 {
@@ -155,11 +155,11 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
                             if ((lightCullType == LightCullType.Fast && CullLightFast(lbx, lby, lbz, bx, by, bz)) ||
                                 (lightCullType == LightCullType.Accurate && CullLightAccurate(lbx, lby, lbz, bx, by, bz)))
                             {
-                                int distX = lbx - bx;
-                                int distY = lby - by;
-                                int distZ = lbz - bz;
-                                int dist = distX * distX + distY * distY + distZ * distZ;
-                                if (dist >= ambientDist)
+                                //int distX = lbx - bx;
+                                //int distY = lby - by;
+                                //int distZ = lbz - bz;
+                                //int dist = distX * distX + distY * distY + distZ * distZ;
+                                //if (dist >= ambientDist)
                                     continue; // The light won't actually hit the block
                             }
 
@@ -314,12 +314,12 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
                     for (int chunkBlockY = 0; chunkBlockY < ChunkComponent.BlockSize; chunkBlockY++)
                     {
                         int by = chunkBlockY + cy * ChunkComponent.BlockSize;
-                        int distX = blockX - bx;
-                        int distY = blockY - by;
-                        int distZ = blockZ - bz;
-                        int dist = distX * distX + distY * distY + distZ * distZ;
-                        if (dist <= ambientDist)
-                            return true;
+                        //int distX = blockX - bx;
+                        //int distY = blockY - by;
+                        //int distZ = blockZ - bz;
+                        //int dist = distX * distX + distY * distY + distZ * distZ;
+                        //if (dist <= ambientDist)
+                        //    return true;
 
                         if (!CullLightFast(blockX, blockY, blockZ, bx, by, bz))
                             return true;

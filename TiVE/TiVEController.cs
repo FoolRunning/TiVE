@@ -222,7 +222,7 @@ namespace ProdigalSoftware.TiVE
         //    Messages.Println($"10,000 block lines took average of {totalMs / 20.0f}ms", Color.Chocolate);
         //}
         #endregion
-        
+
         #region Random number generator speed tests
         //private static void TestRandomSpeed()
         //{
@@ -245,7 +245,7 @@ namespace ProdigalSoftware.TiVE
         //private static void TiVERandomGeneratorSpeedTest()
         //{
         //    Stopwatch sw = Stopwatch.StartNew();
-        //    RandomGenerator random = new RandomGenerator();
+        //    RandomGeneratorBase random = new RandomGenerator();
         //    int value = 184756152;
         //    for (int i = 0; i < 100000000; i++)
         //        value ^= random.Next();
@@ -254,7 +254,7 @@ namespace ProdigalSoftware.TiVE
         //    Messages.Println(string.Format("100M TiVE random numbers took {0}ms", sw.ElapsedTicks * 1000.0f / Stopwatch.Frequency), Color.Chocolate);
         //}
         #endregion
-        
+
         #region Struct with int vs. int speed tests
         //private static void TestIntStructAccess()
         //{
@@ -323,7 +323,7 @@ namespace ProdigalSoftware.TiVE
         //    }
         //}
         #endregion
-        
+
         #region FastSqrt vs. Math.Sqrt speed tests
         //private static void DoSqrtSpeedTests()
         //{

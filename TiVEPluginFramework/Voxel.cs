@@ -175,6 +175,13 @@ namespace ProdigalSoftware.TiVEPluginFramework
         #endregion
 
         #region Public methods
+        public Voxel RandomizeColor(float variationPercentage, RandomGeneratorBase random)
+        {
+            float rnd = random.NextFloat();
+            float scale = rnd * variationPercentage + (1.0f - variationPercentage / 2.0f);
+            return new Voxel((byte)Math.Min((int)(R * scale), 255), (byte)Math.Min((int)(G * scale), 255), (byte)Math.Min((int)(B * scale), 255), A, Settings);
+        }
+
         public bool Equals(Voxel other)
         {
             return value == other.value;

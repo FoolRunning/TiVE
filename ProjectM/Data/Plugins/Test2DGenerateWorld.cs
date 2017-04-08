@@ -53,8 +53,8 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
                     //gameWorld[x, 15, z] = unlitDirt;
                     for (int y = 2; y < 8; y++)
                     {
-                        int materialNoise = (int)((Noise.GetNoise(197 + x * 0.1, -13 + y * 0.25, -497 + z * 0.11) + 1) * 500); // noise 0..1000
-                        gameWorld[x, y, z] = materialNoise < 500 ? stoneBack : dirt;
+                        //int materialNoise = (int)((Noise.GetNoise(197 + x * 0.1, -13 + y * 0.25, -497 + z * 0.11) + 1) * 500); // noise 0..1000
+                        gameWorld[x, y, z] = dirt;
                     }
                 }
             }

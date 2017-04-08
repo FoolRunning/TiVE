@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.CompilerServices;
 using JetBrains.Annotations;
 
 namespace ProdigalSoftware.TiVEPluginFramework
@@ -10,10 +11,10 @@ namespace ProdigalSoftware.TiVEPluginFramework
     /// <para>Additional code taken from: http://www.codeproject.com/Articles/164087/Random-Number-Generation (and very cleaned up)</para>
     /// </summary>
     [PublicAPI]
-    public sealed class RandomGenerator
+    public abstract class RandomGeneratorBase
     {
         #region Constants/Member variables
-        private const int N = 624;
+        protected const int N = 624;
         private const int M = 397;
         private const uint MatrixA = 0x9908B0DFU;
         private const uint UpperMask = 0x80000000U;
@@ -21,20 +22,18 @@ namespace ProdigalSoftware.TiVEPluginFramework
         private const double GenDoubleEpsilon = 1.0 / 4294967295.0;
         private const double GenDoubleEpsilonToOne = 1.0 / 4294967296.0;
         private const double GenDoubleEpsilon53 = 1.0 / 9007199254740992.0;
+        private static readonly uint[] mag01 = { 0x0U, MatrixA };
 
-        private readonly uint[] mag01 = { 0x0U, MatrixA };
-        private readonly uint[] mt = new uint[N];
-        private readonly object syncObj = new object();
-
-        private int index = N;
+        protected readonly uint[] mt = new uint[N];
+        protected int index = N;
         #endregion
 
         #region Constructors
-        public RandomGenerator() : this(Environment.TickCount)
+        public RandomGeneratorBase() : this(Environment.TickCount)
         {
         }
 
-        public RandomGenerator(int seed)
+        public RandomGeneratorBase(int seed)
         {
             mt[0] = (uint)seed;
             for (int i = 1; i < N; i++)
@@ -44,8 +43,8 @@ namespace ProdigalSoftware.TiVEPluginFramework
 
         #region Public methods
         public int Next()
-        { 
-            return genrand_int31(); 
+        {
+            return (int)(GenerateRandomUInt() >> 1);
         }
 
         public int Next(int maxValue)
@@ -55,88 +54,55 @@ namespace ProdigalSoftware.TiVEPluginFramework
 
         public int Next(int minValue, int maxValue)
         {
-            return (int)Math.Floor((maxValue - minValue) * genrand_real1() + minValue);
+            return (int)Math.Floor((maxValue - minValue) * NextDoubleIncludeOne() + minValue);
         }
 
         public float NextFloat()
         { 
-            return (float)genrand_real2();
+            return (float)NextDouble();
         }
 
         public float NextFloat(bool includeOne)
         {
-            return includeOne ? (float)genrand_real1() : (float)genrand_real2();
+            return includeOne ? (float)NextDoubleIncludeOne() : (float)NextDouble();
         }
 
         public float NextFloatPositive()
         { 
-            return (float)genrand_real3();
+            return (float)NextDoublePositive();
         }
 
         public double NextDouble()
-        { 
-            return genrand_real2();
-        }
-
-        public double NextDouble(bool includeOne)
-        {
-            return includeOne ? genrand_real1() : genrand_real2();
-        }
-
-        public double NextDoublePositive()
-        { 
-            return genrand_real3();
-        }
-        
-        public double Next53BitRes()
-        { 
-            return genrand_res53(); 
-        }
-        #endregion
-
-        #region Private helper methods
-        private int genrand_int31()
-        {
-            return (int)(GenerateRandomUInt() >> 1); 
-        }
-
-        private double genrand_real1()
-        {
-            return GenerateRandomUInt() * GenDoubleEpsilon;
-        }
-        
-        private double genrand_real2()
         {
             return GenerateRandomUInt() * GenDoubleEpsilonToOne;
         }
 
-        private double genrand_real3()
+        public double NextDouble(bool includeOne)
+        {
+            return includeOne ? NextDoubleIncludeOne() : NextDouble();
+        }
+
+        public double NextDoublePositive()
         {
             return (GenerateRandomUInt() + 0.5) * GenDoubleEpsilonToOne;
         }
-
-        private double genrand_res53()
+        
+        public double Next53BitRes()
         {
             uint a = GenerateRandomUInt() >> 5;
             uint b = GenerateRandomUInt() >> 6;
             return (a * 67108864.0 + b) * GenDoubleEpsilon53;
         }
+        #endregion
 
-        private uint GenerateRandomUInt()
+        #region Abstract methods
+        protected abstract uint GenerateRandomUInt();
+        #endregion
+
+        #region Private helper methods
+        private double NextDoubleIncludeOne()
         {
-            if (index >= N)
-                TwistFast();
-
-            uint y = mt[index++];
-
-            // Right shift by 11 bits
-            y = y ^ y >> 11;
-            // Shift y left by 7 and take the bitwise and of 2636928640
-            y = y ^ y << 7 & 0x9D2C5680;
-            // Shift y left by 15 and take the bitwise and of y and 4022730752
-            y = y ^ y << 15 & 0xEFC60000;
-            // Right shift by 18 bits
-            return y ^ y >> 18;
+            return GenerateRandomUInt() * GenDoubleEpsilon;
         }
 
         // Original Twist implementation from the Python implementation
@@ -157,7 +123,7 @@ namespace ProdigalSoftware.TiVEPluginFramework
         /// <summary>
         /// Much faster (almost 3x) implementation from http://www.codeproject.com/Articles/164087/Random-Number-Generation which avoids the modulous operator
         /// </summary>
-        private void TwistFast()
+        protected void TwistFast()
         {
             int kk;
             uint y;
@@ -177,4 +143,80 @@ namespace ProdigalSoftware.TiVEPluginFramework
         }
         #endregion
     }
+
+    #region RandomGenerator class
+    /// <summary>
+    /// Generates random numbers from a uniform distribution using the Mersenne Twister algorithm (version MT19937). 
+    /// In addition to producing better random numbers, this version is significantly faster than .Net's Random class.
+    /// </summary>
+    [PublicAPI]
+    public sealed class RandomGenerator : RandomGeneratorBase
+    {
+        #region Constructors
+        public RandomGenerator()
+        {
+        }
+
+        public RandomGenerator(int seed) : base(seed)
+        {
+        }
+        #endregion
+        
+        protected override uint GenerateRandomUInt()
+        {
+            if (index >= N)
+                TwistFast();
+
+            uint y = mt[index++];
+
+            // Right shift by 11 bits
+            y = y ^ y >> 11;
+            // Shift y left by 7 and take the bitwise and of 2636928640
+            y = y ^ y << 7 & 0x9D2C5680;
+            // Shift y left by 15 and take the bitwise and of y and 4022730752
+            y = y ^ y << 15 & 0xEFC60000;
+            // Right shift by 18 bits
+            return y ^ y >> 18;
+        }
+    }
+    #endregion
+
+    #region RandomGeneratorSync class
+    /// <summary>
+    /// Generates random numbers from a uniform distribution using the Mersenne Twister algorithm (version MT19937). 
+    /// This version is synchronized for thread-saftey (i.e. multiple threads can safely generate random numbers from a single instance).
+    /// Note that this makes it 3x slower than the non-synchronized version (about 2x slower than the .Net version)
+    /// </summary>
+    [PublicAPI]
+    public sealed class RandomGeneratorSync : RandomGeneratorBase
+    {
+        #region Constructors
+        public RandomGeneratorSync()
+        {
+        }
+
+        public RandomGeneratorSync(int seed) : base(seed)
+        {
+        }
+        #endregion
+
+        [MethodImpl(MethodImplOptions.Synchronized)]
+        protected override uint GenerateRandomUInt()
+        {
+            if (index >= N)
+                TwistFast();
+
+            uint y = mt[index++];
+
+            // Right shift by 11 bits
+            y = y ^ y >> 11;
+            // Shift y left by 7 and take the bitwise and of 2636928640
+            y = y ^ y << 7 & 0x9D2C5680;
+            // Shift y left by 15 and take the bitwise and of y and 4022730752
+            y = y ^ y << 15 & 0xEFC60000;
+            // Right shift by 18 bits
+            return y ^ y >> 18;
+        }
+    }
+    #endregion
 }

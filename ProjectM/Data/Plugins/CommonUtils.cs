@@ -31,8 +31,8 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
     public static class CommonUtils
     {
         public const int stoneBlockDuplicates = 5;
-        public const int stoneBackBlockDuplicates = 50;
-        public const int grassBlockDuplicates = 300;
+        public const int stoneBackBlockDuplicates = 10;
+        public const int grassBlockDuplicates = 150;
         public const int leavesBlockDuplicates = 5;
         
         private static readonly Regex blockNameRegex = new Regex(@"(?<part>[^\d]+)(?<num>\d+)?(?:_(?<other>\d+))?", RegexOptions.Compiled);

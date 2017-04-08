@@ -15,7 +15,7 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
                 return null;
 
             IGameWorld gameWorld = Factory.NewGameWorld(1000, 1000, 16);
-            gameWorld.LightingModelType = LightingModelType.Realistic;
+            gameWorld.LightingModelType = LightingModelType.Fantasy3;
 
             FillWorld(gameWorld);
             gameWorld[400, 400, 4] = Factory.Get<Block>("player");
