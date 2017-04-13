@@ -24,7 +24,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
     internal sealed class GameWorldLightData
     {
         #region Constants
-        public const int MaxLightsPerChunk = 20;
+        public const int MaxLightsPerChunk = 30;
         private const int HalfBlockVoxelSize = BlockLOD32.VoxelSize / 2;
         #endregion
 
@@ -190,28 +190,55 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
                 lightInfos.Add(lightInfo);
             }
 
-            int ambientDist = (int)Math.Ceiling(lightInfo.BlockDist * LightingModel.ShadowLightDistMinFactor);
-            ambientDist *= ambientDist; // square result so we can compare to the squared value
-
             for (int cz = startZ; cz < endZ; cz++)
             {
                 for (int cx = startX; cx < endX; cx++)
                 {
                     for (int cy = startY; cy < endY; cy++)
                     {
-                        if (LightHitsChunk(blockX, blockY, blockZ, cz, cx, cy, ambientDist))
+                        if (LightHitsChunk(blockX, blockY, blockZ, cx, cy, cz))
                         {
+                            int vx = cx * ChunkComponent.VoxelSize + ChunkComponent.VoxelSize / 2;
+                            int vy = cy * ChunkComponent.VoxelSize + ChunkComponent.VoxelSize / 2;
+                            int vz = cz * ChunkComponent.VoxelSize + ChunkComponent.VoxelSize / 2;
+                            int newLightDist = DistSquared(vx, vy, vz, lightInfo);
                             List<ushort> lightsInChunk = chunkLightInfo[chunkSize.GetArrayOffset(cx, cy, cz)];
                             lock (lightsInChunk)
-                                lightsInChunk.Add(lightIndex);
+                            {
+                                // Calculate lighting information
+                                // Sort lights by highest percentage to lowest
+                                int leastLightIndex = lightsInChunk.Count;
+                                for (int i = 0; i < lightsInChunk.Count; i++)
+                                {
+                                    if (DistSquared(vx, vy, vz, lightInfos[lightsInChunk[i]]) > newLightDist)
+                                    {
+                                        leastLightIndex = i;
+                                        break;
+                                    }
+                                }
+
+                                if (leastLightIndex == lightsInChunk.Count)
+                                    lightsInChunk.Add(lightIndex);
+                                else
+                                    lightsInChunk.Insert(leastLightIndex, lightIndex);
+                            }
                         }
                     }
                 }
             }
         }
 
-        private bool LightHitsChunk(int blockX, int blockY, int blockZ, int cz, int cx, int cy, int ambientDist)
+        private static int DistSquared(int vx, int vy, int vz, LightInfo lightInfo)
         {
+            int diffX = (int)lightInfo.Location.X - vx;
+            int diffY = (int)lightInfo.Location.Y - vy;
+            int diffZ = (int)lightInfo.Location.Z - vz;
+            return diffX * diffX + diffY * diffY + diffZ * diffZ;
+        }
+
+        private bool LightHitsChunk(int blockX, int blockY, int blockZ, int cx, int cy, int cz)
+        {
+            Vector3i blockSize = scene.GameWorld.BlockSize;
             for (int chunkBlockZ = 0; chunkBlockZ < ChunkComponent.BlockSize; chunkBlockZ++)
             {
                 int bz = chunkBlockZ + cz * ChunkComponent.BlockSize;
@@ -221,14 +248,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
                     for (int chunkBlockY = 0; chunkBlockY < ChunkComponent.BlockSize; chunkBlockY++)
                     {
                         int by = chunkBlockY + cy * ChunkComponent.BlockSize;
-                        //int distX = blockX - bx;
-                        //int distY = blockY - by;
-                        //int distZ = blockZ - bz;
-                        //int dist = distX * distX + distY * distY + distZ * distZ;
-                        //if (dist <= ambientDist)
-                        //    return true;
-
-                        if (!CullLightFast(blockX, blockY, blockZ, bx, by, bz))
+                        if (bx < blockSize.X && by < blockSize.Y && bz < blockSize.Z && !CullLightFast(blockX, blockY, blockZ, bx, by, bz))
                             return true;
                     }
                 }
@@ -262,42 +282,6 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
                 }
             }
             return true;
-        }
-
-        /// <summary>
-        /// Determines if the light located at (lbx, lby, lbz) should be considered to be unreachable to the block at (bx, by, bz)
-        /// </summary>
-        private bool CullLightAccurate(int lbx, int lby, int lbz, int bx, int by, int bz)
-        {
-            GameWorld gameWorld = scene.GameWorldInternal;
-            int startX = Math.Max(0, bx - 1);
-            int startY = Math.Max(0, by - 1);
-            int startZ = Math.Max(0, bz - 1);
-            int endX = Math.Min(bx + 1, gameWorld.BlockSize.X - 1);
-            int endY = Math.Min(by + 1, gameWorld.BlockSize.Y - 1);
-            int endZ = Math.Min(bz + 1, gameWorld.BlockSize.Z - 1);
-
-            for (int testX = startX; testX <= endX; testX++)
-            {
-                for (int testY = startY; testY <= endY; testY++)
-                {
-                    for (int testZ = startZ; testZ <= endZ; testZ++)
-                    {
-                        if (gameWorld.NoBlocksInLine(lbx, lby, lbz, testX, testY, testZ))
-                            return false;
-                    }
-                }
-            }
-            return true;
-        }
-
-        /// <summary>
-        /// Gets the offset into the block lights array of a chunk for the block at the specified location
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static int GetBlockLightOffset(int blockX, int blockY, int blockZ)
-        {
-            return (blockX * ChunkComponent.BlockSize + blockZ) * ChunkComponent.BlockSize + blockY;
         }
         #endregion
     }

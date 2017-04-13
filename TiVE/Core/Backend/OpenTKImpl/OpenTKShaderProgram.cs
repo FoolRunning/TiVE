@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using OpenTK.Graphics.OpenGL;
 using ProdigalSoftware.TiVE.Starter;
@@ -81,7 +80,7 @@ namespace ProdigalSoftware.TiVE.Core.Backend.OpenTKImpl
                 string info;
                 GL.GetProgramInfoLog(programId, out info);
                 if (!string.IsNullOrEmpty(info))
-                    Debug.WriteLine(info);
+                    Console.WriteLine(info);
 
                 int linkResult;
                 GL.GetProgram(programId, ProgramParameter.LinkStatus, out linkResult);
