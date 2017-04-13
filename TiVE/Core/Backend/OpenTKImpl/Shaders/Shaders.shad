@@ -6,9 +6,9 @@ vert: ProdigalSoftware.TiVE.Core.Backend.OpenTKImpl.Shaders.Instanced.vert
 geom: ProdigalSoftware.TiVE.Core.Backend.OpenTKImpl.Shaders.UnshadedMesh.geom
 frag: ProdigalSoftware.TiVE.Core.Backend.OpenTKImpl.Shaders.Simple.frag
 attrib: in_Position
+attrib: in_Normal
 attrib: in_InstancePos
 attrib: in_InstanceColor
-attrib: in_InstanceNormal
 uniform: matrix_ModelViewProjection
 uniform: voxelSize
 uniform: cameraLoc
@@ -23,9 +23,9 @@ vert: ProdigalSoftware.TiVE.Core.Backend.OpenTKImpl.Shaders.Instanced.vert
 geom: ProdigalSoftware.TiVE.Core.Backend.OpenTKImpl.Shaders.ShadedMesh.geom
 frag: ProdigalSoftware.TiVE.Core.Backend.OpenTKImpl.Shaders.Simple.frag
 attrib: in_Position
+attrib: in_Normal
 attrib: in_InstancePos
 attrib: in_InstanceColor
-attrib: in_InstanceNormal
 uniform: matrix_ModelViewProjection
 uniform: voxelSize
 uniform: cameraLoc

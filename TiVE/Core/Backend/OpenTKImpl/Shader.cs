@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
 using OpenTK.Graphics.OpenGL;
 using ProdigalSoftware.TiVE.Starter;
 
@@ -54,7 +53,7 @@ namespace ProdigalSoftware.TiVE.Core.Backend.OpenTKImpl
             if (compileResult != 1)
             {
                 Messages.AddWarning(shaderType + " shader compile error!");
-                Debug.WriteLine(shaderSource);
+                Console.WriteLine(shaderSource);
                 Dispose();
                 return false;
             }

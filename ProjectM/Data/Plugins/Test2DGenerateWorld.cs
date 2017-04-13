@@ -107,8 +107,8 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
                     if (lightNoise > 925)
                     {
                         int lightNum = (lightNoise - 925) / 11;
-                        if (gameWorld[x, 2, z] == Block.Empty)
-                            gameWorld[x, 2, z] = Factory.Get<Block>("light" + lightNum);
+                        if (gameWorld[x, 4, z] == Block.Empty)
+                            gameWorld[x, 4, z] = Factory.Get<Block>("light" + lightNum);
                         //else
                         //    gameWorld[x, 0, z] = redLight;
                     }

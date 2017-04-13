@@ -53,7 +53,7 @@ namespace ProdigalSoftware.TiVE.Settings
         public const string ShadowsPerBlockKey = "shadowsPerBlock";
         public const string AntiAliasAmountKey = "antiAliasAmount";
         public const string DetailDistanceKey = "detailDistance";
-        public const string ChunkCreationThreadsKey = "chunkCreationThreads";
+        public const string MeshCreationThreadsKey = "meshCreationThreads";
         public const string UseThreadedParticlesKey = "useThreadedParticles";
         public const string DisplayResolutionKey = "resolution";
 
@@ -137,7 +137,7 @@ namespace ProdigalSoftware.TiVE.Settings
             UserSettingOption[] threadOptions = new UserSettingOption[numThreadOptions];
             for (int i = 0; i < numThreadOptions; i++)
                 threadOptions[i] = new UserSettingOption(new IntSetting(i + 1));
-            settingOptions.Add(new UserSettingOptions(ChunkCreationThreadsKey, "Chunk creation threads", UserOptionTab.Advanced,
+            settingOptions.Add(new UserSettingOptions(MeshCreationThreadsKey, "Mesh creation threads", UserOptionTab.Advanced,
                 new IntSetting(totalCores > 3 ? totalCores - 2 : 1), threadOptions));
 
             settingOptions.Add(new UserSettingOptions(UseThreadedParticlesKey, "Threaded particles", UserOptionTab.Advanced, new BoolSetting(totalCores > 3),
