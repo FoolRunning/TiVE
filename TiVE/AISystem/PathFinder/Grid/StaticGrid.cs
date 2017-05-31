@@ -43,7 +43,7 @@ using System.Collections;
 
 namespace ProdigalSoftware.TiVE.AISystem.PathFinder.Grid
 {
-    public class StaticGrid : BaseGrid
+    internal class StaticGrid : BaseGrid
     {
         public override int width { get; protected set; }
 

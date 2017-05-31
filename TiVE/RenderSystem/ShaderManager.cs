@@ -108,7 +108,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem
                         case "attrib": currentProgram.AddAttribute(value); break;
                         case "uniform": currentProgram.AddKnownUniform(value); break;
                         case "lightUniform":
-                            for (int i = 0; i < GameWorldLightData.MaxLightsPerChunk; i++)
+                            for (int i = 0; i < SceneLightData.MaxLightsPerChunk; i++)
                             {
                                 currentProgram.AddKnownUniform(value + "[" + i + "].location");
                                 currentProgram.AddKnownUniform(value + "[" + i + "].color");

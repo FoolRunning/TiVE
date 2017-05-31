@@ -30,7 +30,7 @@ function initialize(entity)
     --    --end
     --end
 
-    camera.FieldOfView = math.rad(75)
+    camera.FieldOfView = math.rad(65)
     camera.FarDistance = BlockSize * 50
     camera.UpVector = vector(0, 0, 1)
 end
@@ -43,7 +43,7 @@ function update(entity, timeSinceLastFrame)
         stopRunning()
     end
 
-    local speed = BlockSize * timeSinceLastFrame * 2.5
+    local speed = BlockSize * timeSinceLastFrame * 5
     if (keyPressed(Keys.LShift)) then --Speed up
         speed = speed * 2
     elseif (keyPressed(Keys.LControl)) then --Slow down

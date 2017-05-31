@@ -32,7 +32,7 @@ namespace ProdigalSoftware.TiVE.SoundSystem
             if (speechSynthesisThread != null && speechSynthesisThread.IsAlive)
                 speechSynthesisThread.Join();
 
-            soundEngine.Dispose();
+            soundEngine?.Dispose();
         }
 
         public override bool Initialize()
@@ -94,9 +94,9 @@ namespace ProdigalSoftware.TiVE.SoundSystem
             // Italian
             //istc-lucia-hsmm
 
-            //SayText("Hi! My name is George. I need to go now.", new SpeechParameters("cmu-rms-hsmm", 1.8f));
+            //SayText("Hi! My name is George. I need to go now.", new SpeechParameters("cmu-rms-hsmm"));
             //SayText("Hey there! My name is Janice. I like to talk a lot and have a tendency to talk fast. I would like to talk to you for a while. " +
-            //        "Do you like to talk? I love to talk. I can't stop talking.", new SpeechParameters("cmu-slt-hsmm", 0.6f));
+            //        "Do you like to talk? I love to talk. I can't stop talking!", new SpeechParameters("cmu-slt-hsmm", 0.6f));
             //SayText("System is up and running. Can you understand me?", new SpeechParameters("dfki-obadiah-hsmm"));
         }
 

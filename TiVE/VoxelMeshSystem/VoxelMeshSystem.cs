@@ -4,7 +4,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using ProdigalSoftware.TiVE.Core;
-using ProdigalSoftware.TiVE.RenderSystem.Lighting;
 using ProdigalSoftware.TiVE.RenderSystem.World;
 using ProdigalSoftware.TiVE.Settings;
 using ProdigalSoftware.TiVEPluginFramework;
@@ -32,6 +31,7 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
         #endregion
 
         #region Member variables
+        private readonly VisibleVoxelCache visibleVoxelCache = new VisibleVoxelCache();
         private readonly HashSet<IEntity> loadedEntities = new HashSet<IEntity>();
 
         private readonly List<Thread> meshCreationThreads = new List<Thread>();
@@ -312,7 +312,7 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
             }
         }
 
-        private static void CreateMeshForBlockInChunk(Block block, int blockX, int blockY, int blockZ,
+        private void CreateMeshForBlockInChunk(Block block, int blockX, int blockY, int blockZ,
             int voxelStartX, int voxelStartY, int voxelStartZ, EntityLoadQueueItem queueItem, Scene scene,
             MeshBuilder meshBuilder, ref int renderedVoxelCount)
         {
@@ -328,10 +328,10 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
             int maxBlockZ = gameWorld.BlockSize.Z - 1;
 
             VoxelNoiseComponent voxelNoiseComponent = block.GetComponent<VoxelNoiseComponent>();
-            RenderedVoxel[] renderedVoxels = blockLOD.RenderedVoxels;
+            VisibleVoxel[] renderedVoxels = visibleVoxelCache.GetVisibleVoxels(blockLOD);
             for (int i = 0; i < renderedVoxels.Length; i++)
             {
-                RenderedVoxel renVox = renderedVoxels[i];
+                VisibleVoxel renVox = renderedVoxels[i];
                 int bvx = renVox.X;
                 int bvy = renVox.Y;
                 int bvz = renVox.Z;
@@ -366,7 +366,7 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
                     if (bvy == maxBlockVoxel && blockY < maxBlockY && gameWorld[blockX, blockY + 1, blockZ] != Block.Empty && gameWorld.GetVoxel(voxelX, voxelY + 1, voxelZ, detailLevel) != Voxel.Empty)
                         sides ^= CubeSides.YPlus;
                 }
-                
+
                 if (sides != CubeSides.None)
                 {
                     if (voxelNoiseComponent != null)
@@ -376,7 +376,7 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
                     byte chunkVoxelY = (byte)((voxelY - voxelStartY) * renderedVoxelSize);
                     byte chunkVoxelZ = (byte)((voxelZ - voxelStartZ) * renderedVoxelSize);
 
-                    meshBuilder.AddVoxel(sides, chunkVoxelX, chunkVoxelY, chunkVoxelZ, (Color4b)vox, 
+                    meshBuilder.AddVoxel(sides, chunkVoxelX, chunkVoxelY, chunkVoxelZ, (Color4b)vox,
                         vox.SkipVoxelNormalCalc || vox.IgnoreLighting ? Vector3f.Zero : VoxelMeshUtils.GetVoxelNormal(sides));
                     renderedVoxelCount++;
                 }

@@ -143,6 +143,8 @@
     <Compile Include="SoundSystem\AudioData.cs" />
     <Compile Include="VoxelMeshSystem\MeshBuilder.cs" />
     <Compile Include="VoxelMeshSystem\EntityMeshLoadQueue.cs" />
+    <Compile Include="VoxelMeshSystem\VisibleVoxel.cs" />
+    <Compile Include="VoxelMeshSystem\VisibleVoxelCache.cs" />
     <Compile Include="VoxelMeshSystem\VoxelMeshSystem.cs" />
     <Compile Include="Core\Backend\IKeyboard.cs" />
     <Compile Include="Core\Backend\IMouse.cs" />
@@ -175,13 +177,12 @@
     <Compile Include="Debugging\SystemTimingHelper.cs" />
     <Compile Include="GUISystem\GUISystem.cs" />
     <Compile Include="ParticleSystem\ParticleSystem.cs" />
-    <Compile Include="RenderSystem\Lighting\GameWorldLightData.cs" />
+    <Compile Include="RenderSystem\Lighting\SceneLightData.cs" />
     <Compile Include="RenderSystem\Lighting\LightInfo.cs" />
     <Compile Include="RenderSystem\Lighting\LightingModel.cs" />
     <Compile Include="RenderSystem\Lighting\LightProvider.cs" />
     <Compile Include="VoxelMeshSystem\LargeMeshBuilder.cs" />
     <Compile Include="ParticleSystem\ParticleEmitter.cs" />
-    <Compile Include="ParticleSystem\ParticleEmitterCollection.cs" />
     <Compile Include="RenderSystem\RenderStatistics.cs" />
     <Compile Include="RenderSystem\RenderSystem.cs" />
     <Compile Include="RenderSystem\ShaderManager.cs" />
@@ -268,9 +269,7 @@
       <Name>Utils</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Utils\" />
-  </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <EmbeddedResource Include="Resources\defaultTables.def" />
   </ItemGroup>

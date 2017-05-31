@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using ProdigalSoftware.TiVE.Core;
-using ProdigalSoftware.TiVE.RenderSystem.Lighting;
-using ProdigalSoftware.TiVE.Settings;
+using ProdigalSoftware.TiVE.Core.Backend;
+using ProdigalSoftware.TiVE.RenderSystem;
+using ProdigalSoftware.TiVE.VoxelMeshSystem;
 using ProdigalSoftware.TiVEPluginFramework;
 
 namespace ProdigalSoftware.TiVE.ParticleSystem
@@ -10,26 +10,59 @@ namespace ProdigalSoftware.TiVE.ParticleSystem
     /// <summary>
     /// Represents a single particle emitter. Responsible for updating all particles owned by itself.
     /// </summary>
-    internal sealed class ParticleEmitter
+    internal sealed class ParticleEmitter : IDisposable
     {
-        private static readonly ParticleSorter sorter = new ParticleSorter();
+        private static readonly ParticleSorter particleSorter = new ParticleSorter();
 
-        private readonly ParticleController controller;
+        private readonly object syncObj = new object();
         private readonly Particle[] particles;
+        private readonly IRendererData voxelInstanceLocationData;
+        private readonly IRendererData voxelInstanceNormalData;
+        private readonly Vector3us[] locations;
+        private readonly Color4b[] colors;
+        private readonly int voxelsPerParticle;
+        private readonly int renderedVoxelsPerParticle;
+
+        private IVertexDataCollection instances;
+        private IRendererData locationData;
+        private IRendererData colorData;
         private float numOfParticlesNeeded;
         private int aliveParticles;
 
         public ParticleEmitter(ParticleController controller)
         {
-            this.controller = controller;
+            this.Controller = controller;
             particles = new Particle[controller.MaxParticles];
             for (int i = 0; i < particles.Length; i++)
                 particles[i] = new Particle();
+
+            // Create particle voxel model to be used for each particle
+            MeshBuilder voxelInstanceBuilder = new MeshBuilder(controller.ParticleSprite.VoxelCount);
+            VoxelMeshUtils.GenerateMesh(controller.ParticleSprite, voxelInstanceBuilder, out voxelsPerParticle, out renderedVoxelsPerParticle);
+            voxelInstanceLocationData = voxelInstanceBuilder.GetLocationData();
+            voxelInstanceNormalData = voxelInstanceBuilder.GetNormalData();
+
+            locations = new Vector3us[controller.MaxParticles];
+            colors = new Color4b[controller.MaxParticles];
         }
 
-        public Vector3i Location { get; private set; }
+        /// <summary>
+        /// Cleans up data used by all the particles systems in this collection
+        /// </summary>
+        public void Dispose()
+        {
+            voxelInstanceLocationData.Dispose();
+            voxelInstanceNormalData.Dispose();
+            instances?.Dispose();
+        }
 
-        public bool InUse { get; set; }
+        #region Properties
+        public ParticleController Controller { get; }
+
+        public TransparencyType TransparencyType => Controller.TransparencyType;
+
+        public Vector3i Location { get; private set; }
+        #endregion
 
         public void Reset(Vector3i newLocation)
         {
@@ -41,9 +74,53 @@ namespace ProdigalSoftware.TiVE.ParticleSystem
             aliveParticles = 0;
         }
 
-        public void UpdateInternal(ref Vector3i cameraLocation, float timeSinceLastUpdate)
+        /// <summary>
+        /// Renders all particles in all systems in this collection
+        /// </summary>
+        public RenderStatistics Render()
         {
-            numOfParticlesNeeded += controller.ParticlesPerSecond * timeSinceLastUpdate;
+            if (instances == null)
+                instances = CreateInstanceDataBuffer(out locationData, out colorData);
+
+            // Put the data for the current particles into the graphics memory and draw them
+            lock (syncObj)
+            {
+                locationData.UpdateData(locations, aliveParticles);
+                colorData.UpdateData(colors, aliveParticles);
+            }
+            instances.Bind();
+            TiVEController.Backend.Draw(PrimitiveType.Points, instances);
+
+            return new RenderStatistics(1, aliveParticles * voxelsPerParticle, aliveParticles * renderedVoxelsPerParticle);
+        }
+        
+        /// <summary>
+        /// Updates all particle systems in this collection
+        /// </summary>
+        public void UpdateAll(ref Vector3i cameraLocation, float timeSinceLastFrame)
+        {
+            UpdateInternal(ref cameraLocation, timeSinceLastFrame);
+            lock (syncObj)
+            {
+                bool isLit = Controller.IsLit;
+                for (int i = 0; i < aliveParticles; i++)
+                {
+                    Particle part = particles[i];
+                    if (part.X < 0.0f || part.Y < 0.0f || part.Z < 0.0f)
+                        continue; // Can't be cast to a ushort
+
+                    ushort partX = (ushort)part.X;
+                    ushort partY = (ushort)part.Y;
+                    ushort partZ = (ushort)part.Z;
+                    locations[i] = new Vector3us(partX, partY, partZ);
+                    colors[i] = part.Color;
+                }
+            }
+        }
+        
+        private void UpdateInternal(ref Vector3i cameraLocation, float timeSinceLastUpdate)
+        {
+            numOfParticlesNeeded += Controller.ParticlesPerSecond * timeSinceLastUpdate;
             int newParticleCount = Math.Min((int)numOfParticlesNeeded, particles.Length - aliveParticles);
             numOfParticlesNeeded -= newParticleCount;
 
@@ -54,12 +131,12 @@ namespace ProdigalSoftware.TiVE.ParticleSystem
                 if (part.Time > 0.0f)
                 {
                     // Normal case - particle is still alive, so just update it
-                    controller.Update(part, timeSinceLastUpdate, loc);
+                    Controller.Update(part, timeSinceLastUpdate, loc);
                 }
                 else if (newParticleCount > 0)
                 {
                     // Particle died, but we need new particles so just re-initialize this one
-                    controller.InitializeNew(part, loc);
+                    Controller.InitializeNew(part, loc);
                     newParticleCount--;
                 }
                 else
@@ -72,7 +149,7 @@ namespace ProdigalSoftware.TiVE.ParticleSystem
                     part = lastAlive;
                     aliveParticles--;
                     // Just replaced current dead particle with an alive one. Need to update it.
-                    controller.Update(part, timeSinceLastUpdate, loc);
+                    Controller.Update(part, timeSinceLastUpdate, loc);
                 }
             }
 
@@ -80,48 +157,30 @@ namespace ProdigalSoftware.TiVE.ParticleSystem
             for (int i = 0; i < newParticleCount; i++)
             {
                 Particle part = particles[aliveParticles];
-                controller.InitializeNew(part, loc);
+                Controller.InitializeNew(part, loc);
                 aliveParticles++;
             }
 
-            if (controller.TransparencyType == TransparencyType.Realistic)
+            if (Controller.TransparencyType == TransparencyType.Realistic)
             {
-                sorter.CameraLocation = cameraLocation;
-                Array.Sort(particles, sorter);
+                particleSorter.CameraLocation = cameraLocation;
+                Array.Sort(particles, particleSorter);
             }
         }
 
-        public void AddToArrays(ref Vector3i worldSize, ShadowDetailLevel shadowDetail, Scene scene, Vector3us[] locationArray, Color4b[] colorArray, ref int dataIndex)
+        private IVertexDataCollection CreateInstanceDataBuffer(out IRendererData locData, out IRendererData colData)
         {
-            LightProvider lightProvider = scene.GetLightProvider(shadowDetail != ShadowDetailLevel.Off);
-            bool isLit = controller.IsLit;
-            for (int i = 0; i < aliveParticles; i++)
-            {
-                Particle part = particles[i];
-                if (part.X < 0.0f || part.Y < 0.0f || part.Z < 0.0f)
-                    continue; // Can't be cast to a ushort
+            IVertexDataCollection instanceData = TiVEController.Backend.CreateVertexDataCollection();
+            instanceData.AddBuffer(voxelInstanceLocationData);
+            instanceData.AddBuffer(voxelInstanceNormalData);
 
-                ushort partX = (ushort)part.X;
-                ushort partY = (ushort)part.Y;
-                ushort partZ = (ushort)part.Z;
-                locationArray[dataIndex] = new Vector3us(partX, partY, partZ);
-                if (!isLit)
-                    colorArray[dataIndex] = part.Color;
-                else
-                {
-                    Color3f lightColor;
-                    if (partX >= worldSize.X || partY >= worldSize.Y || partZ >= worldSize.Z)
-                        lightColor = scene.AmbientLight;
-                    else
-                        lightColor = lightProvider.GetLightAtFast(partX, partY, partZ, LODLevel.V32, (LODLevel)shadowDetail);
+            locData = TiVEController.Backend.CreateData(locations, 0, 3, DataType.Instance, DataValueType.UShort, false, true);
+            instanceData.AddBuffer(locData);
+            colData = TiVEController.Backend.CreateData(colors, 0, 4, DataType.Instance, DataValueType.Byte, true, true);
+            instanceData.AddBuffer(colData);
+            instanceData.Initialize();
 
-                    colorArray[dataIndex] = new Color4b(
-                        (byte)Math.Min(255, (int)(part.Color.R * lightColor.R)),
-                        (byte)Math.Min(255, (int)(part.Color.G * lightColor.G)),
-                        (byte)Math.Min(255, (int)(part.Color.B * lightColor.B)), part.Color.A);
-                }
-                dataIndex++;
-            } 
+            return instanceData;
         }
 
         #region ParticleSorter class

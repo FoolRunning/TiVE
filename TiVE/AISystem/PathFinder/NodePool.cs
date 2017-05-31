@@ -41,7 +41,7 @@ using ProdigalSoftware.TiVE.AISystem.PathFinder.Grid;
 
 namespace ProdigalSoftware.TiVE.AISystem.PathFinder
 {
-    public class NodePool
+    internal class NodePool
     {
         protected Dictionary<GridPos, Node> m_nodes;
 

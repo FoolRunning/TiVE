@@ -16,10 +16,7 @@ namespace ProdigalSoftware.TiVEPluginFramework
         public static readonly Block Empty = new Block("3ptEe");
         public static readonly Block Missing = new Block("M1s51Ng");
 
-        public readonly BlockLOD32 LOD32;
-        public readonly BlockLOD16 LOD16;
-        public readonly BlockLOD8 LOD8;
-        public readonly BlockLOD4 LOD4;
+        public readonly BlockLOD[] LODs = new BlockLOD[(int)LODLevel.NumOfLevels];
 
         private readonly List<IBlockComponent> components = new List<IBlockComponent>();
         private readonly string name;
@@ -39,10 +36,10 @@ namespace ProdigalSoftware.TiVEPluginFramework
 
         private Block(Block toCopy, string newBlockName) : this(newBlockName)
         {
-            LOD32 = new BlockLOD32(toCopy.LOD32);
-            LOD16 = new BlockLOD16(toCopy.LOD16);
-            LOD8 = new BlockLOD8(toCopy.LOD8);
-            LOD4 = new BlockLOD4(toCopy.LOD4);
+            LODs[(int)LODLevel.V32] = new BlockLOD32(toCopy.LOD32);
+            LODs[(int)LODLevel.V16] = new BlockLOD16(toCopy.LOD16);
+            LODs[(int)LODLevel.V8] = new BlockLOD8(toCopy.LOD8);
+            LODs[(int)LODLevel.V4] = new BlockLOD4(toCopy.LOD4);
             components.AddRange(toCopy.components);
         }
 
@@ -54,10 +51,10 @@ namespace ProdigalSoftware.TiVEPluginFramework
 
             name = reader.ReadString();
 
-            LOD32 = new BlockLOD32(reader);
-            LOD16 = new BlockLOD16(reader);
-            LOD8 = new BlockLOD8(reader);
-            LOD4 = new BlockLOD4(reader);
+            LODs[(int)LODLevel.V32] = new BlockLOD32(reader);
+            LODs[(int)LODLevel.V16] = new BlockLOD16(reader);
+            LODs[(int)LODLevel.V8] = new BlockLOD8(reader);
+            LODs[(int)LODLevel.V4] = new BlockLOD4(reader);
 
             int componentCount = reader.ReadInt32();
             for (int i = 0; i < componentCount; i++)
@@ -71,26 +68,24 @@ namespace ProdigalSoftware.TiVEPluginFramework
 
             this.name = name;
 
-            LOD32 = new BlockLOD32();
-            LOD16 = new BlockLOD16();
-            LOD8 = new BlockLOD8();
-            LOD4 = new BlockLOD4();
+            LODs[(int)LODLevel.V32] = new BlockLOD32();
+            LODs[(int)LODLevel.V16] = new BlockLOD16();
+            LODs[(int)LODLevel.V8] = new BlockLOD8();
+            LODs[(int)LODLevel.V4] = new BlockLOD4();
         }
         #endregion
 
         #region Properties
-        public string Name
-        {
-            get { return name; }
-        }
+        public BlockLOD32 LOD32 => (BlockLOD32)LODs[(int)LODLevel.V32];
+        public BlockLOD16 LOD16 => (BlockLOD16)LODs[(int)LODLevel.V16];
+        public BlockLOD8 LOD8 => (BlockLOD8)LODs[(int)LODLevel.V8];
+        public BlockLOD4 LOD4 => (BlockLOD4)LODs[(int)LODLevel.V4];
+        public string Name => name;
 
         /// <summary>
-        /// Gets the number of visible (non-empty) voxels when rendered at the highest detail level
+        /// Gets the number of non-empty voxels at the highest detail level
         /// </summary>
-        internal int TotalVoxels
-        {
-            get { return ((BlockLOD32)GetLOD(LODLevel.V32)).TotalVoxels; }
-        }
+        internal int TotalVoxels => ((BlockLOD32)GetLOD(LODLevel.V32)).TotalVoxels;
         #endregion
 
         #region Implementation of ITiVESerializable
@@ -99,10 +94,10 @@ namespace ProdigalSoftware.TiVEPluginFramework
             writer.Write(SerializedFileVersion);
             writer.Write(name);
 
-            GetLOD(LODLevel.V32).SaveTo(writer);
-            GetLOD(LODLevel.V16).SaveTo(writer);
-            GetLOD(LODLevel.V8).SaveTo(writer);
-            GetLOD(LODLevel.V4).SaveTo(writer);
+            LOD32.SaveTo(writer);
+            LOD16.SaveTo(writer);
+            LOD8.SaveTo(writer);
+            LOD4.SaveTo(writer);
 
             writer.Write(components.Count);
             foreach (IBlockComponent component in components)
@@ -113,14 +108,7 @@ namespace ProdigalSoftware.TiVEPluginFramework
         #region Other public methods
         public BlockLOD GetLOD(LODLevel detailLevel)
         {
-            switch (detailLevel)
-            {
-                case LODLevel.V32: return LOD32;
-                case LODLevel.V16: return LOD16;
-                case LODLevel.V8: return LOD8;
-                case LODLevel.V4: return LOD4;
-                default: throw new ArgumentException("detailLevel invalid: " + detailLevel);
-            }
+            return LODs[(int)detailLevel];
         }
 
         public void GenerateLODLevels(LODLevel sourceLevel = LODLevel.V32, LODLevel start = LODLevel.V16)
@@ -136,7 +124,7 @@ namespace ProdigalSoftware.TiVEPluginFramework
                     for (int x = 0; x < voxelAxisSize; x++)
                     {
                         for (int y = 0; y < voxelAxisSize; y++)
-                            voxelsLOD.VoxelAt(x, y, z, GetLODVoxel(sourceLOD, x * voxelMult, y * voxelMult, z * voxelMult, voxelMult));
+                            voxelsLOD[x, y, z] = GetLODVoxel(sourceLOD, x * voxelMult, y * voxelMult, z * voxelMult, voxelMult);
                     }
                 }
             }
@@ -247,7 +235,7 @@ namespace ProdigalSoftware.TiVEPluginFramework
                 {
                     for (int y = bvy; y < maxY; y++)
                     {
-                        Voxel otherColor = sourceLOD.VoxelAt(x, y, z);
+                        Voxel otherColor = sourceLOD[x, y, z];
                         if (otherColor == Voxel.Empty)
                             continue;
 

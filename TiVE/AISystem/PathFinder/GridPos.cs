@@ -43,7 +43,7 @@ using System.Threading.Tasks;
 
 namespace ProdigalSoftware.TiVE.AISystem.PathFinder
 {
-    public struct GridPos
+    internal struct GridPos
     {
         public int x;
         public int y;

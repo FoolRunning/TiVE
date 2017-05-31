@@ -4,7 +4,7 @@ using ProdigalSoftware.Utils;
 
 namespace ProdigalSoftware.TiVE.Debugging
 {
-    public sealed class SystemTimingHelper
+    internal sealed class SystemTimingHelper
     {
         private readonly string formatString;
         private long startTicks;

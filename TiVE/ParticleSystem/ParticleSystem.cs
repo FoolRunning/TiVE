@@ -5,7 +5,7 @@ using System.Threading;
 using ProdigalSoftware.TiVE.Core;
 using ProdigalSoftware.TiVE.Core.Backend;
 using ProdigalSoftware.TiVE.RenderSystem;
-using ProdigalSoftware.TiVE.Settings;
+using ProdigalSoftware.TiVE.RenderSystem.World;
 using ProdigalSoftware.TiVE.Starter;
 using ProdigalSoftware.TiVEPluginFramework;
 using ProdigalSoftware.TiVEPluginFramework.Components;
@@ -18,24 +18,35 @@ namespace ProdigalSoftware.TiVE.ParticleSystem
     {
         private const int UpdatesPerSecond = 60;
 
-        private readonly List<ParticleEmitterCollection> renderList = new List<ParticleEmitterCollection>();
-        private readonly List<ParticleEmitterCollection> updateList = new List<ParticleEmitterCollection>();
+        private static readonly ParticleEmitterSorter emitterSorter = new ParticleEmitterSorter();
 
-        private readonly HashSet<IEntity> systemsToRender = new HashSet<IEntity>();
-        private readonly HashSet<IEntity> runningSystems = new HashSet<IEntity>();
-        private readonly List<IEntity> systemsToDelete = new List<IEntity>();
+        /// <summary>List of particles systems in this collection</summary>
+        private readonly List<ParticleEmitter> particleEmitters = new List<ParticleEmitter>();
+        /// <summary>Copy of the particle systems list used for updating without locking too long</summary>
+        private readonly List<ParticleEmitter> updateList = new List<ParticleEmitter>();
+        /// <summary>Quick lookup for the index of a particle entity</summary>
+        private readonly Dictionary<IEntity, int> particleEmitterIndex = new Dictionary<IEntity, int>();
 
-        private readonly Dictionary<string, ParticleEmitterCollection> particleSystemCollections = new Dictionary<string, ParticleEmitterCollection>();
+
+        private readonly List<ParticleEmitter> renderList = new List<ParticleEmitter>();
+
+        private readonly HashSet<IEntity> emittersToRender = new HashSet<IEntity>();
+        private readonly HashSet<IEntity> runningEmitters = new HashSet<IEntity>();
+        private readonly List<IEntity> emittersToDelete = new List<IEntity>();
+
         private readonly IParticleControllerGenerator[] controllerGenerators;
         private readonly ShaderManager shaderManager = new ShaderManager();
-        private Vector3i cameraLocation;
-        private Scene loadedScene;
-        private Thread particleUpdateThread;
+        private readonly Thread particleUpdateThread;
         private volatile bool stopThread;
+        private Vector3i cameraLocation;
 
         public ParticleSystem() : base("Particles")
         {
             controllerGenerators = TiVEController.PluginManager.GetPluginsOfType<IParticleControllerGenerator>().ToArray();
+            particleUpdateThread = new Thread(ParticleUpdateLoop);
+            particleUpdateThread.Priority = ThreadPriority.Normal;
+            particleUpdateThread.IsBackground = true;
+            particleUpdateThread.Name = "ParticleUpdate";
         }
 
         public override void Dispose()
@@ -44,31 +55,23 @@ namespace ProdigalSoftware.TiVE.ParticleSystem
             if (particleUpdateThread != null && particleUpdateThread.IsAlive)
                 particleUpdateThread.Join();
 
-            foreach (ParticleEmitterCollection systemCollection in particleSystemCollections.Values)
-                systemCollection.Dispose();
-            particleSystemCollections.Clear();
+            foreach (ParticleEmitter emitter in particleEmitters.Where(pe => pe != null))
+                emitter.Dispose();
+            particleEmitters.Clear();
 
             renderList.Clear();
             updateList.Clear();
-            systemsToRender.Clear();
-            systemsToDelete.Clear();
-            runningSystems.Clear();
+            emittersToRender.Clear();
+            emittersToDelete.Clear();
+            runningEmitters.Clear();
+            particleEmitters.Clear();
+            particleEmitterIndex.Clear();
             shaderManager.Dispose();
-
-            particleUpdateThread = null;
-            loadedScene = null;
         }
 
         public override bool Initialize()
         {
-            if (TiVEController.UserSettings.Get(UserSettings.UseThreadedParticlesKey))
-            {
-                particleUpdateThread = new Thread(ParticleUpdateLoop);
-                particleUpdateThread.Priority = ThreadPriority.Normal;
-                particleUpdateThread.IsBackground = true;
-                particleUpdateThread.Name = "ParticleUpdate";
-                particleUpdateThread.Start();
-            }
+            particleUpdateThread.Start();
             
             if (controllerGenerators == null || controllerGenerators.Length == 0)
                 Messages.AddWarning("Could not find particle controller generators.");
@@ -77,13 +80,10 @@ namespace ProdigalSoftware.TiVE.ParticleSystem
 
         public override void ChangeScene(Scene oldScene, Scene newScene)
         {
-            loadedScene = newScene;
         }
 
         protected override bool UpdateInternal(int ticksSinceLastFrame, Scene currentScene)
         {
-            Debug.Assert(loadedScene == currentScene);
-
             CameraComponent cameraData = FindCamera(currentScene);
             if (cameraData == null)
                 return true; // Couldn't find a camera to determine view projection matrix
@@ -92,13 +92,7 @@ namespace ProdigalSoftware.TiVE.ParticleSystem
 
             if (currentScene.LoadingInitialChunks)
                 return true;
-
-            if (particleUpdateThread == null)
-            {
-                // Running in single-threaded mode
-                UpdateEntities(ticksSinceLastFrame / (float)Stopwatch.Frequency);
-            }
-
+            
             ShaderProgram shader = shaderManager.GetShaderProgram(ShaderProgram.GetShaderName(true));
             shader.Bind();
             shader.SetUniform("matrix_ModelViewProjection", ref cameraData.ViewProjectionMatrix);
@@ -110,15 +104,53 @@ namespace ProdigalSoftware.TiVE.ParticleSystem
             shader.SetUniform("modelTranslation", ref translation);
 
             renderList.Clear();
-            using (new PerformanceLock(particleSystemCollections))
-                renderList.AddRange(particleSystemCollections.Values);
+            using (new PerformanceLock(particleEmitters))
+                renderList.AddRange(particleEmitters.Where(pe => pe != null));
 
-            // Sort by transparency type
-            renderList.Sort((em1, em2) => em1.TransparencyType.CompareTo(em2.TransparencyType));
+            // Sort by transparency type and distance to the camera
+            emitterSorter.CameraLocation = cameraLocation;
+            renderList.Sort(emitterSorter);
 
             RenderStatistics stats = new RenderStatistics();
+            TransparencyType lastType = TransparencyType.None;
             for (int i = 0; i < renderList.Count; i++)
+            {
+                ParticleEmitter emitter = renderList[i];
+
+                // Make sure the correct transparency mode is setup
+                if (emitter.Controller.TransparencyType != lastType)
+                {
+                    if (emitter.Controller.TransparencyType != TransparencyType.None)
+                    {
+                        TiVEController.Backend.DisableDepthWriting();
+                        if (emitter.Controller.TransparencyType == TransparencyType.Additive)
+                            TiVEController.Backend.SetBlendMode(BlendMode.Additive);
+                        else
+                            TiVEController.Backend.SetBlendMode(BlendMode.Realistic);
+                    }
+                    else
+                    {
+                        TiVEController.Backend.SetBlendMode(BlendMode.Realistic);
+                        TiVEController.Backend.EnableDepthWriting();
+                    }
+                }
+
+                RenderedLight[] lights = currentScene.LightData.GetLightsInChunk(
+                    emitter.Location.X / ChunkComponent.VoxelSize, 
+                    emitter.Location.Y / ChunkComponent.VoxelSize, 
+                    emitter.Location.Z / ChunkComponent.VoxelSize, 10);
+                shader.SetUniform("lightCount", lights.Length);
+                shader.SetUniform("lights", lights);
+
                 stats += renderList[i].Render();
+                lastType = emitter.Controller.TransparencyType;
+            }
+
+            if (lastType != TransparencyType.None)
+            {
+                TiVEController.Backend.SetBlendMode(BlendMode.Realistic);
+                TiVEController.Backend.EnableDepthWriting();
+            }
 
             return true;
         }
@@ -127,37 +159,34 @@ namespace ProdigalSoftware.TiVE.ParticleSystem
         {
             cameraLocation = new Vector3i((int)cameraData.Location.X, (int)cameraData.Location.Y, (int)cameraData.Location.Z);
 
-            systemsToRender.Clear();
+            emittersToRender.Clear();
             foreach (IEntity entity in cameraData.VisibleEntitites)
             {
                 ParticleComponent particleData = entity.GetComponent<ParticleComponent>();
                 if (particleData == null)
                     continue;
 
-                systemsToRender.Add(entity);
-                if (!runningSystems.Contains(entity))
+                emittersToRender.Add(entity);
+                if (!runningEmitters.Contains(entity))
                 {
-                    runningSystems.Add(entity);
-                    AddParticleSystem(entity, particleData);
+                    runningEmitters.Add(entity);
+                    AddEmitter(entity, particleData);
                 }
             }
 
-            foreach (IEntity entity in runningSystems)
+            foreach (IEntity entity in runningEmitters)
             {
-                if (!systemsToRender.Contains(entity))
-                    systemsToDelete.Add(entity);
+                if (!emittersToRender.Contains(entity))
+                    emittersToDelete.Add(entity);
             }
 
-            for (int i = 0; i < systemsToDelete.Count; i++)
+            for (int i = 0; i < emittersToDelete.Count; i++)
             {
-                IEntity entity = systemsToDelete[i];
-                ParticleComponent particleData = entity.GetComponent<ParticleComponent>();
-                Debug.Assert(particleData != null);
-
-                runningSystems.Remove(entity);
-                RemoveParticleSystem(entity, particleData);
+                IEntity entity = emittersToDelete[i];
+                runningEmitters.Remove(entity);
+                RemoveEmitter(entity);
             }
-            systemsToDelete.Clear();
+            emittersToDelete.Clear();
         }
 
         /// <summary>
@@ -176,13 +205,12 @@ namespace ProdigalSoftware.TiVE.ParticleSystem
             return null;
         }
 
-        private void AddParticleSystem(IEntity entity, ParticleComponent particleData)
+        private void AddEmitter(IEntity entity, ParticleComponent particleData)
         {
             string controllerName = particleData.ControllerName;
-            ParticleEmitterCollection collection;
-            using (new PerformanceLock(particleSystemCollections))
+            using (new PerformanceLock(particleEmitters))
             {
-                if (!particleSystemCollections.TryGetValue(controllerName, out collection) && controllerGenerators != null)
+                if (controllerGenerators != null)
                 {
                     ParticleController controller = null;
                     for (int i = 0; i < controllerGenerators.Length; i++)
@@ -195,33 +223,36 @@ namespace ProdigalSoftware.TiVE.ParticleSystem
                     if (controller == null)
                         Messages.AddWarning("Could not find particle controller for " + controllerName);
                     else
-                        particleSystemCollections[controllerName] = collection = new ParticleEmitterCollection(controller);
+                    {
+                        ParticleEmitter newEmitter = new ParticleEmitter(controller);
+                        newEmitter.Reset(particleData.Location);
+                        int indexToAdd = particleEmitters.IndexOf(null);
+                        if (indexToAdd >= 0)
+                        {
+                            particleEmitters[indexToAdd] = newEmitter;
+                            particleEmitterIndex[entity] = indexToAdd;
+                        }
+                        else
+                        {
+                            particleEmitters.Add(newEmitter);
+                            particleEmitterIndex[entity] = particleEmitters.Count - 1;
+                        }
+                    }
                 }
             }
-            collection?.Add(entity, particleData);
         }
 
-        private void RemoveParticleSystem(IEntity entity, ParticleComponent particleData)
+        private void RemoveEmitter(IEntity entity)
         {
-            ParticleEmitterCollection collection;
-            using (new PerformanceLock(particleSystemCollections))
-                particleSystemCollections.TryGetValue(particleData.ControllerName, out collection);
-
-            collection?.Remove(entity);
-        }
-
-        private void UpdateEntities(float timeSinceLastUpdate)
-        {
-            updateList.Clear();
-            using (new PerformanceLock(particleSystemCollections))
-                updateList.AddRange(particleSystemCollections.Values);
-
-            Scene currentScene = loadedScene;
-            if (currentScene != null)
+            using (new PerformanceLock(particleEmitters))
             {
-                Vector3i worldSize = currentScene.GameWorld?.VoxelSize32 ?? new Vector3i();
-                for (int i = 0; i < updateList.Count; i++)
-                    updateList[i].UpdateAll(ref worldSize, ref cameraLocation, currentScene, timeSinceLastUpdate);
+                if (particleEmitterIndex.TryGetValue(entity, out int emitterIndex))
+                {
+                    ParticleEmitter emitter = particleEmitters[emitterIndex];
+                    particleEmitters[emitterIndex] = null;
+                    particleEmitterIndex.Remove(entity);
+                    emitter.Dispose();
+                }
             }
         }
 
@@ -249,5 +280,52 @@ namespace ProdigalSoftware.TiVE.ParticleSystem
             }
             sw.Stop();
         }
+
+        private void UpdateEntities(float timeSinceLastUpdate)
+        {
+            updateList.Clear();
+            using (new PerformanceLock(particleEmitters))
+                updateList.AddRange(particleEmitters.Where(pe => pe != null));
+
+            for (int i = 0; i < updateList.Count; i++)
+                updateList[i].UpdateAll(ref cameraLocation, timeSinceLastUpdate);
+        }
+
+        #region ParticleEmitterSorter class
+        /// <summary>
+        /// Helper class for sorting particles by their distance from the camera
+        /// </summary>
+        private sealed class ParticleEmitterSorter : IComparer<ParticleEmitter>
+        {
+            public Vector3i CameraLocation;
+
+            public int Compare(ParticleEmitter pe1, ParticleEmitter pe2)
+            {
+                //if (pe1 == null && pe2 == null)
+                //    return 0;
+
+                //if (pe1 == null)
+                //    return 1;
+
+                //if (pe2 == null)
+                //    return -1;
+
+                int transComp = pe1.TransparencyType.CompareTo(pe2.TransparencyType);
+                if (transComp != 0)
+                    return transComp;
+
+                int p1DistX = pe1.Location.X - CameraLocation.X;
+                int p1DistY = pe1.Location.Y - CameraLocation.Y;
+                int p1DistZ = pe1.Location.Z - CameraLocation.Z;
+                int p1DistSquared = p1DistX * p1DistX + p1DistY * p1DistY + p1DistZ * p1DistZ;
+
+                int p2DistX = pe2.Location.X - CameraLocation.X;
+                int p2DistY = pe2.Location.Y - CameraLocation.Y;
+                int p2DistZ = pe2.Location.Z - CameraLocation.Z;
+                int p2DistSquared = p2DistX * p2DistX + p2DistY * p2DistY + p2DistZ * p2DistZ;
+                return p2DistSquared - p1DistSquared;
+            }
+        }
+        #endregion
     }
 }

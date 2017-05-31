@@ -21,7 +21,7 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
         private const float LightBright = 1.0f;
         private const float LightMid = 0.76f;
         private const float LightDim = 0.34f;
-        private const int LightDist = ForFantasy ? 15 : 20;
+        private const int LightDist = ForFantasy ? 10 : 20;
         //private const float LightBright = 1.0f;
         //private const float LightMid = 0.76f;
         //private const float LightDim = 0.34f;
@@ -57,7 +57,7 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
                 case "fountain": return CreateFountain();
                 case "roomLight":
                     return CreateBlockInfo(name, BlockLOD32.VoxelSize / 2 - 1, new Color4f(1.0f, 1.0f, 1.0f, 1.0f), 1.0f, null,
-                        new LightComponent(blockCenterVector, new Color3f(0.8f, 0.8f, 0.8f), ForFantasy ? 35 : 56), colorVariation: 0.0f);
+                        new LightComponent(blockCenterVector, new Color3f(1.0f, 1.0f, 1.0f), ForFantasy ? 25 : 56), colorVariation: 0.0f);
                 case "redLight":
                     return CreateBlockInfo(name, BlockLOD32.VoxelSize / 5.0f, new Color4f(ObjBright, ObjDim, ObjDim, 1.0f), 1.0f, null,
                         new LightComponent(new Vector3b(bc, bc, bc), new Color3f(LightBright, LightDim, LightDim), ForFantasy ? 5 : 7), colorVariation: 0.0f);
@@ -66,13 +66,13 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
                         new LightComponent(new Vector3b(bc, bc, bc), new Color3f(LightDim, LightDim, LightBright), ForFantasy ? 12 : 19), colorVariation: 0.0f);
                 case "hoverLightBlue":
                     return CreateBlockInfo(name, BlockLOD32.VoxelSize / 4.0f, new Color4f(ObjDim, ObjDim, ObjBright, 1.0f), 1.0f, null,
-                        new LightComponent(new Vector3b(bc, bc, bc), new Color3f(LightDim, LightDim, LightBright), ForFantasy ? 16 : 26), colorVariation: 0.0f);
+                        new LightComponent(new Vector3b(bc, bc, bc), new Color3f(LightDim, LightDim, LightBright), ForFantasy ? 15 : 26), colorVariation: 0.0f);
                 case "fountainLight":
                     return CreateBlockInfo(name, BlockLOD32.VoxelSize / 8.0f, new Color4f(ObjDim, ObjDim, ObjBright, 1.0f), 1.0f, null,
                         new LightComponent(new Vector3b(bc, bc, bc), new Color3f(0.25f, 0.25f, 0.7f), ForFantasy ? 20 : 30), colorVariation: 0.0f);
                 case "loadingLight":
                     return CreateBlockInfo(name, BlockLOD32.VoxelSize / 5.0f, new Color4f(1.0f, 1.0f, 1.0f, 1.0f), 1.0f, null,
-                        new LightComponent(blockCenterVector, new Color3f(1.0f, 1.0f, 1.0f), 50), colorVariation: 0.0f);
+                        new LightComponent(blockCenterVector, new Color3f(1.0f, 1.0f, 1.0f), 45), colorVariation: 0.0f);
                 case "treeLight":
                     return CreateBlockInfo(name, BlockLOD32.VoxelSize / 8.0f, new Color4f(ObjBright, ObjBright, ObjBright, 1.0f), 1.0f, null,
                         new LightComponent(new Vector3b(bc, bc, bc), new Color3f(LightBright, LightBright, LightBright), ForFantasy ? 20 : 30), colorVariation: 0.0f);
@@ -91,7 +91,7 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
             fireBlock.AddComponent(new ParticleComponent("Fire", new Vector3i(bc, bc, 1)));
             fireBlock.AddComponent(new LightPassthroughComponent());
             fireBlock.AddComponent(new LightComponent(new Vector3b(bc, bc, bc - 4),
-                new Color3f(1.0f, 0.8f, 0.6f), ForFantasy ? 15 : 20));
+                new Color3f(1.0f, 0.8f, 0.6f), ForFantasy ? 10 : 20));
             return fireBlock;
         }
 

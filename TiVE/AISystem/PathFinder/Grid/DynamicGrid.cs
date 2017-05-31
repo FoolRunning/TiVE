@@ -40,7 +40,7 @@ using System.Collections.Generic;
 
 namespace ProdigalSoftware.TiVE.AISystem.PathFinder.Grid
 {
-    public class DynamicGrid : BaseGrid
+    internal class DynamicGrid : BaseGrid
     {
         protected Dictionary<GridPos, Node> m_nodes;
         private bool m_notSet;

@@ -109,5 +109,29 @@ namespace ProdigalSoftware.TiVEPluginFramework
                 default: throw new ArgumentException("detailLevel invalid: " + detailLevel);
             }
         }
+
+        public static int GetVoxelsInBlockAtDetailLevel(LODLevel detailLevel)
+        {
+            switch (detailLevel)
+            {
+                case LODLevel.V32: return BlockLOD32.VoxelSize;
+                case LODLevel.V16: return BlockLOD16.VoxelSize;
+                case LODLevel.V8: return BlockLOD8.VoxelSize;
+                case LODLevel.V4: return BlockLOD4.VoxelSize;
+                default: throw new ArgumentException("detailLevel invalid: " + detailLevel);
+            }
+        }
+
+        public static int BitShiftForDetailLevel(LODLevel toDetailLevel)
+        {
+            switch (toDetailLevel)
+            {
+                case LODLevel.V32: return BlockLOD32.VoxelSizeBitShift;
+                case LODLevel.V16: return BlockLOD16.VoxelSizeBitShift;
+                case LODLevel.V8: return BlockLOD8.VoxelSizeBitShift;
+                case LODLevel.V4: return BlockLOD4.VoxelSizeBitShift;
+                default: throw new ArgumentException("detailLevel invalid: " + toDetailLevel);
+            }
+        }
     }
 }

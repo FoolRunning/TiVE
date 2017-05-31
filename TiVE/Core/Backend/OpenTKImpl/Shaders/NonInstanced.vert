@@ -10,7 +10,7 @@ struct Light
     float cachedValue;
 };
 
-#define NR_LIGHTS 30
+#define NR_LIGHTS 50
 uniform Light lights[NR_LIGHTS];
  
 // incoming vertex information

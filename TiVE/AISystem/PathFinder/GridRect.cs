@@ -44,7 +44,7 @@ using System.Collections;
 
 namespace ProdigalSoftware.TiVE.AISystem.PathFinder
 {
-    public struct GridRect
+    internal struct GridRect
     {
         public int minX;
         public int minY;
