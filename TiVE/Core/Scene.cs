@@ -40,7 +40,7 @@ namespace ProdigalSoftware.TiVE.Core
 
         internal bool LoadingInitialChunks { get; set; }
 
-        internal GameWorldLightData LightData { get; private set; }
+        internal SceneLightData LightData { get; private set; }
 
         internal RootRenderNode RenderNode { get; private set; }
 
@@ -132,7 +132,7 @@ namespace ProdigalSoftware.TiVE.Core
             lightProviderNoShadow = LightProvider.Create(this, false);
 
             // Calculate static lighting
-            LightData = new GameWorldLightData(this);
+            LightData = new SceneLightData(this);
             LightData.Calculate();
         }
         #endregion

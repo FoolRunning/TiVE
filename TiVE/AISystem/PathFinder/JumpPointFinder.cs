@@ -45,9 +45,9 @@ using ProdigalSoftware.TiVE.AISystem.PathFinder.Grid;
 namespace ProdigalSoftware.TiVE.AISystem.PathFinder
 {
 
-    public delegate float HeuristicDelegate(int iDx, int iDy);
+    internal delegate float HeuristicDelegate(int iDx, int iDy);
 
-    public class JumpPointParam
+    internal class JumpPointParam
     {
 
         public JumpPointParam(BaseGrid iGrid, GridPos iStartPos, GridPos iEndPos, bool iAllowEndNodeUnWalkable = true, bool iCrossCorner = true, bool iCrossAdjacentPoint = true, HeuristicMode iMode = HeuristicMode.EUCLIDEAN)

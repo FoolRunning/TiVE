@@ -188,7 +188,7 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
         #region FountainUpdater class
         private class FountainUpdater : ParticleController
         {
-            private const float AliveTime = 1.3f;
+            private const float AliveTime = 1.4f;
 
             private static readonly Color4b[] colorList = new Color4b[256];
 
@@ -198,7 +198,7 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
                     colorList[i] = new Color4b((byte)(55 - (int)((255 - i) / 5.0f)), (byte)(150 - (int)((255 - i) / 2.0f)), 255, (byte)(100 - i / 4));
             }
 
-            public FountainUpdater() : base(300, 200, TransparencyType.Realistic, true)
+            public FountainUpdater() : base(330, 200, TransparencyType.Realistic, true)
             {
             }
 

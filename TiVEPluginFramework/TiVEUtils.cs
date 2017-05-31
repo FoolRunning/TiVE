@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Diagnostics;
-using System.Runtime.CompilerServices;
 using JetBrains.Annotations;
 using ProdigalSoftware.TiVEPluginFramework.Components;
 
@@ -41,6 +40,31 @@ namespace ProdigalSoftware.TiVEPluginFramework
         }
 
         /// <summary>
+        /// Throws an ArgumentOutOfRangeException if the specified location is outside the bounds of the specified size.
+        /// </summary>
+        [AssertionMethod]
+        public static void CheckConstraints(int x, int y, int z, Vector3i size)
+        {
+            if (x < 0 || x >= size.X)
+                throw new ArgumentOutOfRangeException(nameof(x));
+            if (y < 0 || y >= size.Y)
+                throw new ArgumentOutOfRangeException(nameof(y));
+            if (z < 0 || z >= size.Z)
+                throw new ArgumentOutOfRangeException(nameof(z));
+        }
+
+        public static int GetCountOfNonEmptyVoxels(Voxel[] voxels)
+        {
+            int count = 0;
+            for (int i = 0; i < voxels.Length; i++) // For loop for speed
+            {
+                if (voxels[i] != Voxel.Empty)
+                    count++;
+            }
+            return count;
+        }
+
+        /// <summary>
         /// Determines if the specified bounding box is visible from the current location and orientation of the camera
         /// </summary>
         public static bool BoxInView(CameraComponent cameraData, BoundingBox box)
@@ -53,18 +77,6 @@ namespace ProdigalSoftware.TiVEPluginFramework
                     return false;
             }
             return true;
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int FastAbs(int value)
-        {
-            return value >= 0 ? value : -value;
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int FastSign(int value)
-        {
-            return value == 0 ? 0 : (value < 0 ? -1 : 1);
         }
     }
 }

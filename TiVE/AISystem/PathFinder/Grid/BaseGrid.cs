@@ -40,7 +40,7 @@ using System.Collections.Generic;
 
 namespace ProdigalSoftware.TiVE.AISystem.PathFinder.Grid
 {
-    public class Node : IComparable
+    internal class Node : IComparable
     {
         public int x;
         public int y;
@@ -152,7 +152,7 @@ namespace ProdigalSoftware.TiVE.AISystem.PathFinder.Grid
 
     }
 
-    public abstract class BaseGrid
+    internal abstract class BaseGrid
     {
         protected GridRect m_gridRect;
         public GridRect gridRect

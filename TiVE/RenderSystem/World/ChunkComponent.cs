@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using ProdigalSoftware.TiVE.Core.Backend;
 using ProdigalSoftware.TiVEPluginFramework;
 using ProdigalSoftware.TiVEPluginFramework.Components;
 
@@ -12,6 +13,8 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
         public const int VoxelSize = BlockSize * BlockLOD32.VoxelSize;
 
         public readonly Vector3i ChunkLoc;
+
+        public RenderedLight[] LightsInChunk;
 
         public ChunkComponent(Vector3i chunkLoc) : base(new Vector3f(chunkLoc.X * VoxelSize, chunkLoc.Y * VoxelSize, chunkLoc.Z * VoxelSize))
         {

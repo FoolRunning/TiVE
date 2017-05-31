@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using ProdigalSoftware.TiVE.Core;
 using ProdigalSoftware.TiVE.Core.Backend;
@@ -21,10 +20,10 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
     }
     #endregion
 
-    internal sealed class GameWorldLightData
+    internal sealed class SceneLightData
     {
         #region Constants
-        public const int MaxLightsPerChunk = 30;
+        public const int MaxLightsPerChunk = 50;
         private const int HalfBlockVoxelSize = BlockLOD32.VoxelSize / 2;
         #endregion
 
@@ -36,7 +35,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
         #endregion
 
         #region Constructor
-        public GameWorldLightData(Scene scene)
+        public SceneLightData(Scene scene)
         {
             this.scene = scene;
 
@@ -113,11 +112,11 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
             //Messages.AddDebug(string.Format("Pre-load lighting took {0}ms", sw.ElapsedMilliseconds));
         }
 
-        public RenderedLight[] GetLightsInChunk(int cx, int cy, int cz)
+        public RenderedLight[] GetLightsInChunk(int cx, int cy, int cz, int maxLights = MaxLightsPerChunk)
         {
             // TODO: Cache this in the chunk somehow
             List<ushort> lights = chunkLightInfo[chunkSize.GetArrayOffset(cx, cy, cz)];
-            return lights.Take(MaxLightsPerChunk).Select(l => new RenderedLight(LightList[l].Location, LightList[l].LightColor, LightList[l].CachedLightCalc)).ToArray();
+            return lights.Take(maxLights).Select(l => new RenderedLight(LightList[l].Location, LightList[l].LightColor, LightList[l].CachedLightCalc)).ToArray();
         }
         #endregion
 
@@ -177,8 +176,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
             int endZ = Math.Min(chunkSize.Z, (int)Math.Ceiling((blockZ + light.LightBlockDist + 1) / (float)ChunkComponent.BlockSize));
 
             ushort lightIndex;
-            LightInfo lightInfo = new LightInfo(blockX, blockY, blockZ, light, lightingModel.GetCacheLightCalculation(light),
-                lightingModel.GetCacheLightCalculationForAmbient(light));
+            LightInfo lightInfo = new LightInfo(blockX, blockY, blockZ, light, lightingModel.GetCacheLightCalculation(light));
             lock (lightInfos)
             {
                 if (lightInfos.Count == ushort.MaxValue - 1)
@@ -196,7 +194,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
                 {
                     for (int cy = startY; cy < endY; cy++)
                     {
-                        if (LightHitsChunk(blockX, blockY, blockZ, cx, cy, cz))
+                        //if (LightHitsChunk(blockX, blockY, blockZ, cx, cy, cz))
                         {
                             int vx = cx * ChunkComponent.VoxelSize + ChunkComponent.VoxelSize / 2;
                             int vy = cy * ChunkComponent.VoxelSize + ChunkComponent.VoxelSize / 2;
@@ -217,10 +215,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.Lighting
                                     }
                                 }
 
-                                if (leastLightIndex == lightsInChunk.Count)
-                                    lightsInChunk.Add(lightIndex);
-                                else
-                                    lightsInChunk.Insert(leastLightIndex, lightIndex);
+                                lightsInChunk.Insert(leastLightIndex, lightIndex);
                             }
                         }
                     }

@@ -2,7 +2,7 @@
 
 namespace ProdigalSoftware.TiVE.Debugging
 {
-    public sealed class ItemCountsHelper
+    internal sealed class ItemCountsHelper
     {
         private readonly string formatString;
         private long totalCount;

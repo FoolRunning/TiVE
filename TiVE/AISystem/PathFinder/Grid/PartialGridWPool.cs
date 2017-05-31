@@ -42,7 +42,7 @@ using System.Collections.Generic;
 
 namespace ProdigalSoftware.TiVE.AISystem.PathFinder.Grid
 {
-    public class PartialGridWPool : BaseGrid
+    internal class PartialGridWPool : BaseGrid
     {
         private NodePool m_nodePool;
 

@@ -22,7 +22,7 @@ namespace ProdigalSoftware.TiVEPluginFramework
             get
             {
                 if (totalVoxels == -1)
-                    totalVoxels = MiscUtils.GetCountOfNonEmptyVoxels(voxels);
+                    totalVoxels = TiVEUtils.GetCountOfNonEmptyVoxels(voxels);
                 return totalVoxels;
             }
         }
@@ -43,7 +43,7 @@ namespace ProdigalSoftware.TiVEPluginFramework
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private int GetBlockOffset(int x, int y, int z)
         {
-            MiscUtils.CheckConstraints(x, y, z, Size);
+            TiVEUtils.DebugCheckConstraints(x, y, z, Size);
             return (x * Size.Z + z) * Size.Y + y; // y-axis major for speed
         }
     }

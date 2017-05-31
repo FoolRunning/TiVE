@@ -212,16 +212,72 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
         /// Voxel transversal algorithm taken from: http://www.cse.chalmers.se/edu/year/2011/course/TDA361_Computer_Graphics/grid.pdf
         /// Modified with optimizations for TiVE.
         /// </summary>
-        /// <remarks>Very performance-critical method</remarks>
         internal bool NoVoxelInLine(int x, int y, int z, int endX, int endY, int endZ, LODLevel detailLevel)
         {
-            switch (detailLevel)
+            if (x == endX && y == endY && z == endZ)
+                return true;
+
+            int stepX = x > endX ? -1 : 1;
+            int stepY = y > endY ? -1 : 1;
+            int stepZ = z > endZ ? -1 : 1;
+
+            // Because all voxels in TiVE have a size of 1.0, this simplifies the calculation of the delta considerably.
+            // We also don't have to worry about specifically handling a divide-by-zero as .Net makes the result Infinity
+            // which works just fine for this algorithm.
+            float tStepX = (float)stepX / (endX - x);
+            float tStepY = (float)stepY / (endY - y);
+            float tStepZ = (float)stepZ / (endZ - z);
+            float tMaxX = tStepX;
+            float tMaxY = tStepY;
+            float tMaxZ = tStepZ;
+            int bitShift = LODUtils.BitShiftForDetailLevel(detailLevel);
+            int magicModulusNumber = LODUtils.GetVoxelsInBlockAtDetailLevel(detailLevel) - 1;
+            int detailNum = (int)detailLevel;
+            int blockX = x >> bitShift;
+            int blockY = y >> bitShift;
+            int blockZ = z >> bitShift;
+
+            Vector3i blockSizeLocal = blockSize;
+            ushort[] blocksLocal = gameWorldBlocks;
+            Block[] blockIdToBlockLocal = blockIdToBlock;
+            for (;;)
             {
-                case LODLevel.V32: return NoVoxelInLineHelper32(x, y, z, endX, endY, endZ);
-                case LODLevel.V16: return NoVoxelInLineHelper16(x, y, z, endX, endY, endZ);
-                case LODLevel.V8: return NoVoxelInLineHelper8(x, y, z, endX, endY, endZ);
-                case LODLevel.V4: return NoVoxelInLineHelper4(x, y, z, endX, endY, endZ);
-                default: throw new ArgumentException("detailLevel invalid: " + detailLevel);
+                if (tMaxX < tMaxY)
+                {
+                    if (tMaxX < tMaxZ)
+                    {
+                        x = x + stepX;
+                        tMaxX = tMaxX + tStepX;
+                        blockX = x >> bitShift;
+                    }
+                    else
+                    {
+                        z = z + stepZ;
+                        tMaxZ = tMaxZ + tStepZ;
+                        blockZ = z >> bitShift;
+                    }
+                }
+                else if (tMaxY < tMaxZ)
+                {
+                    y = y + stepY;
+                    tMaxY = tMaxY + tStepY;
+                    blockY = y >> bitShift;
+                }
+                else
+                {
+                    z = z + stepZ;
+                    tMaxZ = tMaxZ + tStepZ;
+                    blockZ = z >> bitShift;
+                }
+
+                if (x == endX && y == endY && z == endZ)
+                    return true;
+
+                int blockId = blocksLocal[blockSizeLocal.GetArrayOffset(blockX, blockY, blockZ)];
+                if (blockId != 0 && !blockIdToBlockLocal[blockId].LODs[detailNum][x & magicModulusNumber, y & magicModulusNumber, z & magicModulusNumber].AllowLightPassthrough)
+                {
+                    return false;
+                }
             }
         }
 
@@ -239,13 +295,13 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
             int dy = endY - y;
             int dz = endZ - z;
 
-            int ax = TiVEUtils.FastAbs(dx) << 1;
-            int ay = TiVEUtils.FastAbs(dy) << 1;
-            int az = TiVEUtils.FastAbs(dz) << 1;
+            int ax = MiscUtils.FastAbs(dx) << 1;
+            int ay = MiscUtils.FastAbs(dy) << 1;
+            int az = MiscUtils.FastAbs(dz) << 1;
 
-            int sx = TiVEUtils.FastSign(dx);
-            int sy = TiVEUtils.FastSign(dy);
-            int sz = TiVEUtils.FastSign(dz);
+            int sx = MiscUtils.FastSign(dx);
+            int sy = MiscUtils.FastSign(dy);
+            int sz = MiscUtils.FastSign(dz);
 
             ushort[] blocksLocal = gameWorldBlocks;
             Vector3i blockSizeLocal = blockSize;
@@ -352,7 +408,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
         /// <remarks>Very performance-critical method</remarks>
         private Voxel GetVoxelHelper32(int voxelX, int voxelY, int voxelZ)
         {
-            MiscUtils.CheckConstraints(voxelX, voxelY, voxelZ, voxelSize32);
+            TiVEUtils.DebugCheckConstraints(voxelX, voxelY, voxelZ, voxelSize32);
 
             int blockX = voxelX >> BlockLOD32.VoxelSizeBitShift;
             int blockY = voxelY >> BlockLOD32.VoxelSizeBitShift;
@@ -373,7 +429,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
         /// <remarks>Very performance-critical method</remarks>
         private Voxel GetVoxelHelper16(int voxelX, int voxelY, int voxelZ)
         {
-            MiscUtils.CheckConstraints(voxelX, voxelY, voxelZ, LODUtils.AdjustLocationForDetailLevelFrom32(voxelSize32, LODLevel.V16));
+            TiVEUtils.DebugCheckConstraints(voxelX, voxelY, voxelZ, LODUtils.AdjustLocationForDetailLevelFrom32(voxelSize32, LODLevel.V16));
 
             int blockX = voxelX >> BlockLOD16.VoxelSizeBitShift;
             int blockY = voxelY >> BlockLOD16.VoxelSizeBitShift;
@@ -394,7 +450,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
         /// <remarks>Very performance-critical method</remarks>
         private Voxel GetVoxelHelper8(int voxelX, int voxelY, int voxelZ)
         {
-            MiscUtils.CheckConstraints(voxelX, voxelY, voxelZ, LODUtils.AdjustLocationForDetailLevelFrom32(voxelSize32, LODLevel.V8));
+            TiVEUtils.DebugCheckConstraints(voxelX, voxelY, voxelZ, LODUtils.AdjustLocationForDetailLevelFrom32(voxelSize32, LODLevel.V8));
 
             int blockX = voxelX >> BlockLOD8.VoxelSizeBitShift;
             int blockY = voxelY >> BlockLOD8.VoxelSizeBitShift;
@@ -415,7 +471,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
         /// <remarks>Very performance-critical method</remarks>
         private Voxel GetVoxelHelper4(int voxelX, int voxelY, int voxelZ)
         {
-            MiscUtils.CheckConstraints(voxelX, voxelY, voxelZ, LODUtils.AdjustLocationForDetailLevelFrom32(voxelSize32, LODLevel.V4));
+            TiVEUtils.DebugCheckConstraints(voxelX, voxelY, voxelZ, LODUtils.AdjustLocationForDetailLevelFrom32(voxelSize32, LODLevel.V4));
 
             int blockX = voxelX >> BlockLOD4.VoxelSizeBitShift;
             int blockY = voxelY >> BlockLOD4.VoxelSizeBitShift;
@@ -428,296 +484,6 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
             int blockVoxelY = voxelY & BlockLOD4.MagicModulusNumber;
             int blockVoxelZ = voxelZ & BlockLOD4.MagicModulusNumber;
             return blockIdToBlock[blockId].LOD4[blockVoxelX, blockVoxelY, blockVoxelZ];
-        }
-        #endregion
-
-        #region NoVoxelInLine performance implementations
-        /// <summary>
-        /// Voxel transversal algorithm taken from: http://www.cse.chalmers.se/edu/year/2011/course/TDA361_Computer_Graphics/grid.pdf
-        /// Modified with optimizations for TiVE.
-        /// </summary>
-        /// <remarks>Very performance-critical method</remarks>
-        private bool NoVoxelInLineHelper32(int x, int y, int z, int endX, int endY, int endZ)
-        {
-            if (x == endX && y == endY && z == endZ)
-                return true;
-
-            int stepX = x > endX ? -1 : 1;
-            int stepY = y > endY ? -1 : 1;
-            int stepZ = z > endZ ? -1 : 1;
-
-            // Because all voxels in TiVE have a size of 1.0, this simplifies the calculation of the delta considerably.
-            // We also don't have to worry about specifically handling a divide-by-zero as .Net makes the result Infinity
-            // which works just fine for this algorithm.
-            float tStepX = (float)stepX / (endX - x);
-            float tStepY = (float)stepY / (endY - y);
-            float tStepZ = (float)stepZ / (endZ - z);
-            float tMaxX = tStepX;
-            float tMaxY = tStepY;
-            float tMaxZ = tStepZ;
-            int blockX = x >> BlockLOD32.VoxelSizeBitShift;
-            int blockY = y >> BlockLOD32.VoxelSizeBitShift;
-            int blockZ = z >> BlockLOD32.VoxelSizeBitShift;
-
-            Vector3i blockSizeLocal = blockSize;
-            ushort[] blocksLocal = gameWorldBlocks;
-            Block[] blockIdToBlockLocal = blockIdToBlock;
-            for (; ; )
-            {
-                if (tMaxX < tMaxY)
-                {
-                    if (tMaxX < tMaxZ)
-                    {
-                        x = x + stepX;
-                        tMaxX = tMaxX + tStepX;
-                        blockX = x >> BlockLOD32.VoxelSizeBitShift;
-                    }
-                    else
-                    {
-                        z = z + stepZ;
-                        tMaxZ = tMaxZ + tStepZ;
-                        blockZ = z >> BlockLOD32.VoxelSizeBitShift;
-                    }
-                }
-                else if (tMaxY < tMaxZ)
-                {
-                    y = y + stepY;
-                    tMaxY = tMaxY + tStepY;
-                    blockY = y >> BlockLOD32.VoxelSizeBitShift;
-                }
-                else
-                {
-                    z = z + stepZ;
-                    tMaxZ = tMaxZ + tStepZ;
-                    blockZ = z >> BlockLOD32.VoxelSizeBitShift;
-                }
-
-                if (x == endX && y == endY && z == endZ)
-                    return true;
-
-                int blockId = blocksLocal[blockSizeLocal.GetArrayOffset(blockX, blockY, blockZ)];
-                if (blockId != 0 && 
-                    !blockIdToBlockLocal[blockId].LOD32[x & BlockLOD32.MagicModulusNumber, y & BlockLOD32.MagicModulusNumber, z & BlockLOD32.MagicModulusNumber].AllowLightPassthrough)
-                {
-                    return false;
-                }
-            }
-        }
-        
-        /// <summary>
-        /// Voxel transversal algorithm taken from: http://www.cse.chalmers.se/edu/year/2011/course/TDA361_Computer_Graphics/grid.pdf
-        /// Modified with optimizations for TiVE.
-        /// </summary>
-        /// <remarks>Very performance-critical method</remarks>
-        private bool NoVoxelInLineHelper16(int x, int y, int z, int endX, int endY, int endZ)
-        {
-            if (x == endX && y == endY && z == endZ)
-                return true;
-
-            int stepX = x > endX ? -1 : 1;
-            int stepY = y > endY ? -1 : 1;
-            int stepZ = z > endZ ? -1 : 1;
-
-            // Because all voxels in TiVE have a size of 1.0, this simplifies the calculation of the delta considerably.
-            // We also don't have to worry about specifically handling a divide-by-zero as .Net makes the result Infinity
-            // which works just fine for this algorithm.
-            float tStepX = (float)stepX / (endX - x);
-            float tStepY = (float)stepY / (endY - y);
-            float tStepZ = (float)stepZ / (endZ - z);
-            float tMaxX = tStepX;
-            float tMaxY = tStepY;
-            float tMaxZ = tStepZ;
-            int blockX = x >> BlockLOD16.VoxelSizeBitShift;
-            int blockY = y >> BlockLOD16.VoxelSizeBitShift;
-            int blockZ = z >> BlockLOD16.VoxelSizeBitShift;
-            
-            Vector3i blockSizeLocal = blockSize;
-            ushort[] blocksLocal = gameWorldBlocks;
-            Block[] blockIdToBlockLocal = blockIdToBlock;
-            for (; ; )
-            {
-                if (tMaxX < tMaxY)
-                {
-                    if (tMaxX < tMaxZ)
-                    {
-                        x = x + stepX;
-                        tMaxX = tMaxX + tStepX;
-                        blockX = x >> BlockLOD16.VoxelSizeBitShift;
-                    }
-                    else
-                    {
-                        z = z + stepZ;
-                        tMaxZ = tMaxZ + tStepZ;
-                        blockZ = z >> BlockLOD16.VoxelSizeBitShift;
-                    }
-                }
-                else if (tMaxY < tMaxZ)
-                {
-                    y = y + stepY;
-                    tMaxY = tMaxY + tStepY;
-                    blockY = y >> BlockLOD16.VoxelSizeBitShift;
-                }
-                else
-                {
-                    z = z + stepZ;
-                    tMaxZ = tMaxZ + tStepZ;
-                    blockZ = z >> BlockLOD16.VoxelSizeBitShift;
-                }
-
-                if (x == endX && y == endY && z == endZ)
-                    return true;
-
-                int blockId = blocksLocal[blockSizeLocal.GetArrayOffset(blockX, blockY, blockZ)];
-                if (blockId != 0 && 
-                    !blockIdToBlockLocal[blockId].LOD16[x & BlockLOD16.MagicModulusNumber, y & BlockLOD16.MagicModulusNumber, z & BlockLOD16.MagicModulusNumber].AllowLightPassthrough)
-                {
-                    return false;
-                }
-            }
-        }
-
-        /// <summary>
-        /// Voxel transversal algorithm taken from: http://www.cse.chalmers.se/edu/year/2011/course/TDA361_Computer_Graphics/grid.pdf
-        /// Modified with optimizations for TiVE.
-        /// </summary>
-        /// <remarks>Very performance-critical method</remarks>
-        private bool NoVoxelInLineHelper8(int x, int y, int z, int endX, int endY, int endZ)
-        {
-            if (x == endX && y == endY && z == endZ)
-                return true;
-
-            int stepX = x > endX ? -1 : 1;
-            int stepY = y > endY ? -1 : 1;
-            int stepZ = z > endZ ? -1 : 1;
-
-            // Because all voxels in TiVE have a size of 1.0, this simplifies the calculation of the delta considerably.
-            // We also don't have to worry about specifically handling a divide-by-zero as .Net makes the result Infinity
-            // which works just fine for this algorithm.
-            float tStepX = (float)stepX / (endX - x);
-            float tStepY = (float)stepY / (endY - y);
-            float tStepZ = (float)stepZ / (endZ - z);
-            float tMaxX = tStepX;
-            float tMaxY = tStepY;
-            float tMaxZ = tStepZ;
-            int blockX = x >> BlockLOD8.VoxelSizeBitShift;
-            int blockY = y >> BlockLOD8.VoxelSizeBitShift;
-            int blockZ = z >> BlockLOD8.VoxelSizeBitShift;
-            
-            Vector3i blockSizeLocal = blockSize;
-            ushort[] blocksLocal = gameWorldBlocks;
-            Block[] blockIdToBlockLocal = blockIdToBlock;
-            for (; ; )
-            {
-                if (tMaxX < tMaxY)
-                {
-                    if (tMaxX < tMaxZ)
-                    {
-                        x = x + stepX;
-                        tMaxX = tMaxX + tStepX;
-                        blockX = x >> BlockLOD8.VoxelSizeBitShift;
-                    }
-                    else
-                    {
-                        z = z + stepZ;
-                        tMaxZ = tMaxZ + tStepZ;
-                        blockZ = z >> BlockLOD8.VoxelSizeBitShift;
-                    }
-                }
-                else if (tMaxY < tMaxZ)
-                {
-                    y = y + stepY;
-                    tMaxY = tMaxY + tStepY;
-                    blockY = y >> BlockLOD8.VoxelSizeBitShift;
-                }
-                else
-                {
-                    z = z + stepZ;
-                    tMaxZ = tMaxZ + tStepZ;
-                    blockZ = z >> BlockLOD8.VoxelSizeBitShift;
-                }
-
-                if (x == endX && y == endY && z == endZ)
-                    return true;
-
-                int blockId = blocksLocal[blockSizeLocal.GetArrayOffset(blockX, blockY, blockZ)];
-                if (blockId != 0 && 
-                    !blockIdToBlockLocal[blockId].LOD8[x & BlockLOD8.MagicModulusNumber, y & BlockLOD8.MagicModulusNumber, z & BlockLOD8.MagicModulusNumber].AllowLightPassthrough)
-                {
-                    return false;
-                }
-            }
-        }
-
-        /// <summary>
-        /// Voxel transversal algorithm taken from: http://www.cse.chalmers.se/edu/year/2011/course/TDA361_Computer_Graphics/grid.pdf
-        /// Modified with optimizations for TiVE.
-        /// </summary>
-        /// <remarks>Very performance-critical method</remarks>
-        private bool NoVoxelInLineHelper4(int x, int y, int z, int endX, int endY, int endZ)
-        {
-            if (x == endX && y == endY && z == endZ)
-                return true;
-
-            int stepX = x > endX ? -1 : 1;
-            int stepY = y > endY ? -1 : 1;
-            int stepZ = z > endZ ? -1 : 1;
-
-            // Because all voxels in TiVE have a size of 1.0, this simplifies the calculation of the delta considerably.
-            // We also don't have to worry about specifically handling a divide-by-zero as .Net makes the result Infinity
-            // which works just fine for this algorithm.
-            float tStepX = (float)stepX / (endX - x);
-            float tStepY = (float)stepY / (endY - y);
-            float tStepZ = (float)stepZ / (endZ - z);
-            float tMaxX = tStepX;
-            float tMaxY = tStepY;
-            float tMaxZ = tStepZ;
-            int blockX = x >> BlockLOD4.VoxelSizeBitShift;
-            int blockY = y >> BlockLOD4.VoxelSizeBitShift;
-            int blockZ = z >> BlockLOD4.VoxelSizeBitShift;
-            
-            Vector3i blockSizeLocal = blockSize;
-            ushort[] blocksLocal = gameWorldBlocks;
-            Block[] blockIdToBlockLocal = blockIdToBlock;
-            for (; ; )
-            {
-                if (tMaxX < tMaxY)
-                {
-                    if (tMaxX < tMaxZ)
-                    {
-                        x = x + stepX;
-                        tMaxX = tMaxX + tStepX;
-                        blockX = x >> BlockLOD4.VoxelSizeBitShift;
-                    }
-                    else
-                    {
-                        z = z + stepZ;
-                        tMaxZ = tMaxZ + tStepZ;
-                        blockZ = z >> BlockLOD4.VoxelSizeBitShift;
-                    }
-                }
-                else if (tMaxY < tMaxZ)
-                {
-                    y = y + stepY;
-                    tMaxY = tMaxY + tStepY;
-                    blockY = y >> BlockLOD4.VoxelSizeBitShift;
-                }
-                else
-                {
-                    z = z + stepZ;
-                    tMaxZ = tMaxZ + tStepZ;
-                    blockZ = z >> BlockLOD4.VoxelSizeBitShift;
-                }
-
-                if (x == endX && y == endY && z == endZ)
-                    return true;
-
-                int blockId = blocksLocal[blockSizeLocal.GetArrayOffset(blockX, blockY, blockZ)];
-                if (blockId != 0 && 
-                    !blockIdToBlockLocal[blockId].LOD4[x & BlockLOD4.MagicModulusNumber, y & BlockLOD4.MagicModulusNumber, z & BlockLOD4.MagicModulusNumber].AllowLightPassthrough)
-                {
-                    return false;
-                }
-            }
         }
         #endregion
     }

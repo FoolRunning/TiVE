@@ -42,7 +42,7 @@ using System.Text;
 
 namespace ProdigalSoftware.TiVE.AISystem.PathFinder
 {
-    public enum HeuristicMode
+    internal enum HeuristicMode
     {
         MANHATTAN,
         EUCLIDEAN,
@@ -50,7 +50,7 @@ namespace ProdigalSoftware.TiVE.AISystem.PathFinder
         
     };
 
-    public class Heuristic
+    internal static class Heuristic
     {
       public static float Manhattan(int iDx, int iDy)
       {

@@ -10,7 +10,7 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
     [UsedImplicitly]
     public class MazeGenerateWorld : IWorldGenerator
     {
-        private static readonly RandomGenerator random = new RandomGenerator();
+        private static readonly RandomGenerator random = new RandomGenerator(); // new RandomGenerator(123456789);
 
         private const int AreaIdDoor = 2100;
 

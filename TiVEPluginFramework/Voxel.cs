@@ -64,12 +64,12 @@ namespace ProdigalSoftware.TiVEPluginFramework
             value = (uint)(r << 24 | g << 16 | b << 8 | (a & 0xF0) | (byte)settings);
         }
 
-        private Voxel(uint rgbaValue)
+        public Voxel(uint rgbaValue, VoxelSettings settings = VoxelSettings.None)
         {
             // only 4 bits of percision are available for the alpha so the bottom 4 bits are always assumed to be set on the assumption that
             // an alpha of zero would be considered worthless as the voxel should, then, not be set at all. 
             // So the lowest alpha value that a voxel can have is 15.
-            value = rgbaValue & 0xFFFFFFF0;
+            value = (rgbaValue & 0xFFFFFFF0) | (byte)settings;
         }
         #endregion
 

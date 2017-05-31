@@ -99,7 +99,7 @@
     <Compile Include="Components\ScriptComponent.cs" />
     <Compile Include="Components\VoxelMeshComponent.cs" />
     <Compile Include="Generators\ISpriteGenerator.cs" />
-    <Compile Include="Internal\RenderedVoxel.cs" />
+    <Compile Include="IVoxelProvider.cs" />
     <Compile Include="LODUtils.cs" />
     <Compile Include="Vector4b.cs" />
     <Compile Include="Generators\IBlockGenerator.cs" />
