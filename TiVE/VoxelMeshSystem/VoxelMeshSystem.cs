@@ -16,18 +16,19 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
     internal sealed class VoxelMeshSystem : EngineSystem
     {
         #region Constants
-        private const int TotalChunkMeshBuilders = 40;
+        private const int MeshBuilderVoxelSize = 500000;
+        private const int TotalChunkMeshBuilders = 20;
 
         //private const int DistClosest = Block.VoxelSize * Block.VoxelSize * 225;   // voxelSize * 15 = 480v
         //private const int DistClose = Block.VoxelSize * Block.VoxelSize * 676;     // voxelSize * 26 = 832v
         //private const int DistMid = Block.VoxelSize * Block.VoxelSize * 1369;      // voxelSize * 37 = 1184v
         //private const int DistFar = Block.VoxelSize * Block.VoxelSize * 2401;      // voxelSize * 49 = 1568v
         //private const int DistFurthest = Block.VoxelSize * Block.VoxelSize * 3600; // voxelSize * 60 = 1920v
-        private const int DistClosest = BlockLOD32.VoxelSize * 12;   // voxelSize * 12 = 384v
-        private const int DistClose = BlockLOD32.VoxelSize * 19;     // voxelSize * 19 = 608v
-        private const int DistMid = BlockLOD32.VoxelSize * 26;       // voxelSize * 26 = 832v
-        private const int DistFar = BlockLOD32.VoxelSize * 33;       // voxelSize * 33 = 1056v
-        private const int DistFurthest = BlockLOD32.VoxelSize * 40;  // voxelSize * 40 = 1280v
+        private const int DistClosest = BlockLOD32.VoxelSize * 16;   // voxelSize * 16 = 512v
+        private const int DistClose = BlockLOD32.VoxelSize * 24;     // voxelSize * 24 = 768v
+        private const int DistMid = BlockLOD32.VoxelSize * 32;       // voxelSize * 32 = 1024v
+        private const int DistFar = BlockLOD32.VoxelSize * 40;       // voxelSize * 40 = 1280v
+        private const int DistFurthest = BlockLOD32.VoxelSize * 48;  // voxelSize * 48 = 1536v
         #endregion
 
         #region Member variables
@@ -71,7 +72,7 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
         public override bool Initialize()
         {
             for (int i = 0; i < TotalChunkMeshBuilders; i++)
-                meshBuilders.Add(new MeshBuilder(750000));
+                meshBuilders.Add(new MeshBuilder(MeshBuilderVoxelSize));
 
             int maxThreads = TiVEController.UserSettings.Get(UserSettings.MeshCreationThreadsKey);
             for (int i = 0; i < maxThreads; i++)
@@ -372,17 +373,404 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
                     if (voxelNoiseComponent != null)
                         vox = voxelNoiseComponent.Adjust(vox);
 
+                    byte ambientOcclusionFactor = 255;
+                    bool voxelNormalUndefined = VoxelMeshUtils.IsVoxelNormalUndefined(sides);
+                    if (detailLevel == LODLevel.V32 && !vox.IgnoreLighting &&
+                        blockX != 0 && blockX != maxBlockX &&
+                        blockY != 0 && blockY != maxBlockY &&
+                        blockZ != 0 && blockZ != maxBlockZ)
+                    {
+                        ambientOcclusionFactor = voxelNormalUndefined ? CalculateAmbientOcclusionAverageSide(voxelX, voxelY, voxelZ, sides, detailLevel, gameWorld) :
+                            CalculateAmbientOcclusionMaxSide(voxelX, voxelY, voxelZ, sides, detailLevel, gameWorld);
+                    }
+
                     byte chunkVoxelX = (byte)((voxelX - voxelStartX) * renderedVoxelSize);
                     byte chunkVoxelY = (byte)((voxelY - voxelStartY) * renderedVoxelSize);
                     byte chunkVoxelZ = (byte)((voxelZ - voxelStartZ) * renderedVoxelSize);
-
                     meshBuilder.AddVoxel(sides, chunkVoxelX, chunkVoxelY, chunkVoxelZ, (Color4b)vox,
-                        vox.SkipVoxelNormalCalc || vox.IgnoreLighting ? Vector3f.Zero : VoxelMeshUtils.GetVoxelNormal(sides));
+                        vox.SkipVoxelNormalCalc || vox.IgnoreLighting || voxelNormalUndefined ? Vector3f.Zero : VoxelMeshUtils.GetVoxelNormal(sides), ambientOcclusionFactor);
                     renderedVoxelCount++;
                 }
             }
         }
         #endregion
+
+        private const int MaxOcclusionDetail = 20;
+        private static readonly float[] ambientOcclusionMaxVoxelsPerPass = new float[MaxOcclusionDetail + 1];
+
+        static VoxelMeshSystem()
+        {
+            //for (int level = 0; level <= MaxOcclusionDetail; level++)
+            //{
+            //    int maxVoxelsAtLevel = (level + level + 1);
+            //    maxVoxelsAtLevel *= maxVoxelsAtLevel;
+            //    ambientOcclusionMaxVoxelsPerPass[level] = maxVoxelsAtLevel * maxVoxelsAtLevel;
+            //}
+
+            for (int offSet = 1; offSet <= MaxOcclusionDetail; offSet++)
+            {
+                int startY = -offSet;
+                int startZ = -offSet;
+                int endY = offSet;
+                int endZ = offSet;
+                int countOfSurroundingVoxels = 0;
+                for (int z = startZ; z <= endZ; z++)
+                {
+                    for (int y = startY; y <= endY; y++)
+                    {
+                        countOfSurroundingVoxels++;
+                    }
+                }
+
+                ambientOcclusionMaxVoxelsPerPass[offSet] = (countOfSurroundingVoxels * countOfSurroundingVoxels);
+            }
+        }
+
+        private static byte CalculateAmbientOcclusionMaxSide(int voxelX, int voxelY, int voxelZ, CubeSides visibleSides, LODLevel detailLevel, GameWorld gameWorld)
+        {
+            const int occlusionDetail = 15;
+            int startX;
+            int startY;
+            int startZ;
+            int endX;
+            int endY;
+            int endZ;
+
+            int countOfSurroundingVoxels;
+            float maxPercentage = 0.0f;
+            float lightPercentage;
+            if ((visibleSides & CubeSides.XMinus) != 0)
+            {
+                lightPercentage = 1.0f;
+                for (int offSet = 1; offSet <= occlusionDetail; offSet += 2)
+                {
+                    int x = voxelX - offSet;
+                    startY = voxelY - offSet;
+                    startZ = voxelZ - offSet;
+                    endY = voxelY + offSet;
+                    endZ = voxelZ + offSet;
+                    countOfSurroundingVoxels = 0;
+                    for (int z = startZ; z <= endZ; z++)
+                    {
+                        for (int y = startY; y <= endY; y++)
+                        {
+                            if (gameWorld.GetVoxel(x, y, z, detailLevel) != Voxel.Empty)
+                                countOfSurroundingVoxels++;
+                        }
+                    }
+
+                    lightPercentage *= 1.0f - (countOfSurroundingVoxels * countOfSurroundingVoxels) / ambientOcclusionMaxVoxelsPerPass[offSet];
+                }
+                if (lightPercentage > maxPercentage)
+                    maxPercentage = lightPercentage;
+            }
+
+            if ((visibleSides & CubeSides.XPlus) != 0)
+            {
+                lightPercentage = 1.0f;
+                for (int offSet = 1; offSet <= occlusionDetail; offSet += 2)
+                {
+                    int x = voxelX + offSet;
+                    startY = voxelY - offSet;
+                    startZ = voxelZ - offSet;
+                    endY = voxelY + offSet;
+                    endZ = voxelZ + offSet;
+                    countOfSurroundingVoxels = 0;
+                    for (int z = startZ; z <= endZ; z++)
+                    {
+                        for (int y = startY; y <= endY; y++)
+                        {
+                            if (gameWorld.GetVoxel(x, y, z, detailLevel) != Voxel.Empty)
+                                countOfSurroundingVoxels++;
+                        }
+                    }
+
+                    lightPercentage *= 1.0f - (countOfSurroundingVoxels * countOfSurroundingVoxels) / ambientOcclusionMaxVoxelsPerPass[offSet];
+                }
+                if (lightPercentage > maxPercentage)
+                    maxPercentage = lightPercentage;
+            }
+
+            if ((visibleSides & CubeSides.YMinus) != 0)
+            {
+                lightPercentage = 1.0f;
+                for (int offSet = 1; offSet <= occlusionDetail; offSet += 2)
+                {
+                    int y = voxelY - offSet;
+                    startX = voxelX - offSet;
+                    startZ = voxelZ - offSet;
+                    endX = voxelX + offSet;
+                    endZ = voxelZ + offSet;
+                    countOfSurroundingVoxels = 0;
+                    for (int z = startZ; z <= endZ; z++)
+                    {
+                        for (int x = startX; x <= endX; x++)
+                        {
+                            if (gameWorld.GetVoxel(x, y, z, detailLevel) != Voxel.Empty)
+                                countOfSurroundingVoxels++;
+                        }
+                    }
+
+                    lightPercentage *= 1.0f - (countOfSurroundingVoxels * countOfSurroundingVoxels) / ambientOcclusionMaxVoxelsPerPass[offSet];
+                }
+                if (lightPercentage > maxPercentage)
+                    maxPercentage = lightPercentage;
+            }
+
+            if ((visibleSides & CubeSides.YPlus) != 0)
+            {
+                lightPercentage = 1.0f;
+                for (int offSet = 1; offSet <= occlusionDetail; offSet += 2)
+                {
+                    int y = voxelY + offSet;
+                    startX = voxelX - offSet;
+                    startZ = voxelZ - offSet;
+                    endX = voxelX + offSet;
+                    endZ = voxelZ + offSet;
+                    countOfSurroundingVoxels = 0;
+                    for (int z = startZ; z <= endZ; z++)
+                    {
+                        for (int x = startX; x <= endX; x++)
+                        {
+                            if (gameWorld.GetVoxel(x, y, z, detailLevel) != Voxel.Empty)
+                                countOfSurroundingVoxels++;
+                        }
+                    }
+
+                    lightPercentage *= 1.0f - (countOfSurroundingVoxels * countOfSurroundingVoxels) / ambientOcclusionMaxVoxelsPerPass[offSet];
+                }
+                if (lightPercentage > maxPercentage)
+                    maxPercentage = lightPercentage;
+            }
+
+            if ((visibleSides & CubeSides.ZMinus) != 0)
+            {
+                lightPercentage = 1.0f;
+                for (int offSet = 1; offSet <= occlusionDetail; offSet += 2)
+                {
+                    int z = voxelZ - offSet;
+                    startX = voxelX - offSet;
+                    startY = voxelY - offSet;
+                    endX = voxelX + offSet;
+                    endY = voxelY + offSet;
+                    countOfSurroundingVoxels = 0;
+                    for (int x = startX; x <= endX; x++)
+                    {
+                        for (int y = startY; y <= endY; y++)
+                        {
+                            if (gameWorld.GetVoxel(x, y, z, detailLevel) != Voxel.Empty)
+                                countOfSurroundingVoxels++;
+                        }
+                    }
+
+                    lightPercentage *= 1.0f - (countOfSurroundingVoxels * countOfSurroundingVoxels) / ambientOcclusionMaxVoxelsPerPass[offSet];
+                }
+                if (lightPercentage > maxPercentage)
+                    maxPercentage = lightPercentage;
+            }
+
+            if ((visibleSides & CubeSides.ZPlus) != 0)
+            {
+                lightPercentage = 1.0f;
+                for (int offSet = 1; offSet <= occlusionDetail; offSet += 2)
+                {
+                    int z = voxelZ + offSet;
+                    startX = voxelX - offSet;
+                    startY = voxelY - offSet;
+                    endX = voxelX + offSet;
+                    endY = voxelY + offSet;
+                    countOfSurroundingVoxels = 0;
+                    for (int x = startX; x <= endX; x++)
+                    {
+                        for (int y = startY; y <= endY; y++)
+                        {
+                            if (gameWorld.GetVoxel(x, y, z, detailLevel) != Voxel.Empty)
+                                countOfSurroundingVoxels++;
+                        }
+                    }
+
+                    lightPercentage *= 1.0f - (countOfSurroundingVoxels * countOfSurroundingVoxels) / ambientOcclusionMaxVoxelsPerPass[offSet];
+                }
+                if (lightPercentage > maxPercentage)
+                    maxPercentage = lightPercentage;
+            }
+
+            return (byte)(maxPercentage * 255);
+        }
+
+        private static byte CalculateAmbientOcclusionAverageSide(int voxelX, int voxelY, int voxelZ, CubeSides visibleSides, LODLevel detailLevel, GameWorld gameWorld)
+        {
+            const int occlusionDetail = 15;
+            int startX;
+            int startY;
+            int startZ;
+            int endX;
+            int endY;
+            int endZ;
+
+            int countOfSurroundingVoxels;
+            int totalSides = 0;
+            float totalPercentage = 0.0f;
+            float lightPercentage;
+
+            if ((visibleSides & CubeSides.XMinus) != 0)
+            {
+                totalSides++;
+                lightPercentage = 1.0f;
+                for (int offSet = 1; offSet <= occlusionDetail; offSet += 2)
+                {
+                    int x = voxelX - offSet;
+                    startY = voxelY - offSet;
+                    startZ = voxelZ - offSet;
+                    endY = voxelY + offSet;
+                    endZ = voxelZ + offSet;
+                    countOfSurroundingVoxels = 0;
+                    for (int z = startZ; z <= endZ; z++)
+                    {
+                        for (int y = startY; y <= endY; y++)
+                        {
+                            if (gameWorld.GetVoxel(x, y, z, detailLevel) != Voxel.Empty)
+                                countOfSurroundingVoxels++;
+                        }
+                    }
+
+                    lightPercentage *= 1.0f - (countOfSurroundingVoxels * countOfSurroundingVoxels) / ambientOcclusionMaxVoxelsPerPass[offSet];
+                }
+                totalPercentage += lightPercentage;
+            }
+
+            if ((visibleSides & CubeSides.XPlus) != 0)
+            {
+                totalSides++;
+                lightPercentage = 1.0f;
+                for (int offSet = 1; offSet <= occlusionDetail; offSet += 2)
+                {
+                    int x = voxelX + offSet;
+                    startY = voxelY - offSet;
+                    startZ = voxelZ - offSet;
+                    endY = voxelY + offSet;
+                    endZ = voxelZ + offSet;
+                    countOfSurroundingVoxels = 0;
+                    for (int z = startZ; z <= endZ; z++)
+                    {
+                        for (int y = startY; y <= endY; y++)
+                        {
+                            if (gameWorld.GetVoxel(x, y, z, detailLevel) != Voxel.Empty)
+                                countOfSurroundingVoxels++;
+                        }
+                    }
+
+                    lightPercentage *= 1.0f - (countOfSurroundingVoxels * countOfSurroundingVoxels) / ambientOcclusionMaxVoxelsPerPass[offSet];
+                }
+                totalPercentage += lightPercentage;
+            }
+
+            if ((visibleSides & CubeSides.YMinus) != 0)
+            {
+                totalSides++;
+                lightPercentage = 1.0f;
+                for (int offSet = 1; offSet <= occlusionDetail; offSet += 2)
+                {
+                    int y = voxelY - offSet;
+                    startX = voxelX - offSet;
+                    startZ = voxelZ - offSet;
+                    endX = voxelX + offSet;
+                    endZ = voxelZ + offSet;
+                    countOfSurroundingVoxels = 0;
+                    for (int z = startZ; z <= endZ; z++)
+                    {
+                        for (int x = startX; x <= endX; x++)
+                        {
+                            if (gameWorld.GetVoxel(x, y, z, detailLevel) != Voxel.Empty)
+                                countOfSurroundingVoxels++;
+                        }
+                    }
+
+                    lightPercentage *= 1.0f - (countOfSurroundingVoxels * countOfSurroundingVoxels) / ambientOcclusionMaxVoxelsPerPass[offSet];
+                }
+                totalPercentage += lightPercentage;
+            }
+
+            if ((visibleSides & CubeSides.YPlus) != 0)
+            {
+                totalSides++;
+                lightPercentage = 1.0f;
+                for (int offSet = 1; offSet <= occlusionDetail; offSet += 2)
+                {
+                    int y = voxelY + offSet;
+                    startX = voxelX - offSet;
+                    startZ = voxelZ - offSet;
+                    endX = voxelX + offSet;
+                    endZ = voxelZ + offSet;
+                    countOfSurroundingVoxels = 0;
+                    for (int z = startZ; z <= endZ; z++)
+                    {
+                        for (int x = startX; x <= endX; x++)
+                        {
+                            if (gameWorld.GetVoxel(x, y, z, detailLevel) != Voxel.Empty)
+                                countOfSurroundingVoxels++;
+                        }
+                    }
+
+                    lightPercentage *= 1.0f - (countOfSurroundingVoxels * countOfSurroundingVoxels) / ambientOcclusionMaxVoxelsPerPass[offSet];
+                }
+                totalPercentage += lightPercentage;
+            }
+
+            if ((visibleSides & CubeSides.ZMinus) != 0)
+            {
+                totalSides++;
+                lightPercentage = 1.0f;
+                for (int offSet = 1; offSet <= occlusionDetail; offSet += 2)
+                {
+                    int z = voxelZ - offSet;
+                    startX = voxelX - offSet;
+                    startY = voxelY - offSet;
+                    endX = voxelX + offSet;
+                    endY = voxelY + offSet;
+                    countOfSurroundingVoxels = 0;
+                    for (int x = startX; x <= endX; x++)
+                    {
+                        for (int y = startY; y <= endY; y++)
+                        {
+                            if (gameWorld.GetVoxel(x, y, z, detailLevel) != Voxel.Empty)
+                                countOfSurroundingVoxels++;
+                        }
+                    }
+
+                    lightPercentage *= 1.0f - (countOfSurroundingVoxels * countOfSurroundingVoxels) / ambientOcclusionMaxVoxelsPerPass[offSet];
+                }
+                totalPercentage += lightPercentage;
+            }
+
+            if ((visibleSides & CubeSides.ZPlus) != 0)
+            {
+                totalSides++;
+                lightPercentage = 1.0f;
+                for (int offSet = 1; offSet <= occlusionDetail; offSet += 2)
+                {
+                    int z = voxelZ + offSet;
+                    startX = voxelX - offSet;
+                    startY = voxelY - offSet;
+                    endX = voxelX + offSet;
+                    endY = voxelY + offSet;
+                    countOfSurroundingVoxels = 0;
+                    for (int x = startX; x <= endX; x++)
+                    {
+                        for (int y = startY; y <= endY; y++)
+                        {
+                            if (gameWorld.GetVoxel(x, y, z, detailLevel) != Voxel.Empty)
+                                countOfSurroundingVoxels++;
+                        }
+                    }
+
+                    lightPercentage *= 1.0f - (countOfSurroundingVoxels * countOfSurroundingVoxels) / ambientOcclusionMaxVoxelsPerPass[offSet];
+                }
+                totalPercentage += lightPercentage;
+            }
+
+            return (byte)(totalPercentage * 255 / totalSides); 
+        }
 
         #region Methods for loading entity meshes
         private void LoadMesh(IEntity entity, VoxelMeshComponent renderData, MeshBuilder meshBuilder, EntityLoadQueueItem queueItem)

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using OpenTK.Graphics.OpenGL;
+using ProdigalSoftware.TiVE.RenderSystem.Lighting;
 using ProdigalSoftware.TiVE.Starter;
 using ProdigalSoftware.TiVEPluginFramework;
 
@@ -9,11 +10,25 @@ namespace ProdigalSoftware.TiVE.Core.Backend.OpenTKImpl
 {
     internal sealed class OpenTKShaderProgram : ShaderProgram
     {
+
+        private static readonly string[] lightLocationUniformNames = new string[SceneLightData.MaxLightsPerChunk];
+        private static readonly string[] lightColorUniformNames = new string[SceneLightData.MaxLightsPerChunk];
+        private static readonly string[] lightCachedValueUniformNames = new string[SceneLightData.MaxLightsPerChunk];
         private readonly List<Shader> shaders = new List<Shader>();
         private readonly Dictionary<string, int> uniformLocations = new Dictionary<string, int>();
         private readonly List<string> attributes = new List<string>();
 
         private int programId;
+
+        static OpenTKShaderProgram()
+        {
+            for (int i = 0; i < SceneLightData.MaxLightsPerChunk; i++)
+            {
+                lightLocationUniformNames[i] = "lights[" + i + "].location";
+                lightColorUniformNames[i] = "lights[" + i + "].color";
+                lightCachedValueUniformNames[i] = "lights[" + i + "].cachedValue";
+            }
+        }
 
         ~OpenTKShaderProgram()
         {
@@ -118,42 +133,29 @@ namespace ProdigalSoftware.TiVE.Core.Backend.OpenTKImpl
 
         public override void SetUniform(string name, ref Vector3f value)
         {
-            unsafe
-            {
-                fixed (float* ptr = &value.X)
-                {
-                    GL.Uniform3(uniformLocations[name], 1, ptr);
-                }
-            }
+            GL.Uniform3(uniformLocations[name], value.X, value.Y, value.Z);
+            GlUtils.CheckGLErrors();
+        }
+
+        public override void SetUniform(string name, ref Color3f value)
+        {
+            GL.Uniform3(uniformLocations[name], value.R, value.B, value.G);
             GlUtils.CheckGLErrors();
         }
 
         public override void SetUniform(string name, ref Color4f value)
         {
-            unsafe
-            {
-                fixed (float* ptr = &value.R)
-                {
-                    GL.Uniform4(uniformLocations[name], 1, ptr);
-                }
-            }
+            GL.Uniform4(uniformLocations[name], value.R, value.B, value.G, value.A);
             GlUtils.CheckGLErrors();
         }
 
         public override void SetUniform(string name, RenderedLight[] value)
         {
-            unsafe
+            for (int i = 0; i < value.Length; i++)
             {
-                for (int i = 0; i < value.Length; i++)
-                {
-                    fixed (float* ptr = &value[i].Location.X)
-                        GL.Uniform3(uniformLocations[name + "[" + i + "].location"], 1, ptr);
-
-                    fixed (float* ptr = &value[i].Color.R)
-                        GL.Uniform3(uniformLocations[name + "[" + i + "].color"], 1, ptr);
-
-                    GL.Uniform1(uniformLocations[name + "[" + i + "].cachedValue"], value[i].CachedValue);
-                }
+                GL.Uniform3(uniformLocations[lightLocationUniformNames[i]], value[i].Location.X, value[i].Location.Y, value[i].Location.Z);
+                GL.Uniform3(uniformLocations[lightColorUniformNames[i]], value[i].Color.R, value[i].Color.G, value[i].Color.B);
+                GL.Uniform1(uniformLocations[lightCachedValueUniformNames[i]], value[i].CachedValue);
             }
             GlUtils.CheckGLErrors();
         }

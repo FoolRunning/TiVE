@@ -40,13 +40,13 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
             {
                 case "linear": return CreateRoundedBlockInfo(name, new Voxel((byte)num, (byte)num, (byte)num, VoxelSettings.IgnoreLighting), 1.0f, CubeSides.ZPlus, null, 0);
                 case "fire": return CreateFire();
-                case "dirt": return CreateBlockInfo("dirt", 0, new Color4f(0.6f, 0.45f, 0.25f, 1.0f), 1.0f, colorVariation: 0.4f);
-                case "bumpyDirt": return CreateRoundedBumpyBlock(name, (CubeSides)num, new Voxel(0.6f, 0.45f, 0.25f), 0.4f);
-                case "wood": return CreateRoundedBlockInfo(name, new Voxel(213, 128, 43), 1.0f, (CubeSides)num);
+                case "dirt": return CreateBlockInfo("dirt", 0, new Color4f(0.6f, 0.45f, 0.25f, 1.0f), 1.0f, colorVariation: 0.3f);
+                case "bumpyDirt": return CreateRoundedBumpyBlock(name, (CubeSides)num, new Voxel(0.6f, 0.45f, 0.25f), 0.3f);
+                case "wood": return CreateRoundedBlockInfo(name, new Voxel(213, 128, 43), 1.0f, (CubeSides)num, null, 0.0f);
                 case "leaves": return CreateLeaves(name, (CubeSides)num);
                 case "lava": return CreateLava(name, true);
                 case "lavaUnlit": return CreateLava(name, false);
-                case "back": return CreateRoundedBumpyBlock(name, (CubeSides)num, new Voxel(200, 200, 200), 0.3f);
+                case "back": return CreateRoundedBumpyBlock(name, (CubeSides)num, new Voxel(180, 180, 180), 0.1f);
                 case "stoneBrick": return CreateStone(name, (CubeSides)num);
                 case "light": return CreateLight(name, num);
                 case "grass": return CreateGrass(name);
@@ -66,13 +66,13 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
                         new LightComponent(new Vector3b(bc, bc, bc), new Color3f(LightDim, LightDim, LightBright), ForFantasy ? 12 : 19), colorVariation: 0.0f);
                 case "hoverLightBlue":
                     return CreateBlockInfo(name, BlockLOD32.VoxelSize / 4.0f, new Color4f(ObjDim, ObjDim, ObjBright, 1.0f), 1.0f, null,
-                        new LightComponent(new Vector3b(bc, bc, bc), new Color3f(LightDim, LightDim, LightBright), ForFantasy ? 15 : 26), colorVariation: 0.0f);
+                        new LightComponent(new Vector3b(bc, bc, bc), new Color3f(LightDim, LightDim, LightBright), ForFantasy ? 12 : 26), colorVariation: 0.0f);
                 case "fountainLight":
                     return CreateBlockInfo(name, BlockLOD32.VoxelSize / 8.0f, new Color4f(ObjDim, ObjDim, ObjBright, 1.0f), 1.0f, null,
                         new LightComponent(new Vector3b(bc, bc, bc), new Color3f(0.25f, 0.25f, 0.7f), ForFantasy ? 20 : 30), colorVariation: 0.0f);
                 case "loadingLight":
                     return CreateBlockInfo(name, BlockLOD32.VoxelSize / 5.0f, new Color4f(1.0f, 1.0f, 1.0f, 1.0f), 1.0f, null,
-                        new LightComponent(blockCenterVector, new Color3f(1.0f, 1.0f, 1.0f), 45), colorVariation: 0.0f);
+                        new LightComponent(blockCenterVector, new Color3f(1.0f, 1.0f, 1.0f), 40), colorVariation: 0.0f);
                 case "treeLight":
                     return CreateBlockInfo(name, BlockLOD32.VoxelSize / 8.0f, new Color4f(ObjBright, ObjBright, ObjBright, 1.0f), 1.0f, null,
                         new LightComponent(new Vector3b(bc, bc, bc), new Color3f(LightBright, LightBright, LightBright), ForFantasy ? 20 : 30), colorVariation: 0.0f);
@@ -245,14 +245,16 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
             for (int bladeCount = 0; bladeCount < BlockLOD32.VoxelSize * 10; bladeCount++)
             {
                 float val = random.NextFloat() * bsmo;
-                bladeLength = (int)Math.Round((val * val * val * val) / (bsmo * bsmo * bsmo)) + 1;
+                bladeLength = (int)Math.Round((val * val * val * val) / (bsmo * bsmo * bsmo)) + 5;
+                if (bladeLength >= BlockLOD32.VoxelSize)
+                    bladeLength = BlockLOD32.VoxelSize - 1;
                 //Console.WriteLine("Blade length: " + bladeLength);
 
                 vX = random.Next(BlockLOD32.VoxelSize);
                 vY = random.Next(BlockLOD32.VoxelSize);
                 offsetX = random.NextFloat(true) * 32 - 16;
                 offsetY = random.NextFloat(true) * 32 - 16;
-                bladeVoxel = new Voxel(25, 120, 20, VoxelSettings.SkipVoxelNormalCalc).RandomizeColor(0.7f, random);
+                bladeVoxel = new Voxel(25, 120, 20, VoxelSettings.SkipVoxelNormalCalc).RandomizeColor(0.4f, random);
 
                 for (int vZ = 0; vZ < bladeLength; vZ++)
                 {
@@ -274,7 +276,7 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
                 vY = random.Next(BlockLOD32.VoxelSize - 10) + 5;
                 offsetX = random.NextFloat(true) * 6 - 3;
                 offsetY = random.NextFloat(true) * 6 - 3;
-                bladeVoxel = new Voxel(25, 120, 20, VoxelSettings.SkipVoxelNormalCalc).RandomizeColor(0.7f, random);
+                bladeVoxel = new Voxel(25, 120, 20, VoxelSettings.SkipVoxelNormalCalc).RandomizeColor(0.4f, random);
                 bladeLength = BlockLOD32.VoxelSize - 8 + random.Next(6);
                 for (int vZ = 0; vZ < bladeLength; vZ++)
                 {

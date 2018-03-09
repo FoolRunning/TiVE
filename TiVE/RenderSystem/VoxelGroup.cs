@@ -99,7 +99,9 @@ namespace ProdigalSoftware.TiVE.RenderSystem
 
                         if (sides != CubeSides.None)
                         {
-                            meshBuilder.AddVoxel(sides, x, y, z, (Color4b)color, VoxelMeshUtils.GetVoxelNormal(sides));
+                            // ENHANCE: Calculate ambient occlusion factor for mesh
+
+                            meshBuilder.AddVoxel(sides, x, y, z, (Color4b)color, VoxelMeshUtils.GetVoxelNormal(sides), 255);
                             renderedVoxelCount++;
                         }
                     }

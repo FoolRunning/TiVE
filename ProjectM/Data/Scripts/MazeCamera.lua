@@ -31,7 +31,7 @@ function initialize(entity)
     --end
 
     camera.FieldOfView = math.rad(65)
-    camera.FarDistance = BlockSize * 50
+    camera.FarDistance = BlockSize * 60
     camera.UpVector = vector(0, 0, 1)
 end
 
@@ -47,7 +47,7 @@ function update(entity, timeSinceLastFrame)
     if (keyPressed(Keys.LShift)) then --Speed up
         speed = speed * 2
     elseif (keyPressed(Keys.LControl)) then --Slow down
-        speed = speed / 5
+        speed = speed / 10
     end
 
     local mouseLoc = mouseLocation()

@@ -48,18 +48,18 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
             {
                 for (int y = 0; y < worldSizeY; y++)
                 {
-                    gameWorld[x, y, 0] = dirt;
-                    gameWorld[x, y, 1] = grasses.NextBlock();
+                    gameWorld[x, y, 1] = dirt;
+                    gameWorld[x, y, 2] = grasses.NextBlock();
                 }
             }
             //for (int color = 0; color < 256; color += 8)
             //    gameWorld[color / 8 + 21, 20, 1] = Factory.Get<Block>("linear" + color);
-            gameWorld[25, 20, 1] = Factory.Get<Block>("linear8");
-            gameWorld[26, 20, 1] = Factory.Get<Block>("linear16");
-            gameWorld[27, 20, 1] = Factory.Get<Block>("linear32");
-            gameWorld[28, 20, 1] = Factory.Get<Block>("linear64");
-            gameWorld[29, 20, 1] = Factory.Get<Block>("linear128");
-            gameWorld[30, 20, 1] = Factory.Get<Block>("linear255");
+            gameWorld[25, 20, 2] = Factory.Get<Block>("linear8");
+            gameWorld[26, 20, 2] = Factory.Get<Block>("linear16");
+            gameWorld[27, 20, 2] = Factory.Get<Block>("linear32");
+            gameWorld[28, 20, 2] = Factory.Get<Block>("linear64");
+            gameWorld[29, 20, 2] = Factory.Get<Block>("linear128");
+            gameWorld[30, 20, 2] = Factory.Get<Block>("linear255");
 
             const int offsetX = 13;
             const int offsetY = 15;
@@ -71,19 +71,19 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
                     int y = offsetY + dataY;
                     int levelData = loadingLevel[dataYSize - dataY - 1, dataX];
                     if (levelData == 55)
-                        gameWorld[x, y, 6] = light;
+                        gameWorld[x, y, 7] = light;
                     else if (levelData == 88)
                     {
-                        gameWorld[x, y, 0] = stoneBack;
-                        gameWorld[x, y, 1] = stone;
+                        gameWorld[x, y, 1] = stoneBack;
                         gameWorld[x, y, 2] = stone;
                         gameWorld[x, y, 3] = stone;
+                        gameWorld[x, y, 4] = stone;
                     }
                     else if (levelData == 99)
                     {
-                        gameWorld[x, y, 0] = stoneBack;
-                        gameWorld[x, y, 1] = stone;
+                        gameWorld[x, y, 1] = stoneBack;
                         gameWorld[x, y, 2] = stone;
+                        gameWorld[x, y, 3] = stone;
                     }
                 }
             }
