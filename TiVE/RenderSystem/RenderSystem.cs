@@ -28,7 +28,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem
         #region Member variables
         private readonly EntityMeshDeleteQueue deleteQueue = new EntityMeshDeleteQueue(DeletedItemCacheSize);
         private readonly ItemCountsHelper drawCount = new ItemCountsHelper(4, false);
-        private readonly ItemCountsHelper voxelCount = new ItemCountsHelper(8, false);
+        private readonly ItemCountsHelper voxelCount = new ItemCountsHelper(9, false);
         private readonly ItemCountsHelper renderedVoxelCount = new ItemCountsHelper(8, false);
         private readonly ShaderManager shaderManager = new ShaderManager();
         private readonly HashSet<IEntity> loadedEntities = new HashSet<IEntity>();
@@ -85,8 +85,8 @@ namespace ProdigalSoftware.TiVE.RenderSystem
             HandleNewlyHiddenEntities(cameraData);
             HandleEntitiesWithUninitializedMeshes();
 
-            if (currentScene.LoadingInitialChunks)
-                return true; // Let chunks load before rendering scene
+            //if (currentScene.LoadingInitialChunks)
+            //    return true; // Let chunks load before rendering scene
 
             RenderStatistics stats = new RenderStatistics();
 #if DEBUG_NODES
@@ -240,6 +240,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem
             Matrix4f.Mult(ref translationMatrix, ref cameraData.ViewProjectionMatrix, out viewProjectionModelMatrix);
             shader.SetUniform("matrix_ModelViewProjection", ref viewProjectionModelMatrix);
             shader.SetUniform("modelTranslation", ref renderData.Location);
+            shader.SetUniform("ambientLight", ref currentScene.AmbientLightValue);
             shader.SetUniform("cameraLoc", ref cameraData.Location);
             shader.SetUniform("voxelSize", LODUtils.GetRenderedVoxelSize(detailLevel));
 

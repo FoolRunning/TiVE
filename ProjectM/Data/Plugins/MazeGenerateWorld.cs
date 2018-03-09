@@ -33,13 +33,13 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
             if (gameWorldName != "Maze")
                 return null;
 
-            //IGameWorld gameWorld = Factory.NewGameWorld(1110, 1110, 120); // x-axis and y-axis must be divisible by 3
-            IGameWorld gameWorld = Factory.NewGameWorld(300, 300, 16); // x-axis and y-axis must be divisible by 3
-            //IGameWorld gameWorld = Factory.NewGameWorld(111, 111, 12); // x-axis and y-axis must be divisible by 3
+            //IGameWorld gameWorld = Factory.NewGameWorld(1911, 1911, 64); // x-axis and y-axis must be divisible by 3
+            IGameWorld gameWorld = Factory.NewGameWorld(300, 300, 64); // x-axis and y-axis must be divisible by 3
+            //IGameWorld gameWorld = Factory.NewGameWorld(111, 111, 64); // x-axis and y-axis must be divisible by 3
             gameWorld.LightingModelType = LightingModelType.Fantasy3;
 
             MazeCell[,] dungeonMap = new MazeCell[gameWorld.BlockSize.X / 3, gameWorld.BlockSize.Y / 3];
-            //List<Vector3i> rooms = CreateRandomRooms(random.Next(50) + 160, 3, 15, 3, 15).ToList();
+            //List<Vector3i> rooms = CreateRandomRooms(random.Next(100) + 350, 3, 21, 3, 21).ToList();
             List<Vector3i> rooms = CreateRandomRooms(random.Next(50) + 20, 3, 15, 3, 15).ToList();
             //List<Vector3i> rooms = CreateRandomRooms(10, 3, 11, 3, 11).ToList();
             int mazeStartAreaId = PlaceRooms(rooms, dungeonMap, random.Next(60) + 10);
@@ -727,6 +727,13 @@ namespace ProdigalSoftware.ProjectM.Data.Plugins
                         gameWorld[x, y, 5] = stoneBack;
                         gameWorld[x, y, 6] = stoneBack;
                         gameWorld[x, y, 7] = stoneBack;
+
+                        if (random.Next(1000) < 1)
+                        {
+                            for (int z = 8; z < gameWorld.BlockSize.Z; z++)
+                                gameWorld[x, y, z] = z % 10 == 0 ? fountainLight : stoneBack;
+                            gameWorld[x, y, gameWorld.BlockSize.Z - 1] = redLight;
+                        }
 
                         if (mazeLocX == 0 || mazeLocX == dungeonMap.GetLength(0) - 1 || mazeLocY == 0 || mazeLocY == dungeonMap.GetLength(1) - 1)
                         {

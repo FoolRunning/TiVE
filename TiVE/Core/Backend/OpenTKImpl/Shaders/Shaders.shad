@@ -7,12 +7,14 @@ geom: ProdigalSoftware.TiVE.Core.Backend.OpenTKImpl.Shaders.UnshadedMesh.geom
 frag: ProdigalSoftware.TiVE.Core.Backend.OpenTKImpl.Shaders.Simple.frag
 attrib: in_Position
 attrib: in_Normal
+attrib: in_VoxelData
 attrib: in_InstancePos
 attrib: in_InstanceColor
 uniform: matrix_ModelViewProjection
 uniform: voxelSize
 uniform: cameraLoc
 uniform: modelTranslation
+uniform: ambientLight
 uniform: lightCount
 lightUniform: lights
 
@@ -24,12 +26,14 @@ geom: ProdigalSoftware.TiVE.Core.Backend.OpenTKImpl.Shaders.ShadedMesh.geom
 frag: ProdigalSoftware.TiVE.Core.Backend.OpenTKImpl.Shaders.Simple.frag
 attrib: in_Position
 attrib: in_Normal
+attrib: in_VoxelData
 attrib: in_InstancePos
 attrib: in_InstanceColor
 uniform: matrix_ModelViewProjection
 uniform: voxelSize
 uniform: cameraLoc
 uniform: modelTranslation
+uniform: ambientLight
 uniform: lightCount
 lightUniform: lights
 
@@ -42,10 +46,12 @@ frag: ProdigalSoftware.TiVE.Core.Backend.OpenTKImpl.Shaders.Simple.frag
 attrib: inPosition
 attrib: inColor
 attrib: inNormal
+attrib: inVoxelData
 uniform: matrix_ModelViewProjection
 uniform: voxelSize
 uniform: cameraLoc
 uniform: modelTranslation
+uniform: ambientLight
 uniform: lightCount
 lightUniform: lights
 
@@ -58,9 +64,11 @@ frag: ProdigalSoftware.TiVE.Core.Backend.OpenTKImpl.Shaders.Simple.frag
 attrib: inPosition
 attrib: inColor
 attrib: inNormal
+attrib: inVoxelData
 uniform: matrix_ModelViewProjection
 uniform: voxelSize
 uniform: cameraLoc
 uniform: modelTranslation
+uniform: ambientLight
 uniform: lightCount
 lightUniform: lights

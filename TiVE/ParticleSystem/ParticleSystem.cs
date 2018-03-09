@@ -26,8 +26,7 @@ namespace ProdigalSoftware.TiVE.ParticleSystem
         private readonly List<ParticleEmitter> updateList = new List<ParticleEmitter>();
         /// <summary>Quick lookup for the index of a particle entity</summary>
         private readonly Dictionary<IEntity, int> particleEmitterIndex = new Dictionary<IEntity, int>();
-
-
+        
         private readonly List<ParticleEmitter> renderList = new List<ParticleEmitter>();
 
         private readonly HashSet<IEntity> emittersToRender = new HashSet<IEntity>();
@@ -97,8 +96,8 @@ namespace ProdigalSoftware.TiVE.ParticleSystem
             shader.Bind();
             shader.SetUniform("matrix_ModelViewProjection", ref cameraData.ViewProjectionMatrix);
             shader.SetUniform("voxelSize", 1);
-            shader.SetUniform("lightCount", 0);
             shader.SetUniform("cameraLoc", ref cameraData.Location);
+            shader.SetUniform("ambientLight", ref currentScene.AmbientLightValue);
 
             Vector3f translation = Vector3f.Zero;
             shader.SetUniform("modelTranslation", ref translation);

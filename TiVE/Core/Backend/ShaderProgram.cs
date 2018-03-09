@@ -52,6 +52,8 @@ namespace ProdigalSoftware.TiVE.Core.Backend
 
         public abstract void SetUniform(string name, ref Vector3f value);
 
+        public abstract void SetUniform(string name, ref Color3f value);
+
         public abstract void SetUniform(string name, ref Color4f value);
 
         public abstract void SetUniform(string name, RenderedLight[] value);

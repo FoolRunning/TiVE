@@ -21,6 +21,8 @@ namespace ProdigalSoftware.TiVE.Core
         private const int InitialEntityListSize = 10;
         private const int InitialChunkListSize = 20000;
 
+        public Color3f AmbientLightValue;
+
         private readonly Dictionary<Type, List<IEntity>> entityComponentTypeMap = new Dictionary<Type, List<IEntity>>(30);
         private LightProvider lightProviderNoShadow;
         private LightProvider lightProviderShadow;
@@ -63,7 +65,11 @@ namespace ProdigalSoftware.TiVE.Core
         public IGameWorld GameWorld => 
             GameWorldInternal;
 
-        public Color3f AmbientLight { get; set; }
+        public Color3f AmbientLight
+        {
+            get { return AmbientLightValue; }
+            set { AmbientLightValue = value; }
+        }
 
         public IEntity CreateNewEntity(string entityName)
         {
@@ -226,11 +232,9 @@ namespace ProdigalSoftware.TiVE.Core
             }
 
             #region Implementation of IEntity
-            public string Name => 
-                name;
+            public string Name => name;
 
-            public IEnumerable<IComponent> Components => 
-                components;
+            public IEnumerable<IComponent> Components => components;
 
             public void AddComponent(IComponent component)
             {

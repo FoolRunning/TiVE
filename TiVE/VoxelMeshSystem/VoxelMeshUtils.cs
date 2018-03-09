@@ -41,7 +41,9 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
 
                         if (sides != CubeSides.None)
                         {
-                            meshBuilder.AddVoxel(sides, x, y, z, (Color4b)vox, GetVoxelNormal(sides));
+                            // ENHANCE calculate ambient occlusion for the mesh
+
+                            meshBuilder.AddVoxel(sides, x, y, z, (Color4b)vox, GetVoxelNormal(sides), 255);
                             renderedVoxelCount++;
                         }
                     }
@@ -71,6 +73,31 @@ namespace ProdigalSoftware.TiVE.VoxelMeshSystem
 
             vector.NormalizeFast();
             return vector;
+        }
+
+        public static bool IsVoxelNormalUndefined(CubeSides visibleSides)
+        {
+            if (visibleSides == CubeSides.All)
+                return true;
+
+            int x = 0;
+            int y = 0;
+            int z = 0;
+            if ((visibleSides & CubeSides.XMinus) != 0)
+                x--;
+            if ((visibleSides & CubeSides.YMinus) != 0)
+                y--;
+            if ((visibleSides & CubeSides.ZMinus) != 0)
+                z--;
+
+            if ((visibleSides & CubeSides.XPlus) != 0)
+                x++;
+            if ((visibleSides & CubeSides.YPlus) != 0)
+                y++;
+            if ((visibleSides & CubeSides.ZPlus) != 0)
+                z++;
+
+            return x == 0 && y == 0 && z == 0;
         }
     }
 }

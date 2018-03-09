@@ -8,7 +8,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
     internal sealed class ChunkComponent : VoxelMeshComponent
     {
         /// <summary>Size in blocks of a chunk on each axis</summary>
-        public const int BlockSize = 4;
+        public const int BlockSize = 8;
         /// <summary>Size in voxels of a chunk on each axis</summary>
         public const int VoxelSize = BlockSize * BlockLOD32.VoxelSize;
 

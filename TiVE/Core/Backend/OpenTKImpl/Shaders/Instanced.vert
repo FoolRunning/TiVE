@@ -1,6 +1,7 @@
 ﻿#version 150 core 
 
 uniform vec3 modelTranslation;
+uniform vec3 ambientLight;
 uniform int lightCount;
 
 struct Light 
@@ -16,6 +17,7 @@ uniform Light lights[NR_LIGHTS];
 // incoming vertex information
 in vec4 in_Position;
 in vec3 in_Normal;
+in vec4 in_VoxelData;
 
 // incoming vertex information for each instance
 in vec3 in_InstancePos;
@@ -25,7 +27,7 @@ flat out vec4 voxColor;
  
 vec4 CalcColor(vec3 voxelPos, vec4 baseColor)
 {
-    vec3 lightColor = vec3(0);
+    vec3 lightColor = ambientLight;
     //if (in_Normal != 0)
     //{
     //    for (int i = 0; i < lightCount; i++)
@@ -52,6 +54,8 @@ vec4 CalcColor(vec3 voxelPos, vec4 baseColor)
         }
     }
 
+    float ambientOcclusionFactor = int(in_VoxelData.x) / 255.0f;
+    lightColor = lightColor * ambientOcclusionFactor;
     return vec4(lightColor * baseColor.rgb, baseColor.a);
 }
 
