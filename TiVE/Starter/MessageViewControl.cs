@@ -69,20 +69,10 @@ namespace ProdigalSoftware.TiVE.Starter
                 currentLine.AddMessage(info);
             AdjustSize(currentLine);
 
-            Action updateView = () =>
-            {
-                // Remove and add the item to recalculate it's size.
-                BeginUpdate();
-                Items.RemoveAt(Items.Count - 1);
-                Items.Add(currentLine);
-                EndUpdate();
-                TopIndex = Items.Count - 1;
-            };
-            
             if (IsHandleCreated && InvokeRequired)
-                Invoke(updateView);
+                Invoke(new Action(UpdateView));
             else
-                updateView();
+                UpdateView();
         }
 
         internal void StartNewLine()
@@ -169,6 +159,16 @@ namespace ProdigalSoftware.TiVE.Starter
 
             TextState state = new TextState(ClientRectangle.Width, DEFAULT_FONT, 0, 0);
             newMessageline.CalculateHeight(state, g);
+        }
+
+        private void UpdateView()
+        {
+            // Remove and add the item to recalculate it's size.
+            BeginUpdate();
+            Items.RemoveAt(Items.Count - 1);
+            Items.Add(currentLine);
+            EndUpdate();
+            TopIndex = Items.Count - 1;
         }
         #endregion
     }

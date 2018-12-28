@@ -95,7 +95,7 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="irrKlang.NET4">
-      <HintPath>..\..\..\..\Libraries\irrKlang-32bit-1.5.0\irrKlang-1.5.0\bin\dotnet-4\irrKlang.NET4.dll</HintPath>
+      <HintPath>..\Libraries\irrKlang.NET4.dll</HintPath>
     </Reference>
     <Reference Include="marytts5.2">
       <HintPath>..\Libraries\marytts5.2.dll</HintPath>

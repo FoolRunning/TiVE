@@ -209,7 +209,7 @@ namespace ProdigalSoftware.TiVE.RenderSystem.World
         }
 
         /// <summary>
-        /// Voxel transversal algorithm taken from: http://www.cse.chalmers.se/edu/year/2011/course/TDA361_Computer_Graphics/grid.pdf
+        /// Voxel traversal algorithm taken from: http://www.cse.chalmers.se/edu/year/2011/course/TDA361_Computer_Graphics/grid.pdf
         /// Modified with optimizations for TiVE.
         /// </summary>
         /// <remarks>Very performance-critical method</remarks>
