@@ -1,6 +1,7 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Drawing;
+using System.Windows.Forms;
 using OpenTK;
 using OpenTK.Graphics;
 using ProdigalSoftware.TiVE.Renderer;
@@ -78,7 +79,8 @@ namespace ProdigalSoftware.TiVE.Core.Backend.OpenTKImpl
 
         public void ProcessNativeEvents()
         {
-            ProcessEvents();
+            Application.DoEvents();
+            //ProcessEvents();
         }
 
         public void UpdateDisplayContents()

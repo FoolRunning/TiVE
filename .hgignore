@@ -14,3 +14,5 @@ Libraries/*.lib
 ProjectTiVE.sdf
 ProjectTiVE.opensdf
 ipch/*
+.vs
+_ReSharper.Caches
